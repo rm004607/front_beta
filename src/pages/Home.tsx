@@ -1,0 +1,414 @@
+import { useState, useEffect } from 'react';
+import { Link } from 'react-router-dom';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Briefcase, Wrench, Building2, MessageSquare, ArrowRight, MapPin, Calendar, DollarSign, Clock } from 'lucide-react';
+import { useUser } from '@/contexts/UserContext';
+import { jobsAPI, servicesAPI } from '@/lib/api';
+import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
+import heroImage from '@/assets/hero-image.png';
+
+interface Job {
+  id: string;
+  title: string;
+  description: string;
+  comuna: string;
+  job_type: string;
+  salary?: string;
+  created_at: string;
+  company_name: string;
+  profile_image?: string;
+}
+
+interface Service {
+  id: string;
+  service_name: string;
+  description: string;
+  comuna: string;
+  price_range?: string;
+  created_at: string;
+  user_name: string;
+  profile_image?: string;
+}
+
+const Home = () => {
+  const { isLoggedIn } = useUser();
+  const [latestJobs, setLatestJobs] = useState<Job[]>([]);
+  const [latestServices, setLatestServices] = useState<Service[]>([]);
+  const [loadingJobs, setLoadingJobs] = useState(true);
+  const [loadingServices, setLoadingServices] = useState(true);
+
+  useEffect(() => {
+    loadLatestJobs();
+    loadLatestServices();
+  }, []);
+
+  const loadLatestJobs = async () => {
+    try {
+      setLoadingJobs(true);
+      const response = await jobsAPI.getJobs({ page: 1, limit: 6 });
+      setLatestJobs(response.jobs);
+    } catch (error) {
+      console.error('Error loading latest jobs:', error);
+    } finally {
+      setLoadingJobs(false);
+    }
+  };
+
+  const loadLatestServices = async () => {
+    try {
+      setLoadingServices(true);
+      const response = await servicesAPI.getServices({ page: 1, limit: 6 });
+      setLatestServices(response.services);
+    } catch (error) {
+      console.error('Error loading latest services:', error);
+    } finally {
+      setLoadingServices(false);
+    }
+  };
+
+  const formatDate = (dateString: string) => {
+    try {
+      const date = new Date(dateString);
+      const now = new Date();
+      const diffTime = Math.abs(now.getTime() - date.getTime());
+      const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+
+      if (diffDays === 0) return 'Hoy';
+      if (diffDays === 1) return 'Ayer';
+      if (diffDays < 7) return `Hace ${diffDays} días`;
+      return date.toLocaleDateString('es-CL', { day: 'numeric', month: 'short' });
+    } catch {
+      return dateString;
+    }
+  };
+
+  const getJobTypeLabel = (type: string) => {
+    const types: Record<string, string> = {
+      fulltime: 'Tiempo Completo',
+      parttime: 'Medio Tiempo',
+      shifts: 'Por Turnos',
+      freelance: 'Freelance'
+    };
+    return types[type] || type;
+  };
+
+  return (
+    <div className="min-h-screen">
+      {/* Hero Section */}
+      <section className="relative bg-[#0A0A0A] py-24 overflow-hidden">
+        {/* Background Abstract Lines */}
+        <div className="absolute inset-0 overflow-hidden pointer-events-none">
+          <svg className="absolute w-full h-full opacity-30" viewBox="0 0 100 100" preserveAspectRatio="none">
+            <path d="M0,50 Q25,30 50,50 T100,50" fill="none" stroke="#C5A666" strokeWidth="0.2" className="animate-pulse" />
+            <path d="M0,70 Q25,50 50,70 T100,70" fill="none" stroke="#C5A666" strokeWidth="0.1" />
+            <path d="M50,0 Q70,50 50,100" fill="none" stroke="#C5A666" strokeWidth="0.2" className="opacity-50" />
+            <circle cx="80" cy="50" r="30" fill="none" stroke="#C5A666" strokeWidth="0.1" className="opacity-20" />
+          </svg>
+          <div className="absolute right-0 top-0 w-1/2 h-full bg-gradient-to-l from-[#C5A666]/10 to-transparent"></div>
+        </div>
+
+        <div className="container mx-auto px-4 relative z-10">
+          <div className="grid md:grid-cols-2 gap-12 items-center">
+            {/* Left Content */}
+            <div className="animate-fade-in-up text-left">
+              <h1 className="text-5xl md:text-7xl font-sans font-bold text-white mb-6 leading-tight tracking-tight">
+                Conectamos <br />
+                <span className="text-white">Talento y</span> <br />
+                <span className="text-[#C5A666]">Oportunidades</span>
+              </h1>
+              <p className="text-[#C5A666]/80 text-lg md:text-xl mb-10 max-w-lg font-light leading-relaxed">
+                La plataforma que une a personas que buscan trabajo, empresas que contratan y emprendedores que ofrecen servicios.
+              </p>
+              {!isLoggedIn ? (
+                <Link to="/registro">
+                  <Button
+                    size="lg"
+                    className="bg-[#C5A666] hover:bg-[#b09355] text-black font-semibold text-lg px-8 py-6 rounded-md transition-all duration-300 shadow-[0_0_15px_rgba(197,166,102,0.3)] hover:shadow-[0_0_25px_rgba(197,166,102,0.5)]"
+                  >
+                    Explorar oportunidades
+                  </Button>
+                </Link>
+              ) : (
+                <Link to="/empleos">
+                  <Button
+                    size="lg"
+                    className="bg-[#C5A666] hover:bg-[#b09355] text-black font-semibold text-lg px-8 py-6 rounded-md transition-all duration-300 shadow-[0_0_15px_rgba(197,166,102,0.3)]"
+                  >
+                    Explorar oportunidades
+                  </Button>
+                </Link>
+              )}
+            </div>
+
+            {/* Right Content - B Logo */}
+            <div className="relative animate-fade-in delay-200 flex justify-center items-center h-full">
+              <div className="relative w-64 h-64 md:w-96 md:h-96">
+                {/* Outer Circles */}
+                <div className="absolute inset-0 rounded-full border border-[#C5A666]/30 animate-[spin_10s_linear_infinite]"></div>
+                <div className="absolute inset-4 rounded-full border border-[#C5A666]/20 animate-[spin_15s_linear_infinite_reverse]"></div>
+
+                {/* Glowing Backdrop */}
+                <div className="absolute inset-0 bg-[#C5A666]/5 blur-3xl rounded-full"></div>
+
+                {/* The B Logo Container */}
+                <div className="absolute inset-0 flex items-center justify-center">
+                  <div className="w-48 h-48 md:w-64 md:h-64 rounded-full border-2 border-[#C5A666] flex items-center justify-center bg-[#0A0A0A] shadow-[0_0_30px_rgba(197,166,102,0.1)] relative overflow-hidden group">
+                    {/* Shine effect */}
+                    <div className="absolute inset-0 bg-gradient-to-tr from-transparent via-[#C5A666]/10 to-transparent translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-1000"></div>
+
+                    {/* The Letter B */}
+                    <span className="font-serif text-[#C5A666] text-[10rem] md:text-[14rem] leading-none select-none drop-shadow-2xl">
+                      B
+                    </span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Main Actions */}
+      <section className="py-16 container mx-auto px-4">
+        <h2 className="text-3xl font-heading font-bold text-center mb-12 animate-fade-in">¿Qué estás buscando?</h2>
+
+        <div className="grid md:grid-cols-3 gap-6 max-w-5xl mx-auto">
+          {/* Buscar Empleo */}
+          <Link to="/empleos" className="group animate-fade-in-up delay-100">
+            <div className="bg-card border-2 border-border rounded-2xl p-8 text-center hover:border-primary hover:shadow-xl transition-all group-hover:-translate-y-2 duration-300 h-full flex flex-col items-center justify-center">
+              <div className="bg-primary/15 w-24 h-24 rounded-full flex items-center justify-center mx-auto mb-6 group-hover:bg-primary group-hover:scale-110 transition-all duration-300 shadow-sm ring-1 ring-primary/20">
+                <Briefcase className="text-primary group-hover:text-white transition-colors" size={42} strokeWidth={1.5} />
+              </div>
+              <h3 className="text-xl font-heading font-semibold mb-3">Buscar Empleo</h3>
+              <p className="text-muted-foreground">Encuentra ofertas laborales en tu comuna</p>
+            </div>
+          </Link>
+
+          {/* Pared de Pegas */}
+          <Link to="/muro" className="group animate-fade-in-up delay-200">
+            <div className="bg-card border-2 border-border rounded-2xl p-8 text-center hover:border-primary hover:shadow-xl transition-all group-hover:-translate-y-2 duration-300 h-full flex flex-col items-center justify-center">
+              <div className="bg-primary/15 w-24 h-24 rounded-full flex items-center justify-center mx-auto mb-6 group-hover:bg-primary group-hover:scale-110 transition-all duration-300 shadow-sm ring-1 ring-primary/20">
+                <MessageSquare className="text-primary group-hover:text-white transition-colors" size={42} strokeWidth={1.5} />
+              </div>
+              <h3 className="text-xl font-heading font-semibold mb-3">Pared de Pegas</h3>
+              <p className="text-muted-foreground">Avisos rápidos de trabajo</p>
+            </div>
+          </Link>
+
+          {/* Ofrecer Servicio */}
+          <Link to="/servicios/publicar" className="group animate-fade-in-up delay-300">
+            <div className="bg-card border-2 border-border rounded-2xl p-8 text-center hover:border-primary hover:shadow-xl transition-all group-hover:-translate-y-2 duration-300 h-full flex flex-col items-center justify-center">
+              <div className="bg-primary/15 w-24 h-24 rounded-full flex items-center justify-center mx-auto mb-6 group-hover:bg-primary group-hover:scale-110 transition-all duration-300 shadow-sm ring-1 ring-primary/20">
+                <Wrench className="text-primary group-hover:text-white transition-colors" size={42} strokeWidth={1.5} />
+              </div>
+              <h3 className="text-xl font-heading font-semibold mb-3">Ofrecer Servicio</h3>
+              <p className="text-muted-foreground">Promociona tu oficio o emprendimiento</p>
+            </div>
+          </Link>
+        </div>
+      </section>
+
+      {/* Últimos Anuncios */}
+      <section className="py-16 container mx-auto px-4">
+        <div className="grid lg:grid-cols-2 gap-8">
+          {/* Últimos Empleos */}
+          <div className="animate-fade-in-up delay-200">
+            <div className="flex items-center justify-between mb-6">
+              <h2 className="text-3xl font-heading font-bold flex items-center gap-3">
+                <Briefcase className="text-primary" size={32} />
+                Últimos Empleos
+              </h2>
+              <Link to="/empleos">
+                <Button variant="ghost" size="sm" className="text-primary">
+                  Ver todos
+                  <ArrowRight size={16} className="ml-2" />
+                </Button>
+              </Link>
+            </div>
+
+            {loadingJobs ? (
+              <div className="text-center py-8">
+                <p className="text-muted-foreground">Cargando empleos...</p>
+              </div>
+            ) : latestJobs.length === 0 ? (
+              <Card>
+                <CardContent className="pt-6">
+                  <p className="text-center text-muted-foreground">No hay empleos disponibles aún</p>
+                </CardContent>
+              </Card>
+            ) : (
+              <div className="space-y-4">
+                {latestJobs.map((job) => (
+                  <Link key={job.id} to={`/empleos`}>
+                    <Card className="hover:shadow-lg transition-shadow cursor-pointer border-2 hover:border-primary">
+                      <CardHeader>
+                        <div className="flex items-start justify-between gap-4">
+                          <div className="flex-1">
+                            <CardTitle className="text-lg mb-2">{job.title}</CardTitle>
+                            <div className="flex items-center gap-4 text-sm text-muted-foreground flex-wrap">
+                              <div className="flex items-center gap-1">
+                                <Building2 size={14} />
+                                <span>{job.company_name}</span>
+                              </div>
+                              <div className="flex items-center gap-1">
+                                <MapPin size={14} />
+                                <span>{job.comuna}</span>
+                              </div>
+                              <div className="flex items-center gap-1">
+                                <Clock size={14} />
+                                <span>{getJobTypeLabel(job.job_type)}</span>
+                              </div>
+                              {job.salary && (
+                                <div className="flex items-center gap-1">
+                                  <DollarSign size={14} />
+                                  <span>{job.salary}</span>
+                                </div>
+                              )}
+                            </div>
+                          </div>
+                        </div>
+                      </CardHeader>
+                      <CardContent>
+                        <p className="text-sm text-muted-foreground line-clamp-2 mb-3">
+                          {job.description}
+                        </p>
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-1 text-xs text-muted-foreground">
+                            <Calendar size={12} />
+                            <span>{formatDate(job.created_at)}</span>
+                          </div>
+                          <Button variant="ghost" size="sm" className="text-primary">
+                            Ver detalles
+                            <ArrowRight size={14} className="ml-1" />
+                          </Button>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  </Link>
+                ))}
+              </div>
+            )}
+          </div>
+
+          {/* Últimos Servicios */}
+          <div className="animate-fade-in-up delay-300">
+            <div className="flex items-center justify-between mb-6">
+              <h2 className="text-3xl font-heading font-bold flex items-center gap-3">
+                <Wrench className="text-primary" size={32} />
+                Últimos Servicios
+              </h2>
+              <Link to="/servicios">
+                <Button variant="ghost" size="sm" className="text-primary hover:text-primary/80">
+                  Ver todos
+                  <ArrowRight size={16} className="ml-2" />
+                </Button>
+              </Link>
+            </div>
+
+            {loadingServices ? (
+              <div className="text-center py-8">
+                <p className="text-muted-foreground">Cargando servicios...</p>
+              </div>
+            ) : latestServices.length === 0 ? (
+              <Card>
+                <CardContent className="pt-6">
+                  <p className="text-center text-muted-foreground">No hay servicios disponibles aún</p>
+                </CardContent>
+              </Card>
+            ) : (
+              <div className="space-y-4">
+                {latestServices.map((service) => (
+                  <Link key={service.id} to={`/servicios`}>
+                    <Card className="hover:shadow-lg transition-shadow cursor-pointer border-2 hover:border-primary">
+                      <CardHeader>
+                        <div className="flex items-start justify-between gap-4">
+                          <div className="flex-1">
+                            <CardTitle className="text-lg mb-2">{service.service_name}</CardTitle>
+                            <div className="flex items-center gap-4 text-sm text-muted-foreground flex-wrap">
+                              <div className="flex items-center gap-2">
+                                <Avatar className="w-6 h-6">
+                                  {service.profile_image && (
+                                    <AvatarImage src={service.profile_image} alt={service.user_name} />
+                                  )}
+                                  <AvatarFallback className="text-xs bg-primary text-primary-foreground font-bold">
+                                    {service.user_name.split(' ').map((n: string) => n[0]).join('').substring(0, 2)}
+                                  </AvatarFallback>
+                                </Avatar>
+                                <span>{service.user_name}</span>
+                              </div>
+                              <div className="flex items-center gap-1">
+                                <MapPin size={14} />
+                                <span>{service.comuna}</span>
+                              </div>
+                              {service.price_range && (
+                                <div className="flex items-center gap-1">
+                                  <DollarSign size={14} />
+                                  <span>{service.price_range}</span>
+                                </div>
+                              )}
+                            </div>
+                          </div>
+                        </div>
+                      </CardHeader>
+                      <CardContent>
+                        <p className="text-sm text-muted-foreground line-clamp-2 mb-3">
+                          {service.description}
+                        </p>
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-1 text-xs text-muted-foreground">
+                            <Calendar size={12} />
+                            <span>{formatDate(service.created_at)}</span>
+                          </div>
+                          <Button variant="ghost" size="sm" className="text-primary hover:text-primary/80">
+                            Ver detalles
+                            <ArrowRight size={14} className="ml-1" />
+                          </Button>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  </Link>
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
+      </section>
+
+      {/* Features */}
+      <section className="bg-primary/5 py-16">
+        <div className="container mx-auto px-4">
+          <h2 className="text-3xl font-heading font-bold text-center mb-12 animate-fade-in">¿Por qué Beta?</h2>
+
+          <div className="grid md:grid-cols-3 gap-8 max-w-5xl mx-auto">
+            <div className="text-center animate-fade-in-up delay-100">
+              <div className="bg-primary/10 w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-4 shadow-sm ring-1 ring-primary/20">
+                <span className="text-3xl">🎯</span>
+              </div>
+              <h3 className="text-lg font-heading font-semibold mb-2">Local y Cercano</h3>
+              <p className="text-muted-foreground">Encuentra oportunidades en tu propia comuna</p>
+            </div>
+
+            <div className="text-center animate-fade-in-up delay-200">
+              <div className="bg-primary/10 w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-4 shadow-sm ring-1 ring-primary/20">
+                <span className="text-3xl">⚡</span>
+              </div>
+              <h3 className="text-lg font-heading font-semibold mb-2">Rápido y Fácil</h3>
+              <p className="text-muted-foreground">Regístrate y comienza en minutos</p>
+            </div>
+
+            <div className="text-center animate-fade-in-up delay-300">
+              <div className="bg-primary/10 w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-4 shadow-sm ring-1 ring-primary/20">
+                <span className="text-3xl">🤝</span>
+              </div>
+              <h3 className="text-lg font-heading font-semibold mb-2">Comunidad Activa</h3>
+              <p className="text-muted-foreground">Conecta directamente con empresas y personas</p>
+            </div>
+          </div>
+        </div>
+      </section>
+    </div>
+  );
+};
+
+export default Home;

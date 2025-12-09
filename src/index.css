@@ -1,0 +1,150 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Definition of the design system. All colors, gradients, fonts, etc should be defined here. 
+All colors MUST be HSL.
+*/
+
+@layer base {
+  :root {
+    /* Beta Brand Colors - Black & Gold Minimalist Theme */
+    --background: 0 0% 100%;  /* Pure white */
+    --foreground: 0 0% 5%;  /* Pure black */
+
+    --card: 0 0% 100%;
+    --card-foreground: 0 0% 5%;
+
+    --popover: 0 0% 100%;
+    --popover-foreground: 0 0% 5%;
+
+    --primary: 42 85% 45%;  /* Deep Goldenrod */
+    --primary-foreground: 0 0% 100%; /* White text */
+
+    /* Replacing Grays with Warm Black/Gold Neutrals */
+    --secondary: 42 10% 96%;  /* Very light warm beige (instead of gray) */
+    --secondary-foreground: 42 85% 35%; /* Darker gold text */
+
+    --muted: 42 20% 97%; /* Warm ultra-light beige */
+    --muted-foreground: 42 10% 40%; /* Warm dark taupe */
+
+    --accent: 42 85% 45%;
+    --accent-foreground: 0 0% 100%;
+
+    --destructive: 0 72% 51%;
+    --destructive-foreground: 0 0% 100%;
+
+    --border: 42 20% 90%; /* Warm light border */
+    --input: 42 20% 95%;
+    --ring: 42 85% 45%;
+
+    --radius: 0.5rem;
+
+    --sidebar-background: 42 20% 98%;
+    --sidebar-foreground: 0 0% 10%;
+    --sidebar-primary: 42 85% 45%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 42 15% 95%;
+    --sidebar-accent-foreground: 42 85% 45%;
+    --sidebar-border: 42 20% 90%;
+    --sidebar-ring: 42 85% 45%;
+  }
+
+  .dark {
+    --background: 0 0% 5%;  /* Deepest black (almost void) */
+    --foreground: 45 60% 95%;  /* Pale gold text */
+
+    --card: 0 0% 8%;  /* Very dark black/brown */
+    --card-foreground: 45 60% 95%;
+
+    --popover: 0 0% 8%;
+    --popover-foreground: 45 60% 95%;
+
+    --primary: 45 100% 50%;  /* Vibrant Gold */
+    --primary-foreground: 0 0% 5%;
+
+    /* Replacing Grays with Dark Warm Tones */
+    --secondary: 42 20% 12%;  /* Dark warm black/brown */
+    --secondary-foreground: 45 90% 80%;
+
+    --muted: 42 10% 12%; /* Dark warm neutral */
+    --muted-foreground: 45 40% 60%; /* Muted gold */
+
+    --accent: 45 100% 50%;
+    --accent-foreground: 0 0% 5%;
+
+    --destructive: 0 72% 51%;
+    --destructive-foreground: 0 0% 100%;
+
+    --border: 42 20% 15%; /* Dark warm border */
+    --input: 42 20% 12%;
+    --ring: 45 100% 50%;
+    
+    --sidebar-background: 0 0% 6%;
+    --sidebar-foreground: 45 60% 95%;
+    --sidebar-primary: 45 100% 50%;
+    --sidebar-primary-foreground: 0 0% 5%;
+    --sidebar-accent: 42 20% 12%;
+    --sidebar-accent-foreground: 45 100% 50%;
+    --sidebar-border: 42 20% 15%;
+    --sidebar-ring: 45 100% 50%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground;
+    font-family: 'Inter', sans-serif;
+    background-image: linear-gradient(to bottom, transparent 80%, hsl(var(--primary) / 0.05) 100%);
+    background-attachment: fixed;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    font-family: 'Montserrat', sans-serif;
+    font-weight: 600;
+  }
+}
+
+@layer utilities {
+  .animate-fade-in-up {
+    animation: fadeInUp 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    opacity: 0;
+  }
+  
+  .animate-fade-in {
+    animation: fadeIn 0.6s ease-out forwards;
+    opacity: 0;
+  }
+  
+  .delay-100 { animation-delay: 100ms; }
+  .delay-200 { animation-delay: 200ms; }
+  .delay-300 { animation-delay: 300ms; }
+
+  @keyframes fadeInUp {
+    from {
+      opacity: 0;
+      transform: translateY(20px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  @keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+  }
+
+  .hover-gold-glow:hover {
+    box-shadow: 0 0 20px -5px hsl(var(--primary) / 0.5);
+  }
+  
+  .glass-card {
+    @apply bg-background/80 backdrop-blur-md border border-white/20 dark:border-white/10;
+  }
+}

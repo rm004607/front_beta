@@ -1,0 +1,113 @@
+import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import { authAPI } from '@/lib/api';
+
+export type UserRole = 'job-seeker' | 'entrepreneur' | 'company' | 'admin' | 'super-admin';
+
+export interface UserProfile {
+  id: string;
+  name: string;
+  email: string;
+  phone: string;
+  comuna: string;
+  profile_image?: string | null;
+  cv_url?: string | null;
+  roles: UserRole[];
+  // Job seeker specific
+  rubro?: string;
+  experience?: string;
+  cvUrl?: string;
+  // Entrepreneur specific
+  service?: string;
+  portfolio?: string[];
+  priceRange?: string;
+  // Company specific
+  companyRut?: string;
+  companyAddress?: string;
+  companyRubro?: string;
+  hrContact?: string;
+}
+
+interface UserContextType {
+  user: UserProfile | null;
+  setUser: (user: UserProfile | null) => void;
+  isLoggedIn: boolean;
+  isLoading: boolean;
+  logout: () => void;
+  login: (email: string, password: string) => Promise<void>;
+  loadUser: () => Promise<void>;
+}
+
+const UserContext = createContext<UserContextType | undefined>(undefined);
+
+export const UserProvider = ({ children }: { children: ReactNode }) => {
+  const [user, setUser] = useState<UserProfile | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+
+  // Cargar usuario al iniciar - las cookies se envían automáticamente
+  useEffect(() => {
+    loadUser().finally(() => setIsLoading(false));
+  }, []);
+
+  const loadUser = async () => {
+    try {
+      const response = await authAPI.getMe();
+      const dbUser = response.user;
+      
+      // Convertir role_number a UserRole
+      const roleMap: Record<number, UserRole> = {
+        1: 'job-seeker',
+        2: 'entrepreneur',
+        3: 'company',
+        4: 'admin',
+        5: 'super-admin',
+      };
+      
+      const userProfile: UserProfile = {
+        id: dbUser.id,
+        name: dbUser.name,
+        email: dbUser.email,
+        phone: dbUser.phone,
+        comuna: dbUser.comuna,
+        profile_image: dbUser.profile_image || null,
+        cv_url: dbUser.cv_url || null,
+        roles: [roleMap[dbUser.role_number] || 'job-seeker'],
+      };
+      
+      setUser(userProfile);
+    } catch (error) {
+      // Si no hay cookie válida o expiró, el usuario no está autenticado
+      // Limpiar cualquier dato local residual
+      localStorage.removeItem('token');
+      setUser(null);
+    }
+  };
+
+  const login = async (email: string, password: string) => {
+    const response = await authAPI.login({ email, password });
+    
+    // Cargar perfil completo después del login
+    // La cookie ya fue establecida por el servidor
+    await loadUser();
+  };
+
+  const logout = async () => {
+    await authAPI.logout();
+    setUser(null);
+  };
+
+  const isLoggedIn = user !== null;
+
+  return (
+    <UserContext.Provider value={{ user, setUser, isLoggedIn, isLoading, logout, login, loadUser }}>
+      {children}
+    </UserContext.Provider>
+  );
+};
+
+export const useUser = () => {
+  const context = useContext(UserContext);
+  if (context === undefined) {
+    throw new Error('useUser must be used within a UserProvider');
+  }
+  return context;
+};
