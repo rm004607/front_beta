@@ -49,6 +49,8 @@ const Register = () => {
   const [selectedRole, setSelectedRole] = useState<UserRole | null>(null);
   const [googleRole, setGoogleRole] = useState<UserRole | null>(null);
   const [showGoogleRoles, setShowGoogleRoles] = useState(false);
+  const [acceptTerms, setAcceptTerms] = useState(false);
+  const [showTerms, setShowTerms] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   // Step 3: Role-specific data
@@ -67,6 +69,10 @@ const Register = () => {
   };
 
   const handleGoogleSignup = () => {
+    if (!acceptTerms) {
+      toast.error('Debes aceptar los Términos y Condiciones');
+      return;
+    }
     if (!googleRole) {
       toast.error('Selecciona un rol para continuar con Google');
       return;
@@ -90,6 +96,10 @@ const Register = () => {
     if (step === 1) {
       if (!name || !email || !password || !phone || !comuna) {
         toast.error('Por favor completa todos los campos');
+        return;
+      }
+      if (!acceptTerms) {
+        toast.error('Debes aceptar los Términos y Condiciones');
         return;
       }
     }
@@ -164,15 +174,6 @@ const Register = () => {
         <CardContent>
           {step === 1 && (
             <div className="space-y-6">
-              <div className="relative my-4">
-                <div className="absolute inset-0 flex items-center">
-                  <span className="w-full border-t" />
-                </div>
-                <div className="relative flex justify-center text-xs uppercase">
-                  <span className="bg-background px-2 text-muted-foreground">Completa el formulario</span>
-                </div>
-              </div>
-
               <div>
                 <Label htmlFor="name">Nombre Completo</Label>
                 <Input
@@ -220,10 +221,49 @@ const Register = () => {
                   placeholder="Tu comuna"
                 />
               </div>
-              <Button onClick={handleNext} className="w-full">
-                Siguiente
-                <ArrowRight className="ml-2" size={18} />
-              </Button>
+              <div className="space-y-3">
+                <div className="flex items-start gap-2">
+                  <Checkbox
+                    id="accept-terms"
+                    checked={acceptTerms}
+                    onCheckedChange={(checked) => setAcceptTerms(!!checked)}
+                  />
+                  <div className="space-y-1">
+                    <Label htmlFor="accept-terms" className="text-sm font-medium leading-tight cursor-pointer">
+                      Acepto los Términos y Condiciones
+                    </Label>
+                    <button
+                      type="button"
+                      className="text-xs text-primary underline"
+                      onClick={() => setShowTerms(!showTerms)}
+                    >
+                      {showTerms ? 'Ocultar' : 'Ver'} Términos
+                    </button>
+                    {showTerms && (
+                      <div className="mt-2 max-h-48 overflow-y-auto rounded-md border p-3 text-xs leading-relaxed">
+                        <p><strong>Bienvenido/a a Beta</strong>, una plataforma que conecta a personas que buscan oportunidades laborales, empresas que contratan y emprendedores que ofrecen servicios.</p>
+                        <p className="mt-2">Al registrarse y utilizar Beta, usted acepta estos Términos y Condiciones. Si no está de acuerdo, no debe usar la plataforma.</p>
+                        <p className="mt-2"><strong>1. Aceptación de los Términos</strong><br />Al crear una cuenta en Beta, el usuario declara haber leído, entendido y aceptado íntegramente estos Términos y Condiciones, así como la Política de Privacidad asociada.</p>
+                        <p className="mt-2"><strong>2. Naturaleza del Servicio</strong><br />Beta es una plataforma que facilita la conexión entre usuarios, empresas y proveedores de servicios. Beta no garantiza empleos, ni se responsabiliza por acuerdos, pagos, compromisos o relaciones laborales generadas entre los usuarios fuera de la plataforma. El usuario entiende que Beta no participa en negociaciones laborales, no valida la veracidad total de las ofertas publicadas por terceros y no se hace responsable de conflictos, pérdidas o daños derivados de interacciones entre usuarios.</p>
+                        <p className="mt-2"><strong>3. Registro y Responsabilidad del Usuario</strong><br />El usuario debe proporcionar datos verdaderos, completos y actualizados; no crear cuentas falsas o duplicadas; no suplantar identidad; no publicar contenido ofensivo, ilegal o que viole derechos; y mantener segura su información de inicio de sesión. Beta puede suspender o eliminar cuentas que incumplan estos términos sin previo aviso.</p>
+                        <p className="mt-2"><strong>4. Contenido Publicado por Usuarios</strong><br />Los usuarios son responsables del contenido que publiquen y declaran tener derechos para hacerlo. Otorgan a Beta una licencia no exclusiva para mostrarlo en la plataforma. Beta puede eliminar contenido que infrinja leyes o buenas prácticas.</p>
+                        <p className="mt-2"><strong>5. Uso Aceptable</strong><br />Prohibido publicar ofertas engañosas, estafas o actividades ilícitas; promover discriminación o violencia; hostigar o amenazar; hacer spam; o manipular el funcionamiento de la plataforma.</p>
+                        <p className="mt-2"><strong>6. Limitación de Responsabilidad</strong><br />Beta no garantiza encontrar empleo, que empleadores o trabajadores cumplan, ni que la plataforma sea ininterrumpida o totalmente segura. No es responsable por daños, pérdidas de datos, ingresos u oportunidades, ni por conflictos entre usuarios. El uso es bajo responsabilidad del usuario.</p>
+                        <p className="mt-2"><strong>7. Datos Personales</strong><br />Beta trata datos según su Política de Privacidad, no vende datos a terceros y usa la información para operar y mejorar el servicio.</p>
+                        <p className="mt-2"><strong>8. Modificaciones de los Términos</strong><br />Beta puede actualizar estos Términos; el uso continuado implica aceptación.</p>
+                        <p className="mt-2"><strong>9. Suspensión o Eliminación de Cuenta</strong><br />Beta puede suspender o eliminar cuentas que infrinjan términos, cometan fraude o pongan en riesgo la plataforma o a otros usuarios.</p>
+                        <p className="mt-2"><strong>10. Ley Aplicable</strong><br />Estos Términos se rigen por las leyes de Chile (o el país que se elija).</p>
+                        <p className="mt-2"><strong>11. Aceptación</strong><br />Al continuar, confirmas que aceptas estos Términos.</p>
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                <Button onClick={handleNext} className="w-full">
+                  Siguiente
+                  <ArrowRight className="ml-2" size={18} />
+                </Button>
+              </div>
 
               {/* Botón dorado para registro con Google */}
               <div className="pt-2 space-y-3">
