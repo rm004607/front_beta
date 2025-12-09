@@ -96,7 +96,7 @@ const Home = () => {
   return (
     <div className="min-h-screen">
       {/* Hero Section */}
-      <section className="relative bg-[#0A0A0A] py-24 overflow-hidden">
+      <section className="relative bg-[#0A0A0A] py-16 md:py-24 overflow-hidden">
         {/* Background Abstract Lines */}
         <div className="absolute inset-0 overflow-hidden pointer-events-none">
           <svg className="absolute w-full h-full opacity-30" viewBox="0 0 100 100" preserveAspectRatio="none">
@@ -108,23 +108,23 @@ const Home = () => {
           <div className="absolute right-0 top-0 w-1/2 h-full bg-gradient-to-l from-[#C5A666]/10 to-transparent"></div>
         </div>
 
-        <div className="container mx-auto px-4 relative z-10">
-          <div className="grid md:grid-cols-2 gap-12 items-center">
+        <div className="container mx-auto px-4 relative z-10 max-w-6xl">
+          <div className="grid md:grid-cols-2 gap-10 md:gap-12 items-center">
             {/* Left Content */}
-            <div className="animate-fade-in-up text-left">
-              <h1 className="text-5xl md:text-7xl font-sans font-bold text-white mb-6 leading-tight tracking-tight">
+            <div className="animate-fade-in-up text-left space-y-6">
+              <h1 className="text-4xl sm:text-5xl md:text-6xl font-sans font-bold text-white leading-tight tracking-tight">
                 Conectamos <br />
                 <span className="text-white">Talento y</span> <br />
                 <span className="text-[#C5A666]">Oportunidades</span>
               </h1>
-              <p className="text-[#C5A666]/80 text-lg md:text-xl mb-10 max-w-lg font-light leading-relaxed">
+              <p className="text-[#C5A666]/80 text-base sm:text-lg md:text-xl max-w-xl font-light leading-relaxed">
                 La plataforma que une a personas que buscan trabajo, empresas que contratan y emprendedores que ofrecen servicios.
               </p>
               {!isLoggedIn ? (
                 <Link to="/registro">
                   <Button
                     size="lg"
-                    className="bg-[#C5A666] hover:bg-[#b09355] text-black font-semibold text-lg px-8 py-6 rounded-md transition-all duration-300 shadow-[0_0_15px_rgba(197,166,102,0.3)] hover:shadow-[0_0_25px_rgba(197,166,102,0.5)]"
+                    className="bg-[#C5A666] hover:bg-[#b09355] text-black font-semibold text-base sm:text-lg px-6 sm:px-8 py-4 sm:py-6 rounded-md transition-all duration-300 shadow-[0_0_15px_rgba(197,166,102,0.3)] hover:shadow-[0_0_25px_rgba(197,166,102,0.5)] w-full sm:w-auto"
                   >
                     Explorar oportunidades
                   </Button>
@@ -133,7 +133,7 @@ const Home = () => {
                 <Link to="/empleos">
                   <Button
                     size="lg"
-                    className="bg-[#C5A666] hover:bg-[#b09355] text-black font-semibold text-lg px-8 py-6 rounded-md transition-all duration-300 shadow-[0_0_15px_rgba(197,166,102,0.3)]"
+                    className="bg-[#C5A666] hover:bg-[#b09355] text-black font-semibold text-base sm:text-lg px-6 sm:px-8 py-4 sm:py-6 rounded-md transition-all duration-300 shadow-[0_0_15px_rgba(197,166,102,0.3)] w-full sm:w-auto"
                   >
                     Explorar oportunidades
                   </Button>
@@ -143,7 +143,7 @@ const Home = () => {
 
             {/* Right Content - B Logo */}
             <div className="relative animate-fade-in delay-200 flex justify-center items-center h-full">
-              <div className="relative w-64 h-64 md:w-96 md:h-96">
+              <div className="relative w-56 h-56 sm:w-72 sm:h-72 md:w-96 md:h-96">
                 {/* Outer Circles */}
                 <div className="absolute inset-0 rounded-full border border-[#C5A666]/30 animate-[spin_10s_linear_infinite]"></div>
                 <div className="absolute inset-4 rounded-full border border-[#C5A666]/20 animate-[spin_15s_linear_infinite_reverse]"></div>
@@ -173,7 +173,7 @@ const Home = () => {
       <section className="py-16 container mx-auto px-4">
         <h2 className="text-3xl font-heading font-bold text-center mb-12 animate-fade-in">¿Qué estás buscando?</h2>
 
-        <div className="grid md:grid-cols-3 gap-6 max-w-5xl mx-auto">
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6 max-w-5xl mx-auto">
           {/* Buscar Empleo */}
           <Link to="/empleos" className="group animate-fade-in-up delay-100">
             <div className="bg-card border-2 border-border rounded-2xl p-8 text-center hover:border-primary hover:shadow-xl transition-all group-hover:-translate-y-2 duration-300 h-full flex flex-col items-center justify-center">
@@ -211,7 +211,7 @@ const Home = () => {
 
       {/* Últimos Anuncios */}
       <section className="py-16 container mx-auto px-4">
-        <div className="grid lg:grid-cols-2 gap-8">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
           {/* Últimos Empleos */}
           <div className="animate-fade-in-up delay-200">
             <div className="flex items-center justify-between mb-6">
