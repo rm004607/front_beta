@@ -876,7 +876,7 @@ const Profile = () => {
         <CardContent>
           {user.cv_url ? (
             <div className="space-y-4">
-              <div className="flex items-center justify-between p-4 bg-muted rounded-lg">
+              <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between p-4 bg-muted rounded-lg">
                 <div className="flex items-center gap-3">
                   <FileText className="text-primary" size={24} />
                   <div>
@@ -886,10 +886,11 @@ const Profile = () => {
                     </p>
                   </div>
                 </div>
-                <div className="flex gap-2">
+                <div className="w-full md:w-auto grid grid-cols-1 sm:grid-cols-3 md:flex md:flex-wrap gap-2">
                   <Button
                     variant="outline"
                     onClick={handleDownloadCV}
+                    className="w-full sm:w-auto"
                   >
                     <Download size={16} className="mr-2" />
                     Descargar
@@ -897,6 +898,7 @@ const Profile = () => {
                   <Button
                     variant="outline"
                     onClick={() => setShowCVSection(true)}
+                    className="w-full sm:w-auto"
                   >
                     <Upload size={16} className="mr-2" />
                     Reemplazar
@@ -904,6 +906,7 @@ const Profile = () => {
                   <Button
                     variant="outline"
                     onClick={handleDeleteCV}
+                    className="w-full sm:w-auto"
                   >
                     <Trash2 size={16} className="mr-2" />
                     Eliminar
@@ -1000,11 +1003,11 @@ const Profile = () => {
                   className="hidden"
                 />
 
-                <div className="flex gap-2">
+                <div className="flex flex-col sm:flex-row gap-2">
                   <Button
                     onClick={handleSaveCV}
                     disabled={!selectedCV || isUploadingCV}
-                    className="flex-1"
+                    className="w-full sm:w-auto flex-1"
                   >
                     {isUploadingCV ? 'Subiendo...' : 'Guardar CV'}
                   </Button>
@@ -1017,6 +1020,7 @@ const Profile = () => {
                         cvInputRef.current.value = '';
                       }
                     }}
+                    className="w-full sm:w-auto"
                   >
                     Cancelar
                   </Button>
