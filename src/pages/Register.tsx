@@ -27,7 +27,7 @@ const Register = () => {
     const googleSuccess = searchParams.get('google_login');
     if (googleSuccess === 'success') {
       loadUser().then(() => {
-        toast.success('¡Registro exitoso con Google!');
+        toast.success('Bienvenido a BETA');
         navigate('/');
       });
     }
