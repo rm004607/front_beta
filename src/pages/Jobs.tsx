@@ -203,18 +203,18 @@ const Jobs = () => {
   return (
     <div className="container mx-auto px-4 py-8">
       {/* Header */}
-      <div className="flex justify-between items-center mb-8">
-        <div>
-          <h1 className="text-4xl font-heading font-bold mb-2">Ofertas de Empleo</h1>
+      <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between mb-8">
+        <div className="space-y-1">
+          <h1 className="text-3xl sm:text-4xl font-heading font-bold">Ofertas de Empleo</h1>
           <p className="text-muted-foreground">Encuentra tu próxima oportunidad laboral</p>
         </div>
-        <div className="flex gap-2">
+        <div className="flex flex-wrap gap-2 w-full md:w-auto justify-start md:justify-end">
           {canApply && user?.cv_url && (
             <>
               <Button
                 variant="outline"
                 onClick={() => setShowAskAI(true)}
-                className="bg-gradient-to-r from-yellow-500 to-yellow-600 text-black hover:from-yellow-600 hover:to-yellow-700"
+                className="bg-gradient-to-r from-yellow-500 to-yellow-600 text-black hover:from-yellow-600 hover:to-yellow-700 w-full sm:w-auto"
               >
                 <Sparkles size={18} className="mr-2" />
                 Preguntar a la IA
@@ -224,7 +224,7 @@ const Jobs = () => {
           )}
           {canPublishJob && (
             <Link to="/empleos/publicar">
-              <Button>
+              <Button className="w-full sm:w-auto">
                 <Plus size={18} className="mr-2" />
                 Publicar Empleo
               </Button>

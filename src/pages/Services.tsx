@@ -148,18 +148,18 @@ const Services = () => {
   return (
     <div className="container mx-auto px-4 py-8">
       {/* Header */}
-      <div className="flex justify-between items-center mb-8">
-        <div>
-          <h1 className="text-4xl font-heading font-bold mb-2">Servicios y Emprendedores</h1>
+      <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between mb-8">
+        <div className="space-y-1">
+          <h1 className="text-3xl sm:text-4xl font-heading font-bold">Servicios y Emprendedores</h1>
           <p className="text-muted-foreground">Encuentra profesionales y servicios en tu comuna</p>
         </div>
-        <div className="flex gap-2">
+        <div className="flex flex-wrap gap-2 w-full md:w-auto justify-start md:justify-end">
           {isLoggedIn && (
             <Button
               variant="outline"
               onClick={handleOpenChatModal}
               disabled={isSendingMessage}
-              className="bg-gradient-to-r from-blue-500 to-cyan-500 text-white hover:from-blue-600 hover:to-cyan-600"
+              className="bg-gradient-to-r from-blue-500 to-cyan-500 text-white hover:from-blue-600 hover:to-cyan-600 w-full sm:w-auto"
             >
               {isSendingMessage ? (
                 <>
@@ -176,7 +176,7 @@ const Services = () => {
           )}
           {(user?.roles.includes('entrepreneur') || user?.roles.includes('super-admin')) && (
             <Link to="/servicios/publicar">
-              <Button className="bg-primary hover:bg-primary/90 text-primary-foreground hover-gold-glow transition-all duration-300">
+              <Button className="bg-primary hover:bg-primary/90 text-primary-foreground hover-gold-glow transition-all duration-300 w-full sm:w-auto">
                 <Plus size={18} className="mr-2" />
                 Publicar Servicio
               </Button>
