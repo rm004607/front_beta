@@ -78,70 +78,76 @@ const Layout = ({ children }: LayoutProps) => {
             </nav>
 
             <div className="flex items-center gap-3">
-              <ThemeToggle />
-              {isLoggedIn ? (
-                <>
-                  {(user?.roles.includes('admin') || user?.roles.includes('super-admin')) && (
-                    <Link to="/admin">
-                      <Button 
-                        variant="outline" 
-                        size="icon"
-                        className="border-primary/50 text-primary hover:bg-primary/10 hover:border-primary hover:text-primary-foreground dark:border-primary/50 dark:text-primary dark:hover:bg-primary/20 dark:hover:border-primary dark:hover:text-primary-foreground transition-colors"
-                      >
-                        <Shield size={18} className="text-primary dark:text-primary" />
-                      </Button>
-                    </Link>
-                  )}
-                  <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                      <button className="outline-none focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 rounded-full">
-                        <Avatar className="h-10 w-10 cursor-pointer hover:opacity-80 transition-opacity border-2 border-border">
-                          {user?.profile_image && (
-                            <AvatarImage src={user.profile_image} alt={user.name} />
-                          )}
-                          <AvatarFallback className="bg-primary text-primary-foreground">
-                            {user?.name?.split(' ').map(n => n[0]).join('').toUpperCase() || 'U'}
-                          </AvatarFallback>
-                        </Avatar>
-                      </button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end" className="bg-card">
-                      <DropdownMenuItem asChild>
-                        <Link to="/perfil" className="cursor-pointer">
-                          <User size={16} className="mr-2" />
-                          Mi Perfil
-                        </Link>
-                      </DropdownMenuItem>
-                      {(user?.roles.includes('company') || user?.roles.includes('admin') || user?.roles.includes('super-admin')) && (
+              <div className="hidden md:block">
+                <ThemeToggle />
+              </div>
+
+              {/* Desktop auth/actions */}
+              <div className="hidden md:flex items-center gap-3">
+                {isLoggedIn ? (
+                  <>
+                    {(user?.roles.includes('admin') || user?.roles.includes('super-admin')) && (
+                      <Link to="/admin">
+                        <Button 
+                          variant="outline" 
+                          size="icon"
+                          className="border-primary/50 text-primary hover:bg-primary/10 hover:border-primary hover:text-primary-foreground dark:border-primary/50 dark:text-primary dark:hover:bg-primary/20 dark:hover:border-primary dark:hover:text-primary-foreground transition-colors"
+                        >
+                          <Shield size={18} className="text-primary dark:text-primary" />
+                        </Button>
+                      </Link>
+                    )}
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <button className="outline-none focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 rounded-full">
+                          <Avatar className="h-10 w-10 cursor-pointer hover:opacity-80 transition-opacity border-2 border-border">
+                            {user?.profile_image && (
+                              <AvatarImage src={user.profile_image} alt={user.name} />
+                            )}
+                            <AvatarFallback className="bg-primary text-primary-foreground">
+                              {user?.name?.split(' ').map(n => n[0]).join('').toUpperCase() || 'U'}
+                            </AvatarFallback>
+                          </Avatar>
+                        </button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end" className="bg-card">
                         <DropdownMenuItem asChild>
-                          <Link to="/postulaciones" className="cursor-pointer">
-                            <FileText size={16} className="mr-2" />
-                            Postulaciones
+                          <Link to="/perfil" className="cursor-pointer">
+                            <User size={16} className="mr-2" />
+                            Mi Perfil
                           </Link>
                         </DropdownMenuItem>
-                      )}
-                      <DropdownMenuItem 
-                        onClick={() => {
-                          logout().catch(console.error);
-                        }} 
-                        className="cursor-pointer"
-                      >
-                        <LogOut size={16} className="mr-2" />
-                        Cerrar Sesión
-                      </DropdownMenuItem>
-                    </DropdownMenuContent>
-                  </DropdownMenu>
-                </>
-              ) : (
-                <>
-                  <Link to="/login">
-                    <Button variant="outline">Iniciar Sesión</Button>
-                  </Link>
-                  <Link to="/registro">
-                    <Button>Registrarse</Button>
-                  </Link>
-                </>
-              )}
+                        {(user?.roles.includes('company') || user?.roles.includes('admin') || user?.roles.includes('super-admin')) && (
+                          <DropdownMenuItem asChild>
+                            <Link to="/postulaciones" className="cursor-pointer">
+                              <FileText size={16} className="mr-2" />
+                              Postulaciones
+                            </Link>
+                          </DropdownMenuItem>
+                        )}
+                        <DropdownMenuItem 
+                          onClick={() => {
+                            logout().catch(console.error);
+                          }} 
+                          className="cursor-pointer"
+                        >
+                          <LogOut size={16} className="mr-2" />
+                          Cerrar Sesión
+                        </DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                  </>
+                ) : (
+                  <>
+                    <Link to="/login">
+                      <Button variant="outline">Iniciar Sesión</Button>
+                    </Link>
+                    <Link to="/registro">
+                      <Button>Registrarse</Button>
+                    </Link>
+                  </>
+                )}
+              </div>
 
               {/* Mobile Menu */}
               <DropdownMenu>
@@ -150,7 +156,7 @@ const Layout = ({ children }: LayoutProps) => {
                     <Menu size={20} />
                   </Button>
                 </DropdownMenuTrigger>
-                <DropdownMenuContent align="end" className="bg-card w-48">
+                <DropdownMenuContent align="end" className="bg-card w-56">
                   <DropdownMenuItem asChild>
                     <Link to="/" className="cursor-pointer">
                       <Home size={16} className="mr-2" />
@@ -175,6 +181,58 @@ const Layout = ({ children }: LayoutProps) => {
                       Muro
                     </Link>
                   </DropdownMenuItem>
+
+                  {/* Mobile auth */}
+                  {isLoggedIn ? (
+                    <>
+                      <DropdownMenuItem asChild>
+                        <Link to="/perfil" className="cursor-pointer">
+                          <User size={16} className="mr-2" />
+                          Mi Perfil
+                        </Link>
+                      </DropdownMenuItem>
+                      {(user?.roles.includes('admin') || user?.roles.includes('super-admin')) && (
+                        <DropdownMenuItem asChild>
+                          <Link to="/admin" className="cursor-pointer">
+                            <Shield size={16} className="mr-2" />
+                            Admin
+                          </Link>
+                        </DropdownMenuItem>
+                      )}
+                      {(user?.roles.includes('company') || user?.roles.includes('admin') || user?.roles.includes('super-admin')) && (
+                        <DropdownMenuItem asChild>
+                          <Link to="/postulaciones" className="cursor-pointer">
+                            <FileText size={16} className="mr-2" />
+                            Postulaciones
+                          </Link>
+                        </DropdownMenuItem>
+                      )}
+                      <DropdownMenuItem
+                        onClick={() => {
+                          logout().catch(console.error);
+                        }}
+                        className="cursor-pointer"
+                      >
+                        <LogOut size={16} className="mr-2" />
+                        Cerrar Sesión
+                      </DropdownMenuItem>
+                    </>
+                  ) : (
+                    <>
+                      <DropdownMenuItem asChild>
+                        <Link to="/login" className="cursor-pointer">
+                          <User size={16} className="mr-2" />
+                          Iniciar Sesión
+                        </Link>
+                      </DropdownMenuItem>
+                      <DropdownMenuItem asChild>
+                        <Link to="/registro" className="cursor-pointer">
+                          <User size={16} className="mr-2" />
+                          Registrarse
+                        </Link>
+                      </DropdownMenuItem>
+                    </>
+                  )}
                 </DropdownMenuContent>
               </DropdownMenu>
             </div>
