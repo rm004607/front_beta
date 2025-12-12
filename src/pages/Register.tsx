@@ -269,7 +269,7 @@ const Register = () => {
               <div className="pt-2 space-y-3">
                 <Button
                   type="button"
-                  className="w-full bg-amber-500 text-white hover:bg-amber-600"
+                  className="w-full bg-destructive text-destructive-foreground hover:bg-destructive/90"
                   onClick={() => setShowGoogleRoles(!showGoogleRoles)}
                   disabled={isSubmitting}
                 >

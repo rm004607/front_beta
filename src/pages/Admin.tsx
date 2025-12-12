@@ -517,7 +517,7 @@ const Admin = () => {
       case 'error':
         return 'text-red-500 bg-red-50';
       case 'warn':
-        return 'text-yellow-500 bg-yellow-50';
+        return 'text-accent bg-accent/10';
       case 'info':
         return 'text-blue-500 bg-blue-50';
       default:

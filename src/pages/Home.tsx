@@ -96,35 +96,36 @@ const Home = () => {
   return (
     <div className="min-h-screen">
       {/* Hero Section */}
-      <section className="relative bg-[#0A0A0A] py-16 md:py-24 overflow-hidden">
+      <section className="relative bg-beta-black py-16 md:py-24 overflow-hidden">
         {/* Background Abstract Lines */}
         <div className="absolute inset-0 overflow-hidden pointer-events-none">
+          <div className="absolute inset-0 bg-gradient-to-br from-primary/15 via-beta-black/80 to-beta-black"></div>
           <svg className="absolute w-full h-full opacity-30" viewBox="0 0 100 100" preserveAspectRatio="none">
-            <path d="M0,50 Q25,30 50,50 T100,50" fill="none" stroke="#C5A666" strokeWidth="0.2" className="animate-pulse" />
-            <path d="M0,70 Q25,50 50,70 T100,70" fill="none" stroke="#C5A666" strokeWidth="0.1" />
-            <path d="M50,0 Q70,50 50,100" fill="none" stroke="#C5A666" strokeWidth="0.2" className="opacity-50" />
-            <circle cx="80" cy="50" r="30" fill="none" stroke="#C5A666" strokeWidth="0.1" className="opacity-20" />
+            <path d="M0,50 Q25,30 50,50 T100,50" fill="none" stroke="hsl(var(--primary))" strokeWidth="0.2" className="animate-pulse" />
+            <path d="M0,70 Q25,50 50,70 T100,70" fill="none" stroke="hsl(var(--primary))" strokeWidth="0.1" />
+            <path d="M50,0 Q70,50 50,100" fill="none" stroke="hsl(var(--primary))" strokeWidth="0.2" className="opacity-50" />
+            <circle cx="80" cy="50" r="30" fill="none" stroke="hsl(var(--primary))" strokeWidth="0.1" className="opacity-20" />
           </svg>
-          <div className="absolute right-0 top-0 w-1/2 h-full bg-gradient-to-l from-[#C5A666]/10 to-transparent"></div>
+          <div className="absolute right-0 top-0 w-1/2 h-full bg-gradient-to-l from-primary/10 to-transparent"></div>
         </div>
 
         <div className="container mx-auto px-4 relative z-10 max-w-6xl">
           <div className="grid md:grid-cols-2 gap-10 md:gap-12 items-center">
             {/* Left Content */}
             <div className="animate-fade-in-up text-left space-y-6">
-              <h1 className="text-4xl sm:text-5xl md:text-6xl font-sans font-bold text-white leading-tight tracking-tight">
+              <h1 className="text-4xl sm:text-5xl md:text-6xl font-sans font-bold leading-tight tracking-tight bg-gradient-to-r from-primary via-primary/90 to-accent text-transparent bg-clip-text">
                 Conectamos <br />
-                <span className="text-white">Talento y</span> <br />
-                <span className="text-[#C5A666]">Oportunidades</span>
+                Talento y <br />
+                Oportunidades
               </h1>
-              <p className="text-[#C5A666]/80 text-base sm:text-lg md:text-xl max-w-xl font-light leading-relaxed">
+              <p className="text-beta-gray-light/80 text-base sm:text-lg md:text-xl max-w-xl font-light leading-relaxed">
                 La plataforma que une a personas que buscan trabajo, empresas que contratan y emprendedores que ofrecen servicios.
               </p>
               {!isLoggedIn ? (
                 <Link to="/registro">
                   <Button
                     size="lg"
-                    className="bg-[#C5A666] hover:bg-[#b09355] text-black font-semibold text-base sm:text-lg px-6 sm:px-8 py-4 sm:py-6 rounded-md transition-all duration-300 shadow-[0_0_15px_rgba(197,166,102,0.3)] hover:shadow-[0_0_25px_rgba(197,166,102,0.5)] w-full sm:w-auto"
+                    className="bg-primary hover:bg-primary/90 text-primary-foreground font-semibold text-base sm:text-lg px-6 sm:px-8 py-4 sm:py-6 rounded-md transition-all duration-300 shadow-lg hover:shadow-xl w-full sm:w-auto"
                   >
                     Explorar oportunidades
                   </Button>
@@ -133,7 +134,7 @@ const Home = () => {
                 <Link to="/empleos">
                   <Button
                     size="lg"
-                    className="bg-[#C5A666] hover:bg-[#b09355] text-black font-semibold text-base sm:text-lg px-6 sm:px-8 py-4 sm:py-6 rounded-md transition-all duration-300 shadow-[0_0_15px_rgba(197,166,102,0.3)] w-full sm:w-auto"
+                    className="bg-primary hover:bg-primary/90 text-primary-foreground font-semibold text-base sm:text-lg px-6 sm:px-8 py-4 sm:py-6 rounded-md transition-all duration-300 shadow-lg hover:shadow-xl w-full sm:w-auto"
                   >
                     Explorar oportunidades
                   </Button>
@@ -141,26 +142,25 @@ const Home = () => {
               )}
             </div>
 
-            {/* Right Content - B Logo */}
+            {/* Right Content - Brand Logo */}
             <div className="relative animate-fade-in delay-200 flex justify-center items-center h-full">
               <div className="relative w-56 h-56 sm:w-72 sm:h-72 md:w-96 md:h-96">
                 {/* Outer Circles */}
-                <div className="absolute inset-0 rounded-full border border-[#C5A666]/30 animate-[spin_10s_linear_infinite]"></div>
-                <div className="absolute inset-4 rounded-full border border-[#C5A666]/20 animate-[spin_15s_linear_infinite_reverse]"></div>
+                <div className="absolute inset-0 rounded-full border border-primary/30 animate-[spin_10s_linear_infinite]"></div>
+                <div className="absolute inset-4 rounded-full border border-primary/20 animate-[spin_15s_linear_infinite_reverse]"></div>
 
                 {/* Glowing Backdrop */}
-                <div className="absolute inset-0 bg-[#C5A666]/5 blur-3xl rounded-full"></div>
+                <div className="absolute inset-0 bg-primary/12 blur-3xl rounded-full"></div>
 
-                {/* The B Logo Container */}
+                {/* Logo Container */}
                 <div className="absolute inset-0 flex items-center justify-center">
-                  <div className="w-48 h-48 md:w-64 md:h-64 rounded-full border-2 border-[#C5A666] flex items-center justify-center bg-[#0A0A0A] shadow-[0_0_30px_rgba(197,166,102,0.1)] relative overflow-hidden group">
-                    {/* Shine effect */}
-                    <div className="absolute inset-0 bg-gradient-to-tr from-transparent via-[#C5A666]/10 to-transparent translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-1000"></div>
-
-                    {/* The Letter B */}
-                    <span className="font-serif text-[#C5A666] text-[10rem] md:text-[14rem] leading-none select-none drop-shadow-2xl">
-                      B
-                    </span>
+                  <div className="w-56 h-56 md:w-72 md:h-72 rounded-full border-2 border-primary flex items-center justify-center bg-beta-black shadow-2xl ring-1 ring-primary/15 relative overflow-hidden group">
+                    <div className="absolute inset-0 bg-gradient-to-tr from-transparent via-primary/15 to-transparent translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-1000"></div>
+                    <img
+                      src="/android-chrome-192x192.png"
+                      alt="Beta"
+                      className="w-40 h-40 md:w-52 md:h-52 object-contain drop-shadow-xl"
+                    />
                   </div>
                 </div>
               </div>

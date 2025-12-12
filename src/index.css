@@ -8,86 +8,92 @@ All colors MUST be HSL.
 
 @layer base {
   :root {
-    /* Beta Brand Colors - Black & Gold Minimalist Theme */
-    --background: 0 0% 100%;  /* Pure white */
-    --foreground: 0 0% 5%;  /* Pure black */
+    /* Beta Brand Palette (HSL) */
+    --beta-red: 358 76% 59%; /* #E6464A */
+    --beta-black: 210 7% 11%; /* #1A1C1E */
+    --beta-white: 0 0% 100%; /* #FFFFFF */
+    --beta-gray-light: 220 13% 91%; /* #E5E7EB */
+    --beta-gray-mid: 215 14% 34%; /* #4B5563 */
+    --beta-amber: 45 96% 48%; /* #F2B705 */
 
-    --card: 0 0% 100%;
-    --card-foreground: 0 0% 5%;
+    /* Design system tokens (shadcn) */
+    --background: var(--beta-white);
+    --foreground: var(--beta-black);
 
-    --popover: 0 0% 100%;
-    --popover-foreground: 0 0% 5%;
+    --card: var(--beta-white);
+    --card-foreground: var(--beta-black);
 
-    --primary: 42 85% 45%;  /* Deep Goldenrod */
-    --primary-foreground: 0 0% 100%; /* White text */
+    --popover: var(--beta-white);
+    --popover-foreground: var(--beta-black);
 
-    /* Replacing Grays with Warm Black/Gold Neutrals */
-    --secondary: 42 10% 96%;  /* Very light warm beige (instead of gray) */
-    --secondary-foreground: 42 85% 35%; /* Darker gold text */
+    --primary: var(--beta-red);
+    --primary-foreground: 0 0% 100%;
 
-    --muted: 42 20% 97%; /* Warm ultra-light beige */
-    --muted-foreground: 42 10% 40%; /* Warm dark taupe */
+    --secondary: var(--beta-gray-light);
+    --secondary-foreground: var(--beta-gray-mid);
 
-    --accent: 42 85% 45%;
-    --accent-foreground: 0 0% 100%;
+    --muted: var(--beta-gray-light);
+    --muted-foreground: var(--beta-gray-mid);
 
-    --destructive: 0 72% 51%;
+    --accent: var(--beta-amber);
+    --accent-foreground: var(--beta-black);
+
+    --destructive: var(--beta-red);
     --destructive-foreground: 0 0% 100%;
 
-    --border: 42 20% 90%; /* Warm light border */
-    --input: 42 20% 95%;
-    --ring: 42 85% 45%;
+    --border: 220 13% 86%;
+    --input: 220 13% 88%;
+    --ring: var(--beta-red);
 
     --radius: 0.5rem;
 
-    --sidebar-background: 42 20% 98%;
-    --sidebar-foreground: 0 0% 10%;
-    --sidebar-primary: 42 85% 45%;
+    --sidebar-background: var(--beta-white);
+    --sidebar-foreground: var(--beta-black);
+    --sidebar-primary: var(--beta-red);
     --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 42 15% 95%;
-    --sidebar-accent-foreground: 42 85% 45%;
-    --sidebar-border: 42 20% 90%;
-    --sidebar-ring: 42 85% 45%;
+    --sidebar-accent: var(--beta-gray-light);
+    --sidebar-accent-foreground: var(--beta-black);
+    --sidebar-border: 220 13% 86%;
+    --sidebar-ring: var(--beta-red);
   }
 
   .dark {
-    --background: 0 0% 5%;  /* Deepest black (almost void) */
-    --foreground: 45 60% 95%;  /* Pale gold text */
+    --background: var(--beta-black);
+    --foreground: var(--beta-white);
 
-    --card: 0 0% 8%;  /* Very dark black/brown */
-    --card-foreground: 45 60% 95%;
+    --card: 215 14% 16%;
+    --card-foreground: var(--beta-white);
 
-    --popover: 0 0% 8%;
-    --popover-foreground: 45 60% 95%;
+    --popover: 215 14% 16%;
+    --popover-foreground: var(--beta-white);
 
-    --primary: 45 100% 50%;  /* Vibrant Gold */
-    --primary-foreground: 0 0% 5%;
+    --primary: var(--beta-red);
+    --primary-foreground: 0 0% 100%;
 
-    /* Replacing Grays with Dark Warm Tones */
-    --secondary: 42 20% 12%;  /* Dark warm black/brown */
-    --secondary-foreground: 45 90% 80%;
+    --secondary: 215 14% 22%;
+    --secondary-foreground: var(--beta-white);
 
-    --muted: 42 10% 12%; /* Dark warm neutral */
-    --muted-foreground: 45 40% 60%; /* Muted gold */
+    --muted: 215 14% 20%;
+    --muted-foreground: 220 13% 82%;
 
-    --accent: 45 100% 50%;
-    --accent-foreground: 0 0% 5%;
+    --accent: var(--beta-amber);
+    --accent-foreground: var(--beta-black);
 
-    --destructive: 0 72% 51%;
+    --destructive: var(--beta-red);
     --destructive-foreground: 0 0% 100%;
 
-    --border: 42 20% 15%; /* Dark warm border */
-    --input: 42 20% 12%;
-    --ring: 45 100% 50%;
+    --border: 215 14% 26%;
+    --input: 215 14% 24%;
+    --ring: var(--beta-red);
     
-    --sidebar-background: 0 0% 6%;
-    --sidebar-foreground: 45 60% 95%;
-    --sidebar-primary: 45 100% 50%;
-    --sidebar-primary-foreground: 0 0% 5%;
-    --sidebar-accent: 42 20% 12%;
-    --sidebar-accent-foreground: 45 100% 50%;
-    --sidebar-border: 42 20% 15%;
-    --sidebar-ring: 45 100% 50%;
+    --sidebar-background: 215 14% 14%;
+    --sidebar-foreground: var(--beta-white);
+    --sidebar-primary: var(--beta-red);
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 215 14% 20%;
+    --sidebar-accent-foreground: var(--beta-white);
+    --sidebar-border: 215 14% 26%;
+    --sidebar-ring: var(--beta-red);
   }
 }
 
@@ -99,7 +105,7 @@ All colors MUST be HSL.
   body {
     @apply bg-background text-foreground;
     font-family: 'Inter', sans-serif;
-    background-image: linear-gradient(to bottom, transparent 80%, hsl(var(--primary) / 0.05) 100%);
+    background-image: linear-gradient(to bottom, transparent 80%, hsl(var(--primary) / 0.06) 100%);
     background-attachment: fixed;
   }
 
@@ -141,7 +147,7 @@ All colors MUST be HSL.
   }
 
   .hover-gold-glow:hover {
-    box-shadow: 0 0 20px -5px hsl(var(--primary) / 0.5);
+    box-shadow: 0 0 20px -6px hsl(var(--accent) / 0.45);
   }
   
   .glass-card {

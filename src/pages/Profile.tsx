@@ -749,13 +749,13 @@ const Profile = () => {
 
       {/* Banner para completar perfil (si faltan campos o CV) */}
       {(hasMissingFields || !user.cv_url) && (
-        <Card className="mb-6 border-2 bg-gradient-to-r from-yellow-50 to-yellow-100 dark:from-yellow-950/20 dark:to-yellow-900/30">
+        <Card className="mb-6 border-2 bg-gradient-to-r from-accent/10 to-accent/20 dark:from-accent/10 dark:to-accent/20">
           <CardContent className="pt-6">
             <div className="flex items-center gap-6">
               <div className="flex-shrink-0">
-                <div className="w-24 h-24 bg-yellow-400 rounded-full flex items-center justify-center p-2">
+                <div className="w-24 h-24 bg-accent rounded-full flex items-center justify-center p-2">
                   <img
-                    src="/src/assets/beta-logo.png"
+                    src="/android-chrome-192x192.png"
                     alt="Beta"
                     className="w-full h-full object-contain"
                   />

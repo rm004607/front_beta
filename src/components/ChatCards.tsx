@@ -20,7 +20,7 @@ const ChatCard: React.FC<ChatCardProps> = ({ type, id, title, subtitle, details,
         <Card className="w-full max-w-[280px] bg-card border shadow-sm hover:shadow-md transition-shadow mb-2">
             <CardContent className="p-3">
                 <div className="flex items-start gap-3">
-                    <div className={`p-2 rounded-lg ${type === 'job' ? 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400' : 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400'}`}>
+                    <div className="p-2 rounded-lg bg-accent/15 text-foreground dark:bg-accent/20 dark:text-foreground">
                         {type === 'job' ? <Briefcase size={18} /> : <Wrench size={18} />}
                     </div>
                     <div className="flex-1 min-w-0">
@@ -44,7 +44,7 @@ const ChatCard: React.FC<ChatCardProps> = ({ type, id, title, subtitle, details,
 
                 <Button
                     size="sm"
-                    className="w-full mt-3 text-xs h-8 bg-gradient-to-r from-yellow-500 to-yellow-600 hover:from-yellow-600 hover:to-yellow-700 text-black"
+                    className="w-full mt-3 text-xs h-8 bg-gradient-to-r from-accent to-accent/80 hover:from-accent/90 hover:to-accent/70 text-accent-foreground"
                     onClick={() => navigate(`${url}?highlight=${id}`)}
                 >
                     Ir a {type === 'job' ? 'Trabajo' : 'Servicio'} <ArrowRight size={12} className="ml-1" />

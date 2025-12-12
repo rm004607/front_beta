@@ -151,8 +151,8 @@ const AIChatBubble = () => {
       <button
         onClick={() => setIsOpen(!isOpen)}
         className={`fixed bottom-6 left-6 z-[9999] w-16 h-16 rounded-full shadow-2xl transition-all duration-300 hover:scale-110 active:scale-95 ${isOpen
-          ? 'bg-red-500 hover:bg-red-600'
-          : 'bg-gradient-to-r from-yellow-500 to-yellow-600 hover:from-yellow-600 hover:to-yellow-700'
+          ? 'bg-destructive hover:bg-destructive/90'
+          : 'bg-gradient-to-r from-accent to-accent/80 hover:from-accent/90 hover:to-accent/70'
           } flex items-center justify-center text-white border-2 border-white`}
         aria-label="Abrir chat de Beta"
       >
@@ -171,19 +171,19 @@ const AIChatBubble = () => {
         <Card
           className="fixed bottom-24 left-6 z-[9998] w-96 max-w-[calc(100vw-3rem)] h-[600px] max-h-[calc(100vh-8rem)] shadow-2xl flex flex-col border-2 md:w-96 bg-background"
         >
-          <CardHeader className="bg-gradient-to-r from-yellow-500 to-yellow-600 text-black pb-3">
+          <CardHeader className="bg-gradient-to-r from-accent to-accent/80 text-accent-foreground pb-3">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <div className="relative">
                   <img
-                    src="/src/assets/beta-logo.png"
+                    src="/android-chrome-192x192.png"
                     alt="Beta"
                     className="w-8 h-8 rounded-full bg-white p-1"
                     onError={(e) => {
                       (e.target as HTMLImageElement).style.display = 'none';
                     }}
                   />
-                  <div className="absolute -bottom-1 -right-1 w-3 h-3 bg-green-500 rounded-full border-2 border-yellow-500" />
+                  <div className="absolute -bottom-1 -right-1 w-3 h-3 bg-green-500 rounded-full border-2 border-accent" />
                 </div>
                 <CardTitle className="text-lg">Beta IA</CardTitle>
               </div>
@@ -191,12 +191,12 @@ const AIChatBubble = () => {
                 variant="ghost"
                 size="icon"
                 onClick={() => setIsOpen(false)}
-                className="text-black hover:bg-black/20 h-8 w-8"
+                className="text-accent-foreground hover:bg-black/20 h-8 w-8"
               >
                 <X size={16} />
               </Button>
             </div>
-            <p className="text-xs text-black/80 mt-1">Asistente inteligente para encontrar trabajo</p>
+            <p className="text-xs text-accent-foreground/80 mt-1">Asistente inteligente para encontrar trabajo</p>
           </CardHeader>
 
           <CardContent className="flex-1 flex flex-col p-0 overflow-hidden">
@@ -211,7 +211,7 @@ const AIChatBubble = () => {
                     <div className={`flex gap-3 ${message.role === 'user' ? 'flex-row-reverse' : 'flex-row'}`}>
                       {message.role === 'assistant' && (
                         <Avatar className="w-8 h-8 flex-shrink-0">
-                          <AvatarFallback className="bg-gradient-to-r from-yellow-500 to-yellow-600 text-black">
+                          <AvatarFallback className="bg-gradient-to-r from-accent to-accent/80 text-accent-foreground">
                             <Bot size={16} />
                           </AvatarFallback>
                         </Avatar>
@@ -306,7 +306,7 @@ const AIChatBubble = () => {
                 <Button
                   onClick={handleSendMessage}
                   disabled={!inputMessage.trim() || isLoading}
-                  className="bg-gradient-to-r from-yellow-500 to-yellow-600 hover:from-yellow-600 hover:to-yellow-700"
+                  className="bg-gradient-to-r from-accent to-accent/80 hover:from-accent/90 hover:to-accent/70 text-accent-foreground"
                   size="icon"
                 >
                   {isLoading ? (

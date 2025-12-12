@@ -159,7 +159,7 @@ const Services = () => {
               variant="outline"
               onClick={handleOpenChatModal}
               disabled={isSendingMessage}
-              className="bg-gradient-to-r from-blue-500 to-cyan-500 text-white hover:from-blue-600 hover:to-cyan-600 w-full sm:w-auto"
+              className="bg-gradient-to-r from-primary to-accent text-primary-foreground hover:from-primary/90 hover:to-accent/90 w-full sm:w-auto"
             >
               {isSendingMessage ? (
                 <>
@@ -227,7 +227,7 @@ const Services = () => {
                 key={service.id}
                 id={`service-${service.id}`}
                 className={`hover:shadow-lg transition-all duration-500 border-2 ${String(service.id) === highlightId
-                  ? 'border-red-500 shadow-xl ring-4 ring-red-100 scale-[1.02]'
+                  ? 'border-destructive shadow-xl ring-4 ring-destructive/15 scale-[1.02]'
                   : 'border-border'
                   }`}
               >
@@ -290,7 +290,7 @@ const Services = () => {
         <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
-              <Sparkles className="text-yellow-500" />
+              <Sparkles className="text-accent" />
               Recomendaciones de IA para Ti
             </DialogTitle>
             <DialogDescription>
@@ -302,7 +302,7 @@ const Services = () => {
             <div className="space-y-4">
               {/* Resumen del análisis */}
               {aiRecommendations.cv_analysis && (
-                <Card className="bg-gradient-to-r from-yellow-50 to-yellow-100 dark:from-yellow-950/20 dark:to-yellow-900/30">
+                <Card className="bg-gradient-to-r from-accent/10 to-accent/20 dark:from-accent/10 dark:to-accent/20">
                   <CardHeader>
                     <CardTitle className="text-lg">Análisis de tu CV</CardTitle>
                   </CardHeader>
@@ -423,7 +423,7 @@ const Services = () => {
         <DialogContent className="sm:max-w-2xl h-[600px] flex flex-col p-0">
           <DialogHeader className="px-6 pt-6 pb-4 border-b">
             <DialogTitle className="flex items-center gap-2">
-              <MessageCircle className="text-yellow-500" />
+              <MessageCircle className="text-accent" />
               Chat con IA - Encuentra tu Servicio
             </DialogTitle>
             <DialogDescription>
@@ -501,7 +501,7 @@ const Services = () => {
               <Button
                 onClick={handleSendChatMessage}
                 disabled={isSendingMessage || !currentMessage.trim()}
-                className="bg-gradient-to-r from-yellow-500 to-yellow-600 hover:from-yellow-600 hover:to-yellow-700"
+                className="bg-gradient-to-r from-accent to-accent/80 hover:from-accent/90 hover:to-accent/70 text-accent-foreground"
               >
                 {isSendingMessage ? (
                   <Loader2 className="h-4 w-4 animate-spin" />

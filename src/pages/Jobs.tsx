@@ -214,7 +214,7 @@ const Jobs = () => {
               <Button
                 variant="outline"
                 onClick={() => setShowAskAI(true)}
-                className="bg-gradient-to-r from-yellow-500 to-yellow-600 text-black hover:from-yellow-600 hover:to-yellow-700 w-full sm:w-auto"
+                className="bg-gradient-to-r from-accent to-accent/80 text-accent-foreground hover:from-accent/90 hover:to-accent/70 w-full sm:w-auto"
               >
                 <Sparkles size={18} className="mr-2" />
                 Preguntar a la IA
@@ -286,7 +286,7 @@ const Jobs = () => {
                 key={job.id}
                 id={`job-${job.id}`}
                 className={`hover:shadow-lg transition-all duration-500 border-2 ${String(job.id) === highlightId
-                  ? 'border-red-500 shadow-xl ring-4 ring-red-100 scale-[1.02]'
+                  ? 'border-destructive shadow-xl ring-4 ring-destructive/15 scale-[1.02]'
                   : 'border-border'
                   }`}
               >
@@ -431,7 +431,7 @@ const Jobs = () => {
             <div className="relative w-32 h-32 mb-4">
               <div className="absolute inset-0 flex items-center justify-center">
                 <img
-                  src="/src/assets/beta-logo.png"
+                  src="/android-chrome-192x192.png"
                   alt="Beta"
                   className="w-24 h-24 animate-bounce"
                 />
@@ -463,7 +463,7 @@ const Jobs = () => {
         <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
-              <Sparkles className="text-yellow-500" />
+              <Sparkles className="text-accent" />
               Recomendaciones de IA para Ti
             </DialogTitle>
             <DialogDescription>
@@ -475,7 +475,7 @@ const Jobs = () => {
             <div className="space-y-4">
               {/* Resumen del análisis */}
               {aiRecommendations.cv_analysis && (
-                <Card className="bg-gradient-to-r from-yellow-50 to-yellow-100 dark:from-yellow-950/20 dark:to-yellow-900/30">
+                <Card className="bg-gradient-to-r from-accent/10 to-accent/20 dark:from-accent/10 dark:to-accent/20">
                   <CardHeader>
                     <CardTitle className="text-lg">Análisis de tu CV</CardTitle>
                   </CardHeader>
@@ -618,7 +618,7 @@ const Jobs = () => {
         <DialogContent className="max-w-2xl">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
-              <MessageCircle className="text-yellow-500" />
+              <MessageCircle className="text-accent" />
               Pregunta a la IA sobre Trabajos
             </DialogTitle>
             <DialogDescription>
@@ -639,7 +639,7 @@ const Jobs = () => {
             </div>
 
             {aiAnswer && (
-              <Card className="bg-gradient-to-r from-yellow-50 to-yellow-100 dark:from-yellow-950/20 dark:to-yellow-900/30">
+              <Card className="bg-gradient-to-r from-accent/10 to-accent/20 dark:from-accent/10 dark:to-accent/20">
                 <CardHeader>
                   <CardTitle className="text-lg">Respuesta de la IA</CardTitle>
                 </CardHeader>
