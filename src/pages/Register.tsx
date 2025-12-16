@@ -10,17 +10,12 @@ import { UserRole, useUser } from '@/contexts/UserContext';
 import { ArrowRight, ArrowLeft } from 'lucide-react';
 import { toast } from 'sonner';
 import { authAPI } from '@/lib/api';
-import EmailVerificationModal from '@/components/EmailVerificationModal';
 
 const Register = () => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const { setUser, loadUser } = useUser();
   const [step, setStep] = useState(1);
-
-  // Email verification modal
-  const [showVerificationModal, setShowVerificationModal] = useState(false);
-  const [isVerifying, setIsVerifying] = useState(false);
 
   // Manejar éxito de Google OAuth en registro
   useEffect(() => {
@@ -110,15 +105,63 @@ const Register = () => {
     setStep(step + 1);
   };
 
+  // Validar formato de email real
+  const isValidEmail = (email: string): boolean => {
+    // Expresión regular mejorada para validar emails reales
+    const emailRegex = /^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$/;
+    
+    if (!emailRegex.test(email)) {
+      return false;
+    }
+
+    // Validaciones adicionales
+    const parts = email.split('@');
+    if (parts.length !== 2) return false;
+
+    const [localPart, domain] = parts;
+    
+    // Validar parte local (antes del @)
+    if (localPart.length === 0 || localPart.length > 64) return false;
+    if (localPart.startsWith('.') || localPart.endsWith('.')) return false;
+    if (localPart.includes('..')) return false;
+
+    // Validar dominio
+    if (domain.length === 0 || domain.length > 255) return false;
+    if (!domain.includes('.')) return false;
+    if (domain.startsWith('.') || domain.endsWith('.')) return false;
+    if (domain.includes('..')) return false;
+
+    // Validar que el dominio tenga al menos un punto y una extensión válida
+    const domainParts = domain.split('.');
+    if (domainParts.length < 2) return false;
+    const tld = domainParts[domainParts.length - 1];
+    if (tld.length < 2 || tld.length > 63) return false;
+
+    // Rechazar dominios temporales comunes
+    const tempDomains = ['tempmail', '10minutemail', 'guerrillamail', 'mailinator', 'throwaway'];
+    const domainLower = domain.toLowerCase();
+    if (tempDomains.some(temp => domainLower.includes(temp))) {
+      return false;
+    }
+
+    return true;
+  };
+
   const handleSubmit = async () => {
     if (!selectedRole) {
       toast.error('Selecciona un rol');
       return;
     }
 
+    // Validar email real
+    if (!isValidEmail(email)) {
+      toast.error('Por favor ingresa un email válido y real');
+      return;
+    }
+
     setIsSubmitting(true);
     try {
-      // Enviar código de verificación
+      // Registrar usuario directamente (sin verificación de código)
       await authAPI.register({
         name,
         email,
@@ -128,39 +171,18 @@ const Register = () => {
         rol: roleToNumber(selectedRole),
       });
 
-      toast.success('Código de verificación enviado a tu email');
-      setShowVerificationModal(true);
+      // Hacer login automático después del registro
+      await authAPI.login({ email, password });
+
+      // Cargar usuario
+      await loadUser();
+
+      toast.success('¡Registro exitoso! Bienvenido a Beta');
+      navigate('/');
     } catch (error) {
       toast.error(error instanceof Error ? error.message : 'Error al registrar usuario');
     } finally {
       setIsSubmitting(false);
-    }
-  };
-
-  const handleVerifyEmail = async (code: string) => {
-    setIsVerifying(true);
-    try {
-      // Verificar código y completar registro
-      await authAPI.verifyEmail({ email, code });
-
-      // El backend hace login automático, cargar usuario
-      await loadUser();
-
-      toast.success('¡Email verificado! Bienvenido a Beta');
-      navigate('/');
-    } catch (error) {
-      toast.error(error instanceof Error ? error.message : 'Código inválido o expirado');
-    } finally {
-      setIsVerifying(false);
-    }
-  };
-
-  const handleResendCode = async () => {
-    try {
-      await authAPI.resendCode(email);
-      toast.success('Nuevo código enviado a tu email');
-    } catch (error) {
-      toast.error('Error al reenviar código');
     }
   };
 
@@ -191,7 +213,13 @@ const Register = () => {
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   placeholder="tu@email.com"
+                  className={email && !isValidEmail(email) ? 'border-red-500' : ''}
                 />
+                {email && !isValidEmail(email) && (
+                  <p className="text-sm text-red-500 mt-1">
+                    Por favor ingresa un email válido y real
+                  </p>
+                )}
               </div>
               <div>
                 <Label htmlFor="password">Contraseña</Label>
@@ -523,15 +551,6 @@ const Register = () => {
           )}
         </CardContent>
       </Card>
-
-      <EmailVerificationModal
-        open={showVerificationModal}
-        email={email}
-        onVerify={handleVerifyEmail}
-        onResend={handleResendCode}
-        onClose={() => setShowVerificationModal(false)}
-        isVerifying={isVerifying}
-      />
     </div>
   );
 };
