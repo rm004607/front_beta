@@ -8,92 +8,91 @@ All colors MUST be HSL.
 
 @layer base {
   :root {
-    /* Beta Brand Palette (HSL) */
-    --beta-red: 358 76% 59%; /* #E6464A */
-    --beta-black: 210 7% 11%; /* #1A1C1E */
-    --beta-white: 0 0% 100%; /* #FFFFFF */
-    --beta-gray-light: 220 13% 91%; /* #E5E7EB */
-    --beta-gray-mid: 215 14% 34%; /* #4B5563 */
-    --beta-amber: 45 96% 48%; /* #F2B705 */
+    /* ===== New Palette: Light Theme (Job board) ===== */
+    /* Base */
+    --background: 210 33% 98%; /* #F8FAFC */
+    --foreground: 222 47% 12%; /* #0F172A */
 
-    /* Design system tokens (shadcn) */
-    --background: var(--beta-white);
-    --foreground: var(--beta-black);
+    /* Surfaces */
+    --card: 0 0% 100%; /* #FFFFFF */
+    --card-foreground: var(--foreground);
+    --popover: 0 0% 100%;
+    --popover-foreground: var(--foreground);
 
-    --card: var(--beta-white);
-    --card-foreground: var(--beta-black);
+    /* Brand */
+    --primary: 219 79% 53%; /* #2563EB */
+    --primary-foreground: 0 0% 100%; /* on brand */
+    --secondary: 214 32% 91%; /* #E2E8F0 */
+    --secondary-foreground: 215 28% 35%; /* #475569 */
 
-    --popover: var(--beta-white);
-    --popover-foreground: var(--beta-black);
-
-    --primary: var(--beta-red);
-    --primary-foreground: 0 0% 100%;
-
-    --secondary: var(--beta-gray-light);
-    --secondary-foreground: var(--beta-gray-mid);
-
-    --muted: var(--beta-gray-light);
-    --muted-foreground: var(--beta-gray-mid);
-
-    --accent: var(--beta-amber);
-    --accent-foreground: var(--beta-black);
-
-    --destructive: var(--beta-red);
+    /* Accents */
+    --muted: 214 32% 91%; /* subtle backgrounds */
+    --muted-foreground: 217 17% 67%; /* #94A3B8 (disabled text) */
+    --accent: 38 92% 50%; /* Amber CTA #F59E0B */
+    --accent-foreground: 222 47% 12%; /* text on CTA */
+    --destructive: 0 84% 63%; /* #EF4444 */
     --destructive-foreground: 0 0% 100%;
+    --success: 142 72% 47%; /* #22C55E */
+    --success-foreground: 222 47% 12%; /* dark text for contrast */
 
-    --border: 220 13% 86%;
-    --input: 220 13% 88%;
-    --ring: var(--beta-red);
+    /* Lines & rings */
+    --border: 214 32% 91%; /* #E2E8F0 */
+    --input: 214 32% 91%;
+    --ring: var(--primary);
 
     --radius: 0.5rem;
 
-    --sidebar-background: var(--beta-white);
-    --sidebar-foreground: var(--beta-black);
-    --sidebar-primary: var(--beta-red);
-    --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: var(--beta-gray-light);
-    --sidebar-accent-foreground: var(--beta-black);
-    --sidebar-border: 220 13% 86%;
-    --sidebar-ring: var(--beta-red);
+    /* Sidebar */
+    --sidebar-background: var(--background);
+    --sidebar-foreground: var(--foreground);
+    --sidebar-primary: var(--primary);
+    --sidebar-primary-foreground: var(--primary-foreground);
+    --sidebar-accent: var(--secondary);
+    --sidebar-accent-foreground: var(--secondary-foreground);
+    --sidebar-border: var(--border);
+    --sidebar-ring: var(--primary);
   }
 
   .dark {
-    --background: var(--beta-black);
-    --foreground: var(--beta-white);
+    /* ===== New Palette: Dark Theme ===== */
+    --background: 222 93% 2%; /* #020617 */
+    --foreground: 220 12% 91%; /* #E5E7EB */
 
-    --card: 215 14% 16%;
-    --card-foreground: var(--beta-white);
+    --card: 222 93% 2%;
+    --card-foreground: var(--foreground);
 
-    --popover: 215 14% 16%;
-    --popover-foreground: var(--beta-white);
+    --popover: 222 93% 2%;
+    --popover-foreground: var(--foreground);
 
-    --primary: var(--beta-red);
-    --primary-foreground: 0 0% 100%;
+    --primary: 217 92% 67%; /* #60A5FA */
+    --primary-foreground: 222 47% 12%; /* dark text for contrast */
 
-    --secondary: 215 14% 22%;
-    --secondary-foreground: var(--beta-white);
+    --secondary: 221 28% 19%; /* ~#1f2937 */
+    --secondary-foreground: 220 12% 91%;
 
-    --muted: 215 14% 20%;
-    --muted-foreground: 220 13% 82%;
+    --muted: 215 20% 46%; /* #64748B */
+    --muted-foreground: 217 17% 67%; /* #94A3B8 */
 
-    --accent: var(--beta-amber);
-    --accent-foreground: var(--beta-black);
+    --accent: 45 96% 55%; /* #FBBF24 */
+    --accent-foreground: 222 47% 12%;
 
-    --destructive: var(--beta-red);
-    --destructive-foreground: 0 0% 100%;
+    --destructive: 0 89% 72%; /* #F87171 */
+    --destructive-foreground: 222 47% 12%;
+    --success: 142 72% 47%; /* #22C55E */
+    --success-foreground: 222 47% 12%;
 
-    --border: 215 14% 26%;
-    --input: 215 14% 24%;
-    --ring: var(--beta-red);
+    --border: 214 32% 91%; /* mantener divisores claros */
+    --input: 214 32% 91%;
+    --ring: var(--primary);
     
-    --sidebar-background: 215 14% 14%;
-    --sidebar-foreground: var(--beta-white);
-    --sidebar-primary: var(--beta-red);
-    --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 215 14% 20%;
-    --sidebar-accent-foreground: var(--beta-white);
-    --sidebar-border: 215 14% 26%;
-    --sidebar-ring: var(--beta-red);
+    --sidebar-background: 222 93% 2%;
+    --sidebar-foreground: var(--foreground);
+    --sidebar-primary: var(--primary);
+    --sidebar-primary-foreground: var(--primary-foreground);
+    --sidebar-accent: 215 20% 46%;
+    --sidebar-accent-foreground: var(--foreground);
+    --sidebar-border: 214 32% 91%;
+    --sidebar-ring: var(--primary);
   }
 }
 

@@ -24,7 +24,7 @@ const Footer = () => {
             </p>
             <div className="flex gap-4">
               <a
-                href="https://www.instagram.com/pega_ya/"
+                href="https://www.instagram.com/beta_coropcl/"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="text-muted-foreground hover:text-primary transition-colors"
@@ -33,7 +33,7 @@ const Footer = () => {
                 <Instagram size={20} />
               </a>
               <a
-                href="https://linkedin.com"
+                href="https://www.linkedin.com/feed/"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="text-muted-foreground hover:text-primary transition-colors"

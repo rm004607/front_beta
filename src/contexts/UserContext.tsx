@@ -1,5 +1,6 @@
-import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
-import { authAPI } from '@/lib/api';
+import React, { createContext, useContext, useState, useEffect, useRef, ReactNode } from 'react';
+import { authAPI, setUnauthorizedHandler } from '@/lib/api';
+import { toast } from 'sonner';
 
 export type UserRole = 'job-seeker' | 'entrepreneur' | 'company' | 'admin' | 'super-admin';
 
@@ -42,6 +43,38 @@ const UserContext = createContext<UserContextType | undefined>(undefined);
 export const UserProvider = ({ children }: { children: ReactNode }) => {
   const [user, setUser] = useState<UserProfile | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const userRef = useRef<UserProfile | null>(null);
+
+  // Mantener referencia actualizada del usuario
+  useEffect(() => {
+    userRef.current = user;
+  }, [user]);
+
+  // Función para cerrar sesión cuando la cookie expira
+  const handleUnauthorized = async () => {
+    // Solo cerrar sesión si el usuario estaba logueado
+    if (userRef.current) {
+      console.log('Cookie expirada, cerrando sesión automáticamente');
+      toast.info('Tu sesión ha expirado. Por favor, inicia sesión nuevamente.');
+      // Limpiar estado local
+      localStorage.removeItem('token');
+      setUser(null);
+      // Intentar cerrar sesión en el backend (puede fallar si la cookie ya expiró)
+      try {
+        await authAPI.logout();
+      } catch (error) {
+        // Ignorar errores si la cookie ya expiró
+      }
+    }
+  };
+
+  // Registrar el handler para cuando la cookie expire (solo una vez)
+  useEffect(() => {
+    setUnauthorizedHandler(handleUnauthorized);
+    return () => {
+      setUnauthorizedHandler(() => {});
+    };
+  }, []); // Sin dependencias, se registra solo una vez
 
   // Cargar usuario al iniciar - las cookies se envían automáticamente
   useEffect(() => {

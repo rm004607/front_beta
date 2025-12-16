@@ -1,5 +1,13 @@
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000';
 
+// Callback para manejar logout automático cuando la cookie expira
+let onUnauthorizedCallback: (() => void) | null = null;
+
+// Función para registrar el callback de logout
+export const setUnauthorizedHandler = (callback: () => void) => {
+  onUnauthorizedCallback = callback;
+};
+
 // Helper para hacer peticiones
 async function request<T>(
   endpoint: string,
@@ -33,12 +41,14 @@ async function request<T>(
     }
     errorObj.status = response.status;
     
-    // Para errores 401 en /auth/me, no loguear ya que es esperado cuando el usuario no está autenticado
-    // NOTA: El navegador mostrará este error en la consola de red (Network tab), esto es normal y no se puede evitar
-    // El error se maneja silenciosamente en UserContext.tsx
-    if (response.status === 401 && endpoint === '/auth/me') {
-      // Error 401 es normal cuando el usuario no ha iniciado sesión
-      // Se maneja silenciosamente en UserContext
+    // Si es un error 401 (cookie expirada o no autenticado)
+    if (response.status === 401) {
+      // Si no es /auth/me (que es normal cuando no hay sesión), significa que la cookie expiró
+      // y el usuario estaba logueado, así que cerramos sesión automáticamente
+      if (endpoint !== '/auth/me' && onUnauthorizedCallback) {
+        // La cookie expiró mientras el usuario estaba usando la app
+        onUnauthorizedCallback();
+      }
     } else if (response.status !== 401) {
       // Para otros errores que no sean 401, loguear en desarrollo para debugging
       if (import.meta.env.DEV) {
