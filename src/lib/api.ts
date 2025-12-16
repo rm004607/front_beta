@@ -33,13 +33,14 @@ async function request<T>(
     }
     errorObj.status = response.status;
     
-    // Para errores 401, no loguear en consola ya que es esperado cuando el usuario no está autenticado
-    // El error se lanza normalmente para que el código pueda manejarlo apropiadamente
-    if (response.status === 401) {
+    // Para errores 401 en /auth/me, no loguear ya que es esperado cuando el usuario no está autenticado
+    // NOTA: El navegador mostrará este error en la consola de red (Network tab), esto es normal y no se puede evitar
+    // El error se maneja silenciosamente en UserContext.tsx
+    if (response.status === 401 && endpoint === '/auth/me') {
       // Error 401 es normal cuando el usuario no ha iniciado sesión
       // Se maneja silenciosamente en UserContext
-    } else {
-      // Para otros errores, loguear en desarrollo para debugging
+    } else if (response.status !== 401) {
+      // Para otros errores que no sean 401, loguear en desarrollo para debugging
       if (import.meta.env.DEV) {
         console.error(`API Error [${response.status}]:`, errorData);
       }
