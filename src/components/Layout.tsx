@@ -38,7 +38,9 @@ const Layout = ({ children }: LayoutProps) => {
                 alt="Beta"
                 className="h-12 w-12 sm:h-14 sm:w-14 rounded-xl object-contain drop-shadow-md"
               />
-              <span className="sr-only">Beta</span>
+              <span className="text-2xl font-heading font-bold text-primary">
+                Beta
+              </span>
             </Link>
 
             <nav className="hidden md:flex items-center gap-6">
