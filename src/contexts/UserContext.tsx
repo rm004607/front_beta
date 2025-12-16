@@ -74,8 +74,13 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
       };
       
       setUser(userProfile);
-    } catch (error) {
+    } catch (error: any) {
       // Si no hay cookie válida o expiró, el usuario no está autenticado
+      // Esto es normal cuando el usuario no ha iniciado sesión
+      // Solo loguear errores que no sean 401 (no autenticado)
+      if (error?.status !== 401) {
+        console.error('Error al cargar usuario:', error);
+      }
       // Limpiar cualquier dato local residual
       localStorage.removeItem('token');
       setUser(null);

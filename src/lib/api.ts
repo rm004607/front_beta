@@ -13,17 +13,38 @@ async function request<T>(
   const response = await fetch(`${API_BASE_URL}${endpoint}`, {
     ...options,
     headers,
-    credentials: 'include', // Incluir cookies en todas las peticiones
+    credentials: 'include', // Incluir cookies en todas las peticiones (requiere CORS configurado correctamente)
   });
 
   if (!response.ok) {
-    const error = await response.json().catch(() => ({ error: 'Error desconocido' }));
-    const errorObj = new Error(error.error || `Error: ${response.statusText}`) as any;
+    // Intentar parsear el error, pero si falla, usar un error genérico
+    let errorData: any;
+    try {
+      errorData = await response.json();
+    } catch {
+      errorData = { error: `Error ${response.status}: ${response.statusText}` };
+    }
+    
+    const errorObj = new Error(errorData.error || `Error: ${response.statusText}`) as any;
+    
     // Agregar información adicional del error (como ban_info)
-    if (error.ban_info) {
-      errorObj.ban_info = error.ban_info;
+    if (errorData.ban_info) {
+      errorObj.ban_info = errorData.ban_info;
     }
     errorObj.status = response.status;
+    
+    // Para errores 401, no loguear en consola ya que es esperado cuando el usuario no está autenticado
+    // El error se lanza normalmente para que el código pueda manejarlo apropiadamente
+    if (response.status === 401) {
+      // Error 401 es normal cuando el usuario no ha iniciado sesión
+      // Se maneja silenciosamente en UserContext
+    } else {
+      // Para otros errores, loguear en desarrollo para debugging
+      if (import.meta.env.DEV) {
+        console.error(`API Error [${response.status}]:`, errorData);
+      }
+    }
+    
     throw errorObj;
   }
 
@@ -78,6 +99,8 @@ export const authAPI = {
         role: string;
         is_active: boolean;
         is_banned: boolean;
+        profile_image?: string | null;
+        cv_url?: string | null;
       };
     }>('/auth/me', {
       method: 'GET',
