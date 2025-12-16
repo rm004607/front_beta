@@ -33,8 +33,12 @@ const Layout = ({ children }: LayoutProps) => {
         <div className="container mx-auto px-4 py-4">
           <div className="flex items-center justify-between">
             <Link to="/" className="flex items-center gap-3">
-              <img src={logoBeta} alt="Beta" className="h-10 w-10 rounded-lg object-contain" />
-              <span className="text-2xl font-heading font-bold text-primary">Beta</span>
+              <img
+                src={logoBeta}
+                alt="Beta"
+                className="h-12 w-12 sm:h-14 sm:w-14 rounded-xl object-contain drop-shadow-md"
+              />
+              <span className="sr-only">Beta</span>
             </Link>
 
             <nav className="hidden md:flex items-center gap-6">

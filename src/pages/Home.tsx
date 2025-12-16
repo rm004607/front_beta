@@ -6,7 +6,7 @@ import { Briefcase, Wrench, Building2, MessageSquare, ArrowRight, MapPin, Calend
 import { useUser } from '@/contexts/UserContext';
 import { jobsAPI, servicesAPI } from '@/lib/api';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
-import heroImage from '@/assets/hero-image.png';
+import logoBeta from '@/assets/logo beta.png';
 
 interface Job {
   id: string;
@@ -144,7 +144,7 @@ const Home = () => {
 
             {/* Right Content - Brand Logo */}
             <div className="relative animate-fade-in delay-200 flex justify-center items-center h-full">
-              <div className="relative w-56 h-56 sm:w-72 sm:h-72 md:w-96 md:h-96">
+              <div className="relative w-64 h-64 sm:w-80 sm:h-80 md:w-[26rem] md:h-[26rem]">
                 {/* Outer Circles */}
                 <div className="absolute inset-0 rounded-full border border-primary/30 animate-[spin_10s_linear_infinite]"></div>
                 <div className="absolute inset-4 rounded-full border border-primary/20 animate-[spin_15s_linear_infinite_reverse]"></div>
@@ -154,12 +154,12 @@ const Home = () => {
 
                 {/* Logo Container */}
                 <div className="absolute inset-0 flex items-center justify-center">
-                  <div className="w-56 h-56 md:w-72 md:h-72 rounded-full border-2 border-primary flex items-center justify-center bg-beta-black shadow-2xl ring-1 ring-primary/15 relative overflow-hidden group">
+                  <div className="w-60 h-60 sm:w-72 sm:h-72 md:w-[22rem] md:h-[22rem] rounded-full border-2 border-primary flex items-center justify-center bg-beta-black shadow-2xl ring-1 ring-primary/15 relative overflow-hidden group">
                     <div className="absolute inset-0 bg-gradient-to-tr from-transparent via-primary/15 to-transparent translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-1000"></div>
                     <img
-                      src="/android-chrome-192x192.png"
+                      src={logoBeta}
                       alt="Beta"
-                      className="w-40 h-40 md:w-52 md:h-52 object-contain drop-shadow-xl"
+                      className="w-48 h-48 sm:w-56 sm:h-56 md:w-[18rem] md:h-[18rem] object-contain drop-shadow-xl"
                     />
                   </div>
                 </div>
