@@ -8,6 +8,7 @@ import Footer from '@/components/Footer';
 import { ThemeToggle } from '@/components/ThemeToggle';
 import AIChatBubble from '@/components/AIChatBubble';
 import ErrorBoundary from '@/components/ErrorBoundary';
+import logoBeta from '@/assets/logo beta.png';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -32,7 +33,7 @@ const Layout = ({ children }: LayoutProps) => {
         <div className="container mx-auto px-4 py-4">
           <div className="flex items-center justify-between">
             <Link to="/" className="flex items-center gap-3">
-            <img src="/android-chrome-192x192.png" alt="Beta" className="h-10 w-10" />
+              <img src={logoBeta} alt="Beta" className="h-10 w-10 rounded-lg object-contain" />
               <span className="text-2xl font-heading font-bold text-primary">Beta</span>
             </Link>
 
