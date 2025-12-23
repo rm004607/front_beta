@@ -60,7 +60,7 @@ const Layout = ({ children }: LayoutProps) => {
                 }`}
               >
                 <Wrench size={18} />
-                <span>Servicios</span>
+                <span>Servicios/Pymes</span>
               </Link>
               <Link 
                 to="/muro" 
@@ -179,7 +179,7 @@ const Layout = ({ children }: LayoutProps) => {
                   <DropdownMenuItem asChild>
                     <Link to="/servicios" className="cursor-pointer">
                       <Wrench size={16} className="mr-2" />
-                      Servicios
+                      Servicios/Pymes
                     </Link>
                   </DropdownMenuItem>
                   <DropdownMenuItem asChild>

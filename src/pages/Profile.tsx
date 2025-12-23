@@ -1111,7 +1111,7 @@ const Profile = () => {
           {(user.roles.includes('entrepreneur') || user.roles.includes('admin') || user.roles.includes('super-admin')) && (
             <TabsTrigger value="services" className="flex items-center gap-2">
               <Wrench size={16} />
-              Servicios ({services.length})
+              Servicios/Pymes ({services.length})
             </TabsTrigger>
           )}
           {(user.roles.includes('company') || user.roles.includes('admin') || user.roles.includes('super-admin')) && (
@@ -1185,15 +1185,15 @@ const Profile = () => {
           </Card>
         </TabsContent>
 
-        {/* Tab de Servicios (Emprendedores, Admin y Super-Admin) */}
+        {/* Tab de Servicios/Pymes (Emprendedores, Admin y Super-Admin) */}
         {(user.roles.includes('entrepreneur') || user.roles.includes('admin') || user.roles.includes('super-admin')) && (
           <TabsContent value="services">
             <Card className="border-2">
               <CardHeader>
                 <div className="flex justify-between items-start">
                   <div>
-                    <CardTitle>Mis Servicios</CardTitle>
-                    <CardDescription>Servicios activos que has publicado</CardDescription>
+                    <CardTitle>Mis Servicios/Pymes</CardTitle>
+                    <CardDescription>Servicios/Pymes activos que has publicado</CardDescription>
                   </div>
                   <Button onClick={() => navigate('/servicios/publicar')} size="sm">
                     <Plus size={16} className="mr-2" />

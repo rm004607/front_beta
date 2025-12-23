@@ -877,6 +877,63 @@ export const adminAPI = {
     });
   },
 
+  // ========== PUBLICATION LIMITS (Super Admin) ==========
+  getUserPublicationLimits: async (userId: string) => {
+    return request<{
+      user: {
+        id: string;
+        name: string;
+        email: string;
+        role: string;
+      };
+      services: {
+        base_limit: number;
+        bonus: number;
+        total_limit: number;
+        used: number;
+        remaining: number;
+      };
+      jobs?: {
+        base_limit: number;
+        bonus: number;
+        total_limit: number;
+        used: number;
+        remaining: number;
+      };
+    }>(`/super-admin/users/${userId}/publication-limits`, {
+      method: 'GET',
+    });
+  },
+
+  updateUserPublicationLimits: async (
+    userId: string,
+    data: {
+      services_limit?: number;
+      jobs_limit?: number;
+      services_bonus?: number;
+      jobs_bonus?: number;
+    }
+  ) => {
+    return request<{
+      message: string;
+      limits: {
+        services: {
+          base_limit: number;
+          bonus: number;
+          total_limit: number;
+        };
+        jobs?: {
+          base_limit: number;
+          bonus: number;
+          total_limit: number;
+        };
+      };
+    }>(`/super-admin/users/${userId}/publication-limits`, {
+      method: 'PUT',
+      body: JSON.stringify(data),
+    });
+  },
+
   // ========== STATS ==========
   getStats: async () => {
     return request<{

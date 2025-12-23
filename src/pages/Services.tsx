@@ -150,7 +150,7 @@ const Services = () => {
       {/* Header */}
       <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between mb-8">
         <div className="space-y-1">
-          <h1 className="text-3xl sm:text-4xl font-heading font-bold">Servicios y Emprendedores</h1>
+          <h1 className="text-3xl sm:text-4xl font-heading font-bold">Servicios/Pymes y Emprendedores</h1>
           <p className="text-muted-foreground">Encuentra profesionales y servicios en tu comuna</p>
         </div>
         <div className="flex flex-wrap gap-2 w-full md:w-auto justify-start md:justify-end">
@@ -294,7 +294,7 @@ const Services = () => {
               Recomendaciones de IA para Ti
             </DialogTitle>
             <DialogDescription>
-              Servicios recomendados basados en tu CV con alta compatibilidad (90%+)
+                Servicios/Pymes recomendados basados en tu CV con alta compatibilidad (90%+)
             </DialogDescription>
           </DialogHeader>
 
@@ -418,7 +418,7 @@ const Services = () => {
         </DialogContent>
       </Dialog>
 
-      {/* Modal de Chat con IA para Servicios */}
+      {/* Modal de Chat con IA para Servicios/Pymes */}
       <Dialog open={showChatModal} onOpenChange={setShowChatModal}>
         <DialogContent className="sm:max-w-2xl h-[600px] flex flex-col p-0">
           <DialogHeader className="px-6 pt-6 pb-4 border-b">

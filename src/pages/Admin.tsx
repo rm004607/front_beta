@@ -157,6 +157,23 @@ const Admin = () => {
   const [stats, setStats] = useState<any>(null);
   const [loadingStats, setLoadingStats] = useState(false);
 
+  // Estados para límites de publicaciones (Super Admin)
+  const [publicationLimitsDialogOpen, setPublicationLimitsDialogOpen] = useState(false);
+  const [selectedUserLimits, setSelectedUserLimits] = useState<null | {
+    user: { id: string; name: string; email: string; role: string };
+    services: { base_limit: number; bonus: number; total_limit: number; used: number; remaining: number };
+    jobs?: { base_limit: number; bonus: number; total_limit: number; used: number; remaining: number };
+  }>(null);
+  const [limitsForm, setLimitsForm] = useState({
+    services_limit: 2,
+    services_bonus: 0,
+    jobs_limit: 3,
+    jobs_bonus: 0,
+  });
+  const [loadingLimits, setLoadingLimits] = useState(false);
+  const [savingLimits, setSavingLimits] = useState(false);
+  const [limitsError, setLimitsError] = useState('');
+
   // Estados para diálogos
   const [banDialogOpen, setBanDialogOpen] = useState(false);
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
@@ -448,6 +465,56 @@ const Admin = () => {
     }
   };
 
+  // ===== Publicación de límites (Super Admin) =====
+  const openPublicationLimits = async (userId: string) => {
+    if (!isSuperAdmin) return;
+    setLimitsError('');
+    setLoadingLimits(true);
+    setPublicationLimitsDialogOpen(true);
+    try {
+      const data = await adminAPI.getUserPublicationLimits(userId);
+      setSelectedUserLimits(data);
+      setLimitsForm({
+        services_limit: data.services.base_limit ?? 2,
+        services_bonus: data.services.bonus ?? 0,
+        jobs_limit: data.jobs?.base_limit ?? 3,
+        jobs_bonus: data.jobs?.bonus ?? 0,
+      });
+    } catch (error: any) {
+      console.error('Error al obtener límites:', error);
+      setLimitsError(error?.message || 'Error al obtener límites');
+      toast.error('No se pudieron cargar los límites');
+    } finally {
+      setLoadingLimits(false);
+    }
+  };
+
+  const handleSavePublicationLimits = async () => {
+    if (!selectedUserLimits) return;
+    if (
+      limitsForm.services_limit < 0 ||
+      limitsForm.services_bonus < 0 ||
+      limitsForm.jobs_limit < 0 ||
+      limitsForm.jobs_bonus < 0
+    ) {
+      toast.error('Los valores no pueden ser negativos');
+      return;
+    }
+    setSavingLimits(true);
+    setLimitsError('');
+    try {
+      await adminAPI.updateUserPublicationLimits(selectedUserLimits.user.id, limitsForm);
+      toast.success('Límites de publicaciones actualizados');
+      await openPublicationLimits(selectedUserLimits.user.id);
+    } catch (error: any) {
+      console.error('Error al actualizar límites:', error);
+      setLimitsError(error?.message || 'Error al actualizar límites');
+      toast.error('No se pudo actualizar');
+    } finally {
+      setSavingLimits(false);
+    }
+  };
+
   const handleChangeRole = async () => {
     if (!selectedUserForRoleChange || !newRole) {
       toast.error('Selecciona un rol');
@@ -487,6 +554,14 @@ const Admin = () => {
       'super-admin': 'Super Administrador'
     };
     return roleLabels[role] || role;
+  };
+
+  const getUsageStatus = (used: number, total: number) => {
+    const percent = total > 0 ? Math.min((used / total) * 100, 100) : 100;
+    if (total === 0) return { percent, color: 'text-destructive', bar: 'bg-destructive' };
+    if (percent >= 100) return { percent, color: 'text-destructive', bar: 'bg-destructive' };
+    if (percent >= 80) return { percent, color: 'text-amber-500', bar: 'bg-amber-500' };
+    return { percent, color: 'text-success', bar: 'bg-success' };
   };
 
   const handleViewUserProfile = async (userId: string) => {
@@ -585,7 +660,7 @@ const Admin = () => {
           </Card>
           <Card>
             <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-medium text-muted-foreground">Servicios Activos</CardTitle>
+            <CardTitle className="text-sm font-medium text-muted-foreground">Servicios/Pymes Activos</CardTitle>
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold">{stats.active_services || 0}</div>
@@ -619,7 +694,7 @@ const Admin = () => {
           </TabsTrigger>
           <TabsTrigger value="services" onClick={loadServices} className="flex items-center gap-2">
             <Wrench size={16} />
-            Servicios
+            Servicios/Pymes
           </TabsTrigger>
           <TabsTrigger value="users" onClick={loadUsers} className="flex items-center gap-2">
             <Users size={16} />
@@ -810,8 +885,8 @@ const Admin = () => {
         <TabsContent value="services">
           <Card className="border-2">
             <CardHeader>
-              <CardTitle>Servicios</CardTitle>
-              <CardDescription>Gestiona todos los servicios publicados</CardDescription>
+              <CardTitle>Servicios/Pymes</CardTitle>
+              <CardDescription>Gestiona todos los servicios/pymes publicados</CardDescription>
             </CardHeader>
             <CardContent>
               <div className="mb-4 flex gap-4">
@@ -1022,6 +1097,16 @@ const Admin = () => {
                               >
                                 <Shield size={16} className="mr-2" />
                                 Cambiar Rol
+                              </Button>
+                            )}
+                            {isSuperAdmin && (
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => openPublicationLimits(user.id)}
+                              >
+                                <FileText size={16} className="mr-2" />
+                                Gestionar publicaciones
                               </Button>
                             )}
                             {isSuperAdmin && (
@@ -1288,6 +1373,212 @@ const Admin = () => {
           </TabsContent>
         )}
       </Tabs>
+
+      {/* Dialog para límites de publicaciones */}
+      <Dialog open={publicationLimitsDialogOpen} onOpenChange={(open) => {
+        setPublicationLimitsDialogOpen(open);
+        if (!open) {
+          setSelectedUserLimits(null);
+          setLimitsError('');
+        }
+      }}>
+        <DialogContent className="max-w-3xl">
+          <DialogHeader>
+            <DialogTitle>Gestionar límites de publicaciones</DialogTitle>
+            <DialogDescription>
+              Asigna límites base y bonus para servicios/pymes y empleos.
+            </DialogDescription>
+          </DialogHeader>
+
+          {loadingLimits && !selectedUserLimits ? (
+            <div className="py-8 text-center text-muted-foreground">Cargando límites...</div>
+          ) : limitsError ? (
+            <Alert variant="destructive" className="mb-4">
+              <AlertTriangle size={16} />
+              <AlertDescription>{limitsError}</AlertDescription>
+            </Alert>
+          ) : selectedUserLimits ? (
+            <div className="space-y-6">
+              <div className="flex items-center gap-4">
+                <Avatar className="w-12 h-12">
+                  <AvatarFallback className="bg-primary text-primary-foreground">
+                    {selectedUserLimits.user.name.split(' ').map((n) => n[0]).join('').substring(0, 2)}
+                  </AvatarFallback>
+                </Avatar>
+                <div>
+                  <p className="font-semibold">{selectedUserLimits.user.name}</p>
+                  <p className="text-sm text-muted-foreground">{selectedUserLimits.user.email}</p>
+                  <Badge variant="outline" className="mt-1">{getRoleLabel(selectedUserLimits.user.role)}</Badge>
+                </div>
+              </div>
+
+              {/* Servicios / Pymes */}
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-base">Servicios/Pymes</CardTitle>
+                  <CardDescription>
+                    Total: {selectedUserLimits.services.total_limit} | Usadas: {selectedUserLimits.services.used} | Restantes: {selectedUserLimits.services.remaining}
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-3">
+                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-sm">
+                    <div>
+                      <p className="text-muted-foreground">Base</p>
+                      <p className="font-semibold">{selectedUserLimits.services.base_limit}</p>
+                    </div>
+                    <div>
+                      <p className="text-muted-foreground">Bonus</p>
+                      <p className="font-semibold">{selectedUserLimits.services.bonus}</p>
+                    </div>
+                    <div>
+                      <p className="text-muted-foreground">Total</p>
+                      <p className="font-semibold">{selectedUserLimits.services.total_limit}</p>
+                    </div>
+                    <div>
+                      <p className="text-muted-foreground">Usadas</p>
+                      <p className="font-semibold">{selectedUserLimits.services.used}</p>
+                    </div>
+                  </div>
+                  {(() => {
+                    const { percent, color, bar } = getUsageStatus(selectedUserLimits.services.used, selectedUserLimits.services.total_limit);
+                    return (
+                      <div className="space-y-1">
+                        <div className="flex justify-between text-xs text-muted-foreground">
+                          <span>Progreso</span>
+                          <span className={color}>{Math.round(percent)}%</span>
+                        </div>
+                        <div className="w-full h-2 rounded-full bg-muted overflow-hidden">
+                          <div className={`h-full ${bar}`} style={{ width: `${percent}%` }}></div>
+                        </div>
+                      </div>
+                    );
+                  })()}
+                </CardContent>
+              </Card>
+
+              {/* Empleos (solo empresa) */}
+              {selectedUserLimits.user.role === 'company' && selectedUserLimits.jobs && (
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="text-base">Empleos</CardTitle>
+                    <CardDescription>
+                      Total: {selectedUserLimits.jobs.total_limit} | Usadas: {selectedUserLimits.jobs.used} | Restantes: {selectedUserLimits.jobs.remaining}
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent className="space-y-3">
+                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-sm">
+                      <div>
+                        <p className="text-muted-foreground">Base</p>
+                        <p className="font-semibold">{selectedUserLimits.jobs.base_limit}</p>
+                      </div>
+                      <div>
+                        <p className="text-muted-foreground">Bonus</p>
+                        <p className="font-semibold">{selectedUserLimits.jobs.bonus}</p>
+                      </div>
+                      <div>
+                        <p className="text-muted-foreground">Total</p>
+                        <p className="font-semibold">{selectedUserLimits.jobs.total_limit}</p>
+                      </div>
+                      <div>
+                        <p className="text-muted-foreground">Usadas</p>
+                        <p className="font-semibold">{selectedUserLimits.jobs.used}</p>
+                      </div>
+                    </div>
+                    {(() => {
+                      const { percent, color, bar } = getUsageStatus(selectedUserLimits.jobs.used, selectedUserLimits.jobs.total_limit);
+                      return (
+                        <div className="space-y-1">
+                          <div className="flex justify-between text-xs text-muted-foreground">
+                            <span>Progreso</span>
+                            <span className={color}>{Math.round(percent)}%</span>
+                          </div>
+                          <div className="w-full h-2 rounded-full bg-muted overflow-hidden">
+                            <div className={`h-full ${bar}`} style={{ width: `${percent}%` }}></div>
+                          </div>
+                        </div>
+                      );
+                    })()}
+                  </CardContent>
+                </Card>
+              )}
+
+              {/* Formulario edición */}
+              <div className="space-y-4">
+                <h4 className="font-semibold text-lg">Editar límites</h4>
+                <div className="grid sm:grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label>Límite base de servicios/pymes</Label>
+                    <Input
+                      type="number"
+                      min={0}
+                      value={limitsForm.services_limit}
+                      onChange={(e) => setLimitsForm({ ...limitsForm, services_limit: parseInt(e.target.value) || 0 })}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label>Publicaciones adicionales de servicios/pymes</Label>
+                    <Input
+                      type="number"
+                      min={0}
+                      value={limitsForm.services_bonus}
+                      onChange={(e) => setLimitsForm({ ...limitsForm, services_bonus: parseInt(e.target.value) || 0 })}
+                    />
+                    <p className="text-xs text-muted-foreground">
+                      Total disponible: {limitsForm.services_limit + limitsForm.services_bonus}
+                    </p>
+                  </div>
+                </div>
+
+                {selectedUserLimits.user.role === 'company' && (
+                  <div className="grid sm:grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label>Límite base de empleos</Label>
+                      <Input
+                        type="number"
+                        min={0}
+                        value={limitsForm.jobs_limit}
+                        onChange={(e) => setLimitsForm({ ...limitsForm, jobs_limit: parseInt(e.target.value) || 0 })}
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label>Publicaciones adicionales de empleos</Label>
+                      <Input
+                        type="number"
+                        min={0}
+                        value={limitsForm.jobs_bonus}
+                        onChange={(e) => setLimitsForm({ ...limitsForm, jobs_bonus: parseInt(e.target.value) || 0 })}
+                      />
+                      <p className="text-xs text-muted-foreground">
+                        Total disponible: {limitsForm.jobs_limit + limitsForm.jobs_bonus}
+                      </p>
+                    </div>
+                  </div>
+                )}
+
+                {limitsError && (
+                  <Alert variant="destructive">
+                    <AlertTriangle size={16} />
+                    <AlertDescription>{limitsError}</AlertDescription>
+                  </Alert>
+                )}
+              </div>
+
+              <DialogFooter className="pt-2">
+                <Button variant="outline" onClick={() => {
+                  setPublicationLimitsDialogOpen(false);
+                  setSelectedUserLimits(null);
+                  setLimitsError('');
+                }}>
+                  Cancelar
+                </Button>
+                <Button onClick={handleSavePublicationLimits} disabled={savingLimits}>
+                  {savingLimits ? 'Guardando...' : 'Guardar cambios'}
+                </Button>
+              </DialogFooter>
+            </div>
+          ) : null}
+        </DialogContent>
+      </Dialog>
 
       {/* Dialog para banear usuario */}
       <Dialog open={banDialogOpen} onOpenChange={setBanDialogOpen}>

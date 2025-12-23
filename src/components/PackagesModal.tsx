@@ -91,7 +91,7 @@ const PackagesModal = ({ open, onOpenChange, type, onPackageSelect }: PackagesMo
       <DialogContent className="sm:max-w-4xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="text-2xl">
-            Paquetes de {type === 'services' ? 'Servicios' : 'Empleos'}
+            Paquetes de {type === 'services' ? 'Servicios/Pymes' : 'Empleos'}
           </DialogTitle>
           <DialogDescription>
             Has alcanzado el límite de publicaciones gratis. Elige un paquete para continuar publicando.
