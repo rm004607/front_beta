@@ -77,7 +77,10 @@ const Wall = () => {
   const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
   const [isProfileDialogOpen, setIsProfileDialogOpen] = useState(false);
   const [loadingProfile, setLoadingProfile] = useState(false);
+
   const [selectedPost, setSelectedPost] = useState<Post | null>(null);
+  // Estado para loading de contacto individual
+  const [loadingContact, setLoadingContact] = useState<Record<string, boolean>>({});
 
   // Cargar posts
   useEffect(() => {
@@ -114,9 +117,9 @@ const Wall = () => {
         content: postContent.trim(),
         comuna: postComuna.trim(),
       });
-    toast.success('Publicación creada exitosamente');
-    setPostContent('');
-    setPostComuna('');
+      toast.success('Publicación creada exitosamente');
+      setPostContent('');
+      setPostComuna('');
       loadPosts(); // Recargar posts
     } catch (error: any) {
       console.error('Error creating post:', error);
@@ -139,10 +142,10 @@ const Wall = () => {
         prevPosts.map((post) =>
           post.id === postId
             ? {
-                ...post,
-                user_liked: response.liked,
-                likes_count: response.likes_count,
-              }
+              ...post,
+              user_liked: response.liked,
+              likes_count: response.likes_count,
+            }
             : post
         )
       );
@@ -159,7 +162,7 @@ const Wall = () => {
     }
 
     setExpandedPost(postId);
-    
+
     // Si no tenemos los comentarios cargados, cargarlos
     if (!comments[postId]) {
       try {
@@ -299,18 +302,50 @@ const Wall = () => {
     }
   };
 
+  const handleDirectWhatsAppContact = async (post: Post) => {
+    if (!isLoggedIn) {
+      toast.error('Debes iniciar sesión para contactar');
+      return;
+    }
+
+    try {
+      setLoadingContact(prev => ({ ...prev, [post.id]: true }));
+      const response = await authAPI.getUserById(post.user_id);
+      const user = response.user;
+
+      if (!user.phone) {
+        toast.error('Este usuario no tiene un teléfono registrado');
+        return;
+      }
+
+      const cleanPhone = user.phone.replace(/\D/g, '');
+      const whatsappPhone = cleanPhone.startsWith('56') ? `+${cleanPhone}` : `+56${cleanPhone}`;
+
+      const message = `Hola ${user.name}, vi tu publicación "${post.content.substring(0, 30)}..." en Beta y me interesa tu servicio.`;
+      const encodedMessage = encodeURIComponent(message);
+
+      window.open(`https://wa.me/${whatsappPhone}?text=${encodedMessage}`, '_blank');
+
+    } catch (error: any) {
+      console.error('Error contacting user:', error);
+      toast.error('Error al obtener información de contacto');
+    } finally {
+      setLoadingContact(prev => ({ ...prev, [post.id]: false }));
+    }
+  };
+
   const handleWhatsAppContact = (phone: string, userName: string) => {
     // Formatear el número de teléfono (eliminar espacios, guiones, etc.)
     const cleanPhone = phone.replace(/\D/g, '');
     // Agregar código de país si no lo tiene (Chile: +56)
     const whatsappPhone = cleanPhone.startsWith('56') ? `+${cleanPhone}` : `+56${cleanPhone}`;
-    
+
     // Crear el mensaje predefinido
     const message = `Hola ${userName}, leí tu búsqueda de servicio en Beta y me interesa.`;
-    
+
     // Codificar el mensaje para URL
     const encodedMessage = encodeURIComponent(message);
-    
+
     // Crear el enlace de WhatsApp con el mensaje
     const whatsappUrl = `https://wa.me/${whatsappPhone}?text=${encodedMessage}`;
     window.open(whatsappUrl, '_blank');
@@ -358,7 +393,7 @@ const Wall = () => {
       const date = new Date(dateString);
       const now = new Date();
       const diffInSeconds = Math.floor((now.getTime() - date.getTime()) / 1000);
-      
+
       if (diffInSeconds < 60) {
         return 'hace unos segundos';
       } else if (diffInSeconds < 3600) {
@@ -383,62 +418,62 @@ const Wall = () => {
     <div className="container mx-auto px-4 py-8 max-w-4xl">
       {/* Header */}
       <div className="mb-8">
-          <h1 className="text-4xl font-heading font-bold mb-2">Pared de Pegas</h1>
+        <h1 className="text-4xl font-heading font-bold mb-2">Pared de Pegas</h1>
         <p className="text-muted-foreground">Comparte información y datos de trabajo</p>
-        </div>
+      </div>
 
       {/* Formulario de publicación estilo blog */}
-        {isLoggedIn && (
+      {isLoggedIn && (
         <Card className="mb-8 border-2">
           <CardHeader>
             <h2 className="text-xl font-semibold">¿Qué quieres compartir?</h2>
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <Label htmlFor="type">Tipo de Publicación</Label>
-                  <Select value={postType} onValueChange={setPostType}>
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
+              <div>
+                <Label htmlFor="type">Tipo de Publicación</Label>
+                <Select value={postType} onValueChange={setPostType}>
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
                     <SelectItem value="Busco Trabajo">Busco Trabajo</SelectItem>
                     <SelectItem value="Busco Servicio">Busco Servicio</SelectItem>
-                      <SelectItem value="Ofrezco">Ofrezco (trabajo/servicio)</SelectItem>
-                      <SelectItem value="Info">Info (general)</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div>
-                  <Label htmlFor="comuna">Comuna</Label>
-                  <Input
-                    id="comuna"
-                    value={postComuna}
-                    onChange={(e) => setPostComuna(e.target.value)}
-                    placeholder="Tu comuna"
-                  />
+                    <SelectItem value="Ofrezco">Ofrezco (trabajo/servicio)</SelectItem>
+                    <SelectItem value="Info">Info (general)</SelectItem>
+                  </SelectContent>
+                </Select>
               </div>
-                </div>
-                <div>
-                  <Label htmlFor="content">Mensaje</Label>
-                  <Textarea
-                    id="content"
-                    value={postContent}
-                    onChange={(e) => setPostContent(e.target.value)}
+              <div>
+                <Label htmlFor="comuna">Comuna</Label>
+                <Input
+                  id="comuna"
+                  value={postComuna}
+                  onChange={(e) => setPostComuna(e.target.value)}
+                  placeholder="Tu comuna"
+                />
+              </div>
+            </div>
+            <div>
+              <Label htmlFor="content">Mensaje</Label>
+              <Textarea
+                id="content"
+                value={postContent}
+                onChange={(e) => setPostContent(e.target.value)}
                 placeholder="Comparte información, datos de pega, oportunidades..."
                 rows={5}
                 className="resize-none"
-                  />
-                </div>
+              />
+            </div>
             <div className="flex justify-end">
-              <Button 
+              <Button
                 onClick={handleSubmitPost}
                 disabled={isSubmitting || !postContent.trim() || !postComuna.trim()}
                 className="min-w-[120px]"
               >
                 {isSubmitting ? 'Publicando...' : 'Publicar'}
-                </Button>
-              </div>
+              </Button>
+            </div>
           </CardContent>
         </Card>
       )}
@@ -477,11 +512,11 @@ const Wall = () => {
       ) : (
         <div className="space-y-6">
           {posts.map((post) => (
-          <Card key={post.id} className="border-2 hover:shadow-lg transition-shadow">
-            <CardHeader>
-              <div className="flex items-start justify-between">
-                <div className="flex items-center gap-3">
-                    <Avatar 
+            <Card key={post.id} className="border-2 hover:shadow-lg transition-shadow">
+              <CardHeader>
+                <div className="flex items-start justify-between">
+                  <div className="flex items-center gap-3">
+                    <Avatar
                       className={`${post.type === 'Busco Servicio' && canViewProfile() ? 'cursor-pointer hover:opacity-80 transition-opacity' : post.type === 'Busco Servicio' ? 'opacity-60' : ''}`}
                       onClick={() => post.type === 'Busco Servicio' && canViewProfile() && handleProfileClick(post.user_id, post.type, post)}
                       title={post.type === 'Busco Servicio' && !canViewProfile() ? 'Solo los emprendedores pueden contactar' : ''}
@@ -493,8 +528,8 @@ const Wall = () => {
                         {post.user_name.split(' ').map((n) => n[0]).join('')}
                       </AvatarFallback>
                     </Avatar>
-                  <div>
-                      <h3 
+                    <div>
+                      <h3
                         className={`font-semibold ${post.type === 'Busco Servicio' && canViewProfile() ? 'cursor-pointer hover:underline' : post.type === 'Busco Servicio' ? 'opacity-60' : ''}`}
                         onClick={() => post.type === 'Busco Servicio' && canViewProfile() && handleProfileClick(post.user_id, post.type, post)}
                         title={post.type === 'Busco Servicio' && !canViewProfile() ? 'Solo los emprendedores pueden contactar' : ''}
@@ -507,9 +542,25 @@ const Wall = () => {
                     </div>
                   </div>
                   <div className="flex items-center gap-2">
-                <Badge className={getTypeColor(post.type)}>
-                  {post.type}
-                </Badge>
+                    {post.type === 'Ofrezco' && (
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        className="h-8 gap-2 bg-green-50 text-green-700 border-green-200 hover:bg-green-100 hover:text-green-800"
+                        onClick={() => handleDirectWhatsAppContact(post)}
+                        disabled={loadingContact[post.id]}
+                      >
+                        {loadingContact[post.id] ? (
+                          <span className="animate-spin">⏳</span>
+                        ) : (
+                          <MessageCircle size={14} />
+                        )}
+                        Contactar
+                      </Button>
+                    )}
+                    <Badge className={getTypeColor(post.type)}>
+                      {post.type}
+                    </Badge>
                     {(user?.id === post.user_id || user?.roles.includes('super-admin')) && (
                       <Button
                         variant="ghost"
@@ -521,9 +572,9 @@ const Wall = () => {
                       </Button>
                     )}
                   </div>
-              </div>
-            </CardHeader>
-            <CardContent>
+                </div>
+              </CardHeader>
+              <CardContent>
                 <p className="text-foreground mb-4 whitespace-pre-wrap text-base leading-relaxed">
                   {post.content}
                 </p>
@@ -531,16 +582,15 @@ const Wall = () => {
                   <MapPin size={16} className="text-secondary" />
                   <span>{post.comuna}</span>
                 </div>
-                
+
                 {/* Acciones: Like y Comentarios */}
                 <div className="flex items-center gap-4 pt-3 border-t">
                   <Button
                     variant="ghost"
                     size="sm"
                     onClick={() => handleLike(post.id)}
-                    className={`flex items-center gap-2 ${
-                      post.user_liked ? 'text-red-500' : ''
-                    }`}
+                    className={`flex items-center gap-2 ${post.user_liked ? 'text-red-500' : ''
+                      }`}
                     disabled={!isLoggedIn}
                   >
                     <Heart
@@ -592,7 +642,7 @@ const Wall = () => {
                                       <p className="font-semibold text-sm">
                                         {comment.user_name}
                                       </p>
-                                      <Badge 
+                                      <Badge
                                         className={`${getCommentTypeColor(comment.comment_type)} text-white text-xs`}
                                       >
                                         {comment.comment_type === 'info' ? (
@@ -605,17 +655,17 @@ const Wall = () => {
                                     </div>
                                     {(user?.id === comment.user_id ||
                                       user?.roles.includes('super-admin')) && (
-                                      <Button
-                                        variant="ghost"
-                                        size="sm"
-                                        onClick={() =>
-                                          handleDeleteComment(post.id, comment.id)
-                                        }
-                                        className="text-destructive hover:text-destructive h-6 w-6 p-0"
-                                      >
-                                        <Trash2 size={12} />
-                                      </Button>
-                                    )}
+                                        <Button
+                                          variant="ghost"
+                                          size="sm"
+                                          onClick={() =>
+                                            handleDeleteComment(post.id, comment.id)
+                                          }
+                                          className="text-destructive hover:text-destructive h-6 w-6 p-0"
+                                        >
+                                          <Trash2 size={12} />
+                                        </Button>
+                                      )}
                                   </div>
                                   <p className="text-xs text-muted-foreground mb-1">
                                     {formatDate(comment.created_at)}
@@ -644,7 +694,7 @@ const Wall = () => {
                                 onClick={() => handleOpenCommentDialog(post.id)}
                                 className="w-full"
                               >
-                  <MessageCircle size={16} className="mr-2" />
+                                <MessageCircle size={16} className="mr-2" />
                                 Agregar Comentario
                               </Button>
                             </DialogTrigger>
@@ -707,8 +757,8 @@ const Wall = () => {
                                   >
                                     <Send size={16} className="mr-2" />
                                     Comentar
-                </Button>
-              </div>
+                                  </Button>
+                                </div>
                               </div>
                             </DialogContent>
                           </Dialog>
@@ -722,10 +772,10 @@ const Wall = () => {
                     )}
                   </div>
                 )}
-            </CardContent>
-          </Card>
-        ))}
-      </div>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
       )}
 
       {/* Dialog de perfil de usuario */}
