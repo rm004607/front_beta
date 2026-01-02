@@ -11,10 +11,10 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
-import { Building2, MapPin, Clock, DollarSign, Search, Filter, Plus, Loader2, CheckCircle, FileText, Calendar, Sparkles, MessageCircle, TrendingUp, X } from 'lucide-react';
+import { Building2, MapPin, Clock, DollarSign, Search, Filter, Plus, Loader2, CheckCircle, FileText, Calendar, TrendingUp, X } from 'lucide-react';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import { useUser } from '@/contexts/UserContext';
-import { jobsAPI, applicationsAPI, aiAPI } from '@/lib/api';
+import { jobsAPI, applicationsAPI } from '@/lib/api';
 import { toast } from 'sonner';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
@@ -47,13 +47,6 @@ const Jobs = () => {
   const [isApplying, setIsApplying] = useState(false);
   const [showSuccessModal, setShowSuccessModal] = useState(false);
   const [appliedJobTitle, setAppliedJobTitle] = useState('');
-  const [showAIRecommendations, setShowAIRecommendations] = useState(false);
-  const [aiRecommendations, setAiRecommendations] = useState<any>(null);
-  const [loadingAI, setLoadingAI] = useState(false);
-  const [showAskAI, setShowAskAI] = useState(false);
-  const [aiQuestion, setAiQuestion] = useState('');
-  const [aiAnswer, setAiAnswer] = useState('');
-  const [loadingAIAnswer, setLoadingAIAnswer] = useState(false);
 
   const isCompany = user?.roles.includes('company');
   const isAdmin = user?.roles.includes('admin') || user?.roles.includes('super-admin');
@@ -107,51 +100,6 @@ const Jobs = () => {
     return labels[type] || type;
   };
 
-  const handleGetAIRecommendations = async () => {
-    if (!user?.cv_url) {
-      toast.error('Debes tener un CV en tu perfil para obtener recomendaciones de IA');
-      navigate('/perfil?upload_cv=true');
-      return;
-    }
-
-    try {
-      setLoadingAI(true);
-      const response = await aiAPI.getJobRecommendations();
-      setAiRecommendations(response);
-      setShowAIRecommendations(true);
-      toast.success(`¡Encontramos ${response.high_matches} trabajos con alta compatibilidad!`);
-    } catch (error: any) {
-      console.error('Error getting AI recommendations:', error);
-      toast.error(error.message || 'Error al obtener recomendaciones de IA');
-    } finally {
-      setLoadingAI(false);
-    }
-  };
-
-  const handleAskAI = async () => {
-    if (!aiQuestion.trim()) {
-      toast.error('Por favor escribe una pregunta');
-      return;
-    }
-
-    if (!user?.cv_url) {
-      toast.error('Debes tener un CV en tu perfil para usar la IA');
-      navigate('/perfil?upload_cv=true');
-      return;
-    }
-
-    try {
-      setLoadingAIAnswer(true);
-      const response = await aiAPI.askAIAboutJobs(aiQuestion);
-      setAiAnswer(response.answer);
-      toast.success('Respuesta generada exitosamente');
-    } catch (error: any) {
-      console.error('Error asking AI:', error);
-      toast.error(error.message || 'Error al procesar tu pregunta');
-    } finally {
-      setLoadingAIAnswer(false);
-    }
-  };
 
   const handleApply = async (jobId: string, jobTitle: string) => {
     if (!isLoggedIn) {
@@ -209,19 +157,6 @@ const Jobs = () => {
           <p className="text-muted-foreground">Encuentra tu próxima oportunidad laboral</p>
         </div>
         <div className="flex flex-wrap gap-2 w-full md:w-auto justify-start md:justify-end">
-          {canApply && user?.cv_url && (
-            <>
-              <Button
-                variant="outline"
-                onClick={() => setShowAskAI(true)}
-                className="bg-gradient-to-r from-accent to-accent/80 text-accent-foreground hover:from-accent/90 hover:to-accent/70 w-full sm:w-auto"
-              >
-                <Sparkles size={18} className="mr-2" />
-                Preguntar a la IA
-              </Button>
-
-            </>
-          )}
           {canPublishJob && (
             <Link to="/empleos/publicar">
               <Button className="w-full sm:w-auto">
@@ -457,232 +392,9 @@ const Jobs = () => {
           </div>
         </DialogContent>
       </Dialog>
-
-      {/* Modal de Recomendaciones de IA */}
-      <Dialog open={showAIRecommendations} onOpenChange={setShowAIRecommendations}>
-        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
-          <DialogHeader>
-            <DialogTitle className="flex items-center gap-2">
-              <Sparkles className="text-accent" />
-              Recomendaciones de IA para Ti
-            </DialogTitle>
-            <DialogDescription>
-              Trabajos recomendados basados en tu CV con alta probabilidad de contratación (90%+)
-            </DialogDescription>
-          </DialogHeader>
-
-          {aiRecommendations && (
-            <div className="space-y-4">
-              {/* Resumen del análisis */}
-              {aiRecommendations.cv_analysis && (
-                <Card className="bg-gradient-to-r from-accent/10 to-accent/20 dark:from-accent/10 dark:to-accent/20">
-                  <CardHeader>
-                    <CardTitle className="text-lg">Análisis de tu CV</CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    {aiRecommendations.cv_analysis.rubro && (
-                      <p className="mb-2"><strong>Rubro:</strong> {aiRecommendations.cv_analysis.rubro}</p>
-                    )}
-                    {aiRecommendations.cv_analysis.años_experiencia && (
-                      <p className="mb-2"><strong>Años de experiencia:</strong> {aiRecommendations.cv_analysis.años_experiencia}</p>
-                    )}
-                    {aiRecommendations.cv_analysis.habilidades && aiRecommendations.cv_analysis.habilidades.length > 0 && (
-                      <div>
-                        <strong>Habilidades detectadas:</strong>
-                        <div className="flex flex-wrap gap-2 mt-2">
-                          {aiRecommendations.cv_analysis.habilidades.slice(0, 10).map((skill: string, idx: number) => (
-                            <Badge key={idx} variant="secondary">{skill}</Badge>
-                          ))}
-                        </div>
-                      </div>
-                    )}
-                  </CardContent>
-                </Card>
-              )}
-
-              {/* Estadísticas */}
-              <div className="flex gap-4 text-sm text-muted-foreground">
-                <span>Total analizado: {aiRecommendations.total_analyzed}</span>
-                <span>•</span>
-                <span className="text-green-600 font-semibold">Alta compatibilidad: {aiRecommendations.high_matches}</span>
-              </div>
-
-              {/* Lista de recomendaciones */}
-              <div className="space-y-4">
-                {aiRecommendations.recommendations.map((rec: any, idx: number) => (
-                  <Card key={rec.job.id} className="border-2 border-primary/20 hover:border-primary/40 transition-colors">
-                    <CardHeader>
-                      <div className="flex justify-between items-start">
-                        <div className="flex-1">
-                          <div className="flex items-center gap-2 mb-2">
-                            <CardTitle className="text-xl">{rec.job.title}</CardTitle>
-                            <Badge
-                              variant={rec.match_score >= 90 ? "default" : rec.match_score >= 80 ? "secondary" : "outline"}
-                              className="bg-green-500 text-white"
-                            >
-                              {rec.match_score}% Match
-                            </Badge>
-                          </div>
-                          <CardDescription className="flex items-center gap-2">
-                            <Avatar className="w-6 h-6">
-                              {rec.job.profile_image && (
-                                <AvatarImage src={rec.job.profile_image} alt={rec.job.company_name} />
-                              )}
-                              <AvatarFallback className="bg-primary text-white text-xs">
-                                {rec.job.company_name.split(' ').map((n: string) => n[0]).join('').substring(0, 2)}
-                              </AvatarFallback>
-                            </Avatar>
-                            <Building2 size={14} />
-                            {rec.job.company_name}
-                          </CardDescription>
-                        </div>
-                      </div>
-                    </CardHeader>
-                    <CardContent>
-                      <div className="space-y-3">
-                        <p className="text-sm text-muted-foreground">{rec.job.description.substring(0, 200)}...</p>
-
-                        {/* Detalles del match */}
-                        {rec.match_details && (
-                          <div className="space-y-2 pt-2 border-t">
-                            {rec.match_details.razones_coincidencia && rec.match_details.razones_coincidencia.length > 0 && (
-                              <div>
-                                <p className="text-sm font-semibold text-green-600 mb-1">✓ Por qué eres compatible:</p>
-                                <ul className="text-xs text-muted-foreground list-disc list-inside space-y-1">
-                                  {rec.match_details.razones_coincidencia.slice(0, 3).map((razon: string, i: number) => (
-                                    <li key={i}>{razon}</li>
-                                  ))}
-                                </ul>
-                              </div>
-                            )}
-                            {rec.match_details.puntos_fuertes && rec.match_details.puntos_fuertes.length > 0 && (
-                              <div>
-                                <p className="text-sm font-semibold text-blue-600 mb-1">💪 Puntos fuertes:</p>
-                                <div className="flex flex-wrap gap-1">
-                                  {rec.match_details.puntos_fuertes.slice(0, 5).map((punto: string, i: number) => (
-                                    <Badge key={i} variant="outline" className="text-xs">{punto}</Badge>
-                                  ))}
-                                </div>
-                              </div>
-                            )}
-                          </div>
-                        )}
-
-                        <div className="flex items-center gap-4 pt-2 border-t text-sm">
-                          <div className="flex items-center gap-2">
-                            <MapPin size={14} className="text-secondary" />
-                            <span>{rec.job.comuna}</span>
-                          </div>
-                          {rec.job.salary && (
-                            <div className="flex items-center gap-2">
-                              <DollarSign size={14} className="text-primary" />
-                              <span>{rec.job.salary}</span>
-                            </div>
-                          )}
-                        </div>
-                      </div>
-
-                      <div className="pt-4 border-t mt-4">
-                        <Button
-                          onClick={() => handleApply(rec.job.id, rec.job.title)}
-                          disabled={(isApplying && selectedJobId === rec.job.id)}
-                          className="w-full sm:w-auto"
-                        >
-                          {isApplying && selectedJobId === rec.job.id ? (
-                            <>
-                              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                              Postulando...
-                            </>
-                          ) : (
-                            'Postular Ahora'
-                          )}
-                        </Button>
-                      </div>
-                    </CardContent>
-                  </Card>
-                ))}
-              </div>
-
-              {aiRecommendations.recommendations.length === 0 && (
-                <div className="text-center py-8">
-                  <p className="text-muted-foreground">No se encontraron trabajos con alta compatibilidad. Intenta actualizar tu CV o busca manualmente.</p>
-                </div>
-              )}
-            </div>
-          )}
-        </DialogContent>
-      </Dialog>
-
-      {/* Modal de Preguntar a la IA */}
-      <Dialog open={showAskAI} onOpenChange={setShowAskAI}>
-        <DialogContent className="max-w-2xl">
-          <DialogHeader>
-            <DialogTitle className="flex items-center gap-2">
-              <MessageCircle className="text-accent" />
-              Pregunta a la IA sobre Trabajos
-            </DialogTitle>
-            <DialogDescription>
-              Haz preguntas sobre qué trabajos te convienen según tu CV
-            </DialogDescription>
-          </DialogHeader>
-
-          <div className="space-y-4">
-            <div>
-              <Label htmlFor="ai-question">Tu pregunta</Label>
-              <Textarea
-                id="ai-question"
-                placeholder="Ej: ¿Qué trabajos me convienen según mi CV? ¿Qué tipo de empleos puedo buscar siendo ingeniero en informática?"
-                value={aiQuestion}
-                onChange={(e) => setAiQuestion(e.target.value)}
-                rows={4}
-              />
-            </div>
-
-            {aiAnswer && (
-              <Card className="bg-gradient-to-r from-accent/10 to-accent/20 dark:from-accent/10 dark:to-accent/20">
-                <CardHeader>
-                  <CardTitle className="text-lg">Respuesta de la IA</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <p className="whitespace-pre-wrap text-sm">{aiAnswer}</p>
-                </CardContent>
-              </Card>
-            )}
-
-            <div className="flex gap-2">
-              <Button
-                onClick={handleAskAI}
-                disabled={loadingAIAnswer || !aiQuestion.trim()}
-                className="flex-1 bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600"
-              >
-                {loadingAIAnswer ? (
-                  <>
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    Procesando...
-                  </>
-                ) : (
-                  <>
-                    <Sparkles size={16} className="mr-2" />
-                    Preguntar
-                  </>
-                )}
-              </Button>
-              <Button
-                variant="outline"
-                onClick={() => {
-                  setShowAskAI(false);
-                  setAiQuestion('');
-                  setAiAnswer('');
-                }}
-              >
-                Cerrar
-              </Button>
-            </div>
-          </div>
-        </DialogContent>
-      </Dialog>
     </div>
   );
 };
 
 export default Jobs;
+

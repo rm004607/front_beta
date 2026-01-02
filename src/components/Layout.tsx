@@ -6,7 +6,6 @@ import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import { useUser } from '@/contexts/UserContext';
 import Footer from '@/components/Footer';
 import { ThemeToggle } from '@/components/ThemeToggle';
-import AIChatBubble from '@/components/AIChatBubble';
 import ErrorBoundary from '@/components/ErrorBoundary';
 import logoBeta from '@/assets/logo beta.png';
 import {
@@ -44,39 +43,35 @@ const Layout = ({ children }: LayoutProps) => {
             </Link>
 
             <nav className="hidden md:flex items-center gap-6">
-              <Link 
-                to="/empleos" 
-                className={`flex items-center gap-2 transition-colors ${
-                  isActive('/empleos') ? 'text-primary font-semibold' : 'text-foreground hover:text-primary'
-                }`}
+              <Link
+                to="/empleos"
+                className={`flex items-center gap-2 transition-colors ${isActive('/empleos') ? 'text-primary font-semibold' : 'text-foreground hover:text-primary'
+                  }`}
               >
                 <Briefcase size={18} />
                 <span>Empleos</span>
               </Link>
-              <Link 
-                to="/servicios" 
-                className={`flex items-center gap-2 transition-colors ${
-                  isActive('/servicios') ? 'text-primary font-semibold' : 'text-foreground hover:text-primary'
-                }`}
+              <Link
+                to="/servicios"
+                className={`flex items-center gap-2 transition-colors ${isActive('/servicios') ? 'text-primary font-semibold' : 'text-foreground hover:text-primary'
+                  }`}
               >
                 <Wrench size={18} />
                 <span>Servicios/Pymes</span>
               </Link>
-              <Link 
-                to="/muro" 
-                className={`flex items-center gap-2 transition-colors ${
-                  isActive('/muro') ? 'text-primary font-semibold' : 'text-foreground hover:text-primary'
-                }`}
+              <Link
+                to="/muro"
+                className={`flex items-center gap-2 transition-colors ${isActive('/muro') ? 'text-primary font-semibold' : 'text-foreground hover:text-primary'
+                  }`}
               >
                 <MessageSquare size={18} />
                 <span>Muro</span>
               </Link>
               {(user?.roles.includes('company') || user?.roles.includes('admin') || user?.roles.includes('super-admin')) && (
-                <Link 
-                  to="/postulaciones" 
-                  className={`flex items-center gap-2 transition-colors ${
-                    isActive('/postulaciones') ? 'text-primary font-semibold' : 'text-foreground hover:text-primary'
-                  }`}
+                <Link
+                  to="/postulaciones"
+                  className={`flex items-center gap-2 transition-colors ${isActive('/postulaciones') ? 'text-primary font-semibold' : 'text-foreground hover:text-primary'
+                    }`}
                 >
                   <FileText size={18} />
                   <span>Postulaciones</span>
@@ -95,8 +90,8 @@ const Layout = ({ children }: LayoutProps) => {
                   <>
                     {(user?.roles.includes('admin') || user?.roles.includes('super-admin')) && (
                       <Link to="/admin">
-                        <Button 
-                          variant="outline" 
+                        <Button
+                          variant="outline"
                           size="icon"
                           className="border-primary/50 text-primary hover:bg-primary/10 hover:border-primary hover:text-primary-foreground dark:border-primary/50 dark:text-primary dark:hover:bg-primary/20 dark:hover:border-primary dark:hover:text-primary-foreground transition-colors"
                         >
@@ -132,10 +127,10 @@ const Layout = ({ children }: LayoutProps) => {
                             </Link>
                           </DropdownMenuItem>
                         )}
-                        <DropdownMenuItem 
+                        <DropdownMenuItem
                           onClick={() => {
                             logout().catch(console.error);
-                          }} 
+                          }}
                           className="cursor-pointer"
                         >
                           <LogOut size={16} className="mr-2" />
@@ -256,11 +251,6 @@ const Layout = ({ children }: LayoutProps) => {
 
       {/* Footer */}
       <Footer />
-
-      {/* Chat flotante de IA */}
-      <ErrorBoundary fallback={null}>
-        <AIChatBubble />
-      </ErrorBoundary>
     </div>
   );
 };

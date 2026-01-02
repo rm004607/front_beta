@@ -32,15 +32,15 @@ async function request<T>(
     } catch {
       errorData = { error: `Error ${response.status}: ${response.statusText}` };
     }
-    
+
     const errorObj = new Error(errorData.error || `Error: ${response.statusText}`) as any;
-    
+
     // Agregar información adicional del error (como ban_info)
     if (errorData.ban_info) {
       errorObj.ban_info = errorData.ban_info;
     }
     errorObj.status = response.status;
-    
+
     // Si es un error 401 (cookie expirada o no autenticado)
     if (response.status === 401) {
       // Si no es /auth/me (que es normal cuando no hay sesión), significa que la cookie expiró
@@ -55,7 +55,7 @@ async function request<T>(
         console.error(`API Error [${response.status}]:`, errorData);
       }
     }
-    
+
     throw errorObj;
   }
 
@@ -1279,149 +1279,4 @@ export const supportAPI = {
 };
 
 // API de IA y recomendaciones
-export const aiAPI = {
-  // Obtener recomendaciones de trabajos basadas en CV
-  getJobRecommendations: async () => {
-    return request<{
-      message: string;
-      cv_analysis: {
-        educacion?: Array<{ titulo: string; institucion: string; nivel: string }>;
-        experiencia?: Array<{ cargo: string; empresa: string; duracion: string; descripcion: string }>;
-        habilidades?: string[];
-        rubro?: string;
-        años_experiencia?: number;
-      };
-      recommendations: Array<{
-        job: {
-          id: string;
-          title: string;
-          description: string;
-          requirements?: string;
-          salary?: string;
-          comuna: string;
-          job_type: string;
-          created_at: string;
-          company_name: string;
-          profile_image?: string;
-        };
-        match_score: number;
-        match_details: {
-          porcentaje_coincidencia: number;
-          razones_coincidencia: string[];
-          razones_no_coincidencia: string[];
-          recomendacion: 'alta' | 'media' | 'baja';
-          puntos_fuertes: string[];
-          puntos_debilidades: string[];
-        };
-        high_match?: boolean;
-      }>;
-      total_analyzed: number;
-      high_matches: number;
-    }>('/api/ai/jobs/recommendations', {
-      method: 'GET',
-    });
-  },
-
-  // Obtener recomendaciones de servicios basadas en preferencias del usuario
-  getServiceRecommendations: async (preferences?: { serviceType: string; valuePreference: 'price' | 'quality' }) => {
-    const params = new URLSearchParams();
-    if (preferences?.serviceType) params.append('serviceType', preferences.serviceType);
-    if (preferences?.valuePreference) params.append('valuePreference', preferences.valuePreference);
-
-    const queryString = params.toString();
-    return request<{
-      message: string;
-      cv_analysis: {
-        educacion?: Array<{ titulo: string; institucion: string; nivel: string }>;
-        experiencia?: Array<{ cargo: string; empresa: string; duracion: string; descripcion: string }>;
-        habilidades?: string[];
-        rubro?: string;
-        años_experiencia?: number;
-      };
-      recommendations: Array<{
-        service: {
-          id: string;
-          service_name: string;
-          description: string;
-          price_range?: string;
-          comuna: string;
-          status: string;
-          created_at: string;
-          user_id: string;
-          user_name: string;
-          phone?: string;
-        };
-        match_score: number;
-        match_details: {
-          porcentaje_coincidencia: number;
-          tipo: 'puede_ofrecer' | 'necesita' | 'no_relacionado';
-          razones: string[];
-          recomendacion: 'alta' | 'media' | 'baja';
-        };
-        high_match?: boolean;
-      }>;
-      total_analyzed: number;
-      high_matches: number;
-    }>(`/api/ai/services/recommendations${queryString ? `?${queryString}` : ''}`, {
-      method: 'GET',
-    });
-  },
-
-  // Analizar solo el CV
-  analyzeCV: async () => {
-    return request<{
-      message: string;
-      analysis: {
-        educacion?: Array<{ titulo: string; institucion: string; nivel: string }>;
-        experiencia?: Array<{ cargo: string; empresa: string; duracion: string; descripcion: string }>;
-        habilidades?: string[];
-        rubro?: string;
-        años_experiencia?: number;
-      };
-    }>('/api/ai/cv/analyze', {
-      method: 'GET',
-    });
-  },
-
-  // Preguntar a la IA sobre trabajos
-  askAIAboutJobs: async (question: string) => {
-    return request<{
-      message: string;
-      question: string;
-      answer: string;
-      cards?: any[];
-      cv_analysis: {
-        educacion?: Array<{ titulo: string; institucion: string; nivel: string }>;
-        experiencia?: Array<{ cargo: string; empresa: string; duracion: string; descripcion: string }>;
-        habilidades?: string[];
-        rubro?: string;
-        años_experiencia?: number;
-      };
-      available_jobs: number;
-    }>('/api/ai/ask', {
-      method: 'POST',
-      body: JSON.stringify({ question }),
-    });
-  },
-
-  // Chatear con la IA sobre servicios
-  chatAboutServices: async (message: string) => {
-    return request<{
-      message: string;
-      answer: string;
-      recommendations?: Array<{
-        id: string;
-        service_name: string;
-        description: string;
-        price_range?: string;
-        comuna: string;
-        user_name: string;
-        phone?: string;
-      }>;
-    }>('/api/ai/services/chat', {
-      method: 'POST',
-      body: JSON.stringify({ message }),
-    });
-  },
-};
 
