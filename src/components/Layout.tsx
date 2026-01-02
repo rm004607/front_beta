@@ -80,7 +80,7 @@ const Layout = ({ children }: LayoutProps) => {
             </nav>
 
             <div className="flex items-center gap-3">
-              <div className="hidden md:block">
+              <div className="flex items-center">
                 <ThemeToggle />
               </div>
 
