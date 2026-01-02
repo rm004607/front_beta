@@ -800,7 +800,7 @@ const Profile = () => {
       {/* Basic Info Card */}
       <Card className="mb-6 border-2">
         <CardHeader>
-          <div className="flex items-start gap-6">
+          <div className="flex flex-col md:flex-row items-center md:items-start gap-6 text-center md:text-left">
             <Avatar className="w-24 h-24">
               {user.profile_image && (
                 <AvatarImage src={user.profile_image} alt={user.name} />
@@ -809,9 +809,9 @@ const Profile = () => {
                 {user.name.split(' ').map(n => n[0]).join('')}
               </AvatarFallback>
             </Avatar>
-            <div className="flex-1">
-              <CardTitle className="text-3xl mb-3">{user.name}</CardTitle>
-              <div className="flex flex-wrap gap-2 mb-4">
+            <div className="flex-1 min-w-0 w-full">
+              <CardTitle className="text-3xl mb-3 break-words">{user.name}</CardTitle>
+              <div className="flex flex-wrap justify-center md:justify-start gap-2 mb-4">
                 {user.roles.map((role) => (
                   <Badge key={role} variant="secondary" className="flex items-center gap-1">
                     {getRoleIcon(role)}
@@ -819,17 +819,17 @@ const Profile = () => {
                   </Badge>
                 ))}
               </div>
-              <div className="space-y-2 text-muted-foreground">
-                <div className="flex items-center gap-2">
-                  <Mail size={16} />
-                  <span>{user.email}</span>
+              <div className="space-y-2 text-muted-foreground flex flex-col items-center md:items-start">
+                <div className="flex items-center gap-2 max-w-full">
+                  <Mail size={16} className="shrink-0" />
+                  <span className="break-all">{user.email}</span>
                 </div>
                 <div className="flex items-center gap-2">
-                  <Phone size={16} />
+                  <Phone size={16} className="shrink-0" />
                   <span>{user.phone}</span>
                 </div>
                 <div className="flex items-center gap-2">
-                  <MapPin size={16} />
+                  <MapPin size={16} className="shrink-0" />
                   <span>{user.comuna}</span>
                 </div>
               </div>
@@ -1096,12 +1096,12 @@ const Profile = () => {
 
       {/* Tabs para mostrar publicaciones, servicios y empleos */}
       <Tabs defaultValue="posts" className="w-full">
-        <TabsList className={`grid w-full mb-4 ${(user.roles.includes('entrepreneur') && user.roles.includes('company')) ||
+        <TabsList className={`grid w-full h-auto mb-4 p-1 gap-1 ${(user.roles.includes('entrepreneur') && user.roles.includes('company')) ||
           user.roles.includes('admin') || user.roles.includes('super-admin')
-          ? 'grid-cols-3'
+          ? 'grid-cols-1 md:grid-cols-3'
           : (user.roles.includes('entrepreneur') || user.roles.includes('company') ||
             user.roles.includes('admin') || user.roles.includes('super-admin'))
-            ? 'grid-cols-2'
+            ? 'grid-cols-1 sm:grid-cols-2'
             : 'grid-cols-1'
           }`}>
           <TabsTrigger value="posts" className="flex items-center gap-2">
