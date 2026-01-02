@@ -660,7 +660,7 @@ const Admin = () => {
           </Card>
           <Card>
             <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">Servicios/Pymes Activos</CardTitle>
+              <CardTitle className="text-sm font-medium text-muted-foreground">Servicios/Pymes Activos</CardTitle>
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold">{stats.active_services || 0}</div>
@@ -683,7 +683,7 @@ const Admin = () => {
       )}
 
       <Tabs defaultValue="wall" className="w-full">
-        <TabsList className={`grid w-full mb-8 ${isSuperAdmin ? 'grid-cols-6' : 'grid-cols-5'}`}>
+        <TabsList className={`grid w-full h-auto mb-8 p-1 gap-1 ${isSuperAdmin ? 'grid-cols-2 sm:grid-cols-3 lg:grid-cols-6' : 'grid-cols-2 sm:grid-cols-3 lg:grid-cols-5'}`}>
           <TabsTrigger value="wall" onClick={loadPosts} className="flex items-center gap-2">
             <MessageSquare size={16} />
             Muro
@@ -964,337 +964,337 @@ const Admin = () => {
 
         {/* Tab de Usuarios (Admin puede ver y banear, Super Admin puede hacer todo) */}
         <TabsContent value="users">
-            <Card className="border-2">
-              <CardHeader>
-                <CardTitle>Usuarios</CardTitle>
-                <CardDescription>Gestiona usuarios, baneos y roles</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="mb-4 flex gap-4">
-                  <Select value={userFilters.role} onValueChange={(value) => setUserFilters({ ...userFilters, role: value })}>
-                    <SelectTrigger className="w-40">
-                      <SelectValue placeholder="Rol" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="all">Todos</SelectItem>
-                      <SelectItem value="job-seeker">Job Seeker</SelectItem>
-                      <SelectItem value="entrepreneur">Entrepreneur</SelectItem>
-                      <SelectItem value="company">Company</SelectItem>
-                      <SelectItem value="admin">Admin</SelectItem>
-                    </SelectContent>
-                  </Select>
-                  <Select value={userFilters.is_active} onValueChange={(value) => setUserFilters({ ...userFilters, is_active: value })}>
-                    <SelectTrigger className="w-32">
-                      <SelectValue placeholder="Activo" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="all">Todos</SelectItem>
-                      <SelectItem value="1">Activos</SelectItem>
-                      <SelectItem value="0">Inactivos</SelectItem>
-                    </SelectContent>
-                  </Select>
-                  <Select value={userFilters.is_banned} onValueChange={(value) => setUserFilters({ ...userFilters, is_banned: value })}>
-                    <SelectTrigger className="w-32">
-                      <SelectValue placeholder="Ban" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="all">Todos</SelectItem>
-                      <SelectItem value="1">Baneados</SelectItem>
-                      <SelectItem value="0">No Baneados</SelectItem>
-                    </SelectContent>
-                  </Select>
-                  <Button onClick={loadUsers}>Buscar</Button>
-                </div>
+          <Card className="border-2">
+            <CardHeader>
+              <CardTitle>Usuarios</CardTitle>
+              <CardDescription>Gestiona usuarios, baneos y roles</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="mb-4 flex gap-4">
+                <Select value={userFilters.role} onValueChange={(value) => setUserFilters({ ...userFilters, role: value })}>
+                  <SelectTrigger className="w-40">
+                    <SelectValue placeholder="Rol" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">Todos</SelectItem>
+                    <SelectItem value="job-seeker">Job Seeker</SelectItem>
+                    <SelectItem value="entrepreneur">Entrepreneur</SelectItem>
+                    <SelectItem value="company">Company</SelectItem>
+                    <SelectItem value="admin">Admin</SelectItem>
+                  </SelectContent>
+                </Select>
+                <Select value={userFilters.is_active} onValueChange={(value) => setUserFilters({ ...userFilters, is_active: value })}>
+                  <SelectTrigger className="w-32">
+                    <SelectValue placeholder="Activo" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">Todos</SelectItem>
+                    <SelectItem value="1">Activos</SelectItem>
+                    <SelectItem value="0">Inactivos</SelectItem>
+                  </SelectContent>
+                </Select>
+                <Select value={userFilters.is_banned} onValueChange={(value) => setUserFilters({ ...userFilters, is_banned: value })}>
+                  <SelectTrigger className="w-32">
+                    <SelectValue placeholder="Ban" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">Todos</SelectItem>
+                    <SelectItem value="1">Baneados</SelectItem>
+                    <SelectItem value="0">No Baneados</SelectItem>
+                  </SelectContent>
+                </Select>
+                <Button onClick={loadUsers}>Buscar</Button>
+              </div>
 
-                {loadingUsers ? (
-                  <div className="text-center py-8">
-                    <p className="text-muted-foreground">Cargando usuarios...</p>
-                  </div>
-                ) : users.length === 0 ? (
-                  <div className="text-center py-8">
-                    <p className="text-muted-foreground">No hay usuarios</p>
-                  </div>
-                ) : (
-                  <div className="space-y-4">
-                    {users.map((user) => (
-                      <Card key={user.id} className="border">
-                        <CardHeader>
-                          <div className="flex justify-between items-start">
-                            <div className="flex items-center gap-3 flex-1">
-                              <Avatar
-                                className="cursor-pointer hover:opacity-80 transition-opacity"
-                                onClick={() => handleViewUserProfile(user.id)}
-                              >
-                                {user.profile_image && (
-                                  <AvatarImage src={user.profile_image} alt={user.name} />
-                                )}
-                                <AvatarFallback className="bg-primary text-primary-foreground">
-                                  {user.name.split(' ').map(n => n[0]).join('')}
-                                </AvatarFallback>
-                              </Avatar>
-                              <div className="flex-1">
-                                <CardTitle className="text-lg cursor-pointer hover:underline" onClick={() => handleViewUserProfile(user.id)}>
-                                  {user.name}
-                                </CardTitle>
-                                <CardDescription>{user.email}</CardDescription>
-                                <CardDescription className="mt-1">
-                                  {user.comuna} | {user.phone} | Rol: {user.role}
-                                </CardDescription>
-                                {user.is_banned && (
-                                  <div className="mt-2">
-                                    <Alert variant="destructive">
-                                      <AlertTriangle size={16} />
-                                      <AlertDescription>
-                                        Baneado: {user.ban_reason} | Hasta: {user.banned_until ? formatDate(user.banned_until) : 'Permanente'} | Veces baneado: {user.ban_count}
-                                      </AlertDescription>
-                                    </Alert>
-                                  </div>
-                                )}
-                              </div>
-                            </div>
-                            <div className="flex items-center gap-2">
-                              <Badge variant={user.is_active ? 'default' : 'secondary'}>
-                                {user.is_active ? 'Activo' : 'Inactivo'}
-                              </Badge>
+              {loadingUsers ? (
+                <div className="text-center py-8">
+                  <p className="text-muted-foreground">Cargando usuarios...</p>
+                </div>
+              ) : users.length === 0 ? (
+                <div className="text-center py-8">
+                  <p className="text-muted-foreground">No hay usuarios</p>
+                </div>
+              ) : (
+                <div className="space-y-4">
+                  {users.map((user) => (
+                    <Card key={user.id} className="border">
+                      <CardHeader>
+                        <div className="flex justify-between items-start">
+                          <div className="flex items-center gap-3 flex-1">
+                            <Avatar
+                              className="cursor-pointer hover:opacity-80 transition-opacity"
+                              onClick={() => handleViewUserProfile(user.id)}
+                            >
+                              {user.profile_image && (
+                                <AvatarImage src={user.profile_image} alt={user.name} />
+                              )}
+                              <AvatarFallback className="bg-primary text-primary-foreground">
+                                {user.name.split(' ').map(n => n[0]).join('')}
+                              </AvatarFallback>
+                            </Avatar>
+                            <div className="flex-1">
+                              <CardTitle className="text-lg cursor-pointer hover:underline" onClick={() => handleViewUserProfile(user.id)}>
+                                {user.name}
+                              </CardTitle>
+                              <CardDescription>{user.email}</CardDescription>
+                              <CardDescription className="mt-1">
+                                {user.comuna} | {user.phone} | Rol: {user.role}
+                              </CardDescription>
                               {user.is_banned && (
-                                <Badge variant="destructive">Baneado</Badge>
-                              )}
-                              {user.ban_count > 0 && (
-                                <Badge variant="outline">Bans: {user.ban_count}</Badge>
+                                <div className="mt-2">
+                                  <Alert variant="destructive">
+                                    <AlertTriangle size={16} />
+                                    <AlertDescription>
+                                      Baneado: {user.ban_reason} | Hasta: {user.banned_until ? formatDate(user.banned_until) : 'Permanente'} | Veces baneado: {user.ban_count}
+                                    </AlertDescription>
+                                  </Alert>
+                                </div>
                               )}
                             </div>
                           </div>
-                        </CardHeader>
-                        <CardContent>
-                          <div className="flex gap-2 flex-wrap">
-                            {!user.is_banned ? (
-                              <Button
-                                variant="outline"
-                                size="sm"
-                                onClick={() => {
-                                  setSelectedUser(user);
-                                  setBanDialogOpen(true);
-                                }}
-                              >
-                                <Ban size={16} className="mr-2" />
-                                Banear
-                              </Button>
-                            ) : (
-                              <Button
-                                variant="outline"
-                                size="sm"
-                                onClick={() => handleUnbanUser(user.id)}
-                              >
-                                <UserCheck size={16} className="mr-2" />
-                                Desbanear
-                              </Button>
+                          <div className="flex items-center gap-2">
+                            <Badge variant={user.is_active ? 'default' : 'secondary'}>
+                              {user.is_active ? 'Activo' : 'Inactivo'}
+                            </Badge>
+                            {user.is_banned && (
+                              <Badge variant="destructive">Baneado</Badge>
                             )}
-                            {isSuperAdmin && (
-                              <Button
-                                variant="outline"
-                                size="sm"
-                                onClick={() => openChangeRoleDialog(user)}
-                              >
-                                <Shield size={16} className="mr-2" />
-                                Cambiar Rol
-                              </Button>
-                            )}
-                            {isSuperAdmin && (
-                              <Button
-                                variant="outline"
-                                size="sm"
-                                onClick={() => openPublicationLimits(user.id)}
-                              >
-                                <FileText size={16} className="mr-2" />
-                                Gestionar publicaciones
-                              </Button>
-                            )}
-                            {isSuperAdmin && (
-                              <Button
-                                variant="destructive"
-                                size="sm"
-                                onClick={() => handleDeleteUser(user.id)}
-                              >
-                                <Trash2 size={16} className="mr-2" />
-                                Eliminar
-                              </Button>
+                            {user.ban_count > 0 && (
+                              <Badge variant="outline">Bans: {user.ban_count}</Badge>
                             )}
                           </div>
-                        </CardContent>
-                      </Card>
-                    ))}
-                  </div>
-                )}
-              </CardContent>
-            </Card>
-          </TabsContent>
+                        </div>
+                      </CardHeader>
+                      <CardContent>
+                        <div className="flex gap-2 flex-wrap">
+                          {!user.is_banned ? (
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => {
+                                setSelectedUser(user);
+                                setBanDialogOpen(true);
+                              }}
+                            >
+                              <Ban size={16} className="mr-2" />
+                              Banear
+                            </Button>
+                          ) : (
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => handleUnbanUser(user.id)}
+                            >
+                              <UserCheck size={16} className="mr-2" />
+                              Desbanear
+                            </Button>
+                          )}
+                          {isSuperAdmin && (
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => openChangeRoleDialog(user)}
+                            >
+                              <Shield size={16} className="mr-2" />
+                              Cambiar Rol
+                            </Button>
+                          )}
+                          {isSuperAdmin && (
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => openPublicationLimits(user.id)}
+                            >
+                              <FileText size={16} className="mr-2" />
+                              Gestionar publicaciones
+                            </Button>
+                          )}
+                          {isSuperAdmin && (
+                            <Button
+                              variant="destructive"
+                              size="sm"
+                              onClick={() => handleDeleteUser(user.id)}
+                            >
+                              <Trash2 size={16} className="mr-2" />
+                              Eliminar
+                            </Button>
+                          )}
+                        </div>
+                      </CardContent>
+                    </Card>
+                  ))}
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </TabsContent>
 
         {/* Tab de Tickets */}
         <TabsContent value="tickets">
-            <Card className="border-2">
-              <CardHeader>
-                <CardTitle>Tickets de Soporte</CardTitle>
-                <CardDescription>Gestiona los tickets de soporte de los usuarios</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="mb-4 flex gap-4">
-                  <Select
-                    value={ticketFilters.status}
-                    onValueChange={(value) => {
-                      setTicketFilters({ ...ticketFilters, status: value });
-                      setTimeout(loadTickets, 100);
-                    }}
-                  >
-                    <SelectTrigger className="w-40">
-                      <SelectValue placeholder="Estado" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="all">Todos</SelectItem>
-                      <SelectItem value="open">Abierto</SelectItem>
-                      <SelectItem value="in_progress">En Progreso</SelectItem>
-                      <SelectItem value="resolved">Resuelto</SelectItem>
-                      <SelectItem value="closed">Cerrado</SelectItem>
-                    </SelectContent>
-                  </Select>
-                  <Select
-                    value={ticketFilters.category}
-                    onValueChange={(value) => {
-                      setTicketFilters({ ...ticketFilters, category: value });
-                      setTimeout(loadTickets, 100);
-                    }}
-                  >
-                    <SelectTrigger className="w-40">
-                      <SelectValue placeholder="Categoría" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="all">Todas</SelectItem>
-                      <SelectItem value="general">General</SelectItem>
-                      <SelectItem value="technical">Técnico</SelectItem>
-                      <SelectItem value="account">Cuenta</SelectItem>
-                      <SelectItem value="payment">Pago</SelectItem>
-                      <SelectItem value="report">Reporte</SelectItem>
-                      <SelectItem value="other">Otro</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
+          <Card className="border-2">
+            <CardHeader>
+              <CardTitle>Tickets de Soporte</CardTitle>
+              <CardDescription>Gestiona los tickets de soporte de los usuarios</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="mb-4 flex gap-4">
+                <Select
+                  value={ticketFilters.status}
+                  onValueChange={(value) => {
+                    setTicketFilters({ ...ticketFilters, status: value });
+                    setTimeout(loadTickets, 100);
+                  }}
+                >
+                  <SelectTrigger className="w-40">
+                    <SelectValue placeholder="Estado" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">Todos</SelectItem>
+                    <SelectItem value="open">Abierto</SelectItem>
+                    <SelectItem value="in_progress">En Progreso</SelectItem>
+                    <SelectItem value="resolved">Resuelto</SelectItem>
+                    <SelectItem value="closed">Cerrado</SelectItem>
+                  </SelectContent>
+                </Select>
+                <Select
+                  value={ticketFilters.category}
+                  onValueChange={(value) => {
+                    setTicketFilters({ ...ticketFilters, category: value });
+                    setTimeout(loadTickets, 100);
+                  }}
+                >
+                  <SelectTrigger className="w-40">
+                    <SelectValue placeholder="Categoría" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">Todas</SelectItem>
+                    <SelectItem value="general">General</SelectItem>
+                    <SelectItem value="technical">Técnico</SelectItem>
+                    <SelectItem value="account">Cuenta</SelectItem>
+                    <SelectItem value="payment">Pago</SelectItem>
+                    <SelectItem value="report">Reporte</SelectItem>
+                    <SelectItem value="other">Otro</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
 
-                {loadingTickets ? (
-                  <div className="text-center py-8">
-                    <p className="text-muted-foreground">Cargando tickets...</p>
-                  </div>
-                ) : tickets.length === 0 ? (
-                  <div className="text-center py-8">
-                    <p className="text-muted-foreground">No hay tickets</p>
-                  </div>
-                ) : (
-                  <div className="space-y-4">
-                    {tickets.map((ticket) => (
-                      <Card key={ticket.id} className="border">
-                        <CardHeader>
-                          <div className="flex justify-between items-start">
-                            <div className="flex items-center gap-3 flex-1">
-                              <Avatar className="w-10 h-10">
-                                {ticket.profile_image && (
-                                  <AvatarImage src={ticket.profile_image} alt={ticket.user_name} />
-                                )}
-                                <AvatarFallback className="bg-primary text-primary-foreground text-xs">
-                                  {ticket.user_name.split(' ').map(n => n[0]).join('')}
-                                </AvatarFallback>
-                              </Avatar>
-                              <div className="flex-1">
-                                <CardTitle className="text-lg">{ticket.subject}</CardTitle>
-                                <CardDescription>
-                                  {ticket.user_name} ({ticket.user_email}) | {new Date(ticket.created_at).toLocaleString('es-CL')}
-                                </CardDescription>
-                                <div className="flex gap-2 mt-2">
-                                  <Badge variant="outline">{ticket.category}</Badge>
-                                  <Badge
-                                    variant={
-                                      ticket.status === 'resolved' ? 'default' :
+              {loadingTickets ? (
+                <div className="text-center py-8">
+                  <p className="text-muted-foreground">Cargando tickets...</p>
+                </div>
+              ) : tickets.length === 0 ? (
+                <div className="text-center py-8">
+                  <p className="text-muted-foreground">No hay tickets</p>
+                </div>
+              ) : (
+                <div className="space-y-4">
+                  {tickets.map((ticket) => (
+                    <Card key={ticket.id} className="border">
+                      <CardHeader>
+                        <div className="flex justify-between items-start">
+                          <div className="flex items-center gap-3 flex-1">
+                            <Avatar className="w-10 h-10">
+                              {ticket.profile_image && (
+                                <AvatarImage src={ticket.profile_image} alt={ticket.user_name} />
+                              )}
+                              <AvatarFallback className="bg-primary text-primary-foreground text-xs">
+                                {ticket.user_name.split(' ').map(n => n[0]).join('')}
+                              </AvatarFallback>
+                            </Avatar>
+                            <div className="flex-1">
+                              <CardTitle className="text-lg">{ticket.subject}</CardTitle>
+                              <CardDescription>
+                                {ticket.user_name} ({ticket.user_email}) | {new Date(ticket.created_at).toLocaleString('es-CL')}
+                              </CardDescription>
+                              <div className="flex gap-2 mt-2">
+                                <Badge variant="outline">{ticket.category}</Badge>
+                                <Badge
+                                  variant={
+                                    ticket.status === 'resolved' ? 'default' :
                                       ticket.status === 'closed' ? 'secondary' :
-                                      ticket.status === 'in_progress' ? 'default' :
-                                      'destructive'
-                                    }
-                                  >
-                                    {ticket.status === 'open' ? 'Abierto' :
-                                     ticket.status === 'in_progress' ? 'En Progreso' :
-                                     ticket.status === 'resolved' ? 'Resuelto' :
-                                     'Cerrado'}
-                                  </Badge>
-                                </div>
+                                        ticket.status === 'in_progress' ? 'default' :
+                                          'destructive'
+                                  }
+                                >
+                                  {ticket.status === 'open' ? 'Abierto' :
+                                    ticket.status === 'in_progress' ? 'En Progreso' :
+                                      ticket.status === 'resolved' ? 'Resuelto' :
+                                        'Cerrado'}
+                                </Badge>
                               </div>
                             </div>
-                            <div className="flex gap-2">
-                              <Button
-                                variant="outline"
-                                size="sm"
-                                onClick={() => {
+                          </div>
+                          <div className="flex gap-2">
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => {
+                                setSelectedTicket(ticket);
+                                setTicketResponseDialogOpen(true);
+                              }}
+                            >
+                              <Send size={16} className="mr-2" />
+                              Responder
+                            </Button>
+                            <Select
+                              value={ticket.status}
+                              onValueChange={(value) => {
+                                if (value === 'closed' && !ticket.response) {
+                                  // Si intenta cerrar sin respuesta, abrir modal
                                   setSelectedTicket(ticket);
                                   setTicketResponseDialogOpen(true);
-                                }}
-                              >
-                                <Send size={16} className="mr-2" />
-                                Responder
-                              </Button>
-                              <Select
-                                value={ticket.status}
-                                onValueChange={(value) => {
-                                  if (value === 'closed' && !ticket.response) {
-                                    // Si intenta cerrar sin respuesta, abrir modal
-                                    setSelectedTicket(ticket);
-                                    setTicketResponseDialogOpen(true);
-                                    toast.info('Debes proporcionar una solución antes de cerrar el ticket');
-                                    // No cambiar el estado todavía
-                                    return;
-                                  }
-                                  handleUpdateTicketStatus(ticket.id, value);
-                                }}
-                              >
-                                <SelectTrigger className="w-32">
-                                  <SelectValue />
-                                </SelectTrigger>
-                                <SelectContent>
-                                  <SelectItem value="open">Abierto</SelectItem>
-                                  <SelectItem value="in_progress">En Progreso</SelectItem>
-                                  <SelectItem value="resolved">Resuelto</SelectItem>
-                                  <SelectItem 
-                                    value="closed"
-                                    disabled={!ticket.response}
-                                  >
-                                    Cerrado {!ticket.response && '(requiere respuesta)'}
-                                  </SelectItem>
-                                </SelectContent>
-                              </Select>
-                            </div>
+                                  toast.info('Debes proporcionar una solución antes de cerrar el ticket');
+                                  // No cambiar el estado todavía
+                                  return;
+                                }
+                                handleUpdateTicketStatus(ticket.id, value);
+                              }}
+                            >
+                              <SelectTrigger className="w-32">
+                                <SelectValue />
+                              </SelectTrigger>
+                              <SelectContent>
+                                <SelectItem value="open">Abierto</SelectItem>
+                                <SelectItem value="in_progress">En Progreso</SelectItem>
+                                <SelectItem value="resolved">Resuelto</SelectItem>
+                                <SelectItem
+                                  value="closed"
+                                  disabled={!ticket.response}
+                                >
+                                  Cerrado {!ticket.response && '(requiere respuesta)'}
+                                </SelectItem>
+                              </SelectContent>
+                            </Select>
                           </div>
-                        </CardHeader>
-                        <CardContent>
-                          <div className="space-y-4">
-                            <div>
-                              <h4 className="font-semibold mb-2">Mensaje:</h4>
-                              <p className="text-muted-foreground whitespace-pre-wrap">{ticket.message}</p>
-                            </div>
-                            {ticket.response && (
-                              <div className="border-t pt-4">
-                                <h4 className="font-semibold mb-2 flex items-center gap-2">
-                                  <CheckCircle size={16} className="text-green-500" />
-                                  Respuesta {ticket.responder_name && `por ${ticket.responder_name}`}:
-                                </h4>
-                                <p className="text-muted-foreground whitespace-pre-wrap">{ticket.response}</p>
-                                <p className="text-xs text-muted-foreground mt-2">
-                                  {new Date(ticket.updated_at).toLocaleString('es-CL')}
-                                </p>
-                              </div>
-                            )}
+                        </div>
+                      </CardHeader>
+                      <CardContent>
+                        <div className="space-y-4">
+                          <div>
+                            <h4 className="font-semibold mb-2">Mensaje:</h4>
+                            <p className="text-muted-foreground whitespace-pre-wrap">{ticket.message}</p>
                           </div>
-                        </CardContent>
-                      </Card>
-                    ))}
-                  </div>
-                )}
-              </CardContent>
-            </Card>
-          </TabsContent>
+                          {ticket.response && (
+                            <div className="border-t pt-4">
+                              <h4 className="font-semibold mb-2 flex items-center gap-2">
+                                <CheckCircle size={16} className="text-green-500" />
+                                Respuesta {ticket.responder_name && `por ${ticket.responder_name}`}:
+                              </h4>
+                              <p className="text-muted-foreground whitespace-pre-wrap">{ticket.response}</p>
+                              <p className="text-xs text-muted-foreground mt-2">
+                                {new Date(ticket.updated_at).toLocaleString('es-CL')}
+                              </p>
+                            </div>
+                          )}
+                        </div>
+                      </CardContent>
+                    </Card>
+                  ))}
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </TabsContent>
 
         {/* Tab de Logs (Solo Super Admin) */}
         {isSuperAdmin && (
@@ -1590,7 +1590,7 @@ const Admin = () => {
                 <Alert variant="destructive" className="mt-2">
                   <AlertTriangle size={16} />
                   <AlertDescription>
-                    ⚠️ Este usuario ya ha sido baneado {selectedUser.ban_count} vez(es). 
+                    ⚠️ Este usuario ya ha sido baneado {selectedUser.ban_count} vez(es).
                     Si lo baneas nuevamente, la cuenta se bloqueará permanentemente.
                   </AlertDescription>
                 </Alert>
@@ -1783,8 +1783,8 @@ const Admin = () => {
           <DialogHeader>
             <DialogTitle>Responder Ticket</DialogTitle>
             <DialogDescription>
-              {selectedTicket?.status === 'closed' || selectedTicket?.status === 'resolved' 
-                ? 'Actualiza la solución al problema' 
+              {selectedTicket?.status === 'closed' || selectedTicket?.status === 'resolved'
+                ? 'Actualiza la solución al problema'
                 : `Responde al ticket de ${selectedTicket?.user_name}`}
             </DialogDescription>
           </DialogHeader>
@@ -1815,8 +1815,8 @@ const Admin = () => {
                   value={ticketResponse}
                   onChange={(e) => setTicketResponse(e.target.value)}
                   rows={6}
-                  placeholder={selectedTicket.response 
-                    ? "Actualiza la solución al problema..." 
+                  placeholder={selectedTicket.response
+                    ? "Actualiza la solución al problema..."
                     : "Escribe la solución al problema aquí..."}
                 />
                 <p className="text-xs text-muted-foreground mt-1">
@@ -1836,8 +1836,8 @@ const Admin = () => {
               Cancelar
             </Button>
             {selectedTicket && selectedTicket.status !== 'closed' && (
-              <Button 
-                onClick={() => handleRespondToTicket(false)} 
+              <Button
+                onClick={() => handleRespondToTicket(false)}
                 disabled={!ticketResponse.trim()}
                 variant="outline"
               >
@@ -1845,8 +1845,8 @@ const Admin = () => {
                 Resolver (sin cerrar)
               </Button>
             )}
-            <Button 
-              onClick={() => handleRespondToTicket(true)} 
+            <Button
+              onClick={() => handleRespondToTicket(true)}
               disabled={!ticketResponse.trim()}
             >
               <Send size={16} className="mr-2" />
