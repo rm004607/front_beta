@@ -33,7 +33,32 @@ async function request<T>(
       errorData = { error: `Error ${response.status}: ${response.statusText}` };
     }
 
-    const errorObj = new Error(errorData.error || `Error: ${response.statusText}`) as any;
+    // Loguear detalles técnicos solo en desarrollo
+    if (import.meta.env.DEV) {
+      console.error(`API Error [${response.status}]:`, errorData);
+    }
+
+    // Determinar mensaje de error para el usuario (sin revelar detalles técnicos)
+    let userMessage: string;
+
+    if (response.status === 401) {
+      userMessage = errorData.error || 'No autorizado. Por favor inicia sesión.';
+    } else if (response.status === 403) {
+      userMessage = errorData.error || 'No tienes permisos para realizar esta acción.';
+    } else if (response.status === 404) {
+      userMessage = errorData.error || 'Recurso no encontrado.';
+    } else if (response.status === 400) {
+      // Errores de validación del backend (estos sí pueden mostrarse)
+      userMessage = errorData.error || 'Datos inválidos. Por favor verifica la información.';
+    } else if (response.status >= 500) {
+      // Errores del servidor - NO revelar detalles técnicos
+      userMessage = 'Ups, algo salió mal. Por favor intenta de nuevo.';
+    } else {
+      // Otros errores
+      userMessage = errorData.error || 'Ocurrió un error. Por favor intenta de nuevo.';
+    }
+
+    const errorObj = new Error(userMessage) as any;
 
     // Agregar información adicional del error (como ban_info)
     if (errorData.ban_info) {
@@ -48,11 +73,6 @@ async function request<T>(
       if (endpoint !== '/auth/me' && onUnauthorizedCallback) {
         // La cookie expiró mientras el usuario estaba usando la app
         onUnauthorizedCallback();
-      }
-    } else if (response.status !== 401) {
-      // Para otros errores que no sean 401, loguear en desarrollo para debugging
-      if (import.meta.env.DEV) {
-        console.error(`API Error [${response.status}]:`, errorData);
       }
     }
 

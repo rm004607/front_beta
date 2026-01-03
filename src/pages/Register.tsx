@@ -10,6 +10,14 @@ import { UserRole, useUser } from '@/contexts/UserContext';
 import { ArrowRight, ArrowLeft } from 'lucide-react';
 import { toast } from 'sonner';
 import { authAPI } from '@/lib/api';
+import {
+  isValidName,
+  isValidPhone,
+  isValidComuna,
+  containsSQLInjection,
+  sanitizeInput,
+  getValidationErrorMessage
+} from '@/lib/input-validator';
 
 const Register = () => {
   const navigate = useNavigate();
@@ -93,6 +101,23 @@ const Register = () => {
         toast.error('Por favor completa todos los campos');
         return;
       }
+
+      // Validaciones de seguridad
+      if (!isValidName(name)) {
+        toast.error(getValidationErrorMessage('name', containsSQLInjection(name) ? 'sql' : 'format'));
+        return;
+      }
+
+      if (!isValidPhone(phone)) {
+        toast.error(getValidationErrorMessage('phone', containsSQLInjection(phone) ? 'sql' : 'format'));
+        return;
+      }
+
+      if (!isValidComuna(comuna)) {
+        toast.error(getValidationErrorMessage('comuna', containsSQLInjection(comuna) ? 'sql' : 'format'));
+        return;
+      }
+
       if (!acceptTerms) {
         toast.error('Debes aceptar los Términos y Condiciones');
         return;
@@ -109,7 +134,7 @@ const Register = () => {
   const isValidEmail = (email: string): boolean => {
     // Expresión regular mejorada para validar emails reales
     const emailRegex = /^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$/;
-    
+
     if (!emailRegex.test(email)) {
       return false;
     }
@@ -119,7 +144,7 @@ const Register = () => {
     if (parts.length !== 2) return false;
 
     const [localPart, domain] = parts;
-    
+
     // Validar parte local (antes del @)
     if (localPart.length === 0 || localPart.length > 64) return false;
     if (localPart.startsWith('.') || localPart.endsWith('.')) return false;
@@ -159,20 +184,39 @@ const Register = () => {
       return;
     }
 
+    // Validaciones de seguridad finales
+    if (!isValidName(name)) {
+      toast.error(getValidationErrorMessage('name', containsSQLInjection(name) ? 'sql' : 'format'));
+      return;
+    }
+
+    if (!isValidPhone(phone)) {
+      toast.error(getValidationErrorMessage('phone', containsSQLInjection(phone) ? 'sql' : 'format'));
+      return;
+    }
+
+    if (!isValidComuna(comuna)) {
+      toast.error(getValidationErrorMessage('comuna', containsSQLInjection(comuna) ? 'sql' : 'format'));
+      return;
+    }
+
     setIsSubmitting(true);
     try {
-      // Registrar usuario directamente (sin verificación de código)
-      await authAPI.register({
-        name,
-        email,
+      // Sanitizar inputs antes de enviar (capa adicional de seguridad)
+      const sanitizedData = {
+        name: sanitizeInput(name, 100),
+        email: email.trim().toLowerCase(),
         password,
-        phone,
-        comuna,
+        phone: sanitizeInput(phone, 20),
+        comuna: sanitizeInput(comuna, 50),
         rol: roleToNumber(selectedRole),
-      });
+      };
+
+      // Registrar usuario directamente (sin verificación de código)
+      await authAPI.register(sanitizedData);
 
       // Hacer login automático después del registro
-      await authAPI.login({ email, password });
+      await authAPI.login({ email: sanitizedData.email, password });
 
       // Cargar usuario
       await loadUser();
@@ -203,7 +247,13 @@ const Register = () => {
                   value={name}
                   onChange={(e) => setName(e.target.value)}
                   placeholder="Tu nombre completo"
+                  className={name && !isValidName(name) ? 'border-red-500' : ''}
                 />
+                {name && !isValidName(name) && (
+                  <p className="text-sm text-red-500 mt-1">
+                    {getValidationErrorMessage('name', containsSQLInjection(name) ? 'sql' : 'format')}
+                  </p>
+                )}
               </div>
               <div>
                 <Label htmlFor="email">Email</Label>
@@ -238,7 +288,13 @@ const Register = () => {
                   value={phone}
                   onChange={(e) => setPhone(e.target.value)}
                   placeholder="+56 9 1234 5678"
+                  className={phone && !isValidPhone(phone) ? 'border-red-500' : ''}
                 />
+                {phone && !isValidPhone(phone) && (
+                  <p className="text-sm text-red-500 mt-1">
+                    {getValidationErrorMessage('phone', containsSQLInjection(phone) ? 'sql' : 'format')}
+                  </p>
+                )}
               </div>
               <div>
                 <Label htmlFor="comuna">Comuna</Label>
@@ -247,7 +303,13 @@ const Register = () => {
                   value={comuna}
                   onChange={(e) => setComuna(e.target.value)}
                   placeholder="Tu comuna"
+                  className={comuna && !isValidComuna(comuna) ? 'border-red-500' : ''}
                 />
+                {comuna && !isValidComuna(comuna) && (
+                  <p className="text-sm text-red-500 mt-1">
+                    {getValidationErrorMessage('comuna', containsSQLInjection(comuna) ? 'sql' : 'format')}
+                  </p>
+                )}
               </div>
               <div className="space-y-3">
                 <div className="flex items-start gap-2">
