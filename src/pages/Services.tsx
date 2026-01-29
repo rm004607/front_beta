@@ -6,10 +6,11 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import { MapPin, Search, MessageCircle, Loader2, Plus, TrendingUp, DollarSign } from 'lucide-react';
-import { servicesAPI } from '@/lib/api';
+import { servicesAPI, flowAPI, configAPI } from '@/lib/api';
 import { toast } from 'sonner';
 import { useUser } from '@/contexts/UserContext';
 import { Label } from '@/components/ui/label';
+import { CheckCircle } from 'lucide-react';
 import {
   Dialog,
   DialogContent,
@@ -42,9 +43,29 @@ const Services = () => {
     totalPages: 0,
   });
 
+  // Pago por contacto
+  const [isPaidContactModalOpen, setIsPaidContactModalOpen] = useState(false);
+  const [pendingContactService, setPendingContactService] = useState<any>(null);
+  const [whatsappPrice, setWhatsappPrice] = useState<number>(2990);
+
   useEffect(() => {
     loadServices();
   }, [searchTerm, comunaFilter]);
+
+  // Cargar precio dinámico
+  useEffect(() => {
+    const loadConfig = async () => {
+      try {
+        const response = await configAPI.getPublicPrices();
+        if (response.whatsapp_contact_price) {
+          setWhatsappPrice(response.whatsapp_contact_price);
+        }
+      } catch (error) {
+        console.error('Error loading config:', error);
+      }
+    };
+    loadConfig();
+  }, []);
 
   // Efecto para scroll al elemento resaltado
   useEffect(() => {
@@ -78,7 +99,7 @@ const Services = () => {
   };
 
 
-  const handleWhatsApp = (phone: string, name: string, service: string) => {
+  const handleWhatsApp = (service: any) => {
     // Verificar si el usuario está logueado
     if (!isLoggedIn) {
       toast.error('Debes iniciar sesión para contactar por WhatsApp');
@@ -86,13 +107,13 @@ const Services = () => {
       return;
     }
 
-    if (!phone) {
+    if (!service.phone) {
       toast.error('Este servicio no tiene número de teléfono disponible');
       return;
     }
-    const message = encodeURIComponent(`Hola ${name}, te contacto desde Dameldato por tu servicio de ${service}`);
-    const phoneNumber = phone.replace(/[^0-9]/g, '');
-    window.open(`https://wa.me/${phoneNumber}?text=${message}`, '_blank');
+
+    setPendingContactService(service);
+    setIsPaidContactModalOpen(true);
   };
 
   return (
@@ -100,7 +121,7 @@ const Services = () => {
       {/* Header */}
       <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between mb-8">
         <div className="space-y-1">
-          <h1 className="text-3xl sm:text-4xl font-heading font-bold">Servicios/Pymes y Emprendedores</h1>
+          <h1 className="text-3xl sm:text-4xl font-heading font-bold">Servicios</h1>
           <p className="text-muted-foreground">Encuentra profesionales y servicios en tu comuna</p>
         </div>
         <div className="flex flex-wrap gap-2 w-full md:w-auto justify-start md:justify-end">
@@ -192,7 +213,7 @@ const Services = () => {
                   </div>
                   <Button
                     className="w-full bg-primary hover:bg-primary/90 text-primary-foreground hover-gold-glow transition-all duration-300"
-                    onClick={() => handleWhatsApp(service.phone || '', service.user_name, service.service_name)}
+                    onClick={() => handleWhatsApp(service)}
                     disabled={!service.phone}
                   >
                     <MessageCircle size={16} className="mr-2" />
@@ -214,6 +235,85 @@ const Services = () => {
           )}
         </>
       )}
+      {/* Dialog de cobro por contacto WhatsApp */}
+      <Dialog open={isPaidContactModalOpen} onOpenChange={setIsPaidContactModalOpen}>
+        <DialogContent className="sm:max-w-md p-0 overflow-hidden border-none bg-transparent shadow-none">
+          <Card className="border-t-4 border-t-primary shadow-2xl">
+            <CardHeader className="text-center pb-2">
+              <div className="mx-auto w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mb-4">
+                <MessageCircle className="w-10 h-10 text-green-600" />
+              </div>
+              <DialogTitle className="text-2xl font-bold text-gray-800">Contactar por WhatsApp</DialogTitle>
+            </CardHeader>
+            <CardContent className="space-y-6 p-6">
+              <div className="bg-blue-50 border border-blue-100 rounded-xl p-4 text-center">
+                <p className="text-blue-800 font-medium mb-1">Servicio de Contacto Premium</p>
+                <div className="text-3xl font-black text-blue-900">
+                  {new Intl.NumberFormat('es-CL', { style: 'currency', currency: 'CLP' }).format(whatsappPrice)}
+                </div>
+                <p className="text-blue-600 text-xs mt-1">Pago único por cada contacto directo</p>
+              </div>
+
+              <div className="space-y-3">
+                <div className="flex items-start gap-3">
+                  <div className="w-5 h-5 bg-green-500 rounded-full flex-shrink-0 flex items-center justify-center mt-0.5">
+                    <CheckCircle className="w-3 h-3 text-white" />
+                  </div>
+                  <p className="text-sm text-gray-600">Acceso inmediato al número de WhatsApp verificado.</p>
+                </div>
+                <div className="flex items-start gap-3">
+                  <div className="w-5 h-5 bg-green-500 rounded-full flex-shrink-0 flex items-center justify-center mt-0.5">
+                    <CheckCircle className="w-3 h-3 text-white" />
+                  </div>
+                  <p className="text-sm text-gray-600">Chat directo sin intermediarios.</p>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-3 pt-2">
+                <Button
+                  variant="outline"
+                  onClick={() => setIsPaidContactModalOpen(false)}
+                  className="h-12 border-gray-200 text-gray-600 hover:bg-gray-50"
+                >
+                  Cancelar
+                </Button>
+                <Button
+                  onClick={async () => {
+                    if (!pendingContactService) return;
+                    try {
+                      setIsPaidContactModalOpen(false);
+                      toast.loading('Preparando pago...', { id: 'contact-payment' });
+
+                      const response = await flowAPI.createContactPayment(
+                        pendingContactService.user_id,
+                        undefined, // postId no aplica aquí
+                        pendingContactService.id // serviceId
+                      );
+
+                      if (response && response.url) {
+                        toast.success('Redirigiendo a Flow...', { id: 'contact-payment' });
+                        window.location.href = response.url;
+                      } else {
+                        throw new Error('No se recibió la URL de pago del servidor');
+                      }
+                    } catch (error: any) {
+                      console.error('Error creating contact payment:', error);
+                      toast.error(error.message || 'Error al procesar el pago', { id: 'contact-payment' });
+                    }
+                  }}
+                  className="h-12 bg-green-600 hover:bg-green-700 text-white font-bold shadow-lg shadow-green-200"
+                >
+                  Pagar y Chatear
+                </Button>
+              </div>
+
+              <p className="text-[10px] text-center text-gray-400">
+                Al continuar, aceptas nuestras políticas de servicio y cobro.
+              </p>
+            </CardContent>
+          </Card>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
