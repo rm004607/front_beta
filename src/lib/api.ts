@@ -1447,13 +1447,13 @@ export const kycAPI = {
         face_url?: string;
         rejection_reason?: string;
       };
-    }>('/kyc/status', {
+    }>('/api/kyc/status', {
       method: 'GET',
     });
   },
 
   uploadKYC: async (formData: FormData) => {
-    return request<{ message: string }>('/kyc/upload', {
+    return request<{ message: string }>('/api/kyc/upload', {
       method: 'POST',
       body: formData,
     });
