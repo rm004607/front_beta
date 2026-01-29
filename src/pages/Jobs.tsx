@@ -49,7 +49,7 @@ const Jobs = () => {
   const [appliedJobTitle, setAppliedJobTitle] = useState('');
 
   const isCompany = user?.roles.includes('company');
-  const isAdmin = user?.roles.includes('admin') || user?.roles.includes('super-admin');
+  const isAdmin = user?.roles.includes('admin') || user?.role_number === 5;
   const canPublishJob = isCompany || isAdmin; // Company, admin y super-admin pueden publicar
   const canApply = isLoggedIn && !isCompany; // Todos menos empresas pueden postular
 

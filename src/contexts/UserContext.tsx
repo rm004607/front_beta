@@ -13,6 +13,7 @@ export interface UserProfile {
   profile_image?: string | null;
   cv_url?: string | null;
   roles: UserRole[];
+  role_number?: number;
   // Job seeker specific
   rubro?: string;
   experience?: string;

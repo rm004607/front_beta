@@ -187,7 +187,7 @@ const Applications = () => {
   const canViewApplications =
     user?.roles.includes('company') ||
     user?.roles.includes('admin') ||
-    user?.roles.includes('super-admin');
+    user?.role_number === 5;
 
   if (!canViewApplications) {
     return (

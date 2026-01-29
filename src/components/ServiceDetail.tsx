@@ -39,7 +39,7 @@ interface ServiceDetailProps {
     setUserRating: (rating: number) => void;
     setUserComment: (comment: string) => void;
     onSubmitReview: () => void;
-    onReviewDeleted?: () => void;
+    onReviewDeleted?: (reviewId: string) => void;
 }
 
 export const ServiceDetail = ({
@@ -65,7 +65,7 @@ export const ServiceDetail = ({
         try {
             await reviewsAPI.deleteServiceReview(reviewId);
             toast.success('Reseña eliminada correctamente');
-            if (onReviewDeleted) onReviewDeleted();
+            if (onReviewDeleted) onReviewDeleted(reviewId);
         } catch (error: any) {
             console.error('Error deleting review:', error);
             toast.error(error.message || 'Error al eliminar la reseña');
@@ -108,7 +108,7 @@ export const ServiceDetail = ({
             )}
 
             {/* Formulario para dejar reseña */}
-            {(isLoggedIn && (user?.id !== service.user_id || user?.roles.includes('super-admin'))) ? (
+            {(isLoggedIn && (user?.id !== service.user_id || user?.role_number === 5)) ? (
                 <div className="border rounded-xl p-4 mb-8 bg-muted/30">
                     <h4 className="font-bold mb-3">Deja tu reseña</h4>
                     <div className="flex gap-2 mb-4">
@@ -190,7 +190,7 @@ export const ServiceDetail = ({
                                             />
                                         ))}
                                     </div>
-                                    {user?.roles.includes('super-admin') && (
+                                    {(user?.role_number === 5) && (
                                         <Button
                                             variant="ghost"
                                             size="sm"

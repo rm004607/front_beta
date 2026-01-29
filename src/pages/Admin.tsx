@@ -121,7 +121,7 @@ interface Log {
 const Admin = () => {
   const { user, isLoggedIn } = useUser();
   const navigate = useNavigate();
-  const isSuperAdmin = user?.roles.includes('super-admin');
+  const isSuperAdmin = user?.role_number === 5;
 
   // Estados para posts
   const [posts, setPosts] = useState<Post[]>([]);
@@ -715,13 +715,13 @@ const Admin = () => {
 
   // Verificar autenticación y permisos
   useEffect(() => {
-    if (!isLoggedIn || (!user?.roles.includes('admin') && !user?.roles.includes('super-admin'))) {
+    if (!isLoggedIn || (!user?.roles.includes('admin') && user?.role_number !== 5)) {
       navigate('/');
     }
   }, [isLoggedIn, user, navigate]);
 
   // Mostrar loading o redirigir si no tiene permisos
-  if (!isLoggedIn || (!user?.roles.includes('admin') && !user?.roles.includes('super-admin'))) {
+  if (!isLoggedIn || (!user?.roles.includes('admin') && user?.role_number !== 5)) {
     return null;
   }
 

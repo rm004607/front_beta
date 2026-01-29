@@ -178,7 +178,7 @@ const Services = () => {
       return;
     }
 
-    if (selectedServiceForReviews?.user_id === user?.id && !user?.roles.includes('super-admin')) {
+    if (selectedServiceForReviews?.user_id === user?.id && user?.role_number !== 5) {
       toast.error('No puedes calificar tu propio servicio');
       return;
     }
@@ -213,7 +213,7 @@ const Services = () => {
           <p className="text-muted-foreground">Encuentra profesionales y servicios en tu comuna</p>
         </div>
         <div className="flex flex-wrap gap-2 w-full md:w-auto justify-start md:justify-end">
-          {(user?.roles.includes('entrepreneur') || user?.roles.includes('super-admin')) && (
+          {(user?.roles.includes('entrepreneur') || user?.role_number === 5) && (
             <Link to="/servicios/publicar">
               <Button className="bg-primary hover:bg-primary/90 text-primary-foreground hover-gold-glow transition-all duration-300 w-full sm:w-auto">
                 <Plus size={18} className="mr-2" />
@@ -266,7 +266,7 @@ const Services = () => {
                 key={service.id}
                 service={service}
                 highlightId={highlightId}
-                isSuperAdmin={user?.roles.includes('super-admin')}
+                isSuperAdmin={user?.role_number === 5}
                 onOpenReviews={handleOpenReviews}
                 onWhatsApp={handleWhatsApp}
                 onDelete={handleDeleteService}
@@ -299,7 +299,13 @@ const Services = () => {
             setUserRating={setUserRating}
             setUserComment={setUserComment}
             onSubmitReview={handleSubmitReview}
-            onReviewDeleted={() => selectedServiceForReviews && fetchReviews(selectedServiceForReviews.id)}
+            onReviewDeleted={(id) => {
+              setReviews(prev => prev.filter(r => r.id !== id));
+              if (selectedServiceForReviews) {
+                // También refrescar estadísticas para actualizar el promedio
+                fetchReviews(selectedServiceForReviews.id);
+              }
+            }}
           />
         </DialogContent>
       </Dialog>

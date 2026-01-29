@@ -40,7 +40,7 @@ const PostService = () => {
   }
 
   useEffect(() => {
-    if (isLoggedIn && (user?.roles.includes('entrepreneur') || user?.roles.includes('super-admin'))) {
+    if (isLoggedIn && (user?.roles.includes('entrepreneur') || user?.role_number === 5)) {
       loadUserLimits();
     }
   }, [isLoggedIn, user]);
@@ -50,9 +50,9 @@ const PostService = () => {
       setLoadingLimits(true);
       const limits = await packagesAPI.getUserLimits();
       setUserLimits(limits);
-      
+
       // Si es super-admin, siempre puede publicar
-      if (user?.roles.includes('super-admin')) {
+      if (user?.role_number === 5) {
         setCanPublish(true);
       } else if (limits.services.requires_payment) {
         // Si requiere pago, mostrar modal y no permitir publicar
@@ -71,7 +71,7 @@ const PostService = () => {
   };
 
   // Verificar que el usuario sea emprendedor o super-admin (opcional, el backend también lo valida)
-  if (!user?.roles.includes('entrepreneur') && !user?.roles.includes('super-admin')) {
+  if (!user?.roles.includes('entrepreneur') && user?.role_number !== 5) {
     toast.error('Solo los emprendedores pueden publicar servicios');
     navigate('/servicios');
     return null;
@@ -99,7 +99,7 @@ const PostService = () => {
       navigate('/servicios');
     } catch (error: any) {
       const errorMessage = error instanceof Error ? error.message : 'Error al publicar servicio';
-      
+
       // Si el error indica que requiere pago, abrir modal de paquetes
       if (error.requires_payment || error.status === 403) {
         setPackagesModalOpen(true);
@@ -164,7 +164,7 @@ const PostService = () => {
         </CardHeader>
         <CardContent>
           {/* Información de límites */}
-          {userLimits && !user?.roles.includes('super-admin') && (
+          {userLimits && user?.role_number !== 5 && (
             <Alert className="mb-6">
               <AlertCircle className="h-4 w-4" />
               <AlertDescription>
@@ -247,9 +247,9 @@ const PostService = () => {
               <Button type="button" variant="outline" onClick={() => navigate('/servicios')} className="flex-1">
                 Cancelar
               </Button>
-              <Button 
-                type="submit" 
-                className="flex-1 bg-secondary hover:bg-secondary/90" 
+              <Button
+                type="submit"
+                className="flex-1 bg-secondary hover:bg-secondary/90"
                 disabled={isSubmitting || !canPublish}
               >
                 {isSubmitting ? 'Publicando...' : 'Publicar Servicio'}

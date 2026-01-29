@@ -295,7 +295,7 @@ const Wall = () => {
     if (!isLoggedIn || !user) {
       return false;
     }
-    return user.roles.includes('entrepreneur') || user.roles.includes('super-admin');
+    return user.roles.includes('entrepreneur') || user.role_number === 5;
   };
 
   const handleProfileClick = async (userId: string, postType: string, post: Post) => {
@@ -555,7 +555,7 @@ const Wall = () => {
                     <Badge className={getTypeColor(post.type)}>
                       {post.type}
                     </Badge>
-                    {(user?.id === post.user_id || user?.roles.includes('super-admin')) && (
+                    {(user?.id === post.user_id || user?.role_number === 5) && (
                       <div className="flex gap-1">
                         <Button
                           variant="ghost"
@@ -658,7 +658,7 @@ const Wall = () => {
                                       </Badge>
                                     </div>
                                     {(user?.id === comment.user_id ||
-                                      user?.roles.includes('super-admin')) && (
+                                      user?.role_number === 5) && (
                                         <Button
                                           variant="ghost"
                                           size="sm"

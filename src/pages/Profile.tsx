@@ -682,11 +682,11 @@ const Profile = () => {
     if (user && isLoggedIn) {
       loadPosts();
       // Cargar servicios para entrepreneur, admin y super-admin
-      if (user.roles.includes('entrepreneur') || user.roles.includes('admin') || user.roles.includes('super-admin')) {
+      if (user.roles.includes('entrepreneur') || user.roles.includes('admin') || user.role_number === 5) {
         loadServices();
       }
       // Cargar empleos para company, admin y super-admin
-      if (user.roles.includes('company') || user.roles.includes('admin') || user.roles.includes('super-admin')) {
+      if (user.roles.includes('company') || user.roles.includes('admin') || user.role_number === 5) {
         loadJobs();
       }
     }
@@ -1105,10 +1105,10 @@ const Profile = () => {
       {/* Tabs para mostrar publicaciones, servicios y empleos */}
       <Tabs defaultValue="posts" className="w-full">
         <TabsList className={`grid w-full h-auto mb-4 p-1 gap-1 ${(user.roles.includes('entrepreneur') && user.roles.includes('company')) ||
-          user.roles.includes('admin') || user.roles.includes('super-admin')
+          user.roles.includes('admin') || user.role_number === 5
           ? 'grid-cols-1 md:grid-cols-3'
           : (user.roles.includes('entrepreneur') || user.roles.includes('company') ||
-            user.roles.includes('admin') || user.roles.includes('super-admin'))
+            user.roles.includes('admin') || user.role_number === 5)
             ? 'grid-cols-1 sm:grid-cols-2'
             : 'grid-cols-1'
           }`}>
@@ -1116,13 +1116,13 @@ const Profile = () => {
             <MessageSquare size={16} />
             Publicaciones ({posts.length})
           </TabsTrigger>
-          {(user.roles.includes('entrepreneur') || user.roles.includes('admin') || user.roles.includes('super-admin')) && (
+          {(user.roles.includes('entrepreneur') || user.roles.includes('admin') || user.role_number === 5) && (
             <TabsTrigger value="services" className="flex items-center gap-2">
               <Wrench size={16} />
               Servicios ({services.length})
             </TabsTrigger>
           )}
-          {(user.roles.includes('company') || user.roles.includes('admin') || user.roles.includes('super-admin')) && (
+          {(user.roles.includes('company') || user.roles.includes('admin') || user.role_number === 5) && (
             <TabsTrigger value="jobs" className="flex items-center gap-2">
               <Briefcase size={16} />
               Empleos ({jobs.length})
@@ -1194,7 +1194,7 @@ const Profile = () => {
         </TabsContent>
 
         {/* Tab de Servicios/Pymes (Emprendedores, Admin y Super-Admin) */}
-        {(user.roles.includes('entrepreneur') || user.roles.includes('admin') || user.roles.includes('super-admin')) && (
+        {(user.roles.includes('entrepreneur') || user.roles.includes('admin') || user.role_number === 5) && (
           <TabsContent value="services">
             <Card className="border-2">
               <CardHeader>
@@ -1274,7 +1274,7 @@ const Profile = () => {
         )}
 
         {/* Tab de Empleos (Empresas, Admin y Super-Admin) */}
-        {(user.roles.includes('company') || user.roles.includes('admin') || user.roles.includes('super-admin')) && (
+        {(user.roles.includes('company') || user.roles.includes('admin') || user.role_number === 5) && (
           <TabsContent value="jobs">
             <Card className="border-2">
               <CardHeader>

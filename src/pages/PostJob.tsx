@@ -55,7 +55,7 @@ const PostJob = () => {
   } | null>(null);
 
   useEffect(() => {
-    if (isLoggedIn && (user?.roles.includes('company') || user?.roles.includes('super-admin'))) {
+    if (isLoggedIn && (user?.roles.includes('company') || user?.role_number === 5)) {
       loadJobStats();
       loadUserLimits();
     }
@@ -75,9 +75,9 @@ const PostJob = () => {
       setLoadingLimits(true);
       const limits = await packagesAPI.getUserLimits();
       setUserLimits(limits);
-      
+
       // Si es super-admin, siempre puede publicar
-      if (user?.roles.includes('super-admin')) {
+      if (user?.role_number === 5) {
         setCanPublish(true);
       } else if (limits.jobs && limits.jobs.requires_payment) {
         // Si requiere pago, mostrar modal y no permitir publicar
@@ -98,7 +98,7 @@ const PostJob = () => {
     }
   };
 
-  if (!isLoggedIn || (!user?.roles.includes('company') && !user?.roles.includes('super-admin'))) {
+  if (!isLoggedIn || (!user?.roles.includes('company') && user?.role_number !== 5)) {
     navigate('/');
     return null;
   }
@@ -127,7 +127,7 @@ const PostJob = () => {
       navigate('/empleos');
     } catch (error: any) {
       const errorMessage = error instanceof Error ? error.message : 'Error al publicar empleo';
-      
+
       // Si el error indica que requiere pago, abrir modal de paquetes
       if (error.requires_payment || error.status === 403) {
         setPackagesModalOpen(true);
@@ -192,7 +192,7 @@ const PostJob = () => {
         </CardHeader>
         <CardContent>
           {/* Información de límites */}
-          {userLimits && userLimits.jobs && !user?.roles.includes('super-admin') && (
+          {userLimits && userLimits.jobs && user?.role_number !== 5 && (
             <Alert className="mb-6">
               <AlertCircle className="h-4 w-4" />
               <AlertDescription>
@@ -209,7 +209,7 @@ const PostJob = () => {
               </AlertDescription>
             </Alert>
           )}
-          {user?.roles.includes('super-admin') && (
+          {user?.role_number === 5 && (
             <Alert className="mb-6 border-blue-500 bg-blue-50">
               <AlertCircle className="h-4 w-4" />
               <AlertDescription>
@@ -292,9 +292,9 @@ const PostJob = () => {
               <Button type="button" variant="outline" onClick={() => navigate('/empleos')} className="flex-1">
                 Cancelar
               </Button>
-              <Button 
-                type="submit" 
-                className="flex-1" 
+              <Button
+                type="submit"
+                className="flex-1"
                 disabled={isSubmitting || !canPublish}
               >
                 {isSubmitting ? 'Publicando...' : 'Publicar Empleo'}
