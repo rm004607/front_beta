@@ -1234,7 +1234,7 @@ const Profile = () => {
                                 <div className="flex items-center gap-1 text-xs text-muted-foreground">
                                   <Star className="w-3 h-3 fill-yellow-400 text-yellow-400" />
                                   <span className="font-bold text-yellow-700">
-                                    {service.average_rating ? Number(service.average_rating).toFixed(1) : '5.0'}
+                                    {service.average_rating ? Number(service.average_rating).toFixed(1) : '0.0'}
                                   </span>
                                   <span className="text-[10px]">({service.reviews_count || 0} reseñas)</span>
                                 </div>

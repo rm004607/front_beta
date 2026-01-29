@@ -352,9 +352,11 @@ const Home = () => {
                               <div className="flex items-center gap-1 border-l pl-3 ml-2 border-muted-foreground/30">
                                 <Star size={14} className="fill-yellow-400 text-yellow-400" />
                                 <span className="font-bold text-yellow-700">
-                                  {service.average_rating ? Number(service.average_rating).toFixed(1) : '5.0'}
+                                  {service.average_rating ? Number(service.average_rating).toFixed(1) : '0.0'}
                                 </span>
-                                <span className="text-[10px]">({service.reviews_count || 0})</span>
+                                <span className="text-[10px] text-muted-foreground ml-1">
+                                  ({service.reviews_count || 0} reseñas)
+                                </span>
                               </div>
                             </div>
                           </div>
