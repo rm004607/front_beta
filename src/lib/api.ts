@@ -1152,6 +1152,8 @@ export const flowAPI = {
       amount: number;
       status: 'pending' | 'completed' | 'failed' | 'cancelled';
       publicationsAdded: number;
+      targetName?: string;
+      targetPhone?: string;
       createdAt: string;
       completedAt: string | null;
     }>(`/api/flow/payment/${token}`, {

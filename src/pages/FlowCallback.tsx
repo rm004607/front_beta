@@ -58,7 +58,14 @@ const FlowCallback = () => {
     };
 
     const handleContinue = () => {
-        if (paymentDetails?.packageType === 'services') {
+        if (paymentDetails?.packageType === 'whatsapp_contact' && paymentDetails?.targetPhone) {
+            const cleanPhone = paymentDetails.targetPhone.replace(/\D/g, '');
+            const whatsappPhone = cleanPhone.startsWith('56') ? `+${cleanPhone}` : `+56${cleanPhone}`;
+            const message = `Hola ${paymentDetails.targetName || ''}, contacté contigo a través de Beta.`;
+            const encodedMessage = encodeURIComponent(message);
+            window.open(`https://wa.me/${whatsappPhone}?text=${encodedMessage}`, '_blank');
+            navigate('/wall');
+        } else if (paymentDetails?.packageType === 'services') {
             navigate('/post-service');
         } else {
             navigate('/post-job');
@@ -114,9 +121,13 @@ const FlowCallback = () => {
                     <CardContent className="space-y-4">
                         <div className="bg-gray-50 p-4 rounded-lg space-y-2">
                             <div className="flex justify-between">
-                                <span className="text-sm text-gray-600">Paquete:</span>
+                                <span className="text-sm text-gray-600">
+                                    {paymentDetails.packageType === 'whatsapp_contact' ? 'Contacto:' : 'Paquete:'}
+                                </span>
                                 <span className="text-sm font-medium">
-                                    {paymentDetails.packageId.replace(/_/g, ' ')}
+                                    {paymentDetails.packageType === 'whatsapp_contact'
+                                        ? paymentDetails.targetName
+                                        : paymentDetails.packageId.replace(/_/g, ' ')}
                                 </span>
                             </div>
                             <div className="flex justify-between">
@@ -125,12 +136,14 @@ const FlowCallback = () => {
                                     {formatPrice(paymentDetails.amount)}
                                 </span>
                             </div>
-                            <div className="flex justify-between">
-                                <span className="text-sm text-gray-600">Publicaciones:</span>
-                                <span className="text-sm font-medium">
-                                    +{paymentDetails.publicationsAdded}
-                                </span>
-                            </div>
+                            {paymentDetails.packageType !== 'whatsapp_contact' && (
+                                <div className="flex justify-between">
+                                    <span className="text-sm text-gray-600">Publicaciones:</span>
+                                    <span className="text-sm font-medium">
+                                        +{paymentDetails.publicationsAdded}
+                                    </span>
+                                </div>
+                            )}
                         </div>
 
                         <Button
