@@ -72,20 +72,39 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
   useEffect(() => {
     setUnauthorizedHandler(handleUnauthorized);
     return () => {
-      setUnauthorizedHandler(() => {});
+      setUnauthorizedHandler(() => { });
     };
   }, []); // Sin dependencias, se registra solo una vez
 
-  // Cargar usuario al iniciar - las cookies se envían automáticamente
+  // Cargar usuario al iniciar - las cookies y el token de localStorage se envían automáticamente
   useEffect(() => {
-    loadUser().finally(() => setIsLoading(false));
+    const initAuth = async () => {
+      // Capturar token de la URL si existe (útil para login social o redirecciones)
+      const urlParams = new URLSearchParams(window.location.search);
+      const urlToken = urlParams.get('token');
+
+      if (urlToken) {
+        console.log('Token encontrado en URL, guardando en localStorage');
+        localStorage.setItem('token', urlToken);
+
+        // Limpiar el token de la URL para mayor seguridad y estética
+        const url = new URL(window.location.href);
+        url.searchParams.delete('token');
+        window.history.replaceState({}, '', url.toString());
+      }
+
+      await loadUser();
+      setIsLoading(false);
+    };
+
+    initAuth();
   }, []);
 
   const loadUser = async () => {
     try {
       const response = await authAPI.getMe();
       const dbUser = response.user;
-      
+
       // Convertir role_number a UserRole
       const roleMap: Record<number, UserRole> = {
         1: 'job-seeker',
@@ -94,7 +113,7 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
         4: 'admin',
         5: 'super-admin',
       };
-      
+
       const userProfile: UserProfile = {
         id: dbUser.id,
         name: dbUser.name,
@@ -105,7 +124,7 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
         cv_url: dbUser.cv_url || null,
         roles: [roleMap[dbUser.role_number] || 'job-seeker'],
       };
-      
+
       setUser(userProfile);
     } catch (error: any) {
       // Si no hay cookie válida o expiró, el usuario no está autenticado
@@ -122,7 +141,7 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
 
   const login = async (email: string, password: string) => {
     const response = await authAPI.login({ email, password });
-    
+
     // Cargar perfil completo después del login
     // La cookie ya fue establecida por el servidor
     await loadUser();
