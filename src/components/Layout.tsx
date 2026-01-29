@@ -7,7 +7,7 @@ import { useUser } from '@/contexts/UserContext';
 import Footer from '@/components/Footer';
 import { ThemeToggle } from '@/components/ThemeToggle';
 import ErrorBoundary from '@/components/ErrorBoundary';
-import logoBeta from '@/assets/logo beta.png';
+import logoDameldato from '/logoicono.png';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -33,8 +33,8 @@ const Layout = ({ children }: LayoutProps) => {
           <div className="flex items-center justify-between">
             <Link to="/" className="flex items-center gap-3">
               <img
-                src={logoBeta}
-                alt="Beta"
+                src={logoDameldato}
+                alt="Dameldato"
                 className="h-12 w-12 sm:h-14 sm:w-14 rounded-xl object-contain drop-shadow-md"
               />
               <span className="text-2xl font-heading font-bold text-primary">

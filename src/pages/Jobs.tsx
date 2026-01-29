@@ -367,7 +367,7 @@ const Jobs = () => {
               <div className="absolute inset-0 flex items-center justify-center">
                 <img
                   src="/android-chrome-192x192.png"
-                  alt="Beta"
+                  alt="Dameldato"
                   className="w-24 h-24 animate-bounce"
                 />
               </div>

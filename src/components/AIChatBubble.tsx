@@ -177,7 +177,7 @@ const AIChatBubble = () => {
                 <div className="relative">
                   <img
                     src="/android-chrome-192x192.png"
-                    alt="Beta"
+                    alt="Dameldato"
                     className="w-8 h-8 rounded-full bg-white p-1"
                     onError={(e) => {
                       (e.target as HTMLImageElement).style.display = 'none';

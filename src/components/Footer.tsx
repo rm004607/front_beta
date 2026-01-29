@@ -1,7 +1,7 @@
 import { Link } from 'react-router-dom';
 import { Facebook, Twitter, Instagram, Linkedin, Mail, Phone, MapPin, HelpCircle } from 'lucide-react';
 import { useUser } from '@/contexts/UserContext';
-import logoBeta from '@/assets/logo beta.png';
+import logoDameldato from '/logoicono.png';
 
 const Footer = () => {
   const { user, isLoggedIn } = useUser();
@@ -17,7 +17,7 @@ const Footer = () => {
           {/* Logo y frase */}
           <div className="space-y-4">
             <div className="flex items-center gap-3">
-              <img src={logoBeta} alt="Beta" className="h-10 w-10 rounded-lg object-contain" />
+              <img src={logoDameldato} alt="Dameldato" className="h-10 w-10 rounded-lg object-contain" />
               <span className="text-2xl font-heading font-bold text-primary">Dameldato</span>
             </div>
             <p className="text-muted-foreground text-sm">

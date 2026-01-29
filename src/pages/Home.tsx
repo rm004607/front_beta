@@ -6,7 +6,7 @@ import { Briefcase, Wrench, Building2, MessageSquare, ArrowRight, MapPin, Calend
 import { useUser } from '@/contexts/UserContext';
 import { jobsAPI, servicesAPI } from '@/lib/api';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
-import logoBeta from '@/assets/logo beta.png';
+import logoDameldato from '/logoicono.png';
 
 interface Job {
   id: string;
@@ -157,8 +157,8 @@ const Home = () => {
                   <div className="w-60 h-60 sm:w-72 sm:h-72 md:w-[22rem] md:h-[22rem] rounded-full border-2 border-primary flex items-center justify-center bg-beta-black shadow-2xl ring-1 ring-primary/15 relative overflow-hidden group">
                     <div className="absolute inset-0 bg-gradient-to-tr from-transparent via-primary/15 to-transparent translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-1000"></div>
                     <img
-                      src={logoBeta}
-                      alt="Beta"
+                      src={logoDameldato}
+                      alt="Dameldato"
                       className="w-48 h-48 sm:w-56 sm:h-56 md:w-[18rem] md:h-[18rem] object-contain drop-shadow-xl"
                     />
                   </div>

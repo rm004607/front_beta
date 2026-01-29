@@ -24,7 +24,7 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog';
 import { useUser } from '@/contexts/UserContext';
-import logoBeta from '@/assets/logo beta.png';
+import logoDameldato from '/logoicono.png';
 import { MapPin, Phone, Mail, Edit, Briefcase, Wrench, Building2, MessageSquare, Trash2, Upload, X, FileText, Download, AlertCircle, Users, Eye, Plus } from 'lucide-react';
 import { postsAPI, servicesAPI, jobsAPI, authAPI, applicationsAPI } from '@/lib/api';
 import { toast } from 'sonner';
@@ -756,8 +756,8 @@ const Profile = () => {
               <div className="flex-shrink-0">
                 <div className="w-24 h-24 bg-accent rounded-full flex items-center justify-center p-2">
                   <img
-                    src={logoBeta}
-                    alt="Beta"
+                    src={logoDameldato}
+                    alt="Dameldato"
                     className="w-full h-full object-contain"
                   />
                 </div>
