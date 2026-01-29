@@ -451,7 +451,7 @@ const Register = () => {
                     />
                     <div className="flex-1">
                       <Label htmlFor="entrepreneur" className="text-base font-semibold cursor-pointer">
-                        🛠️ Ofrecer Servicios/Pymes
+                        🛠️ Ofrecer Servicios
                       </Label>
                       <p className="text-sm text-muted-foreground mt-1">
                         Soy emprendedor/a y ofrezco servicios

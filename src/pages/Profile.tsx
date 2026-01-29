@@ -839,29 +839,31 @@ const Profile = () => {
       </Card>
 
       {/* Role-specific information */}
-      {user.roles.includes('job-seeker') && (
-        <Card className="mb-6 border-2">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Briefcase className="text-primary" />
-              Información Laboral
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-3">
-            {user.rubro && (
-              <div>
-                <span className="font-semibold">Rubro:</span> {user.rubro}
-              </div>
-            )}
-            {user.experience && (
-              <div>
-                <span className="font-semibold">Experiencia:</span>
-                <p className="text-muted-foreground mt-1">{user.experience}</p>
-              </div>
-            )}
-          </CardContent>
-        </Card>
-      )}
+      {
+        user.roles.includes('job-seeker') && (
+          <Card className="mb-6 border-2">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Briefcase className="text-primary" />
+                Información Laboral
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-3">
+              {user.rubro && (
+                <div>
+                  <span className="font-semibold">Rubro:</span> {user.rubro}
+                </div>
+              )}
+              {user.experience && (
+                <div>
+                  <span className="font-semibold">Experiencia:</span>
+                  <p className="text-muted-foreground mt-1">{user.experience}</p>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        )
+      }
 
       {/* Sección de CV (para todos los usuarios) */}
       <Card className="mb-6 border-2">
@@ -1032,67 +1034,71 @@ const Profile = () => {
         </CardContent>
       </Card>
 
-      {user.roles.includes('entrepreneur') && (
-        <Card className="mb-6 border-2">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Wrench className="text-secondary" />
-              Servicio Ofrecido
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-3">
-            {user.service && (
-              <div>
-                <span className="font-semibold">Servicio:</span> {user.service}
-              </div>
-            )}
-            {user.priceRange && (
-              <div>
-                <span className="font-semibold">Rango de Precio:</span> {user.priceRange}
-              </div>
-            )}
-            {user.portfolio && user.portfolio.length > 0 && (
-              <div>
-                <span className="font-semibold">Descripción:</span>
-                <p className="text-muted-foreground mt-1">{user.portfolio[0]}</p>
-              </div>
-            )}
-          </CardContent>
-        </Card>
-      )}
+      {
+        user.roles.includes('entrepreneur') && (
+          <Card className="mb-6 border-2">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Wrench className="text-secondary" />
+                Servicio Ofrecido
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-3">
+              {user.service && (
+                <div>
+                  <span className="font-semibold">Servicio:</span> {user.service}
+                </div>
+              )}
+              {user.priceRange && (
+                <div>
+                  <span className="font-semibold">Rango de Precio:</span> {user.priceRange}
+                </div>
+              )}
+              {user.portfolio && user.portfolio.length > 0 && (
+                <div>
+                  <span className="font-semibold">Descripción:</span>
+                  <p className="text-muted-foreground mt-1">{user.portfolio[0]}</p>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        )
+      }
 
-      {user.roles.includes('company') && (
-        <Card className="mb-6 border-2">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Building2 className="text-primary" />
-              Información de Empresa
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-3">
-            {user.companyRut && (
-              <div>
-                <span className="font-semibold">RUT:</span> {user.companyRut}
-              </div>
-            )}
-            {user.companyRubro && (
-              <div>
-                <span className="font-semibold">Rubro:</span> {user.companyRubro}
-              </div>
-            )}
-            {user.companyAddress && (
-              <div>
-                <span className="font-semibold">Dirección:</span> {user.companyAddress}
-              </div>
-            )}
-            {user.hrContact && (
-              <div>
-                <span className="font-semibold">Contacto RRHH:</span> {user.hrContact}
-              </div>
-            )}
-          </CardContent>
-        </Card>
-      )}
+      {
+        user.roles.includes('company') && (
+          <Card className="mb-6 border-2">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Building2 className="text-primary" />
+                Información de Empresa
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-3">
+              {user.companyRut && (
+                <div>
+                  <span className="font-semibold">RUT:</span> {user.companyRut}
+                </div>
+              )}
+              {user.companyRubro && (
+                <div>
+                  <span className="font-semibold">Rubro:</span> {user.companyRubro}
+                </div>
+              )}
+              {user.companyAddress && (
+                <div>
+                  <span className="font-semibold">Dirección:</span> {user.companyAddress}
+                </div>
+              )}
+              {user.hrContact && (
+                <div>
+                  <span className="font-semibold">Contacto RRHH:</span> {user.hrContact}
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        )
+      }
 
       {/* Tabs para mostrar publicaciones, servicios y empleos */}
       <Tabs defaultValue="posts" className="w-full">
@@ -1111,7 +1117,7 @@ const Profile = () => {
           {(user.roles.includes('entrepreneur') || user.roles.includes('admin') || user.roles.includes('super-admin')) && (
             <TabsTrigger value="services" className="flex items-center gap-2">
               <Wrench size={16} />
-              Servicios/Pymes ({services.length})
+              Servicios ({services.length})
             </TabsTrigger>
           )}
           {(user.roles.includes('company') || user.roles.includes('admin') || user.roles.includes('super-admin')) && (
@@ -1126,7 +1132,7 @@ const Profile = () => {
         <TabsContent value="posts">
           <Card className="border-2">
             <CardHeader>
-              <CardTitle>Mis Publicaciones en el Muro</CardTitle>
+              <CardTitle>Mis Publicaciones</CardTitle>
               <CardDescription>Tus publicaciones activas en el muro</CardDescription>
             </CardHeader>
             <CardContent>
@@ -1192,8 +1198,8 @@ const Profile = () => {
               <CardHeader>
                 <div className="flex justify-between items-start">
                   <div>
-                    <CardTitle>Mis Servicios/Pymes</CardTitle>
-                    <CardDescription>Servicios/Pymes activos que has publicado</CardDescription>
+                    <CardTitle>Mis Servicios</CardTitle>
+                    <CardDescription>Servicios activos que has publicado</CardDescription>
                   </div>
                   <Button onClick={() => navigate('/servicios/publicar')} size="sm">
                     <Plus size={16} className="mr-2" />
@@ -1820,7 +1826,7 @@ const Profile = () => {
           </DialogFooter>
         </DialogContent>
       </Dialog>
-    </div>
+    </div >
   );
 };
 

@@ -69,6 +69,7 @@ interface Job {
   created_at: string;
   company_name: string;
   company_email: string;
+  requirements?: string;
 }
 
 interface Service {
@@ -80,6 +81,7 @@ interface Service {
   created_at: string;
   user_name: string;
   user_email: string;
+  price_range?: string;
 }
 
 interface User {
@@ -785,7 +787,7 @@ const Admin = () => {
           </TabsTrigger>
           <TabsTrigger value="services" onClick={loadServices} className="flex items-center gap-2">
             <Wrench size={16} />
-            Servicios/Pymes
+            Servicios
           </TabsTrigger>
           <TabsTrigger value="users" onClick={loadUsers} className="flex items-center gap-2">
             <Users size={16} />

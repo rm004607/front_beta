@@ -406,6 +406,8 @@ export const servicesAPI = {
         created_at: string;
         user_id: string;
         user_name: string;
+        average_rating?: number;
+        reviews_count?: number;
       }>;
       pagination: {
         page: number;
@@ -1196,14 +1198,14 @@ export const flowAPI = {
     });
   },
   // Crear pago de contacto WhatsApp
-  createContactPayment: async (targetUserId: string, postId?: string) => {
+  createContactPayment: async (targetUserId: string, postId?: string, serviceId?: string) => {
     return request<{
       url: string;
       token: string;
       paymentId: string;
     }>('/api/flow/create-contact-payment', {
       method: 'POST',
-      body: JSON.stringify({ targetUserId, postId }),
+      body: JSON.stringify({ targetUserId, postId, serviceId }),
     });
   },
 };
@@ -1379,6 +1381,46 @@ export const configAPI = {
     return request<{ message: string }>('/api/admin/config', {
       method: 'PUT',
       body: JSON.stringify({ key, value }),
+    });
+  },
+};
+
+// API de reseñas para servicios
+export const reviewsAPI = {
+  // Obtener reseñas de un servicio
+  getServiceReviews: async (serviceId: string) => {
+    return request<{
+      reviews: Array<{
+        id: string;
+        service_id: string;
+        user_id: string;
+        user_name: string;
+        profile_image?: string | null;
+        rating: number;
+        comment: string;
+        created_at: string;
+      }>;
+      stats: {
+        average_rating: number;
+        total_reviews: number;
+      };
+    }>(`/api/services/${serviceId}/reviews`, {
+      method: 'GET',
+    });
+  },
+
+  // Crear una reseña
+  createServiceReview: async (serviceId: string, data: { rating: number; comment: string }) => {
+    return request<{
+      message: string;
+      review: {
+        id: string;
+        rating: number;
+        comment: string;
+      };
+    }>(`/api/services/${serviceId}/reviews`, {
+      method: 'POST',
+      body: JSON.stringify(data),
     });
   },
 };

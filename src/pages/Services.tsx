@@ -5,8 +5,8 @@ import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
-import { MapPin, Search, MessageCircle, Loader2, Plus, TrendingUp, DollarSign } from 'lucide-react';
-import { servicesAPI, flowAPI, configAPI } from '@/lib/api';
+import { MapPin, Search, MessageCircle, Loader2, Plus, TrendingUp, DollarSign, Star } from 'lucide-react';
+import { servicesAPI, flowAPI, configAPI, reviewsAPI } from '@/lib/api';
 import { toast } from 'sonner';
 import { useUser } from '@/contexts/UserContext';
 import { Label } from '@/components/ui/label';
@@ -47,6 +47,16 @@ const Services = () => {
   const [isPaidContactModalOpen, setIsPaidContactModalOpen] = useState(false);
   const [pendingContactService, setPendingContactService] = useState<any>(null);
   const [whatsappPrice, setWhatsappPrice] = useState<number>(2990);
+
+  // Reseñas
+  const [isReviewsModalOpen, setIsReviewsModalOpen] = useState(false);
+  const [selectedServiceForReviews, setSelectedServiceForReviews] = useState<any>(null);
+  const [reviews, setReviews] = useState<any[]>([]);
+  const [loadingReviews, setLoadingReviews] = useState(false);
+  const [userRating, setUserRating] = useState(0);
+  const [userComment, setUserComment] = useState('');
+  const [isSubmittingReview, setIsSubmittingReview] = useState(false);
+  const [reviewStats, setReviewStats] = useState<{ average_rating: number; total_reviews: number } | null>(null);
 
   useEffect(() => {
     loadServices();
@@ -114,6 +124,63 @@ const Services = () => {
 
     setPendingContactService(service);
     setIsPaidContactModalOpen(true);
+  };
+
+  const handleOpenReviews = async (service: any) => {
+    setSelectedServiceForReviews(service);
+    setIsReviewsModalOpen(true);
+    setLoadingReviews(true);
+    setUserRating(0);
+    setUserComment('');
+
+    try {
+      const response = await reviewsAPI.getServiceReviews(service.id);
+      setReviews(response.reviews);
+      setReviewStats(response.stats);
+    } catch (error) {
+      console.error('Error loading reviews:', error);
+      toast.error('Error al cargar las reseñas');
+    } finally {
+      setLoadingReviews(false);
+    }
+  };
+
+  const handleSubmitReview = async () => {
+    if (!userRating) {
+      toast.error('Por favor selecciona una puntuación');
+      return;
+    }
+    if (!userComment.trim()) {
+      toast.error('Por favor escribe un comentario');
+      return;
+    }
+
+    if (!isLoggedIn) {
+      toast.error('Debes iniciar sesión para dejar una reseña');
+      return;
+    }
+
+    try {
+      setIsSubmittingReview(true);
+      await reviewsAPI.createServiceReview(selectedServiceForReviews.id, {
+        rating: userRating,
+        comment: userComment,
+      });
+      toast.success('Reseña enviada correctamente');
+      setUserRating(0);
+      setUserComment('');
+      // Recargar reseñas
+      const response = await reviewsAPI.getServiceReviews(selectedServiceForReviews.id);
+      setReviews(response.reviews);
+      setReviewStats(response.stats);
+      // Recargar servicios para actualizar el promedio en la lista principal
+      loadServices();
+    } catch (error: any) {
+      console.error('Error submitting review:', error);
+      toast.error(error.message || 'Error al enviar la reseña');
+    } finally {
+      setIsSubmittingReview(false);
+    }
   };
 
   return (
@@ -193,13 +260,21 @@ const Services = () => {
                       </AvatarFallback>
                     </Avatar>
                     <div className="flex-1">
-                      <CardTitle className="text-xl mb-1">{service.user_name}</CardTitle>
+                      <div className="flex justify-between items-start">
+                        <CardTitle className="text-xl mb-1">{service.user_name}</CardTitle>
+                        <div className="flex items-center gap-1 bg-yellow-50 px-2 py-1 rounded-md border border-yellow-100">
+                          <Star className="w-4 h-4 fill-yellow-400 text-yellow-400" />
+                          <span className="text-sm font-bold text-yellow-700">
+                            {service.average_rating ? Number(service.average_rating).toFixed(1) : '5.0'}
+                          </span>
+                        </div>
+                      </div>
                       <Badge variant="secondary">{service.service_name}</Badge>
                     </div>
                   </div>
                 </CardHeader>
                 <CardContent>
-                  <p className="text-sm text-muted-foreground mb-4">{service.description}</p>
+                  <p className="text-sm text-muted-foreground mb-4 line-clamp-2">{service.description}</p>
                   <div className="space-y-2 mb-4">
                     <div className="flex items-center gap-2 text-sm">
                       <MapPin size={16} className="text-secondary" />
@@ -211,18 +286,24 @@ const Services = () => {
                       </div>
                     )}
                   </div>
-                  <Button
-                    className="w-full bg-primary hover:bg-primary/90 text-primary-foreground hover-gold-glow transition-all duration-300"
-                    onClick={() => handleWhatsApp(service)}
-                    disabled={!service.phone}
-                  >
-                    <MessageCircle size={16} className="mr-2" />
-                    {!isLoggedIn
-                      ? 'Inicia sesión para contactar'
-                      : service.phone
-                        ? 'Contactar por WhatsApp'
-                        : 'Sin teléfono'}
-                  </Button>
+                  <div className="grid grid-cols-2 gap-2">
+                    <Button
+                      variant="outline"
+                      className="w-full border-secondary text-secondary hover:bg-secondary/10"
+                      onClick={() => handleOpenReviews(service)}
+                    >
+                      <Star size={16} className="mr-2" />
+                      Reseñas ({service.reviews_count || 0})
+                    </Button>
+                    <Button
+                      className="w-full bg-primary hover:bg-primary/90 text-primary-foreground hover-gold-glow transition-all duration-300"
+                      onClick={() => handleWhatsApp(service)}
+                      disabled={!service.phone}
+                    >
+                      <MessageCircle size={16} className="mr-2" />
+                      WhatsApp
+                    </Button>
+                  </div>
                 </CardContent>
               </Card>
             ))}
@@ -235,6 +316,121 @@ const Services = () => {
           )}
         </>
       )}
+
+      {/* Modal de Reseñas */}
+      <Dialog open={isReviewsModalOpen} onOpenChange={setIsReviewsModalOpen}>
+        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="text-2xl font-bold flex items-center gap-2">
+              <Star className="fill-yellow-400 text-yellow-400" />
+              Reseñas de {selectedServiceForReviews?.user_name}
+            </DialogTitle>
+            <DialogDescription>
+              {selectedServiceForReviews?.service_name}
+            </DialogDescription>
+          </DialogHeader>
+
+          {reviewStats && (
+            <div className="bg-yellow-50 p-4 rounded-xl border border-yellow-100 flex items-center justify-between mb-6">
+              <div>
+                <p className="text-sm text-yellow-800 font-medium">Calificación Promedio</p>
+                <div className="flex items-center gap-2">
+                  <span className="text-3xl font-black text-yellow-900">{Number(reviewStats.average_rating).toFixed(1)}</span>
+                  <div className="flex">
+                    {[1, 2, 3, 4, 5].map((s) => (
+                      <Star
+                        key={s}
+                        className={`w-4 h-4 ${s <= Math.round(reviewStats.average_rating) ? 'fill-yellow-400 text-yellow-400' : 'text-yellow-200'}`}
+                      />
+                    ))}
+                  </div>
+                </div>
+              </div>
+              <div className="text-right">
+                <p className="text-sm text-yellow-800 font-medium">Total de Reseñas</p>
+                <p className="text-2xl font-bold text-yellow-900">{reviewStats.total_reviews}</p>
+              </div>
+            </div>
+          )}
+
+          {/* Formulario para dejar reseña */}
+          {isLoggedIn && (
+            <div className="border rounded-xl p-4 mb-8 bg-muted/30">
+              <h4 className="font-bold mb-3">Deja tu reseña</h4>
+              <div className="flex gap-2 mb-4">
+                {[1, 2, 3, 4, 5].map((s) => (
+                  <button
+                    key={s}
+                    onClick={() => setUserRating(s)}
+                    className="transition-transform hover:scale-110"
+                  >
+                    <Star
+                      className={`w-8 h-8 ${s <= userRating ? 'fill-yellow-400 text-yellow-400' : 'text-gray-300'}`}
+                    />
+                  </button>
+                ))}
+              </div>
+              <Label htmlFor="review-comment" className="mb-2 block">Tu comentario</Label>
+              <Input
+                id="review-comment"
+                placeholder="Cuéntanos tu experiencia con este servicio..."
+                value={userComment}
+                onChange={(e) => setUserComment(e.target.value)}
+                className="mb-4"
+              />
+              <Button
+                onClick={handleSubmitReview}
+                disabled={isSubmittingReview}
+                className="w-full"
+              >
+                {isSubmittingReview ? <Loader2 className="animate-spin" /> : 'Publicar Reseña'}
+              </Button>
+            </div>
+          )}
+
+          {/* Lista de reseñas */}
+          <div className="space-y-4">
+            <h4 className="font-bold border-b pb-2">Opiniones de clientes</h4>
+            {loadingReviews ? (
+              <div className="flex justify-center py-8">
+                <Loader2 className="animate-spin text-primary" size={24} />
+              </div>
+            ) : reviews.length === 0 ? (
+              <p className="text-center text-muted-foreground py-8 italic">No hay reseñas aún. ¡Sé el primero en calificar!</p>
+            ) : (
+              reviews.map((review) => (
+                <div key={review.id} className="border-b pb-4 last:border-0">
+                  <div className="flex justify-between items-start mb-2">
+                    <div className="flex items-center gap-2">
+                      <Avatar className="w-8 h-8">
+                        {review.profile_image && <AvatarImage src={review.profile_image} />}
+                        <AvatarFallback className="bg-primary text-white text-xs">
+                          {review.user_name.substring(0, 2).toUpperCase()}
+                        </AvatarFallback>
+                      </Avatar>
+                      <div>
+                        <p className="text-sm font-bold">{review.user_name}</p>
+                        <p className="text-[10px] text-muted-foreground">
+                          {new Date(review.created_at).toLocaleDateString()}
+                        </p>
+                      </div>
+                    </div>
+                    <div className="flex gap-0.5">
+                      {[1, 2, 3, 4, 5].map((s) => (
+                        <Star
+                          key={s}
+                          className={`w-3 h-3 ${s <= review.rating ? 'fill-yellow-400 text-yellow-400' : 'text-gray-200'}`}
+                        />
+                      ))}
+                    </div>
+                  </div>
+                  <p className="text-sm text-gray-700 leading-relaxed pl-10">{review.comment}</p>
+                </div>
+              ))
+            )}
+          </div>
+        </DialogContent>
+      </Dialog>
       {/* Dialog de cobro por contacto WhatsApp */}
       <Dialog open={isPaidContactModalOpen} onOpenChange={setIsPaidContactModalOpen}>
         <DialogContent className="sm:max-w-md p-0 overflow-hidden border-none bg-transparent shadow-none">

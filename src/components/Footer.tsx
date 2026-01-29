@@ -56,7 +56,7 @@ const Footer = () => {
               </li>
               <li>
                 <Link to="/servicios" className="text-muted-foreground hover:text-primary transition-colors text-sm">
-                  Buscar Servicios/Pymes
+                  Buscar Servicios
                 </Link>
               </li>
               <li>
@@ -98,12 +98,12 @@ const Footer = () => {
               <ul className="space-y-2">
                 <li>
                   <Link to="/servicios/publicar" className="text-muted-foreground hover:text-primary transition-colors text-sm">
-                    Publicar Servicio/Pymes
+                    Publicar Servicio
                   </Link>
                 </li>
                 <li>
                   <Link to="/servicios" className="text-muted-foreground hover:text-primary transition-colors text-sm">
-                    Ver Servicios/Pymes
+                    Ver Servicios
                   </Link>
                 </li>
               </ul>
@@ -122,7 +122,7 @@ const Footer = () => {
                 </li>
                 <li>
                   <Link to="/servicios" className="text-muted-foreground hover:text-primary transition-colors text-sm">
-                    Buscar Servicios/Pymes
+                    Buscar Servicios
                   </Link>
                 </li>
                 <li>

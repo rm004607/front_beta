@@ -202,8 +202,8 @@ const Home = () => {
               <div className="bg-primary/15 w-24 h-24 rounded-full flex items-center justify-center mx-auto mb-6 group-hover:bg-primary group-hover:scale-110 transition-all duration-300 shadow-sm ring-1 ring-primary/20">
                 <Wrench className="text-primary group-hover:text-white transition-colors" size={42} strokeWidth={1.5} />
               </div>
-              <h3 className="text-xl font-heading font-semibold mb-3">Ofrecer Servicio/Pymes</h3>
-              <p className="text-muted-foreground">Promociona tu servicio/pyme</p>
+              <h3 className="text-xl font-heading font-semibold mb-3">Ofrecer Servicio</h3>
+              <p className="text-muted-foreground">Promociona tu servicio</p>
             </div>
           </Link>
         </div>
@@ -296,7 +296,7 @@ const Home = () => {
             <div className="flex items-center justify-between mb-6">
               <h2 className="text-3xl font-heading font-bold flex items-center gap-3">
                 <Wrench className="text-primary" size={32} />
-                Últimos Servicios/Pymes
+                Últimos Servicios
               </h2>
               <Link to="/servicios">
                 <Button variant="ghost" size="sm" className="text-primary hover:text-primary/80">
@@ -308,12 +308,12 @@ const Home = () => {
 
             {loadingServices ? (
               <div className="text-center py-8">
-                <p className="text-muted-foreground">Cargando servicios/pymes...</p>
+                <p className="text-muted-foreground">Cargando servicios...</p>
               </div>
             ) : latestServices.length === 0 ? (
               <Card>
                 <CardContent className="pt-6">
-                  <p className="text-center text-muted-foreground">No hay servicios/pymes disponibles aún</p>
+                  <p className="text-center text-muted-foreground">No hay servicios disponibles aún</p>
                 </CardContent>
               </Card>
             ) : (
