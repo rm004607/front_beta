@@ -18,12 +18,19 @@ import {
   sanitizeInput,
   getValidationErrorMessage
 } from '@/lib/input-validator';
+import KYCVerification from '@/components/KYCVerification';
 
 const Register = () => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const { setUser, loadUser } = useUser();
-  const [step, setStep] = useState(1);
+  const [step, setStep] = useState(() => {
+    const stepParam = searchParams.get('step');
+    return stepParam ? parseInt(stepParam) : 1;
+  });
+  const [isKycVerified, setIsKycVerified] = useState(() => {
+    return localStorage.getItem('reg_kyc_done') === 'true';
+  });
 
   // Manejar éxito de Google OAuth en registro
   useEffect(() => {
@@ -39,6 +46,16 @@ const Register = () => {
     if (error === 'google_auth_failed') {
       toast.error('Error al registrar con Google. Por favor intenta de nuevo.');
     }
+
+    // Persistir datos si viene de QR
+    const savedName = localStorage.getItem('reg_name');
+    if (savedName && !name) setName(savedName);
+    const savedEmail = localStorage.getItem('reg_email');
+    if (savedEmail && !email) setEmail(savedEmail);
+    const savedPhone = localStorage.getItem('reg_phone');
+    if (savedPhone && !phone) setPhone(savedPhone);
+    const savedComuna = localStorage.getItem('reg_comuna');
+    if (savedComuna && !comuna) setComuna(savedComuna);
   }, [searchParams, loadUser, navigate]);
 
   // Step 1: Basic data
@@ -122,8 +139,18 @@ const Register = () => {
         toast.error('Debes aceptar los Términos y Condiciones');
         return;
       }
+
+      // Guardar datos temporalmente si necesita pasar a móvil
+      localStorage.setItem('reg_name', name);
+      localStorage.setItem('reg_email', email);
+      localStorage.setItem('reg_phone', phone);
+      localStorage.setItem('reg_comuna', comuna);
     }
-    if (step === 2 && !selectedRole) {
+    if (step === 2 && !isKycVerified) {
+      toast.error('Debes completar la verificación KYC');
+      return;
+    }
+    if (step === 3 && !selectedRole) {
       toast.error('Selecciona un rol');
       return;
     }
@@ -235,7 +262,7 @@ const Register = () => {
       <Card className="border-2">
         <CardHeader>
           <CardTitle className="text-3xl font-heading">Crear Cuenta</CardTitle>
-          <CardDescription>Paso {step} de 3</CardDescription>
+          <CardDescription>Paso {step} de 4</CardDescription>
         </CardHeader>
         <CardContent>
           {step === 1 && (
@@ -411,6 +438,17 @@ const Register = () => {
           )}
 
           {step === 2 && (
+            <KYCVerification
+              onComplete={() => {
+                setIsKycVerified(true);
+                localStorage.setItem('reg_kyc_done', 'true');
+                setStep(3);
+              }}
+              onBack={() => setStep(1)}
+            />
+          )}
+
+          {step === 3 && (
             <div className="space-y-6">
               <div>
                 <Label className="text-lg mb-4 block">Selecciona tu rol:</Label>
@@ -497,7 +535,7 @@ const Register = () => {
             </div>
           )}
 
-          {step === 3 && (
+          {step === 4 && (
             <div className="space-y-6">
               {selectedRole === 'job-seeker' && (
                 <div className="space-y-4 p-4 border-2 border-primary/30 rounded-xl">
@@ -601,7 +639,7 @@ const Register = () => {
               )}
 
               <div className="flex gap-3">
-                <Button variant="outline" onClick={() => setStep(2)} className="flex-1">
+                <Button variant="outline" onClick={() => setStep(3)} className="flex-1">
                   <ArrowLeft className="mr-2" size={18} />
                   Atrás
                 </Button>
