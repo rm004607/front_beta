@@ -1404,7 +1404,7 @@ export const reviewsAPI = {
         average_rating: number;
         total_reviews: number;
       };
-    }>(`/api/services/${serviceId}/reviews`, {
+    }>(`/services/${serviceId}/reviews`, {
       method: 'GET',
     });
   },
@@ -1418,7 +1418,7 @@ export const reviewsAPI = {
         rating: number;
         comment: string;
       };
-    }>(`/api/services/${serviceId}/reviews`, {
+    }>(`/services/${serviceId}/reviews`, {
       method: 'POST',
       body: JSON.stringify(data),
     });
