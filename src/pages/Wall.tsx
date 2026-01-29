@@ -873,12 +873,17 @@ const Wall = () => {
                         return;
                       }
 
+                      setIsPaidContactModalOpen(false);
                       toast.loading('Preparando pago...', { id: 'contact-payment' });
-                      const response = await flowAPI.createContactPayment(targetUserId, postId);
-                      toast.success('Redirigiendo a Flow...', { id: 'contact-payment' });
 
-                      // Redirigir a la URL de pago de Flow
-                      window.location.href = response.url;
+                      const response = await flowAPI.createContactPayment(targetUserId, postId);
+
+                      if (response && response.url) {
+                        toast.success('Redirigiendo a Flow...', { id: 'contact-payment' });
+                        window.location.href = response.url;
+                      } else {
+                        throw new Error('No se recibió la URL de pago del servidor');
+                      }
                     } catch (error: any) {
                       console.error('Error creating contact payment:', error);
                       toast.error(error.message || 'Error al procesar el pago', { id: 'contact-payment' });
