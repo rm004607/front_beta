@@ -1,9 +1,11 @@
-import { Star, Loader2 } from 'lucide-react';
+import { Star, Loader2, Trash2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import { DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
+import { reviewsAPI } from '@/lib/api';
+import { toast } from 'sonner';
 
 interface Review {
     id: string;
@@ -37,6 +39,7 @@ interface ServiceDetailProps {
     setUserRating: (rating: number) => void;
     setUserComment: (comment: string) => void;
     onSubmitReview: () => void;
+    onReviewDeleted?: () => void;
 }
 
 export const ServiceDetail = ({
@@ -51,9 +54,23 @@ export const ServiceDetail = ({
     loadingReviews,
     setUserRating,
     setUserComment,
-    onSubmitReview
+    onSubmitReview,
+    onReviewDeleted
 }: ServiceDetailProps) => {
     if (!service) return null;
+
+    const handleDeleteReview = async (reviewId: string) => {
+        if (!window.confirm('¿Estás seguro de que deseas eliminar esta reseña?')) return;
+
+        try {
+            await reviewsAPI.deleteServiceReview(reviewId);
+            toast.success('Reseña eliminada correctamente');
+            if (onReviewDeleted) onReviewDeleted();
+        } catch (error: any) {
+            console.error('Error deleting review:', error);
+            toast.error(error.message || 'Error al eliminar la reseña');
+        }
+    };
 
     return (
         <>
@@ -91,7 +108,7 @@ export const ServiceDetail = ({
             )}
 
             {/* Formulario para dejar reseña */}
-            {isLoggedIn && user?.id !== service.user_id ? (
+            {(isLoggedIn && (user?.id !== service.user_id || user?.roles.includes('super-admin'))) ? (
                 <div className="border rounded-xl p-4 mb-8 bg-muted/30">
                     <h4 className="font-bold mb-3">Deja tu reseña</h4>
                     <div className="flex gap-2 mb-4">
@@ -164,13 +181,25 @@ export const ServiceDetail = ({
                                         </p>
                                     </div>
                                 </div>
-                                <div className="flex gap-0.5">
-                                    {[1, 2, 3, 4, 5].map((s) => (
-                                        <Star
-                                            key={s}
-                                            className={`w-3 h-3 ${s <= review.rating ? 'fill-yellow-400 text-yellow-400' : 'text-gray-200'}`}
-                                        />
-                                    ))}
+                                <div className="flex items-center gap-2">
+                                    <div className="flex gap-0.5">
+                                        {[1, 2, 3, 4, 5].map((s) => (
+                                            <Star
+                                                key={s}
+                                                className={`w-3 h-3 ${s <= review.rating ? 'fill-yellow-400 text-yellow-400' : 'text-gray-200'}`}
+                                            />
+                                        ))}
+                                    </div>
+                                    {user?.roles.includes('super-admin') && (
+                                        <Button
+                                            variant="ghost"
+                                            size="sm"
+                                            className="h-6 w-6 p-0 text-destructive hover:bg-destructive/10"
+                                            onClick={() => handleDeleteReview(review.id)}
+                                        >
+                                            <Trash2 size={12} />
+                                        </Button>
+                                    )}
                                 </div>
                             </div>
                             <p className="text-sm text-gray-700 leading-relaxed pl-10">{review.comment}</p>

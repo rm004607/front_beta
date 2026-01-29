@@ -1,10 +1,11 @@
 import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
-import { Plus, MapPin, MessageCircle, Heart, Trash2, Send, Info, Briefcase, Phone, Mail, CheckCircle } from 'lucide-react';
+import { Plus, MapPin, MessageCircle, Heart, Trash2, Send, Info, Briefcase, Phone, Mail, CheckCircle, Edit } from 'lucide-react';
 import { useUser } from '@/contexts/UserContext';
 import { toast } from 'sonner';
 import {
@@ -58,6 +59,7 @@ interface UserProfile {
 }
 
 const Wall = () => {
+  const navigate = useNavigate();
   const { isLoggedIn, user } = useUser();
   const [postType, setPostType] = useState('Busco Trabajo');
   const [postContent, setPostContent] = useState('');
@@ -554,14 +556,24 @@ const Wall = () => {
                       {post.type}
                     </Badge>
                     {(user?.id === post.user_id || user?.roles.includes('super-admin')) && (
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => handleDeletePost(post.id)}
-                        className="text-destructive hover:text-destructive"
-                      >
-                        <Trash2 size={16} />
-                      </Button>
+                      <div className="flex gap-1">
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => navigate(`/admin?tab=posts&search=${post.user_name}`)}
+                          className="h-8 w-8 p-0"
+                        >
+                          <Edit size={16} />
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => handleDeletePost(post.id)}
+                          className="text-destructive hover:text-destructive h-8 w-8 p-0"
+                        >
+                          <Trash2 size={16} />
+                        </Button>
+                      </div>
                     )}
                   </div>
                 </div>

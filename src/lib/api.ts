@@ -1425,5 +1425,12 @@ export const reviewsAPI = {
       body: JSON.stringify(data),
     });
   },
+
+  // Eliminar una reseña (solo super-admin)
+  deleteServiceReview: async (reviewId: string) => {
+    return request<{ message: string }>(`/services/reviews/${reviewId}`, {
+      method: 'DELETE',
+    });
+  },
 };
 

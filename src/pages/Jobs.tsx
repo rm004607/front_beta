@@ -11,7 +11,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
-import { Building2, MapPin, Clock, DollarSign, Search, Filter, Plus, Loader2, CheckCircle, FileText, Calendar, TrendingUp, X } from 'lucide-react';
+import { Building2, MapPin, Clock, DollarSign, Search, Filter, Plus, Loader2, CheckCircle, FileText, Calendar, TrendingUp, X, Trash2, Edit } from 'lucide-react';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import { useUser } from '@/contexts/UserContext';
 import { jobsAPI, applicationsAPI } from '@/lib/api';
@@ -98,6 +98,19 @@ const Jobs = () => {
       freelance: 'Freelance',
     };
     return labels[type] || type;
+  };
+
+  const handleDeleteJob = async (id: string, title: string) => {
+    if (!window.confirm(`¿Estás seguro de que deseas eliminar el empleo "${title}"?`)) return;
+
+    try {
+      await jobsAPI.deleteJob(id);
+      toast.success('Empleo eliminado correctamente');
+      loadJobs();
+    } catch (error: any) {
+      console.error('Error deleting job:', error);
+      toast.error(error.message || 'Error al eliminar el empleo');
+    }
   };
 
 
@@ -242,9 +255,31 @@ const Jobs = () => {
                         {job.company_name}
                       </CardDescription>
                     </div>
-                    <Badge variant="secondary" className="text-sm">
-                      {getJobTypeLabel(job.job_type)}
-                    </Badge>
+                    <div className="flex flex-col items-end gap-2">
+                      <Badge variant="secondary" className="text-sm">
+                        {getJobTypeLabel(job.job_type)}
+                      </Badge>
+                      {isAdmin && (
+                        <div className="flex gap-2">
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="h-8 w-8 p-0"
+                            onClick={() => navigate(`/admin?tab=jobs&search=${job.company_name}`)}
+                          >
+                            <Edit size={16} />
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="h-8 w-8 p-0 text-destructive hover:bg-destructive/10"
+                            onClick={() => handleDeleteJob(job.id, job.title)}
+                          >
+                            <Trash2 size={16} />
+                          </Button>
+                        </div>
+                      )}
+                    </div>
                   </div>
                 </CardHeader>
                 <CardContent>

@@ -128,15 +128,10 @@ const Services = () => {
     setIsPaidContactModalOpen(true);
   };
 
-  const handleOpenReviews = async (service: any) => {
-    setSelectedServiceForReviews(service);
-    setIsReviewsModalOpen(true);
+  const fetchReviews = async (serviceId: string) => {
     setLoadingReviews(true);
-    setUserRating(0);
-    setUserComment('');
-
     try {
-      const response = await reviewsAPI.getServiceReviews(service.id);
+      const response = await reviewsAPI.getServiceReviews(serviceId);
       setReviews(response.reviews);
       setReviewStats(response.stats);
     } catch (error) {
@@ -144,6 +139,27 @@ const Services = () => {
       toast.error('Error al cargar las reseñas');
     } finally {
       setLoadingReviews(false);
+    }
+  };
+
+  const handleOpenReviews = async (service: any) => {
+    setSelectedServiceForReviews(service);
+    setIsReviewsModalOpen(true);
+    setUserRating(0);
+    setUserComment('');
+    fetchReviews(service.id);
+  };
+
+  const handleDeleteService = async (service: any) => {
+    if (!window.confirm(`¿Estás seguro de que deseas eliminar el servicio de "${service.user_name}"?`)) return;
+
+    try {
+      await servicesAPI.deleteService(service.id);
+      toast.success('Servicio eliminado correctamente');
+      loadServices();
+    } catch (error: any) {
+      console.error('Error deleting service:', error);
+      toast.error(error.message || 'Error al eliminar el servicio');
     }
   };
 
@@ -162,6 +178,11 @@ const Services = () => {
       return;
     }
 
+    if (selectedServiceForReviews?.user_id === user?.id && !user?.roles.includes('super-admin')) {
+      toast.error('No puedes calificar tu propio servicio');
+      return;
+    }
+
     try {
       setIsSubmittingReview(true);
       await reviewsAPI.createServiceReview(selectedServiceForReviews.id, {
@@ -172,9 +193,7 @@ const Services = () => {
       setUserRating(0);
       setUserComment('');
       // Recargar reseñas
-      const response = await reviewsAPI.getServiceReviews(selectedServiceForReviews.id);
-      setReviews(response.reviews);
-      setReviewStats(response.stats);
+      fetchReviews(selectedServiceForReviews.id);
       // Recargar servicios para actualizar el promedio en la lista principal
       loadServices();
     } catch (error: any) {
@@ -247,8 +266,11 @@ const Services = () => {
                 key={service.id}
                 service={service}
                 highlightId={highlightId}
+                isSuperAdmin={user?.roles.includes('super-admin')}
                 onOpenReviews={handleOpenReviews}
                 onWhatsApp={handleWhatsApp}
+                onDelete={handleDeleteService}
+                onEdit={(s) => navigate(`/admin?tab=services&search=${s.user_name}`)}
               />
             ))}
           </div>
@@ -277,6 +299,7 @@ const Services = () => {
             setUserRating={setUserRating}
             setUserComment={setUserComment}
             onSubmitReview={handleSubmitReview}
+            onReviewDeleted={() => selectedServiceForReviews && fetchReviews(selectedServiceForReviews.id)}
           />
         </DialogContent>
       </Dialog>

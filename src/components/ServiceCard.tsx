@@ -1,4 +1,4 @@
-import { Star, MapPin, MessageCircle } from 'lucide-react';
+import { Star, MapPin, MessageCircle, Edit, Trash2 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -23,11 +23,22 @@ interface Service {
 interface ServiceCardProps {
     service: Service;
     highlightId?: string | null;
+    isSuperAdmin?: boolean;
     onOpenReviews: (service: Service) => void;
     onWhatsApp: (service: Service) => void;
+    onEdit?: (service: Service) => void;
+    onDelete?: (service: Service) => void;
 }
 
-export const ServiceCard = ({ service, highlightId, onOpenReviews, onWhatsApp }: ServiceCardProps) => {
+export const ServiceCard = ({
+    service,
+    highlightId,
+    isSuperAdmin,
+    onOpenReviews,
+    onWhatsApp,
+    onEdit,
+    onDelete
+}: ServiceCardProps) => {
     return (
         <Card
             id={`service-${service.id}`}
@@ -56,7 +67,29 @@ export const ServiceCard = ({ service, highlightId, onOpenReviews, onWhatsApp }:
                                 </span>
                             </div>
                         </div>
-                        <Badge variant="secondary">{service.service_name}</Badge>
+                        <div className="flex flex-wrap items-center gap-2">
+                            <Badge variant="secondary">{service.service_name}</Badge>
+                            {isSuperAdmin && (
+                                <div className="flex gap-1">
+                                    <Button
+                                        variant="ghost"
+                                        size="sm"
+                                        className="h-7 w-7 p-0"
+                                        onClick={() => onEdit?.(service)}
+                                    >
+                                        <Edit size={14} />
+                                    </Button>
+                                    <Button
+                                        variant="ghost"
+                                        size="sm"
+                                        className="h-7 w-7 p-0 text-destructive hover:bg-destructive/10"
+                                        onClick={() => onDelete?.(service)}
+                                    >
+                                        <Trash2 size={14} />
+                                    </Button>
+                                </div>
+                            )}
+                        </div>
                     </div>
                 </div>
             </CardHeader>
