@@ -1072,6 +1072,31 @@ export const adminAPI = {
       method: 'DELETE',
     });
   },
+
+  // ========== CONFIG / PRICES (Super Admin) ==========
+  getPricingConfig: async () => {
+    return request<{
+      config: {
+        whatsapp_contact_price: number;
+      };
+    }>('/admin/config', {
+      method: 'GET',
+    });
+  },
+
+  updatePricingConfig: async (config: { whatsapp_contact_price: number }) => {
+    return request<{ message: string }>('/admin/config', {
+      method: 'PUT',
+      body: JSON.stringify(config),
+    });
+  },
+
+  updatePackage: async (packageId: string, data: { price: number; publications: number }) => {
+    return request<{ message: string }>(`/admin/packages/${packageId}`, {
+      method: 'PUT',
+      body: JSON.stringify(data),
+    });
+  },
 };
 
 // API de paquetes
