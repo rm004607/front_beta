@@ -67,7 +67,7 @@ const Layout = ({ children }: LayoutProps) => {
                 <MessageSquare size={18} />
                 <span>Muro</span>
               </Link>
-              {(user?.roles.includes('company') || user?.roles.includes('admin') || user?.roles.includes('super-admin')) && (
+              {(user?.roles.includes('company') || user?.roles.includes('admin') || user?.role_number === 5) && (
                 <Link
                   to="/postulaciones"
                   className={`flex items-center gap-2 transition-colors ${isActive('/postulaciones') ? 'text-primary font-semibold' : 'text-foreground hover:text-primary'
@@ -88,7 +88,7 @@ const Layout = ({ children }: LayoutProps) => {
               <div className="hidden md:flex items-center gap-3">
                 {isLoggedIn ? (
                   <>
-                    {(user?.roles.includes('admin') || user?.roles.includes('super-admin')) && (
+                    {(user?.roles.includes('admin') || user?.role_number === 5) && (
                       <Link to="/admin">
                         <Button
                           variant="outline"
@@ -119,7 +119,7 @@ const Layout = ({ children }: LayoutProps) => {
                             Mi Perfil
                           </Link>
                         </DropdownMenuItem>
-                        {(user?.roles.includes('company') || user?.roles.includes('admin') || user?.roles.includes('super-admin')) && (
+                        {(user?.roles.includes('company') || user?.roles.includes('admin') || user?.role_number === 5) && (
                           <DropdownMenuItem asChild>
                             <Link to="/postulaciones" className="cursor-pointer">
                               <FileText size={16} className="mr-2" />
@@ -193,7 +193,7 @@ const Layout = ({ children }: LayoutProps) => {
                           Mi Perfil
                         </Link>
                       </DropdownMenuItem>
-                      {(user?.roles.includes('admin') || user?.roles.includes('super-admin')) && (
+                      {(user?.roles.includes('admin') || user?.role_number === 5) && (
                         <DropdownMenuItem asChild>
                           <Link to="/admin" className="cursor-pointer">
                             <Shield size={16} className="mr-2" />
@@ -201,7 +201,7 @@ const Layout = ({ children }: LayoutProps) => {
                           </Link>
                         </DropdownMenuItem>
                       )}
-                      {(user?.roles.includes('company') || user?.roles.includes('admin') || user?.roles.includes('super-admin')) && (
+                      {(user?.roles.includes('company') || user?.roles.includes('admin') || user?.role_number === 5) && (
                         <DropdownMenuItem asChild>
                           <Link to="/postulaciones" className="cursor-pointer">
                             <FileText size={16} className="mr-2" />

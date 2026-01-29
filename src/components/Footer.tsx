@@ -8,7 +8,7 @@ const Footer = () => {
 
   const isCompany = user?.roles.includes('company');
   const isEntrepreneur = user?.roles.includes('entrepreneur');
-  const isAdmin = user?.roles.includes('admin') || user?.roles.includes('super-admin');
+  const isAdmin = user?.roles.includes('admin') || user?.role_number === 5;
 
   return (
     <footer className="bg-card border-t border-border mt-auto">

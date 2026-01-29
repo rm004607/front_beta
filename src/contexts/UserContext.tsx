@@ -34,7 +34,7 @@ interface UserContextType {
   setUser: (user: UserProfile | null) => void;
   isLoggedIn: boolean;
   isLoading: boolean;
-  logout: () => void;
+  logout: () => Promise<void>;
   login: (email: string, password: string) => Promise<void>;
   loadUser: () => Promise<void>;
 }
@@ -125,7 +125,8 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
         comuna: dbUser.comuna,
         profile_image: dbUser.profile_image || null,
         cv_url: dbUser.cv_url || null,
-        roles: [roleMap[dbUser.role_number] || 'job-seeker'],
+        roles: [roleMap[Number(dbUser.role_number)] || 'job-seeker'],
+        role_number: Number(dbUser.role_number),
       };
 
       setUser(userProfile);
