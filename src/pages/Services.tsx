@@ -289,10 +289,10 @@ const Services = () => {
                   <div className="grid grid-cols-2 gap-2">
                     <Button
                       variant="outline"
-                      className="w-full border-secondary text-secondary hover:bg-secondary/10"
+                      className="w-full border-yellow-400 text-yellow-700 hover:bg-yellow-50 transition-all duration-300"
                       onClick={() => handleOpenReviews(service)}
                     >
-                      <Star size={16} className="mr-2" />
+                      <Star size={16} className="mr-2 fill-yellow-400 text-yellow-400" />
                       Reseñas ({service.reviews_count || 0})
                     </Button>
                     <Button
