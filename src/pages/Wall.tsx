@@ -4,7 +4,7 @@ import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
-import { Plus, MapPin, MessageCircle, Heart, Trash2, Send, Info, Briefcase, Phone, Mail } from 'lucide-react';
+import { Plus, MapPin, MessageCircle, Heart, Trash2, Send, Info, Briefcase, Phone, Mail, CheckCircle } from 'lucide-react';
 import { useUser } from '@/contexts/UserContext';
 import { toast } from 'sonner';
 import {
@@ -81,6 +81,12 @@ const Wall = () => {
   const [selectedPost, setSelectedPost] = useState<Post | null>(null);
   // Estado para loading de contacto individual
   const [loadingContact, setLoadingContact] = useState<Record<string, boolean>>({});
+
+  // Estado para el modal de cobro por contacto
+  const [isPaidContactModalOpen, setIsPaidContactModalOpen] = useState(false);
+  const [pendingContactPost, setPendingContactPost] = useState<Post | null>(null);
+  const [pendingContactPhone, setPendingContactPhone] = useState<string | null>(null);
+  const [pendingContactName, setPendingContactName] = useState<string | null>(null);
 
   // Cargar posts
   useEffect(() => {
@@ -308,6 +314,13 @@ const Wall = () => {
       return;
     }
 
+    setPendingContactPost(post);
+    setPendingContactPhone(null);
+    setPendingContactName(null);
+    setIsPaidContactModalOpen(true);
+  };
+
+  const processDirectWhatsAppContact = async (post: Post) => {
     try {
       setLoadingContact(prev => ({ ...prev, [post.id]: true }));
       const response = await authAPI.getUserById(post.user_id);
@@ -335,6 +348,13 @@ const Wall = () => {
   };
 
   const handleWhatsAppContact = (phone: string, userName: string) => {
+    setPendingContactPost(null);
+    setPendingContactPhone(phone);
+    setPendingContactName(userName);
+    setIsPaidContactModalOpen(true);
+  };
+
+  const processWhatsAppContact = (phone: string, userName: string) => {
     // Formatear el número de teléfono (eliminar espacios, guiones, etc.)
     const cleanPhone = phone.replace(/\D/g, '');
     // Agregar código de país si no lo tiene (Chile: +56)
@@ -839,6 +859,68 @@ const Wall = () => {
           <Button variant="outline">Inicia Sesión o Regístrate</Button>
         </div>
       )}
+      {/* Dialog de cobro por contacto WhatsApp */}
+      <Dialog open={isPaidContactModalOpen} onOpenChange={setIsPaidContactModalOpen}>
+        <DialogContent className="sm:max-w-md p-0 overflow-hidden border-none bg-transparent shadow-none">
+          <Card className="border-t-4 border-t-primary shadow-2xl">
+            <CardHeader className="text-center pb-2">
+              <div className="mx-auto w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mb-4">
+                <MessageCircle className="w-10 h-10 text-green-600" />
+              </div>
+              <DialogTitle className="text-2xl font-bold text-gray-800">Contactar por WhatsApp</DialogTitle>
+            </CardHeader>
+            <CardContent className="space-y-6 p-6">
+              <div className="bg-blue-50 border border-blue-100 rounded-xl p-4 text-center">
+                <p className="text-blue-800 font-medium mb-1">Servicio de Contacto Premium</p>
+                <div className="text-3xl font-black text-blue-900">$2.990</div>
+                <p className="text-blue-600 text-xs mt-1">Pago único por cada contacto directo</p>
+              </div>
+
+              <div className="space-y-3">
+                <div className="flex items-start gap-3">
+                  <div className="w-5 h-5 bg-green-500 rounded-full flex-shrink-0 flex items-center justify-center mt-0.5">
+                    <CheckCircle className="w-3 h-3 text-white" />
+                  </div>
+                  <p className="text-sm text-gray-600">Acceso inmediato al número de WhatsApp verificado.</p>
+                </div>
+                <div className="flex items-start gap-3">
+                  <div className="w-5 h-5 bg-green-500 rounded-full flex-shrink-0 flex items-center justify-center mt-0.5">
+                    <CheckCircle className="w-3 h-3 text-white" />
+                  </div>
+                  <p className="text-sm text-gray-600">Chat directo sin intermediarios.</p>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-3 pt-2">
+                <Button
+                  variant="outline"
+                  onClick={() => setIsPaidContactModalOpen(false)}
+                  className="h-12 border-gray-200 text-gray-600 hover:bg-gray-50"
+                >
+                  Cancelar
+                </Button>
+                <Button
+                  onClick={() => {
+                    setIsPaidContactModalOpen(false);
+                    if (pendingContactPost) {
+                      processDirectWhatsAppContact(pendingContactPost);
+                    } else if (pendingContactPhone && pendingContactName) {
+                      processWhatsAppContact(pendingContactPhone, pendingContactName);
+                    }
+                  }}
+                  className="h-12 bg-green-600 hover:bg-green-700 text-white font-bold shadow-lg shadow-green-200"
+                >
+                  Pagar y Chatear
+                </Button>
+              </div>
+
+              <p className="text-[10px] text-center text-gray-400">
+                Al continuar, aceptas nuestras políticas de servicio y cobro.
+              </p>
+            </CardContent>
+          </Card>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
