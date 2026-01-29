@@ -542,9 +542,11 @@ export const postsAPI = {
         created_at: string;
         user_id: string;
         user_name: string;
+        profile_image?: string | null;
         likes_count: number;
         comments_count: number;
         user_liked: boolean;
+        user_role_number?: number;
       }>;
       pagination: {
         page: number;
@@ -572,6 +574,7 @@ export const postsAPI = {
         likes_count: number;
         comments_count: number;
         user_liked: boolean;
+        user_role_number?: number;
         comments: Array<{
           id: string;
           content: string;

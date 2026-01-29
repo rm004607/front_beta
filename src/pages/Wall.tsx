@@ -5,7 +5,7 @@ import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
-import { Plus, MapPin, MessageCircle, Heart, Trash2, Send, Info, Briefcase, Phone, Mail, CheckCircle, Edit } from 'lucide-react';
+import { Plus, MapPin, MessageCircle, Heart, Trash2, Send, Info, Briefcase, Phone, Mail, CheckCircle, Edit, Crown } from 'lucide-react';
 import { useUser } from '@/contexts/UserContext';
 import { toast } from 'sonner';
 import {
@@ -38,6 +38,7 @@ interface Post {
   likes_count: number;
   comments_count: number;
   user_liked: boolean;
+  user_role_number?: number;
 }
 
 interface Comment {
@@ -522,14 +523,21 @@ const Wall = () => {
                         {post.user_name.split(' ').map((n) => n[0]).join('')}
                       </AvatarFallback>
                     </Avatar>
-                    <div>
-                      <h3
-                        className={`font-semibold ${post.type === 'Busco Servicio' && canViewProfile() ? 'cursor-pointer hover:underline' : post.type === 'Busco Servicio' ? 'opacity-60' : ''}`}
-                        onClick={() => post.type === 'Busco Servicio' && canViewProfile() && handleProfileClick(post.user_id, post.type, post)}
-                        title={post.type === 'Busco Servicio' && !canViewProfile() ? 'Solo los emprendedores pueden contactar' : ''}
-                      >
-                        {post.user_name}
-                      </h3>
+                    <div className="flex flex-col">
+                      <div className="flex items-center gap-1">
+                        <h3
+                          className={`font-semibold ${post.type === 'Busco Servicio' && canViewProfile() ? 'cursor-pointer hover:underline' : post.type === 'Busco Servicio' ? 'opacity-60' : ''}`}
+                          onClick={() => post.type === 'Busco Servicio' && canViewProfile() && handleProfileClick(post.user_id, post.type, post)}
+                          title={post.type === 'Busco Servicio' && !canViewProfile() ? 'Solo los emprendedores pueden contactar' : ''}
+                        >
+                          {post.user_name}
+                        </h3>
+                        {post.user_role_number === 5 && (
+                          <div title="Super Admin">
+                            <Crown size={14} className="text-yellow-500 fill-yellow-500" />
+                          </div>
+                        )}
+                      </div>
                       <p className="text-sm text-muted-foreground">
                         {formatDate(post.created_at)}
                       </p>
@@ -780,7 +788,8 @@ const Wall = () => {
             </Card>
           ))}
         </div>
-      )}
+      )
+      }
 
       {/* Dialog de perfil de usuario */}
       <Dialog open={isProfileDialogOpen} onOpenChange={setIsProfileDialogOpen}>
@@ -835,14 +844,16 @@ const Wall = () => {
         </DialogContent>
       </Dialog>
 
-      {!isLoggedIn && (
-        <div className="mt-8 text-center py-8 bg-muted/30 rounded-2xl">
-          <p className="text-muted-foreground mb-4">
-            ¿Quieres publicar en la Pared de Pegas?
-          </p>
-          <Button variant="outline">Inicia Sesión o Regístrate</Button>
-        </div>
-      )}
+      {
+        !isLoggedIn && (
+          <div className="mt-8 text-center py-8 bg-muted/30 rounded-2xl">
+            <p className="text-muted-foreground mb-4">
+              ¿Quieres publicar en la Pared de Pegas?
+            </p>
+            <Button variant="outline">Inicia Sesión o Regístrate</Button>
+          </div>
+        )
+      }
       {/* Dialog de cobro por contacto WhatsApp */}
       <Dialog open={isPaidContactModalOpen} onOpenChange={setIsPaidContactModalOpen}>
         <DialogContent className="sm:max-w-md p-0 overflow-hidden border-none bg-transparent shadow-none">
@@ -932,7 +943,7 @@ const Wall = () => {
           </Card>
         </DialogContent>
       </Dialog>
-    </div>
+    </div >
   );
 };
 
