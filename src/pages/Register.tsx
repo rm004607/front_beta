@@ -48,6 +48,12 @@ const Register = () => {
     }
 
     // Persistir datos si viene de QR
+    const emailParam = searchParams.get('email');
+    if (emailParam) {
+      setEmail(emailParam);
+      localStorage.setItem('reg_email', emailParam);
+    }
+
     const savedName = localStorage.getItem('reg_name');
     if (savedName && !name) setName(savedName);
     const savedEmail = localStorage.getItem('reg_email');
@@ -439,6 +445,7 @@ const Register = () => {
 
           {step === 2 && (
             <KYCVerification
+              email={email}
               onComplete={() => {
                 setIsKycVerified(true);
                 localStorage.setItem('reg_kyc_done', 'true');

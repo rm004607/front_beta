@@ -7,11 +7,12 @@ import { toast } from 'sonner';
 import { kycAPI } from '@/lib/api';
 
 interface KYCVerificationProps {
+    email?: string;
     onComplete: () => void;
     onBack: () => void;
 }
 
-const KYCVerification: React.FC<KYCVerificationProps> = ({ onComplete, onBack }) => {
+const KYCVerification: React.FC<KYCVerificationProps> = ({ email, onComplete, onBack }) => {
     const [isMobile, setIsMobile] = useState(false);
     const [kycStatus, setKycStatus] = useState<'not_started' | 'pending' | 'verified' | 'rejected'>('not_started');
     const [kycStep, setKycStep] = useState<'info' | 'doc-front' | 'doc-back' | 'liveness' | 'submitting'>('info');
@@ -27,14 +28,18 @@ const KYCVerification: React.FC<KYCVerificationProps> = ({ onComplete, onBack })
 
         checkDevice();
         const baseUrl = window.location.origin + window.location.pathname;
-        setRegistrationUrl(`${baseUrl}?step=2`);
+        const urlWithParams = new URL(baseUrl);
+        urlWithParams.searchParams.set('step', '2');
+        if (email) urlWithParams.searchParams.set('email', email);
+
+        setRegistrationUrl(urlWithParams.toString());
         window.addEventListener('resize', checkDevice);
 
         // Fetch initial status
         fetchStatus();
 
         return () => window.removeEventListener('resize', checkDevice);
-    }, []);
+    }, [email]);
 
     const fetchStatus = async () => {
         try {
@@ -65,13 +70,15 @@ const KYCVerification: React.FC<KYCVerificationProps> = ({ onComplete, onBack })
         if (files.front) formData.append('id_front', files.front);
         if (files.back) formData.append('id_back', files.back);
         formData.append('face_photo', faceFile);
+        if (email) formData.append('email', email);
 
         try {
             await kycAPI.uploadKYC(formData);
             setKycStatus('pending');
             toast.success('Documentos subidos correctamente. En revisión.');
-        } catch (error) {
-            toast.error('Error al subir los documentos. Inténtalo de nuevo.');
+        } catch (error: any) {
+            const msg = error.message || 'Error desconocido';
+            toast.error(`Error al subir: ${msg}. Inténtalo de nuevo.`);
             setKycStep('info');
             setKycStatus('rejected');
         }
