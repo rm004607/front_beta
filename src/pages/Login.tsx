@@ -52,7 +52,7 @@ const Login = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (!email || !password) {
       toast.error('Por favor completa todos los campos');
       return;
@@ -60,7 +60,7 @@ const Login = () => {
 
     setIsSubmitting(true);
     setBanInfo(null); // Limpiar información de ban previa
-    
+
     try {
       await login(email, password);
       toast.success('¡Bienvenido de nuevo!');
@@ -84,7 +84,7 @@ const Login = () => {
       <Card className="border-2">
         <CardHeader>
           <CardTitle className="text-3xl font-heading">Iniciar Sesión</CardTitle>
-          <CardDescription>Ingresa a tu cuenta de Beta</CardDescription>
+          <CardDescription>Ingresa a tu cuenta de Dameldato</CardDescription>
         </CardHeader>
         <CardContent>
           {/* Mensaje de ban */}
@@ -115,7 +115,7 @@ const Login = () => {
                   )}
                 </div>
                 <p className="text-xs text-muted-foreground mt-3">
-                  Si crees que esto es un error, contacta al soporte de Beta.
+                  Si crees que esto es un error, contacta al soporte de Dameldato.
                 </p>
               </AlertDescription>
             </Alert>

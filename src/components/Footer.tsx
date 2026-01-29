@@ -5,11 +5,11 @@ import logoBeta from '@/assets/logo beta.png';
 
 const Footer = () => {
   const { user, isLoggedIn } = useUser();
-  
+
   const isCompany = user?.roles.includes('company');
   const isEntrepreneur = user?.roles.includes('entrepreneur');
   const isAdmin = user?.roles.includes('admin') || user?.roles.includes('super-admin');
-  
+
   return (
     <footer className="bg-card border-t border-border mt-auto">
       <div className="container mx-auto px-4 py-12">
@@ -18,7 +18,7 @@ const Footer = () => {
           <div className="space-y-4">
             <div className="flex items-center gap-3">
               <img src={logoBeta} alt="Beta" className="h-10 w-10 rounded-lg object-contain" />
-              <span className="text-2xl font-heading font-bold text-primary">Beta</span>
+              <span className="text-2xl font-heading font-bold text-primary">Dameldato</span>
             </div>
             <p className="text-muted-foreground text-sm">
               Conectamos talento y oportunidades en Chile. Tu próximo paso profesional comienza aquí.
@@ -151,7 +151,7 @@ const Footer = () => {
                 <Mail size={16} />
                 <span>betacontac@gmail.com</span>
               </li>
-      
+
               <li className="flex items-center gap-2 text-muted-foreground text-sm">
                 <MapPin size={16} />
                 <span>Santiago, Chile</span>
@@ -163,7 +163,7 @@ const Footer = () => {
         {/* Copyright */}
         <div className="border-t border-border mt-8 pt-8 text-center">
           <p className="text-muted-foreground text-sm">
-            © {new Date().getFullYear()} Beta - Conectamos talento y oportunidades en Chile. Todos los derechos reservados.
+            © {new Date().getFullYear()} Dameldato - Conectamos talento y oportunidades en Chile. Todos los derechos reservados.
           </p>
         </div>
       </div>

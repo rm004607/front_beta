@@ -90,7 +90,7 @@ const Services = () => {
       toast.error('Este servicio no tiene número de teléfono disponible');
       return;
     }
-    const message = encodeURIComponent(`Hola ${name}, te contacto desde Beta por tu servicio de ${service}`);
+    const message = encodeURIComponent(`Hola ${name}, te contacto desde Dameldato por tu servicio de ${service}`);
     const phoneNumber = phone.replace(/[^0-9]/g, '');
     window.open(`https://wa.me/${phoneNumber}?text=${message}`, '_blank');
   };

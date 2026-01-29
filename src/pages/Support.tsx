@@ -60,7 +60,7 @@ const Support = () => {
 
   const handleSubmitTicket = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (!isLoggedIn) {
       toast.error('Debes iniciar sesión para enviar un ticket');
       return;
@@ -119,7 +119,7 @@ const Support = () => {
             <CardHeader>
               <CardTitle>Preguntas Frecuentes (FAQ)</CardTitle>
               <CardDescription>
-                Encuentra respuestas a las preguntas más comunes sobre Beta
+                Encuentra respuestas a las preguntas más comunes sobre Dameldato
               </CardDescription>
             </CardHeader>
             <CardContent>

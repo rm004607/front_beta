@@ -61,7 +61,7 @@ const FlowCallback = () => {
         if (paymentDetails?.packageType === 'whatsapp_contact' && paymentDetails?.targetPhone) {
             const cleanPhone = paymentDetails.targetPhone.replace(/\D/g, '');
             const whatsappPhone = cleanPhone.startsWith('56') ? `+${cleanPhone}` : `+56${cleanPhone}`;
-            const message = `Hola ${paymentDetails.targetName || ''}, contacté contigo a través de Beta.`;
+            const message = `Hola ${paymentDetails.targetName || ''}, contacté contigo a través de Dameldato.`;
             const encodedMessage = encodeURIComponent(message);
             window.open(`https://wa.me/${whatsappPhone}?text=${encodedMessage}`, '_blank');
             navigate('/wall');

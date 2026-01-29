@@ -378,7 +378,7 @@ const Home = () => {
       {/* Features */}
       <section className="bg-primary/5 py-16">
         <div className="container mx-auto px-4">
-          <h2 className="text-3xl font-heading font-bold text-center mb-12 animate-fade-in">¿Por qué Beta?</h2>
+          <h2 className="text-3xl font-heading font-bold text-center mb-12 animate-fade-in">¿Por qué Dameldato?</h2>
 
           <div className="grid md:grid-cols-3 gap-8 max-w-5xl mx-auto">
             <div className="text-center animate-fade-in-up delay-100">

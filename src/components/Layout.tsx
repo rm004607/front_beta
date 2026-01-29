@@ -38,7 +38,7 @@ const Layout = ({ children }: LayoutProps) => {
                 className="h-12 w-12 sm:h-14 sm:w-14 rounded-xl object-contain drop-shadow-md"
               />
               <span className="text-2xl font-heading font-bold text-primary">
-                Beta
+                Dameldato
               </span>
             </Link>
 

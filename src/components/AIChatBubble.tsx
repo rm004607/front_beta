@@ -25,7 +25,7 @@ const AIChatBubble = () => {
     {
       id: '1',
       role: 'assistant',
-      content: '¡Hola! Soy Beta, tu asistente de IA. ¿Buscas trabajo o servicio?',
+      content: '¡Hola! Soy Dameldato, tu asistente de IA. ¿Buscas trabajo o servicio?',
       timestamp: new Date()
     }
   ]);
@@ -185,7 +185,7 @@ const AIChatBubble = () => {
                   />
                   <div className="absolute -bottom-1 -right-1 w-3 h-3 bg-green-500 rounded-full border-2 border-accent" />
                 </div>
-                <CardTitle className="text-lg">Beta IA</CardTitle>
+                <CardTitle className="text-lg">Dameldato IA</CardTitle>
               </div>
               <Button
                 variant="ghost"
