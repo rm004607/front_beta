@@ -35,7 +35,7 @@ const Layout = ({ children }: LayoutProps) => {
               <img
                 src={logoDameldato}
                 alt="Dameldato"
-                className="h-12 w-12 sm:h-14 sm:w-14 rounded-xl object-contain drop-shadow-md"
+                className="h-16 w-16 sm:h-20 sm:w-20 rounded-xl object-contain drop-shadow-md"
               />
               <span className="text-2xl font-heading font-bold text-primary">
                 Dameldato

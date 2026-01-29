@@ -17,7 +17,7 @@ const Footer = () => {
           {/* Logo y frase */}
           <div className="space-y-4">
             <div className="flex items-center gap-3">
-              <img src={logoDameldato} alt="Dameldato" className="h-10 w-10 rounded-lg object-contain" />
+              <img src={logoDameldato} alt="Dameldato" className="h-14 w-14 rounded-lg object-contain" />
               <span className="text-2xl font-heading font-bold text-primary">Dameldato</span>
             </div>
             <p className="text-muted-foreground text-sm">
