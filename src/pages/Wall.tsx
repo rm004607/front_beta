@@ -23,7 +23,7 @@ import {
 } from '@/components/ui/dialog';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
-import { postsAPI, authAPI, flowAPI } from '@/lib/api';
+import { postsAPI, authAPI, flowAPI, configAPI } from '@/lib/api';
 
 interface Post {
   id: string;
@@ -87,6 +87,22 @@ const Wall = () => {
   const [pendingContactPost, setPendingContactPost] = useState<Post | null>(null);
   const [pendingContactPhone, setPendingContactPhone] = useState<string | null>(null);
   const [pendingContactName, setPendingContactName] = useState<string | null>(null);
+  const [whatsappPrice, setWhatsappPrice] = useState<number>(2990); // Valor por defecto
+
+  // Cargar precio dinámico
+  useEffect(() => {
+    const loadConfig = async () => {
+      try {
+        const response = await configAPI.getPublicPrices();
+        if (response.whatsapp_contact_price) {
+          setWhatsappPrice(response.whatsapp_contact_price);
+        }
+      } catch (error) {
+        console.error('Error loading config:', error);
+      }
+    };
+    loadConfig();
+  }, []);
 
   // Cargar posts
   useEffect(() => {
@@ -828,7 +844,9 @@ const Wall = () => {
             <CardContent className="space-y-6 p-6">
               <div className="bg-blue-50 border border-blue-100 rounded-xl p-4 text-center">
                 <p className="text-blue-800 font-medium mb-1">Servicio de Contacto Premium</p>
-                <div className="text-3xl font-black text-blue-900">$2.990</div>
+                <div className="text-3xl font-black text-blue-900">
+                  {new Intl.NumberFormat('es-CL', { style: 'currency', currency: 'CLP' }).format(whatsappPrice)}
+                </div>
                 <p className="text-blue-600 text-xs mt-1">Pago único por cada contacto directo</p>
               </div>
 

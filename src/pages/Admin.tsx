@@ -28,7 +28,7 @@ import {
   CheckCircle,
 } from 'lucide-react';
 import { toast } from 'sonner';
-import { adminAPI, authAPI } from '@/lib/api';
+import { adminAPI, authAPI, configAPI, packagesAPI } from '@/lib/api';
 import {
   Dialog,
   DialogContent,
@@ -185,6 +185,22 @@ const Admin = () => {
   const [changeRoleDialogOpen, setChangeRoleDialogOpen] = useState(false);
   const [selectedUserForRoleChange, setSelectedUserForRoleChange] = useState<User | null>(null);
   const [newRole, setNewRole] = useState<string>('');
+
+  // Estados para Precios y Paquetes
+  const [adminConfig, setAdminConfig] = useState<any[]>([]);
+  const [adminPackages, setAdminPackages] = useState<{ services: any[]; jobs: any[] }>({ services: [], jobs: [] });
+  const [loadingConfig, setLoadingConfig] = useState(false);
+  const [loadingPackages, setLoadingPackages] = useState(false);
+
+  // Estado para editar configuración
+  const [selectedConfig, setSelectedConfig] = useState<any | null>(null);
+  const [configValue, setConfigValue] = useState('');
+  const [configDialogOpen, setConfigDialogOpen] = useState(false);
+
+  // Estado para editar paquete
+  const [selectedPackage, setSelectedPackage] = useState<any | null>(null);
+  const [editPackageForm, setEditPackageForm] = useState({ price: 0, publications: 0, is_active: true });
+  const [packageDialogOpen, setPackageDialogOpen] = useState(false);
 
   // Definir funciones antes de los hooks que las usan
   const loadStats = async () => {
@@ -600,6 +616,81 @@ const Admin = () => {
     }
   };
 
+  // Funciones para Precios y Configuración
+  const loadAdminConfig = async () => {
+    try {
+      setLoadingConfig(true);
+      const response = await configAPI.getAdminConfig();
+      setAdminConfig(response.config);
+    } catch (error: any) {
+      console.error('Error loading config:', error);
+      toast.error('Error al cargar configuración');
+    } finally {
+      setLoadingConfig(false);
+    }
+  };
+
+  const loadAdminPackages = async () => {
+    try {
+      setLoadingPackages(true);
+      const [servicesRes, jobsRes] = await Promise.all([
+        packagesAPI.getServicePackages(),
+        packagesAPI.getJobPackages()
+      ]);
+      setAdminPackages({
+        services: servicesRes.packages,
+        jobs: jobsRes.packages
+      });
+    } catch (error: any) {
+      console.error('Error loading packages:', error);
+      toast.error('Error al cargar paquetes');
+    } finally {
+      setLoadingPackages(false);
+    }
+  };
+
+  const handleUpdateConfig = async () => {
+    if (!selectedConfig) return;
+    try {
+      await configAPI.updateAdminConfig(selectedConfig.key, configValue);
+      toast.success('Configuración actualizada');
+      setConfigDialogOpen(false);
+      loadAdminConfig();
+    } catch (error: any) {
+      console.error('Error updating config:', error);
+      toast.error('Error al actualizar configuración');
+    }
+  };
+
+  const handleUpdatePackage = async () => {
+    if (!selectedPackage) return;
+    try {
+      await packagesAPI.updatePackage(selectedPackage.id, editPackageForm);
+      toast.success('Paquete actualizado');
+      setPackageDialogOpen(false);
+      loadAdminPackages();
+    } catch (error: any) {
+      console.error('Error updating package:', error);
+      toast.error('Error al actualizar paquete');
+    }
+  };
+
+  const openEditConfig = (config: any) => {
+    setSelectedConfig(config);
+    setConfigValue(config.value);
+    setConfigDialogOpen(true);
+  };
+
+  const openEditPackage = (pkg: any) => {
+    setSelectedPackage(pkg);
+    setEditPackageForm({
+      price: pkg.price,
+      publications: pkg.publications,
+      is_active: true // Asumimos true ya que la API no devuelve is_active por ahora en el listado público, el back lo manejará
+    });
+    setPackageDialogOpen(true);
+  };
+
   // TODOS LOS HOOKS DEBEN ESTAR ANTES DE CUALQUIER RETURN CONDICIONAL
   // Cargar estadísticas
   useEffect(() => {
@@ -683,7 +774,7 @@ const Admin = () => {
       )}
 
       <Tabs defaultValue="wall" className="w-full">
-        <TabsList className={`grid w-full h-auto mb-8 p-1 gap-1 ${isSuperAdmin ? 'grid-cols-2 sm:grid-cols-3 lg:grid-cols-6' : 'grid-cols-2 sm:grid-cols-3 lg:grid-cols-5'}`}>
+        <TabsList className={`grid w-full h-auto mb-8 p-1 gap-1 ${isSuperAdmin ? 'grid-cols-2 sm:grid-cols-3 lg:grid-cols-7' : 'grid-cols-2 sm:grid-cols-3 lg:grid-cols-5'}`}>
           <TabsTrigger value="wall" onClick={loadPosts} className="flex items-center gap-2">
             <MessageSquare size={16} />
             Muro
@@ -705,10 +796,16 @@ const Admin = () => {
             Tickets
           </TabsTrigger>
           {isSuperAdmin && (
-            <TabsTrigger value="logs" onClick={loadLogs} className="flex items-center gap-2">
-              <FileText size={16} />
-              Logs
-            </TabsTrigger>
+            <>
+              <TabsTrigger value="prices" onClick={() => { loadAdminConfig(); loadAdminPackages(); }} className="flex items-center gap-2">
+                <RefreshCw size={16} />
+                Precios
+              </TabsTrigger>
+              <TabsTrigger value="logs" onClick={loadLogs} className="flex items-center gap-2">
+                <FileText size={16} />
+                Logs
+              </TabsTrigger>
+            </>
           )}
         </TabsList>
 
@@ -1296,6 +1393,136 @@ const Admin = () => {
           </Card>
         </TabsContent>
 
+        {/* Tab de Precios y Paquetes */}
+        {isSuperAdmin && (
+          <TabsContent value="prices">
+            <div className="grid grid-cols-1 gap-6">
+              {/* Sección Configuración Global */}
+              <Card className="border-2">
+                <CardHeader>
+                  <CardTitle>Configuración Global</CardTitle>
+                  <CardDescription>Ajustes generales de precios del sistema</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  {loadingConfig ? (
+                    <div className="text-center py-4">Cargando configuración...</div>
+                  ) : (
+                    <div className="space-y-4">
+                      {adminConfig.map((config) => (
+                        <div key={config.key} className="flex items-center justify-between p-4 border rounded-lg bg-card">
+                          <div>
+                            <p className="font-medium text-lg">{config.description}</p>
+                            <p className="text-sm text-muted-foreground font-mono">{config.key}</p>
+                          </div>
+                          <div className="flex items-center gap-4">
+                            <span className="text-2xl font-bold bg-green-50 text-green-700 px-3 py-1 rounded">
+                              {parseInt(config.value) ? new Intl.NumberFormat('es-CL', { style: 'currency', currency: 'CLP' }).format(parseInt(config.value)) : config.value}
+                            </span>
+                            <Button variant="outline" size="sm" onClick={() => openEditConfig(config)}>
+                              <Wrench size={14} className="mr-2" />
+                              Editar
+                            </Button>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+
+              {/* Sección Paquetes */}
+              <Card className="border-2">
+                <CardHeader>
+                  <CardTitle>Gestión de Paquetes</CardTitle>
+                  <CardDescription>Edita los precios y límites de los paquetes de publicación</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  {loadingPackages ? (
+                    <div className="text-center py-4">Cargando paquetes...</div>
+                  ) : (
+                    <Tabs defaultValue="services-packages" className="w-full">
+                      <TabsList className="w-full grid grid-cols-2">
+                        <TabsTrigger value="services-packages">Servicios / Pymes</TabsTrigger>
+                        <TabsTrigger value="jobs-packages">Empleos</TabsTrigger>
+                      </TabsList>
+
+                      <TabsContent value="services-packages" className="mt-4">
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                          {adminPackages.services.map((pkg) => (
+                            <Card key={pkg.id} className="border bg-slate-50 relative overflow-hidden">
+                              <div className="absolute top-0 right-0 p-2">
+                                <Badge variant={pkg.is_active ? "default" : "destructive"}>
+                                  {pkg.is_active ? "Activo" : "Inactivo"}
+                                </Badge>
+                              </div>
+                              <CardHeader className="pb-2">
+                                <CardTitle className="text-base">{pkg.name}</CardTitle>
+                                <CardDescription className="line-clamp-2 text-xs">{pkg.description}</CardDescription>
+                              </CardHeader>
+                              <CardContent>
+                                <div className="space-y-2 mb-4">
+                                  <div className="flex justify-between items-center text-sm">
+                                    <span className="text-muted-foreground">Precio:</span>
+                                    <span className="font-bold text-lg text-primary">
+                                      {new Intl.NumberFormat('es-CL', { style: 'currency', currency: 'CLP' }).format(pkg.price)}
+                                    </span>
+                                  </div>
+                                  <div className="flex justify-between items-center text-sm">
+                                    <span className="text-muted-foreground">Publicaciones:</span>
+                                    <span className="font-medium bg-white px-2 py-0.5 rounded border">+{pkg.publications}</span>
+                                  </div>
+                                </div>
+                                <Button className="w-full" variant="outline" size="sm" onClick={() => openEditPackage(pkg)}>
+                                  Editar Paquete
+                                </Button>
+                              </CardContent>
+                            </Card>
+                          ))}
+                        </div>
+                      </TabsContent>
+
+                      <TabsContent value="jobs-packages" className="mt-4">
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                          {adminPackages.jobs.map((pkg) => (
+                            <Card key={pkg.id} className="border bg-slate-50 relative overflow-hidden">
+                              <div className="absolute top-0 right-0 p-2">
+                                <Badge variant={pkg.is_active ? "default" : "destructive"}>
+                                  {pkg.is_active ? "Activo" : "Inactivo"}
+                                </Badge>
+                              </div>
+                              <CardHeader className="pb-2">
+                                <CardTitle className="text-base">{pkg.name}</CardTitle>
+                                <CardDescription className="line-clamp-2 text-xs">{pkg.description}</CardDescription>
+                              </CardHeader>
+                              <CardContent>
+                                <div className="space-y-2 mb-4">
+                                  <div className="flex justify-between items-center text-sm">
+                                    <span className="text-muted-foreground">Precio:</span>
+                                    <span className="font-bold text-lg text-primary">
+                                      {new Intl.NumberFormat('es-CL', { style: 'currency', currency: 'CLP' }).format(pkg.price)}
+                                    </span>
+                                  </div>
+                                  <div className="flex justify-between items-center text-sm">
+                                    <span className="text-muted-foreground">Publicaciones:</span>
+                                    <span className="font-medium bg-white px-2 py-0.5 rounded border">+{pkg.publications}</span>
+                                  </div>
+                                </div>
+                                <Button className="w-full" variant="outline" size="sm" onClick={() => openEditPackage(pkg)}>
+                                  Editar Paquete
+                                </Button>
+                              </CardContent>
+                            </Card>
+                          ))}
+                        </div>
+                      </TabsContent>
+                    </Tabs>
+                  )}
+                </CardContent>
+              </Card>
+            </div>
+          </TabsContent>
+        )}
+
         {/* Tab de Logs (Solo Super Admin) */}
         {isSuperAdmin && (
           <TabsContent value="logs">
@@ -1852,6 +2079,73 @@ const Admin = () => {
               <Send size={16} className="mr-2" />
               {selectedTicket?.status === 'closed' ? 'Actualizar y Cerrar' : 'Enviar y Cerrar'}
             </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Dialog para editar configuración */}
+      <Dialog open={configDialogOpen} onOpenChange={setConfigDialogOpen}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Editar Configuración</DialogTitle>
+            <DialogDescription>
+              Modificando: {selectedConfig?.description}
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 pt-4">
+            <div>
+              <Label>Clave</Label>
+              <Input value={selectedConfig?.key || ''} disabled className="bg-muted" />
+            </div>
+            <div>
+              <Label>Valor</Label>
+              <Input
+                value={configValue}
+                onChange={(e) => setConfigValue(e.target.value)}
+                placeholder="Ingrese el nuevo valor"
+              />
+              <p className="text-xs text-muted-foreground mt-1">
+                Para precios, ingrese solo números (ej: 2990).
+              </p>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setConfigDialogOpen(false)}>Cancelar</Button>
+            <Button onClick={handleUpdateConfig}>Guardar Cambios</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Dialog para editar paquete */}
+      <Dialog open={packageDialogOpen} onOpenChange={setPackageDialogOpen}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Editar Paquete</DialogTitle>
+            <DialogDescription>
+              {selectedPackage?.name}
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 pt-4">
+            <div>
+              <Label>Precio (CLP)</Label>
+              <Input
+                type="number"
+                value={editPackageForm.price}
+                onChange={(e) => setEditPackageForm({ ...editPackageForm, price: parseInt(e.target.value) || 0 })}
+              />
+            </div>
+            <div>
+              <Label>Cantidad de Publicaciones</Label>
+              <Input
+                type="number"
+                value={editPackageForm.publications}
+                onChange={(e) => setEditPackageForm({ ...editPackageForm, publications: parseInt(e.target.value) || 0 })}
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setPackageDialogOpen(false)}>Cancelar</Button>
+            <Button onClick={handleUpdatePackage}>Guardar Cambios</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>

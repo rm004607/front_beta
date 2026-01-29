@@ -1133,6 +1133,16 @@ export const packagesAPI = {
     });
   },
 
+  // Actualizar paquete (Admin)
+  updatePackage: async (packageId: string, data: { price?: number; publications?: number; is_active?: boolean }) => {
+    return request<{
+      message: string;
+      package: any
+    }>(`/packages/admin/packages/${packageId}`, {
+      method: 'PUT',
+      body: JSON.stringify(data),
+    });
+  },
   // Obtener límites del usuario
   getUserLimits: async () => {
     return request<{
@@ -1339,4 +1349,37 @@ export const supportAPI = {
 };
 
 // API de IA y recomendaciones
+
+// API de Configuración (Precios dinámicos)
+export const configAPI = {
+  // Precios públicos (ej. WhatsApp)
+  getPublicPrices: async () => {
+    return request<{
+      whatsapp_contact_price: number;
+    }>('/api/prices', {
+      method: 'GET',
+    });
+  },
+
+  // Configuración del sistema (Admin)
+  getAdminConfig: async () => {
+    return request<{
+      config: Array<{
+        key: string;
+        value: string;
+        description: string;
+      }>;
+    }>('/api/admin/config', {
+      method: 'GET',
+    });
+  },
+
+  // Actualizar configuración (Admin)
+  updateAdminConfig: async (key: string, value: string) => {
+    return request<{ message: string }>('/api/admin/config', {
+      method: 'PUT',
+      body: JSON.stringify({ key, value }),
+    });
+  },
+};
 
