@@ -23,7 +23,7 @@ import {
 } from '@/components/ui/dialog';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
-import { postsAPI, authAPI } from '@/lib/api';
+import { postsAPI, authAPI, flowAPI } from '@/lib/api';
 
 interface Post {
   id: string;
@@ -320,55 +320,11 @@ const Wall = () => {
     setIsPaidContactModalOpen(true);
   };
 
-  const processDirectWhatsAppContact = async (post: Post) => {
-    try {
-      setLoadingContact(prev => ({ ...prev, [post.id]: true }));
-      const response = await authAPI.getUserById(post.user_id);
-      const user = response.user;
-
-      if (!user.phone) {
-        toast.error('Este usuario no tiene un teléfono registrado');
-        return;
-      }
-
-      const cleanPhone = user.phone.replace(/\D/g, '');
-      const whatsappPhone = cleanPhone.startsWith('56') ? `+${cleanPhone}` : `+56${cleanPhone}`;
-
-      const message = `Hola ${user.name}, vi tu publicación "${post.content.substring(0, 30)}..." en Beta y me interesa tu servicio.`;
-      const encodedMessage = encodeURIComponent(message);
-
-      window.open(`https://wa.me/${whatsappPhone}?text=${encodedMessage}`, '_blank');
-
-    } catch (error: any) {
-      console.error('Error contacting user:', error);
-      toast.error('Error al obtener información de contacto');
-    } finally {
-      setLoadingContact(prev => ({ ...prev, [post.id]: false }));
-    }
-  };
-
   const handleWhatsAppContact = (phone: string, userName: string) => {
     setPendingContactPost(null);
     setPendingContactPhone(phone);
     setPendingContactName(userName);
     setIsPaidContactModalOpen(true);
-  };
-
-  const processWhatsAppContact = (phone: string, userName: string) => {
-    // Formatear el número de teléfono (eliminar espacios, guiones, etc.)
-    const cleanPhone = phone.replace(/\D/g, '');
-    // Agregar código de país si no lo tiene (Chile: +56)
-    const whatsappPhone = cleanPhone.startsWith('56') ? `+${cleanPhone}` : `+56${cleanPhone}`;
-
-    // Crear el mensaje predefinido
-    const message = `Hola ${userName}, leí tu búsqueda de servicio en Beta y me interesa.`;
-
-    // Codificar el mensaje para URL
-    const encodedMessage = encodeURIComponent(message);
-
-    // Crear el enlace de WhatsApp con el mensaje
-    const whatsappUrl = `https://wa.me/${whatsappPhone}?text=${encodedMessage}`;
-    window.open(whatsappUrl, '_blank');
   };
 
   const getTypeColor = (type: string) => {
@@ -900,12 +856,32 @@ const Wall = () => {
                   Cancelar
                 </Button>
                 <Button
-                  onClick={() => {
-                    setIsPaidContactModalOpen(false);
-                    if (pendingContactPost) {
-                      processDirectWhatsAppContact(pendingContactPost);
-                    } else if (pendingContactPhone && pendingContactName) {
-                      processWhatsAppContact(pendingContactPhone, pendingContactName);
+                  onClick={async () => {
+                    try {
+                      let targetUserId = '';
+                      let postId = '';
+
+                      if (pendingContactPost) {
+                        targetUserId = pendingContactPost.user_id;
+                        postId = pendingContactPost.id;
+                      } else if (pendingContactPhone && pendingContactName && userProfile) {
+                        targetUserId = userProfile.id;
+                      }
+
+                      if (!targetUserId) {
+                        toast.error('No se pudo identificar al usuario');
+                        return;
+                      }
+
+                      toast.loading('Preparando pago...', { id: 'contact-payment' });
+                      const response = await flowAPI.createContactPayment(targetUserId, postId);
+                      toast.success('Redirigiendo a Flow...', { id: 'contact-payment' });
+
+                      // Redirigir a la URL de pago de Flow
+                      window.location.href = response.url;
+                    } catch (error: any) {
+                      console.error('Error creating contact payment:', error);
+                      toast.error(error.message || 'Error al procesar el pago', { id: 'contact-payment' });
                     }
                   }}
                   className="h-12 bg-green-600 hover:bg-green-700 text-white font-bold shadow-lg shadow-green-200"

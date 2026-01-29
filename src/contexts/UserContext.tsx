@@ -87,10 +87,12 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
         console.log('Token encontrado en URL, guardando en localStorage');
         localStorage.setItem('token', urlToken);
 
-        // Limpiar el token de la URL para mayor seguridad y estética
+        // Limpiar parámetros de la URL para mayor seguridad y estética
         const url = new URL(window.location.href);
         url.searchParams.delete('token');
-        window.history.replaceState({}, '', url.toString());
+        url.searchParams.delete('google_login');
+        url.searchParams.delete('status');
+        window.history.replaceState({}, '', url.pathname + url.search);
       }
 
       await loadUser();

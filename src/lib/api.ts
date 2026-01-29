@@ -1158,6 +1158,17 @@ export const flowAPI = {
       method: 'GET',
     });
   },
+  // Crear pago de contacto WhatsApp
+  createContactPayment: async (targetUserId: string, postId?: string) => {
+    return request<{
+      url: string;
+      token: string;
+      paymentId: string;
+    }>('/api/flow/create-contact-payment', {
+      method: 'POST',
+      body: JSON.stringify({ targetUserId, postId }),
+    });
+  },
 };
 
 // API de postulaciones
