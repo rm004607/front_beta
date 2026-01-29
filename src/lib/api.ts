@@ -8,15 +8,19 @@ export const setUnauthorizedHandler = (callback: () => void) => {
   onUnauthorizedCallback = callback;
 };
 
+interface RequestOptions extends RequestInit {
+  skipAuth?: boolean;
+}
+
 // Helper para hacer peticiones
 async function request<T>(
   endpoint: string,
-  options: RequestInit = {}
+  options: RequestOptions = {}
 ): Promise<T> {
   const token = localStorage.getItem('token');
   const headers: HeadersInit = {
     ...(options.body instanceof FormData ? {} : { 'Content-Type': 'application/json' }),
-    ...(token ? { 'Authorization': `Bearer ${token}` } : {}),
+    ...(token && token !== 'null' && token !== 'undefined' && !options.skipAuth ? { 'Authorization': `Bearer ${token}` } : {}),
     ...options.headers,
   };
 
@@ -69,7 +73,7 @@ async function request<T>(
     errorObj.status = response.status;
 
     // Si es un error 401 (cookie expirada o no autenticado)
-    if (response.status === 401) {
+    if (response.status === 401 && !options.skipAuth) {
       // Si no es /auth/me (que es normal cuando no hay sesión), significa que la cookie expiró
       // y el usuario estaba logueado, así que cerramos sesión automáticamente
       if (endpoint !== '/auth/me' && onUnauthorizedCallback) {
@@ -1438,7 +1442,8 @@ export const reviewsAPI = {
 };
 
 export const kycAPI = {
-  getKYCStatus: async () => {
+  getKYCStatus: async (email?: string) => {
+    const endpoint = email ? `/api/kyc/status?email=${encodeURIComponent(email)}` : '/api/kyc/status';
     return request<{
       kyc: {
         kyc_status: 'not_started' | 'pending' | 'verified' | 'rejected';
@@ -1447,8 +1452,9 @@ export const kycAPI = {
         face_url?: string;
         rejection_reason?: string;
       };
-    }>('/api/kyc/status', {
+    }>(endpoint, {
       method: 'GET',
+      skipAuth: !localStorage.getItem('token'),
     });
   },
 
@@ -1456,6 +1462,7 @@ export const kycAPI = {
     return request<{ message: string }>('/api/kyc/upload', {
       method: 'POST',
       body: formData,
+      skipAuth: !localStorage.getItem('token'),
     });
   },
 };

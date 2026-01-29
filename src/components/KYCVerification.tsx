@@ -2,6 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { QRCodeSVG } from 'qrcode.react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import { Smartphone, QrCode, Scan, Camera, UserCheck, ArrowLeft, ArrowRight, CheckCircle2, AlertCircle, Loader2, Upload } from 'lucide-react';
 import { toast } from 'sonner';
 import { kycAPI } from '@/lib/api';
@@ -19,6 +21,9 @@ const KYCVerification: React.FC<KYCVerificationProps> = ({ email, onComplete, on
     const [registrationUrl, setRegistrationUrl] = useState('');
     const [isLoading, setIsLoading] = useState(true);
     const [files, setFiles] = useState<{ front?: File; back?: File; face?: File }>({});
+    const [localEmail, setLocalEmail] = useState(email || '');
+
+    const effectiveEmail = email || localEmail;
 
     useEffect(() => {
         const checkDevice = () => {
@@ -30,20 +35,24 @@ const KYCVerification: React.FC<KYCVerificationProps> = ({ email, onComplete, on
         const baseUrl = window.location.origin + window.location.pathname;
         const urlWithParams = new URL(baseUrl);
         urlWithParams.searchParams.set('step', '2');
-        if (email) urlWithParams.searchParams.set('email', email);
+        if (effectiveEmail) urlWithParams.searchParams.set('email', effectiveEmail);
 
         setRegistrationUrl(urlWithParams.toString());
         window.addEventListener('resize', checkDevice);
 
-        // Fetch initial status
-        fetchStatus();
+        // Fetch initial status if we have email or token
+        if (effectiveEmail || localStorage.getItem('token')) {
+            fetchStatus();
+        } else {
+            setIsLoading(false);
+        }
 
         return () => window.removeEventListener('resize', checkDevice);
-    }, [email]);
+    }, [email, effectiveEmail]);
 
     const fetchStatus = async () => {
         try {
-            const response = await kycAPI.getKYCStatus();
+            const response = await kycAPI.getKYCStatus(effectiveEmail);
             setKycStatus(response.kyc.kyc_status);
             if (response.kyc.kyc_status === 'verified') {
                 onComplete();
@@ -65,12 +74,17 @@ const KYCVerification: React.FC<KYCVerificationProps> = ({ email, onComplete, on
     };
 
     const handleSubmitKYC = async (faceFile: File) => {
+        if (!effectiveEmail && !localStorage.getItem('token')) {
+            toast.error('Se requiere un email para la verificación anónima.');
+            return;
+        }
+
         setKycStep('submitting');
         const formData = new FormData();
         if (files.front) formData.append('id_front', files.front);
         if (files.back) formData.append('id_back', files.back);
         formData.append('face_photo', faceFile);
-        if (email) formData.append('email', email);
+        if (effectiveEmail) formData.append('email', effectiveEmail);
 
         try {
             await kycAPI.uploadKYC(formData);
@@ -188,6 +202,22 @@ const KYCVerification: React.FC<KYCVerificationProps> = ({ email, onComplete, on
                             <p className="text-muted-foreground">
                                 Necesitamos validar tu identidad antes de completar el registro.
                             </p>
+                            {!email && (
+                                <div className="text-left space-y-2 mt-4">
+                                    <Label htmlFor="kyc_email">Correo Electrónico</Label>
+                                    <Input
+                                        id="kyc_email"
+                                        type="email"
+                                        placeholder="tu@email.com"
+                                        value={effectiveEmail}
+                                        onChange={(e) => setLocalEmail(e.target.value)}
+                                        required
+                                    />
+                                    <p className="text-[10px] text-muted-foreground mt-1">
+                                        Ingresa el mismo correo que usaste en el registro.
+                                    </p>
+                                </div>
+                            )}
                         </div>
                         <ul className="text-left space-y-3 max-w-xs mx-auto mb-6">
                             <li className="flex items-center gap-3">
