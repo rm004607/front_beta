@@ -15,7 +15,7 @@ async function request<T>(
 ): Promise<T> {
   const token = localStorage.getItem('token');
   const headers: HeadersInit = {
-    'Content-Type': 'application/json',
+    ...(options.body instanceof FormData ? {} : { 'Content-Type': 'application/json' }),
     ...(token ? { 'Authorization': `Bearer ${token}` } : {}),
     ...options.headers,
   };
@@ -1433,6 +1433,29 @@ export const reviewsAPI = {
   deleteServiceReview: async (reviewId: string) => {
     return request<{ message: string }>(`/services/reviews/${reviewId}`, {
       method: 'DELETE',
+    });
+  },
+};
+
+export const kycAPI = {
+  getKYCStatus: async () => {
+    return request<{
+      kyc: {
+        kyc_status: 'not_started' | 'pending' | 'verified' | 'rejected';
+        id_front_url?: string;
+        id_back_url?: string;
+        face_url?: string;
+        rejection_reason?: string;
+      };
+    }>('/kyc/status', {
+      method: 'GET',
+    });
+  },
+
+  uploadKYC: async (formData: FormData) => {
+    return request<{ message: string }>('/kyc/upload', {
+      method: 'POST',
+      body: formData,
     });
   },
 };
