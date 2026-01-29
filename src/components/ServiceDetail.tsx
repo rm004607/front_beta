@@ -202,7 +202,7 @@ export const ServiceDetail = ({
                                     )}
                                 </div>
                             </div>
-                            <p className="text-sm text-gray-700 leading-relaxed pl-10">{review.comment}</p>
+                            <p className="text-sm text-foreground/90 leading-relaxed pl-10 mt-1">{review.comment}</p>
                         </div>
                     ))
                 )}
