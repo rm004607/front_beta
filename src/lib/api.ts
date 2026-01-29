@@ -415,7 +415,7 @@ export const servicesAPI = {
         total: number;
         totalPages: number;
       };
-    }>(`/api/services${queryString ? `?${queryString}` : ''}`, {
+    }>(`/services${queryString ? `?${queryString}` : ''}`, {
       method: 'GET',
     });
   },
@@ -437,7 +437,7 @@ export const servicesAPI = {
         user_name: string;
         user_email: string;
       };
-    }>(`/api/services/${id}`, {
+    }>(`/services/${id}`, {
       method: 'GET',
     });
   },
@@ -459,7 +459,7 @@ export const servicesAPI = {
         comuna: string;
         created_by_admin: boolean;
       };
-    }>('/api/services', {
+    }>('/services', {
       method: 'POST',
       body: JSON.stringify(data),
     });
@@ -489,7 +489,7 @@ export const servicesAPI = {
         inactive: number;
         is_admin?: boolean;
       };
-    }>('/api/services/my/services', {
+    }>('/services/my/services', {
       method: 'GET',
     });
   },
@@ -1406,7 +1406,7 @@ export const reviewsAPI = {
         average_rating: number;
         total_reviews: number;
       };
-    }>(`/api/services/${serviceId}/reviews`, {
+    }>(`/services/${serviceId}/reviews`, {
       method: 'GET',
     });
   },
@@ -1420,7 +1420,7 @@ export const reviewsAPI = {
         rating: number;
         comment: string;
       };
-    }>(`/api/services/${serviceId}/reviews`, {
+    }>(`/services/${serviceId}/reviews`, {
       method: 'POST',
       body: JSON.stringify(data),
     });
