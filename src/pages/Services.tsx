@@ -276,9 +276,18 @@ const Services = () => {
                 <CardContent>
                   <p className="text-sm text-muted-foreground mb-4 line-clamp-2">{service.description}</p>
                   <div className="space-y-2 mb-4">
-                    <div className="flex items-center gap-2 text-sm">
-                      <MapPin size={16} className="text-secondary" />
-                      <span>{service.comuna}</span>
+                    <div className="flex items-center gap-2 text-sm justify-between">
+                      <div className="flex items-center gap-2">
+                        <MapPin size={16} className="text-secondary" />
+                        <span>{service.comuna}</span>
+                      </div>
+                      <div className="flex items-center gap-1 text-xs text-muted-foreground">
+                        <Star className="w-3 h-3 fill-yellow-400 text-yellow-400" />
+                        <span className="font-bold text-yellow-700">
+                          {service.average_rating ? Number(service.average_rating).toFixed(1) : '5.0'}
+                        </span>
+                        <span className="text-[10px]">({service.reviews_count || 0} reseñas)</span>
+                      </div>
                     </div>
                     {service.price_range && (
                       <div className="text-sm font-semibold text-primary">
@@ -354,7 +363,7 @@ const Services = () => {
           )}
 
           {/* Formulario para dejar reseña */}
-          {isLoggedIn && (
+          {isLoggedIn && user?.id !== selectedServiceForReviews?.user_id && (
             <div className="border rounded-xl p-4 mb-8 bg-muted/30">
               <h4 className="font-bold mb-3">Deja tu reseña</h4>
               <div className="flex gap-2 mb-4">

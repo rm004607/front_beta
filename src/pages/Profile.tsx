@@ -25,7 +25,7 @@ import {
 } from '@/components/ui/dialog';
 import { useUser } from '@/contexts/UserContext';
 import logoDameldato from '/logoicono.png';
-import { MapPin, Phone, Mail, Edit, Briefcase, Wrench, Building2, MessageSquare, Trash2, Upload, X, FileText, Download, AlertCircle, Users, Eye, Plus } from 'lucide-react';
+import { MapPin, Phone, Mail, Edit, Briefcase, Wrench, Building2, MessageSquare, Trash2, Upload, X, FileText, Download, AlertCircle, Users, Eye, Plus, Star } from 'lucide-react';
 import { postsAPI, servicesAPI, jobsAPI, authAPI, applicationsAPI } from '@/lib/api';
 import { toast } from 'sonner';
 import { Alert, AlertDescription } from '@/components/ui/alert';
@@ -48,6 +48,8 @@ interface Service {
   comuna: string;
   status: string;
   created_at: string;
+  average_rating?: number;
+  reviews_count?: number;
 }
 
 interface Job {
@@ -1227,8 +1229,15 @@ const Profile = () => {
                           <div className="flex justify-between items-start">
                             <div className="flex-1">
                               <CardTitle className="text-lg">{service.service_name}</CardTitle>
-                              <CardDescription>
-                                {service.comuna} | {formatDate(service.created_at)}
+                              <CardDescription className="flex flex-col gap-1 mt-1">
+                                <span>{service.comuna} | {formatDate(service.created_at)}</span>
+                                <div className="flex items-center gap-1 text-xs text-muted-foreground">
+                                  <Star className="w-3 h-3 fill-yellow-400 text-yellow-400" />
+                                  <span className="font-bold text-yellow-700">
+                                    {service.average_rating ? Number(service.average_rating).toFixed(1) : '5.0'}
+                                  </span>
+                                  <span className="text-[10px]">({service.reviews_count || 0} reseñas)</span>
+                                </div>
                               </CardDescription>
                             </div>
                             <div className="flex gap-2">

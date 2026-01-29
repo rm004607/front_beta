@@ -82,6 +82,8 @@ interface Service {
   user_name: string;
   user_email: string;
   price_range?: string;
+  average_rating?: number;
+  reviews_count?: number;
 }
 
 interface User {

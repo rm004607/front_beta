@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Briefcase, Wrench, Building2, MessageSquare, ArrowRight, MapPin, Calendar, DollarSign, Clock } from 'lucide-react';
+import { Briefcase, Wrench, Building2, MessageSquare, ArrowRight, MapPin, Calendar, DollarSign, Clock, Star } from 'lucide-react';
 import { useUser } from '@/contexts/UserContext';
 import { jobsAPI, servicesAPI } from '@/lib/api';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
@@ -29,6 +29,8 @@ interface Service {
   created_at: string;
   user_name: string;
   profile_image?: string;
+  average_rating?: number;
+  reviews_count?: number;
 }
 
 const Home = () => {
@@ -347,6 +349,13 @@ const Home = () => {
                                   <span>{service.price_range}</span>
                                 </div>
                               )}
+                              <div className="flex items-center gap-1 border-l pl-3 ml-2 border-muted-foreground/30">
+                                <Star size={14} className="fill-yellow-400 text-yellow-400" />
+                                <span className="font-bold text-yellow-700">
+                                  {service.average_rating ? Number(service.average_rating).toFixed(1) : '5.0'}
+                                </span>
+                                <span className="text-[10px]">({service.reviews_count || 0})</span>
+                              </div>
                             </div>
                           </div>
                         </div>
