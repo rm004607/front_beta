@@ -7,6 +7,7 @@ import { useUser } from '@/contexts/UserContext';
 import Footer from '@/components/Footer';
 import { ThemeToggle } from '@/components/ThemeToggle';
 import ErrorBoundary from '@/components/ErrorBoundary';
+import AIChatBubble from '@/components/AIChatBubble';
 import logoDameldato from '/logoicono.png';
 import {
   DropdownMenu,
@@ -251,6 +252,9 @@ const Layout = ({ children }: LayoutProps) => {
 
       {/* Footer */}
       <Footer />
+
+      {/* AI Chat Bubble */}
+      <AIChatBubble />
     </div>
   );
 };

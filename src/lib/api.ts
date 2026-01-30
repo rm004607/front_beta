@@ -1458,11 +1458,32 @@ export const kycAPI = {
     });
   },
 
+
   uploadKYC: async (formData: FormData) => {
     return request<{ message: string }>('/api/kyc/upload', {
       method: 'POST',
       body: formData,
       skipAuth: !localStorage.getItem('token'),
+    });
+  },
+};
+
+// API de IA para recomendaciones
+export const aiAPI = {
+  askAIAboutJobs: async (message: string) => {
+    return request<{
+      answer: string;
+      cards?: Array<{
+        type: 'job' | 'service';
+        id: string | number;
+        title: string;
+        subtitle: string;
+        details: string;
+        url: string;
+      }>;
+    }>('/api/ai/chat', {
+      method: 'POST',
+      body: JSON.stringify({ message }),
     });
   },
 };
