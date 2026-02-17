@@ -25,9 +25,16 @@ import {
 } from '@/components/ui/dialog';
 import { useUser } from '@/contexts/UserContext';
 import logoDameldato from '/logoicono.png';
-import { MapPin, Phone, Mail, Edit, Briefcase, Wrench, Building2, MessageSquare, Trash2, Upload, X, FileText, Download, AlertCircle, Users, Eye, Plus, Star } from 'lucide-react';
-import { postsAPI, servicesAPI, jobsAPI, authAPI, applicationsAPI } from '@/lib/api';
+import { MapPin, Phone, Mail, Edit, Wrench, Building2, MessageSquare, Trash2, Upload, X, FileText, Download, AlertCircle, Eye, Plus, Star, Users } from 'lucide-react';
+import { postsAPI, servicesAPI, authAPI } from '@/lib/api';
 import { toast } from 'sonner';
+import {
+  isValidName,
+  isValidPhone,
+  isValidComuna,
+  isValidTextField,
+  sanitizeInput
+} from '@/lib/input-validator';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 
 interface Post {
@@ -52,15 +59,6 @@ interface Service {
   reviews_count?: number;
 }
 
-interface Job {
-  id: string;
-  title: string;
-  description: string;
-  comuna: string;
-  job_type: string;
-  is_active: number;
-  created_at: string;
-}
 
 const Profile = () => {
   const { user, isLoggedIn, isLoading, loadUser } = useUser();
@@ -68,10 +66,8 @@ const Profile = () => {
   const [searchParams, setSearchParams] = useSearchParams();
   const [posts, setPosts] = useState<Post[]>([]);
   const [services, setServices] = useState<Service[]>([]);
-  const [jobs, setJobs] = useState<Job[]>([]);
   const [loadingPosts, setLoadingPosts] = useState(false);
   const [loadingServices, setLoadingServices] = useState(false);
-  const [loadingJobs, setLoadingJobs] = useState(false);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [editName, setEditName] = useState('');
   const [editPhone, setEditPhone] = useState('');
@@ -87,9 +83,6 @@ const Profile = () => {
   const [showCVModal, setShowCVModal] = useState(false);
   const [useGoogleViewer, setUseGoogleViewer] = useState(false);
   const cvInputRef = useRef<HTMLInputElement>(null);
-  const [jobApplications, setJobApplications] = useState<Record<string, any[]>>({});
-  const [loadingApplications, setLoadingApplications] = useState<Record<string, boolean>>({});
-  const [expandedJobApplications, setExpandedJobApplications] = useState<string | null>(null);
   // Estados para edición
   const [editingPost, setEditingPost] = useState<Post | null>(null);
   // Estados para completar perfil
@@ -98,19 +91,12 @@ const Profile = () => {
   const [completeComuna, setCompleteComuna] = useState('');
   const [isCompletingProfile, setIsCompletingProfile] = useState(false);
   const [editingService, setEditingService] = useState<Service | null>(null);
-  const [editingJob, setEditingJob] = useState<Job | null>(null);
   const [editPostContent, setEditPostContent] = useState('');
   const [editPostComuna, setEditPostComuna] = useState('');
   const [editServiceName, setEditServiceName] = useState('');
   const [editServiceDescription, setEditServiceDescription] = useState('');
   const [editServicePriceRange, setEditServicePriceRange] = useState('');
   const [editServiceComuna, setEditServiceComuna] = useState('');
-  const [editJobTitle, setEditJobTitle] = useState('');
-  const [editJobDescription, setEditJobDescription] = useState('');
-  const [editJobRequirements, setEditJobRequirements] = useState('');
-  const [editJobSalary, setEditJobSalary] = useState('');
-  const [editJobComuna, setEditJobComuna] = useState('');
-  const [editJobType, setEditJobType] = useState('');
 
   // Definir funciones antes de los hooks que las usan
   const loadPosts = async () => {
@@ -139,30 +125,6 @@ const Profile = () => {
     }
   };
 
-  const loadJobs = async () => {
-    try {
-      setLoadingJobs(true);
-      const response = await jobsAPI.getMyJobs();
-      const jobsList = response.jobs || [];
-      setJobs(jobsList);
-
-      // Cargar aplicaciones para cada empleo
-      for (const job of jobsList) {
-        try {
-          const appsResponse = await applicationsAPI.getJobApplications(job.id);
-          setJobApplications((prev) => ({ ...prev, [job.id]: appsResponse.applications }));
-        } catch (error) {
-          // Si hay error, simplemente no cargar aplicaciones para ese empleo
-          console.error(`Error loading applications for job ${job.id}:`, error);
-        }
-      }
-    } catch (error: any) {
-      console.error('Error loading jobs:', error);
-      toast.error(error.message || 'Error al cargar empleos');
-    } finally {
-      setLoadingJobs(false);
-    }
-  };
 
   const handleDeletePost = async (postId: string) => {
     if (!confirm('¿Estás seguro de que quieres eliminar esta publicación?')) {
@@ -194,21 +156,6 @@ const Profile = () => {
     }
   };
 
-  const handleDeleteJob = async (jobId: string) => {
-    if (!confirm('¿Estás seguro de que quieres eliminar este empleo?')) {
-      return;
-    }
-
-    try {
-      await jobsAPI.deleteJob(jobId);
-      toast.success('Empleo eliminado');
-      loadJobs();
-    } catch (error: any) {
-      console.error('Error deleting job:', error);
-      toast.error(error.message || 'Error al eliminar empleo');
-    }
-  };
-
   // Funciones de edición
   const handleEditPost = (post: Post) => {
     setEditingPost(post);
@@ -221,6 +168,17 @@ const Profile = () => {
       toast.error('Por favor completa todos los campos');
       return;
     }
+
+    if (!isValidTextField(editPostContent, 2000)) {
+      toast.error('El contenido de la publicación contiene caracteres no permitidos');
+      return;
+    }
+
+    if (!isValidComuna(editPostComuna)) {
+      toast.error('La comuna contiene caracteres no permitidos');
+      return;
+    }
+
     // Nota: No hay endpoint de actualización de posts aún, por ahora solo mostramos un mensaje
     toast.info('La funcionalidad de edición de publicaciones estará disponible pronto');
     setEditingPost(null);
@@ -239,12 +197,26 @@ const Profile = () => {
       toast.error('Por favor completa todos los campos obligatorios');
       return;
     }
+
+    if (!isValidTextField(editServiceName, 100)) {
+      toast.error('El nombre del servicio contiene caracteres no permitidos');
+      return;
+    }
+    if (!isValidTextField(editServiceDescription, 2000)) {
+      toast.error('La descripción contiene caracteres no permitidos');
+      return;
+    }
+    if (!isValidComuna(editServiceComuna)) {
+      toast.error('La comuna contiene caracteres no permitidos');
+      return;
+    }
+
     try {
       await servicesAPI.updateService(editingService.id, {
-        service_name: editServiceName,
-        description: editServiceDescription,
-        price_range: editServicePriceRange || undefined,
-        comuna: editServiceComuna,
+        service_name: sanitizeInput(editServiceName, 100),
+        description: sanitizeInput(editServiceDescription, 2000),
+        price_range: editServicePriceRange ? sanitizeInput(editServicePriceRange, 100) : undefined,
+        comuna: sanitizeInput(editServiceComuna, 50),
       });
       toast.success('Servicio actualizado exitosamente');
       setEditingService(null);
@@ -252,61 +224,6 @@ const Profile = () => {
     } catch (error: any) {
       console.error('Error updating service:', error);
       toast.error(error.message || 'Error al actualizar servicio');
-    }
-  };
-
-  const handleEditJob = (job: Job) => {
-    setEditingJob(job);
-    setEditJobTitle(job.title);
-    setEditJobDescription(job.description);
-    setEditJobRequirements((job as any).requirements || '');
-    setEditJobSalary((job as any).salary || '');
-    setEditJobComuna(job.comuna);
-    setEditJobType(job.job_type);
-  };
-
-  const handleSaveJob = async () => {
-    if (!editingJob || !editJobTitle.trim() || !editJobDescription.trim() || !editJobComuna.trim() || !editJobType) {
-      toast.error('Por favor completa todos los campos obligatorios');
-      return;
-    }
-    try {
-      await jobsAPI.updateJob(editingJob.id, {
-        title: editJobTitle,
-        description: editJobDescription,
-        requirements: editJobRequirements || undefined,
-        salary: editJobSalary || undefined,
-        comuna: editJobComuna,
-        job_type: editJobType as 'fulltime' | 'parttime' | 'shifts' | 'freelance',
-      });
-      toast.success('Empleo actualizado exitosamente');
-      setEditingJob(null);
-      loadJobs();
-    } catch (error: any) {
-      console.error('Error updating job:', error);
-      toast.error(error.message || 'Error al actualizar empleo');
-    }
-  };
-
-  const handleToggleJobApplications = async (jobId: string) => {
-    if (expandedJobApplications === jobId) {
-      setExpandedJobApplications(null);
-      return;
-    }
-
-    setExpandedJobApplications(jobId);
-
-    if (!jobApplications[jobId]) {
-      try {
-        setLoadingApplications((prev) => ({ ...prev, [jobId]: true }));
-        const response = await applicationsAPI.getJobApplications(jobId);
-        setJobApplications((prev) => ({ ...prev, [jobId]: response.applications }));
-      } catch (error: any) {
-        console.error('Error loading applications:', error);
-        toast.error(error.message || 'Error al cargar postulaciones');
-      } finally {
-        setLoadingApplications((prev) => ({ ...prev, [jobId]: false }));
-      }
     }
   };
 
@@ -320,8 +237,6 @@ const Profile = () => {
 
   const getRoleIcon = (role: string) => {
     switch (role) {
-      case 'job-seeker':
-        return <Briefcase size={16} />;
       case 'entrepreneur':
         return <Wrench size={16} />;
       case 'company':
@@ -334,7 +249,7 @@ const Profile = () => {
   const getRoleLabel = (role: string) => {
     switch (role) {
       case 'job-seeker':
-        return 'Buscador de Empleo';
+        return 'Vecino';
       case 'entrepreneur':
         return 'Emprendedor';
       case 'company':
@@ -449,9 +364,33 @@ const Profile = () => {
         profile_image_public_id?: string | null;
       } = {};
 
-      if (editName !== user.name) updateData.name = editName;
-      if (editPhone !== user.phone) updateData.phone = editPhone;
-      if (editComuna !== user.comuna) updateData.comuna = editComuna;
+      if (editName !== user.name) {
+        if (!isValidName(editName)) {
+          toast.error('Nombre no válido');
+          setIsUpdating(false);
+          return;
+        }
+        updateData.name = sanitizeInput(editName, 100);
+      }
+
+      if (editPhone !== user.phone) {
+        if (!isValidPhone(editPhone)) {
+          toast.error('Teléfono no válido');
+          setIsUpdating(false);
+          return;
+        }
+        updateData.phone = sanitizeInput(editPhone, 20);
+      }
+
+      if (editComuna !== user.comuna) {
+        if (!isValidComuna(editComuna)) {
+          toast.error('Comuna no válida');
+          setIsUpdating(false);
+          return;
+        }
+        updateData.comuna = sanitizeInput(editComuna, 50);
+      }
+
       if (imageUrl !== user.profile_image) {
         updateData.profile_image = imageUrl;
         if (imagePublicId) {
@@ -624,11 +563,21 @@ const Profile = () => {
       return;
     }
 
+    if (!isValidPhone(completePhone)) {
+      toast.error('Teléfono no válido');
+      return;
+    }
+
+    if (!isValidComuna(completeComuna)) {
+      toast.error('Comuna no válida');
+      return;
+    }
+
     try {
       setIsCompletingProfile(true);
       await authAPI.updateProfile({
-        phone: completePhone.trim(),
-        comuna: completeComuna.trim(),
+        phone: sanitizeInput(completePhone, 20),
+        comuna: sanitizeInput(completeComuna, 50),
       });
 
       await loadUser();
@@ -672,8 +621,6 @@ const Profile = () => {
       // Limpiar el query param
       searchParams.delete('upload_cv');
       setSearchParams(searchParams, { replace: true });
-      // Mostrar mensaje
-      toast.info('Agrega tu CV para poder postular a empleos');
     }
   }, [searchParams, user, setSearchParams]);
 
@@ -681,13 +628,8 @@ const Profile = () => {
   useEffect(() => {
     if (user && isLoggedIn) {
       loadPosts();
-      // Cargar servicios para entrepreneur, admin y super-admin
       if (user.roles.includes('entrepreneur') || user.roles.includes('admin') || user.role_number === 5) {
         loadServices();
-      }
-      // Cargar empleos para company, admin y super-admin
-      if (user.roles.includes('company') || user.roles.includes('admin') || user.role_number === 5) {
-        loadJobs();
       }
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -703,9 +645,7 @@ const Profile = () => {
     if (!hasNoCV) return;
 
     const showNotification = () => {
-      const message = user.roles.includes('job-seeker')
-        ? '💼 ¡Completa tu perfil! Agrega tu CV para empezar a buscar trabajo'
-        : '📄 ¡Completa tu perfil! Agrega tu CV para completar tu información profesional';
+      const message = '📄 ¡Completa tu perfil! Agrega tu CV para completar tu información profesional';
 
       toast.info(message, {
         duration: 8000,
@@ -1067,47 +1007,11 @@ const Profile = () => {
         )
       }
 
-      {
-        user.roles.includes('company') && (
-          <Card className="mb-6 border-2">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Building2 className="text-primary" />
-                Información de Empresa
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-3">
-              {user.companyRut && (
-                <div>
-                  <span className="font-semibold">RUT:</span> {user.companyRut}
-                </div>
-              )}
-              {user.companyRubro && (
-                <div>
-                  <span className="font-semibold">Rubro:</span> {user.companyRubro}
-                </div>
-              )}
-              {user.companyAddress && (
-                <div>
-                  <span className="font-semibold">Dirección:</span> {user.companyAddress}
-                </div>
-              )}
-              {user.hrContact && (
-                <div>
-                  <span className="font-semibold">Contacto RRHH:</span> {user.hrContact}
-                </div>
-              )}
-            </CardContent>
-          </Card>
-        )
-      }
-
       {/* Tabs para mostrar publicaciones, servicios y empleos */}
       <Tabs defaultValue="posts" className="w-full">
-        <TabsList className={`grid w-full h-auto mb-4 p-1 gap-1 ${(user.roles.includes('entrepreneur') && user.roles.includes('company')) ||
-          user.roles.includes('admin') || user.role_number === 5
-          ? 'grid-cols-1 md:grid-cols-3'
-          : (user.roles.includes('entrepreneur') || user.roles.includes('company') ||
+        <TabsList className={`grid w-full h-auto mb-4 p-1 gap-1 ${user.roles.includes('admin') || user.role_number === 5
+          ? 'grid-cols-1 md:grid-cols-2'
+          : (user.roles.includes('entrepreneur') ||
             user.roles.includes('admin') || user.role_number === 5)
             ? 'grid-cols-1 sm:grid-cols-2'
             : 'grid-cols-1'
@@ -1120,12 +1024,6 @@ const Profile = () => {
             <TabsTrigger value="services" className="flex items-center gap-2">
               <Wrench size={16} />
               Servicios ({services.length})
-            </TabsTrigger>
-          )}
-          {(user.roles.includes('company') || user.roles.includes('admin') || user.role_number === 5) && (
-            <TabsTrigger value="jobs" className="flex items-center gap-2">
-              <Briefcase size={16} />
-              Empleos ({jobs.length})
             </TabsTrigger>
           )}
         </TabsList>
@@ -1262,162 +1160,6 @@ const Profile = () => {
                           <p className="mb-2">{service.description}</p>
                           {service.price_range && (
                             <p className="text-sm text-muted-foreground">Precio: {service.price_range}</p>
-                          )}
-                        </CardContent>
-                      </Card>
-                    ))}
-                  </div>
-                )}
-              </CardContent>
-            </Card>
-          </TabsContent>
-        )}
-
-        {/* Tab de Empleos (Empresas, Admin y Super-Admin) */}
-        {(user.roles.includes('company') || user.roles.includes('admin') || user.role_number === 5) && (
-          <TabsContent value="jobs">
-            <Card className="border-2">
-              <CardHeader>
-                <div className="flex justify-between items-start">
-                  <div>
-                    <CardTitle>Mis Empleos</CardTitle>
-                    <CardDescription>Empleos activos que has publicado</CardDescription>
-                  </div>
-                  <Button onClick={() => navigate('/empleos/publicar')} size="sm">
-                    <Plus size={16} className="mr-2" />
-                    Nuevo Empleo
-                  </Button>
-                </div>
-              </CardHeader>
-              <CardContent>
-                {loadingJobs ? (
-                  <div className="text-center py-8">
-                    <p className="text-muted-foreground">Cargando empleos...</p>
-                  </div>
-                ) : jobs.length === 0 ? (
-                  <div className="text-center py-8">
-                    <p className="text-muted-foreground">No has publicado empleos aún</p>
-                    <Button className="mt-4" onClick={() => navigate('/empleos/publicar')}>
-                      Publicar Empleo
-                    </Button>
-                  </div>
-                ) : (
-                  <div className="space-y-4">
-                    {jobs.map((job) => (
-                      <Card key={job.id} className="border">
-                        <CardHeader>
-                          <div className="flex justify-between items-start">
-                            <div className="flex-1">
-                              <CardTitle className="text-lg">{job.title}</CardTitle>
-                              <CardDescription>
-                                {job.comuna} | {formatDate(job.created_at)} | Tipo: {job.job_type}
-                              </CardDescription>
-                              <CardDescription className="mt-1">
-                                <Users size={14} className="inline mr-1" />
-                                Postulantes: {jobApplications[job.id]?.length || 0}
-                              </CardDescription>
-                            </div>
-                            <div className="flex gap-2">
-                              <Button
-                                variant="ghost"
-                                size="sm"
-                                onClick={() => handleEditJob(job)}
-                              >
-                                <Edit size={16} />
-                              </Button>
-                              <Button
-                                variant="ghost"
-                                size="sm"
-                                onClick={() => handleDeleteJob(job.id)}
-                              >
-                                <Trash2 size={16} className="text-destructive" />
-                              </Button>
-                            </div>
-                          </div>
-                        </CardHeader>
-                        <CardContent>
-                          <p className="mb-4">{job.description}</p>
-                          <div className="flex items-center justify-between">
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              onClick={() => handleToggleJobApplications(job.id)}
-                            >
-                              <Users size={16} className="mr-2" />
-                              Ver Postulaciones ({jobApplications[job.id]?.length || 0})
-                            </Button>
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              onClick={() => handleDeleteJob(job.id)}
-                            >
-                              <Trash2 size={16} className="text-destructive" />
-                            </Button>
-                          </div>
-
-                          {/* Lista de postulaciones */}
-                          {expandedJobApplications === job.id && (
-                            <div className="mt-4 pt-4 border-t">
-                              {loadingApplications[job.id] ? (
-                                <div className="text-center py-4">
-                                  <p className="text-sm text-muted-foreground">Cargando postulaciones...</p>
-                                </div>
-                              ) : jobApplications[job.id] && jobApplications[job.id].length > 0 ? (
-                                <div className="space-y-3">
-                                  <h4 className="font-semibold mb-2">Postulantes:</h4>
-                                  {jobApplications[job.id].map((application: any) => (
-                                    <Card key={application.id} className="border">
-                                      <CardContent className="pt-4">
-                                        <div className="flex items-center justify-between">
-                                          <div className="flex items-center gap-3">
-                                            <Avatar className="w-10 h-10">
-                                              {application.profile_image && (
-                                                <AvatarImage src={application.profile_image} alt={application.user_name} />
-                                              )}
-                                              <AvatarFallback className="bg-primary text-white text-xs">
-                                                {application.user_name.split(' ').map((n: string) => n[0]).join('').substring(0, 2)}
-                                              </AvatarFallback>
-                                            </Avatar>
-                                            <div>
-                                              <p className="font-semibold">{application.user_name}</p>
-                                              <p className="text-xs text-muted-foreground">
-                                                {new Date(application.created_at).toLocaleDateString('es-CL')}
-                                              </p>
-                                            </div>
-                                          </div>
-                                          <div className="flex gap-2">
-                                            {application.cv_url && (
-                                              <Button
-                                                variant="outline"
-                                                size="sm"
-                                                onClick={() => {
-                                                  const link = document.createElement('a');
-                                                  link.href = application.cv_url;
-                                                  link.download = `CV_${application.user_name}.pdf`;
-                                                  link.click();
-                                                }}
-                                              >
-                                                <Download size={14} className="mr-1" />
-                                                Descargar CV
-                                              </Button>
-                                            )}
-                                            <Badge variant={application.status === 'accepted' ? 'default' : application.status === 'rejected' ? 'destructive' : 'outline'}>
-                                              {application.status === 'pending' ? 'Pendiente' :
-                                                application.status === 'reviewed' ? 'Revisado' :
-                                                  application.status === 'accepted' ? 'Aceptado' : 'Rechazado'}
-                                            </Badge>
-                                          </div>
-                                        </div>
-                                      </CardContent>
-                                    </Card>
-                                  ))}
-                                </div>
-                              ) : (
-                                <p className="text-sm text-muted-foreground text-center py-4">
-                                  No hay postulaciones para este empleo
-                                </p>
-                              )}
-                            </div>
                           )}
                         </CardContent>
                       </Card>
@@ -1629,87 +1371,6 @@ const Profile = () => {
         </DialogContent>
       </Dialog>
 
-      {/* Modal de edición de Empleo */}
-      <Dialog open={!!editingJob} onOpenChange={(open) => !open && setEditingJob(null)}>
-        <DialogContent className="max-w-2xl">
-          <DialogHeader>
-            <DialogTitle>Editar Empleo</DialogTitle>
-            <DialogDescription>
-              Modifica la información del empleo
-            </DialogDescription>
-          </DialogHeader>
-          <div className="space-y-4">
-            <div>
-              <Label htmlFor="edit-job-title">Título del Empleo</Label>
-              <Input
-                id="edit-job-title"
-                value={editJobTitle}
-                onChange={(e) => setEditJobTitle(e.target.value)}
-              />
-            </div>
-            <div>
-              <Label htmlFor="edit-job-description">Descripción</Label>
-              <Textarea
-                id="edit-job-description"
-                value={editJobDescription}
-                onChange={(e) => setEditJobDescription(e.target.value)}
-                rows={4}
-              />
-            </div>
-            <div>
-              <Label htmlFor="edit-job-requirements">Requisitos</Label>
-              <Textarea
-                id="edit-job-requirements"
-                value={editJobRequirements}
-                onChange={(e) => setEditJobRequirements(e.target.value)}
-                rows={3}
-                placeholder="Opcional"
-              />
-            </div>
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <Label htmlFor="edit-job-salary">Salario</Label>
-                <Input
-                  id="edit-job-salary"
-                  value={editJobSalary}
-                  onChange={(e) => setEditJobSalary(e.target.value)}
-                  placeholder="Opcional"
-                />
-              </div>
-              <div>
-                <Label htmlFor="edit-job-type">Tipo de Jornada</Label>
-                <Select value={editJobType} onValueChange={setEditJobType}>
-                  <SelectTrigger id="edit-job-type">
-                    <SelectValue placeholder="Selecciona tipo" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="fulltime">Tiempo Completo</SelectItem>
-                    <SelectItem value="parttime">Part-Time</SelectItem>
-                    <SelectItem value="shifts">Turnos</SelectItem>
-                    <SelectItem value="freelance">Freelance</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-            </div>
-            <div>
-              <Label htmlFor="edit-job-comuna">Comuna</Label>
-              <Input
-                id="edit-job-comuna"
-                value={editJobComuna}
-                onChange={(e) => setEditJobComuna(e.target.value)}
-              />
-            </div>
-          </div>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setEditingJob(null)}>
-              Cancelar
-            </Button>
-            <Button onClick={handleSaveJob}>
-              Guardar
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
 
       {/* Dialog para completar perfil */}
       <Dialog open={showCompleteProfileDialog} onOpenChange={setShowCompleteProfileDialog}>

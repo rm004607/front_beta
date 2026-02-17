@@ -10,14 +10,11 @@ import Layout from "@/components/Layout";
 import Home from "./pages/Home";
 import Register from "./pages/Register";
 import Login from "./pages/Login";
-import Jobs from "./pages/Jobs";
-import PostJob from "./pages/PostJob";
 import Services from "./pages/Services";
 import PostService from "./pages/PostService";
 import Wall from "./pages/Wall";
 import Profile from "./pages/Profile";
 import Admin from "./pages/Admin";
-import Applications from "./pages/Applications";
 import Support from "./pages/Support";
 import FlowCallback from "./pages/FlowCallback";
 import NotFound from "./pages/NotFound";
@@ -39,14 +36,11 @@ const App = () => {
                     <Route path="/" element={<Home />} />
                     <Route path="/registro" element={<Register />} />
                     <Route path="/login" element={<Login />} />
-                    <Route path="/empleos" element={<Jobs />} />
-                    <Route path="/empleos/publicar" element={<PostJob />} />
                     <Route path="/servicios" element={<Services />} />
                     <Route path="/servicios/publicar" element={<PostService />} />
                     <Route path="/muro" element={<Wall />} />
                     <Route path="/perfil" element={<Profile />} />
                     <Route path="/admin" element={<Admin />} />
-                    <Route path="/postulaciones" element={<Applications />} />
                     <Route path="/ayuda" element={<Support />} />
                     <Route path="/flow/callback" element={<FlowCallback />} />
                     <Route path="*" element={<NotFound />} />

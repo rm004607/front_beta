@@ -59,18 +59,6 @@ interface Post {
   comments_count: number;
 }
 
-interface Job {
-  id: string;
-  title: string;
-  description: string;
-  comuna: string;
-  job_type: string;
-  is_active: number;
-  created_at: string;
-  company_name: string;
-  company_email: string;
-  requirements?: string;
-}
 
 interface Service {
   id: string;
@@ -128,10 +116,6 @@ const Admin = () => {
   const [loadingPosts, setLoadingPosts] = useState(false);
   const [postFilters, setPostFilters] = useState({ type: 'all', comuna: '' });
 
-  // Estados para jobs
-  const [jobs, setJobs] = useState<Job[]>([]);
-  const [loadingJobs, setLoadingJobs] = useState(false);
-  const [jobFilters, setJobFilters] = useState({ job_type: 'all', comuna: '', is_active: 'all' });
 
   // Estados para services
   const [services, setServices] = useState<Service[]>([]);
@@ -192,7 +176,7 @@ const Admin = () => {
 
   // Estados para Precios y Paquetes
   const [adminConfig, setAdminConfig] = useState<any[]>([]);
-  const [adminPackages, setAdminPackages] = useState<{ services: any[]; jobs: any[] }>({ services: [], jobs: [] });
+  const [adminPackages, setAdminPackages] = useState<{ services: any[] }>({ services: [] });
   const [loadingConfig, setLoadingConfig] = useState(false);
   const [loadingPackages, setLoadingPackages] = useState(false);
 
@@ -237,23 +221,6 @@ const Admin = () => {
     }
   };
 
-  const loadJobs = async () => {
-    try {
-      setLoadingJobs(true);
-      const response = await adminAPI.getAllJobs({
-        job_type: jobFilters.job_type !== 'all' ? jobFilters.job_type : undefined,
-        comuna: jobFilters.comuna || undefined,
-        is_active: jobFilters.is_active !== 'all' ? parseInt(jobFilters.is_active) : undefined,
-        limit: 50,
-      });
-      setJobs(response.jobs);
-    } catch (error: any) {
-      console.error('Error loading jobs:', error);
-      toast.error(error.message || 'Error al cargar empleos');
-    } finally {
-      setLoadingJobs(false);
-    }
-  };
 
   const loadServices = async () => {
     try {
@@ -384,21 +351,6 @@ const Admin = () => {
     }
   };
 
-  const handleDeleteJob = async (id: string) => {
-    if (!confirm('¿Estás seguro de que quieres eliminar este empleo?')) {
-      return;
-    }
-
-    try {
-      await adminAPI.deleteJob(id);
-      toast.success('Empleo eliminado');
-      loadJobs();
-      loadStats();
-    } catch (error: any) {
-      console.error('Error deleting job:', error);
-      toast.error(error.message || 'Error al eliminar empleo');
-    }
-  };
 
   const handleDeleteService = async (id: string) => {
     if (!confirm('¿Estás seguro de que quieres eliminar este servicio?')) {
@@ -567,9 +519,8 @@ const Admin = () => {
 
   const getRoleLabel = (role: string) => {
     const roleLabels: Record<string, string> = {
-      'job-seeker': 'Buscador de Empleo',
+      'job-seeker': 'Vecino',
       'entrepreneur': 'Emprendedor',
-      'company': 'Empresa',
       'admin': 'Administrador',
       'super-admin': 'Super Administrador'
     };
@@ -643,7 +594,6 @@ const Admin = () => {
       ]);
       setAdminPackages({
         services: servicesRes.packages,
-        jobs: jobsRes.packages
       });
     } catch (error: any) {
       console.error('Error loading packages:', error);
@@ -747,14 +697,6 @@ const Admin = () => {
           </Card>
           <Card>
             <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-medium text-muted-foreground">Empleos Activos</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{stats.active_jobs || 0}</div>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardHeader className="pb-2">
               <CardTitle className="text-sm font-medium text-muted-foreground">Servicios/Pymes Activos</CardTitle>
             </CardHeader>
             <CardContent>
@@ -782,10 +724,6 @@ const Admin = () => {
           <TabsTrigger value="wall" onClick={loadPosts} className="flex items-center gap-2">
             <MessageSquare size={16} />
             Muro
-          </TabsTrigger>
-          <TabsTrigger value="jobs" onClick={loadJobs} className="flex items-center gap-2">
-            <Briefcase size={16} />
-            Empleos
           </TabsTrigger>
           <TabsTrigger value="services" onClick={loadServices} className="flex items-center gap-2">
             <Wrench size={16} />
@@ -887,100 +825,6 @@ const Admin = () => {
           </Card>
         </TabsContent>
 
-        {/* Tab de Empleos */}
-        <TabsContent value="jobs">
-          <Card className="border-2">
-            <CardHeader>
-              <CardTitle>Empleos</CardTitle>
-              <CardDescription>Gestiona todos los empleos publicados</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="mb-4 flex gap-4">
-                <Select value={jobFilters.job_type} onValueChange={(value) => setJobFilters({ ...jobFilters, job_type: value })}>
-                  <SelectTrigger className="w-40">
-                    <SelectValue placeholder="Tipo" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">Todos</SelectItem>
-                    <SelectItem value="fulltime">Tiempo Completo</SelectItem>
-                    <SelectItem value="parttime">Part Time</SelectItem>
-                    <SelectItem value="shifts">Turnos</SelectItem>
-                    <SelectItem value="freelance">Freelance</SelectItem>
-                  </SelectContent>
-                </Select>
-                <Select value={jobFilters.is_active} onValueChange={(value) => setJobFilters({ ...jobFilters, is_active: value })}>
-                  <SelectTrigger className="w-32">
-                    <SelectValue placeholder="Estado" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">Todos</SelectItem>
-                    <SelectItem value="1">Activos</SelectItem>
-                    <SelectItem value="0">Inactivos</SelectItem>
-                  </SelectContent>
-                </Select>
-                <Input
-                  placeholder="Filtrar por comuna..."
-                  value={jobFilters.comuna}
-                  onChange={(e) => setJobFilters({ ...jobFilters, comuna: e.target.value })}
-                  className="flex-1"
-                />
-                <Button onClick={loadJobs}>Buscar</Button>
-              </div>
-
-              {loadingJobs ? (
-                <div className="text-center py-8">
-                  <p className="text-muted-foreground">Cargando empleos...</p>
-                </div>
-              ) : jobs.length === 0 ? (
-                <div className="text-center py-8">
-                  <p className="text-muted-foreground">No hay empleos</p>
-                </div>
-              ) : (
-                <div className="space-y-4">
-                  {jobs.map((job) => (
-                    <Card key={job.id} className="border">
-                      <CardHeader>
-                        <div className="flex justify-between items-start">
-                          <div className="flex-1">
-                            <CardTitle className="text-lg">{job.title}</CardTitle>
-                            <CardDescription>
-                              Por: {job.company_name} ({job.company_email}) - {job.comuna}
-                            </CardDescription>
-                            <CardDescription className="mt-1">
-                              {formatDate(job.created_at)} | Tipo: {job.job_type}
-                            </CardDescription>
-                          </div>
-                          <div className="flex items-center gap-2">
-                            <Badge variant={job.is_active === 1 ? 'default' : 'secondary'}>
-                              {job.is_active === 1 ? 'Activo' : 'Inactivo'}
-                            </Badge>
-                            <Button
-                              variant="destructive"
-                              size="sm"
-                              onClick={() => handleDeleteJob(job.id)}
-                            >
-                              <Trash2 size={16} className="mr-2" />
-                              Eliminar
-                            </Button>
-                          </div>
-                        </div>
-                      </CardHeader>
-                      <CardContent>
-                        <p className="mb-2">{job.description}</p>
-                        {job.requirements && (
-                          <div className="mt-2">
-                            <p className="text-sm font-semibold">Requisitos:</p>
-                            <p className="text-sm text-muted-foreground whitespace-pre-wrap">{job.requirements}</p>
-                          </div>
-                        )}
-                      </CardContent>
-                    </Card>
-                  ))}
-                </div>
-              )}
-            </CardContent>
-          </Card>
-        </TabsContent>
 
         {/* Tab de Servicios */}
         <TabsContent value="services">
@@ -1485,40 +1329,6 @@ const Admin = () => {
                         </div>
                       </TabsContent>
 
-                      <TabsContent value="jobs-packages" className="mt-4">
-                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                          {adminPackages.jobs.map((pkg) => (
-                            <Card key={pkg.id} className="border bg-slate-50 relative overflow-hidden">
-                              <div className="absolute top-0 right-0 p-2">
-                                <Badge variant={pkg.is_active ? "default" : "destructive"}>
-                                  {pkg.is_active ? "Activo" : "Inactivo"}
-                                </Badge>
-                              </div>
-                              <CardHeader className="pb-2">
-                                <CardTitle className="text-base">{pkg.name}</CardTitle>
-                                <CardDescription className="line-clamp-2 text-xs">{pkg.description}</CardDescription>
-                              </CardHeader>
-                              <CardContent>
-                                <div className="space-y-2 mb-4">
-                                  <div className="flex justify-between items-center text-sm">
-                                    <span className="text-muted-foreground">Precio:</span>
-                                    <span className="font-bold text-lg text-primary">
-                                      {new Intl.NumberFormat('es-CL', { style: 'currency', currency: 'CLP' }).format(pkg.price)}
-                                    </span>
-                                  </div>
-                                  <div className="flex justify-between items-center text-sm">
-                                    <span className="text-muted-foreground">Publicaciones:</span>
-                                    <span className="font-medium bg-white px-2 py-0.5 rounded border">+{pkg.publications}</span>
-                                  </div>
-                                </div>
-                                <Button className="w-full" variant="outline" size="sm" onClick={() => openEditPackage(pkg)}>
-                                  Editar Paquete
-                                </Button>
-                              </CardContent>
-                            </Card>
-                          ))}
-                        </div>
-                      </TabsContent>
                     </Tabs>
                   )}
                 </CardContent>

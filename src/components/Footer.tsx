@@ -72,24 +72,6 @@ const Footer = () => {
             </ul>
           </div>
 
-          {/* Para empresas - Solo visible para empresas, admin y super-admin */}
-          {(isCompany || isAdmin) && (
-            <div>
-              <h3 className="font-semibold mb-4">Para Empresas</h3>
-              <ul className="space-y-2">
-                <li>
-                  <Link to="/empleos/publicar" className="text-muted-foreground hover:text-primary transition-colors text-sm">
-                    Publicar Empleo
-                  </Link>
-                </li>
-                <li>
-                  <Link to="/postulaciones" className="text-muted-foreground hover:text-primary transition-colors text-sm">
-                    Ver Postulaciones
-                  </Link>
-                </li>
-              </ul>
-            </div>
-          )}
 
           {/* Para emprendedores - Solo visible para emprendedores, admin y super-admin */}
           {(isEntrepreneur || isAdmin) && (
@@ -115,11 +97,6 @@ const Footer = () => {
             <div>
               <h3 className="font-semibold mb-4">Para Usuarios</h3>
               <ul className="space-y-2">
-                <li>
-                  <Link to="/empleos" className="text-muted-foreground hover:text-primary transition-colors text-sm">
-                    Buscar Empleos
-                  </Link>
-                </li>
                 <li>
                   <Link to="/servicios" className="text-muted-foreground hover:text-primary transition-colors text-sm">
                     Buscar Servicios

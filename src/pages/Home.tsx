@@ -4,21 +4,10 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Briefcase, Wrench, Building2, MessageSquare, ArrowRight, MapPin, Calendar, DollarSign, Clock, Star } from 'lucide-react';
 import { useUser } from '@/contexts/UserContext';
-import { jobsAPI, servicesAPI } from '@/lib/api';
+import { servicesAPI } from '@/lib/api';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import logoDameldato from '/logoicono.png';
 
-interface Job {
-  id: string;
-  title: string;
-  description: string;
-  comuna: string;
-  job_type: string;
-  salary?: string;
-  created_at: string;
-  company_name: string;
-  profile_image?: string;
-}
 
 interface Service {
   id: string;
@@ -35,27 +24,13 @@ interface Service {
 
 const Home = () => {
   const { isLoggedIn } = useUser();
-  const [latestJobs, setLatestJobs] = useState<Job[]>([]);
   const [latestServices, setLatestServices] = useState<Service[]>([]);
-  const [loadingJobs, setLoadingJobs] = useState(true);
   const [loadingServices, setLoadingServices] = useState(true);
 
   useEffect(() => {
-    loadLatestJobs();
     loadLatestServices();
   }, []);
 
-  const loadLatestJobs = async () => {
-    try {
-      setLoadingJobs(true);
-      const response = await jobsAPI.getJobs({ page: 1, limit: 6 });
-      setLatestJobs(response.jobs);
-    } catch (error) {
-      console.error('Error loading latest jobs:', error);
-    } finally {
-      setLoadingJobs(false);
-    }
-  };
 
   const loadLatestServices = async () => {
     try {
@@ -85,15 +60,6 @@ const Home = () => {
     }
   };
 
-  const getJobTypeLabel = (type: string) => {
-    const types: Record<string, string> = {
-      fulltime: 'Tiempo Completo',
-      parttime: 'Medio Tiempo',
-      shifts: 'Por Turnos',
-      freelance: 'Freelance'
-    };
-    return types[type] || type;
-  };
 
   return (
     <div className="min-h-screen">
@@ -129,16 +95,16 @@ const Home = () => {
                     size="lg"
                     className="bg-primary hover:bg-primary/90 text-primary-foreground font-semibold text-base sm:text-lg px-6 sm:px-8 py-4 sm:py-6 rounded-md transition-all duration-300 shadow-lg hover:shadow-xl w-full sm:w-auto"
                   >
-                    Explorar oportunidades
+                    Explorar servicios
                   </Button>
                 </Link>
               ) : (
-                <Link to="/empleos">
+                <Link to="/servicios">
                   <Button
                     size="lg"
                     className="bg-primary hover:bg-primary/90 text-primary-foreground font-semibold text-base sm:text-lg px-6 sm:px-8 py-4 sm:py-6 rounded-md transition-all duration-300 shadow-lg hover:shadow-xl w-full sm:w-auto"
                   >
-                    Explorar oportunidades
+                    Explorar servicios
                   </Button>
                 </Link>
               )}
@@ -175,17 +141,7 @@ const Home = () => {
       <section className="py-16 container mx-auto px-4">
         <h2 className="text-3xl font-heading font-bold text-center mb-12 animate-fade-in">¿Qué estás buscando?</h2>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6 max-w-5xl mx-auto">
-          {/* Buscar Empleo */}
-          <Link to="/empleos" className="group animate-fade-in-up delay-100">
-            <div className="bg-card border-2 border-border rounded-2xl p-8 text-center hover:border-primary hover:shadow-xl transition-all group-hover:-translate-y-2 duration-300 h-full flex flex-col items-center justify-center">
-              <div className="bg-primary/15 w-24 h-24 rounded-full flex items-center justify-center mx-auto mb-6 group-hover:bg-primary group-hover:scale-110 transition-all duration-300 shadow-sm ring-1 ring-primary/20">
-                <Briefcase className="text-primary group-hover:text-white transition-colors" size={42} strokeWidth={1.5} />
-              </div>
-              <h3 className="text-xl font-heading font-semibold mb-3">Buscar Empleo</h3>
-              <p className="text-muted-foreground">Encuentra ofertas laborales en tu comuna</p>
-            </div>
-          </Link>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 max-w-4xl mx-auto">
 
           {/* Pared de Pegas */}
           <Link to="/muro" className="group animate-fade-in-up delay-200">
@@ -213,85 +169,7 @@ const Home = () => {
 
       {/* Últimos Anuncios */}
       <section className="py-16 container mx-auto px-4">
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-          {/* Últimos Empleos */}
-          <div className="animate-fade-in-up delay-200">
-            <div className="flex items-center justify-between mb-6">
-              <h2 className="text-3xl font-heading font-bold flex items-center gap-3">
-                <Briefcase className="text-primary" size={32} />
-                Últimos Empleos
-              </h2>
-              <Link to="/empleos">
-                <Button variant="ghost" size="sm" className="text-primary">
-                  Ver todos
-                  <ArrowRight size={16} className="ml-2" />
-                </Button>
-              </Link>
-            </div>
-
-            {loadingJobs ? (
-              <div className="text-center py-8">
-                <p className="text-muted-foreground">Cargando empleos...</p>
-              </div>
-            ) : latestJobs.length === 0 ? (
-              <Card>
-                <CardContent className="pt-6">
-                  <p className="text-center text-muted-foreground">No hay empleos disponibles aún</p>
-                </CardContent>
-              </Card>
-            ) : (
-              <div className="space-y-4">
-                {latestJobs.map((job) => (
-                  <Link key={job.id} to={`/empleos`}>
-                    <Card className="hover:shadow-lg transition-shadow cursor-pointer border-2 hover:border-primary">
-                      <CardHeader>
-                        <div className="flex items-start justify-between gap-4">
-                          <div className="flex-1">
-                            <CardTitle className="text-lg mb-2">{job.title}</CardTitle>
-                            <div className="flex items-center gap-4 text-sm text-muted-foreground flex-wrap">
-                              <div className="flex items-center gap-1">
-                                <Building2 size={14} />
-                                <span>{job.company_name}</span>
-                              </div>
-                              <div className="flex items-center gap-1">
-                                <MapPin size={14} />
-                                <span>{job.comuna}</span>
-                              </div>
-                              <div className="flex items-center gap-1">
-                                <Clock size={14} />
-                                <span>{getJobTypeLabel(job.job_type)}</span>
-                              </div>
-                              {job.salary && (
-                                <div className="flex items-center gap-1">
-                                  <DollarSign size={14} />
-                                  <span>{job.salary}</span>
-                                </div>
-                              )}
-                            </div>
-                          </div>
-                        </div>
-                      </CardHeader>
-                      <CardContent>
-                        <p className="text-sm text-muted-foreground line-clamp-2 mb-3">
-                          {job.description}
-                        </p>
-                        <div className="flex items-center justify-between">
-                          <div className="flex items-center gap-1 text-xs text-muted-foreground">
-                            <Calendar size={12} />
-                            <span>{formatDate(job.created_at)}</span>
-                          </div>
-                          <Button variant="ghost" size="sm" className="text-primary">
-                            Ver detalles
-                            <ArrowRight size={14} className="ml-1" />
-                          </Button>
-                        </div>
-                      </CardContent>
-                    </Card>
-                  </Link>
-                ))}
-              </div>
-            )}
-          </div>
+        <div className="max-w-4xl mx-auto">
 
           {/* Últimos Servicios/Pymes */}
           <div className="animate-fade-in-up delay-300">

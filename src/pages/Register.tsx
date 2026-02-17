@@ -32,22 +32,22 @@ const Register = () => {
     return localStorage.getItem('reg_kyc_done') === 'true';
   });
 
-  // Manejar éxito de Google OAuth en registro
+
+  // Step 1: Basic data
+  const [name, setName] = useState('');
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [phone, setPhone] = useState('');
+  const [comuna, setComuna] = useState('');
+
+  // Step 2: Roles (solo un rol según backend)
+  const [selectedRole, setSelectedRole] = useState<UserRole | null>(null);
+  const [acceptTerms, setAcceptTerms] = useState(false);
+  const [showTerms, setShowTerms] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  // Persistir datos si viene de QR
   useEffect(() => {
-    const googleSuccess = searchParams.get('google_login');
-    if (googleSuccess === 'success') {
-      loadUser().then(() => {
-        toast.success('Bienvenido a BETA');
-        navigate('/');
-      });
-    }
-
-    const error = searchParams.get('error');
-    if (error === 'google_auth_failed') {
-      toast.error('Error al registrar con Google. Por favor intenta de nuevo.');
-    }
-
-    // Persistir datos si viene de QR
     const emailParam = searchParams.get('email');
     if (emailParam) {
       setEmail(emailParam);
@@ -62,22 +62,7 @@ const Register = () => {
     if (savedPhone && !phone) setPhone(savedPhone);
     const savedComuna = localStorage.getItem('reg_comuna');
     if (savedComuna && !comuna) setComuna(savedComuna);
-  }, [searchParams, loadUser, navigate]);
-
-  // Step 1: Basic data
-  const [name, setName] = useState('');
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [phone, setPhone] = useState('');
-  const [comuna, setComuna] = useState('');
-
-  // Step 2: Roles (solo un rol según backend)
-  const [selectedRole, setSelectedRole] = useState<UserRole | null>(null);
-  const [googleRole, setGoogleRole] = useState<UserRole | null>(null);
-  const [showGoogleRoles, setShowGoogleRoles] = useState(false);
-  const [acceptTerms, setAcceptTerms] = useState(false);
-  const [showTerms, setShowTerms] = useState(false);
-  const [isSubmitting, setIsSubmitting] = useState(false);
+  }, [searchParams, name, email, phone, comuna]);
 
   // Step 3: Role-specific data
   const [rubro, setRubro] = useState('');
@@ -94,17 +79,6 @@ const Register = () => {
     setSelectedRole(role);
   };
 
-  const handleGoogleSignup = () => {
-    if (!acceptTerms) {
-      toast.error('Debes aceptar los Términos y Condiciones');
-      return;
-    }
-    if (!googleRole) {
-      toast.error('Selecciona un rol para continuar con Google');
-      return;
-    }
-    authAPI.googleLogin(googleRole);
-  };
 
   // Mapa de roles a números para el backend
   const roleToNumber = (role: UserRole): number => {
@@ -156,11 +130,8 @@ const Register = () => {
       toast.error('Debes completar la verificación KYC');
       return;
     }
-    if (step === 3 && !selectedRole) {
-      toast.error('Selecciona un rol');
-      return;
-    }
-    setStep(step + 1);
+    // Si viene del paso 1, va al 2. Si viene del 2, va al 4 (datos específicos)
+    setStep(step === 2 ? 4 : step + 1);
   };
 
   // Validar formato de email real
@@ -268,7 +239,7 @@ const Register = () => {
       <Card className="border-2">
         <CardHeader>
           <CardTitle className="text-3xl font-heading">Crear Cuenta</CardTitle>
-          <CardDescription>Paso {step} de 4</CardDescription>
+          <CardDescription>Paso {step === 4 ? 3 : step} de 3</CardDescription>
         </CardHeader>
         <CardContent>
           {step === 1 && (
@@ -382,64 +353,33 @@ const Register = () => {
                   </div>
                 </div>
 
-                <Button onClick={handleNext} className="w-full">
-                  Siguiente
-                  <ArrowRight className="ml-2" size={18} />
-                </Button>
-              </div>
-
-              {/* Botón dorado para registro con Google */}
-              <div className="pt-2 space-y-3">
-                <Button
-                  type="button"
-                  className="w-full bg-destructive text-destructive-foreground hover:bg-destructive/90"
-                  onClick={() => setShowGoogleRoles(!showGoogleRoles)}
-                  disabled={isSubmitting}
-                >
-                  Registrarse con Google
-                </Button>
-
-                {showGoogleRoles && (
-                  <div className="space-y-2 rounded-lg border border-muted p-3">
-                    <p className="text-sm font-medium text-muted-foreground">¿Cómo quieres ingresar?</p>
-                    <div className="grid gap-2 sm:grid-cols-3">
-                      <Button
-                        type="button"
-                        variant={googleRole === 'job-seeker' ? 'default' : 'outline'}
-                        className="w-full"
-                        onClick={() => setGoogleRole('job-seeker')}
-                      >
-                        Trabajador
-                      </Button>
-                      <Button
-                        type="button"
-                        variant={googleRole === 'entrepreneur' ? 'default' : 'outline'}
-                        className="w-full"
-                        onClick={() => setGoogleRole('entrepreneur')}
-                      >
-                        Emprendedor
-                      </Button>
-                      <Button
-                        type="button"
-                        variant={googleRole === 'company' ? 'default' : 'outline'}
-                        className="w-full"
-                        onClick={() => setGoogleRole('company')}
-                      >
-                        Empresa
-                      </Button>
-                    </div>
+                <div className="pt-4 border-t space-y-4">
+                  <p className="text-center text-sm font-medium text-muted-foreground">Para continuar, selecciona tu perfil:</p>
+                  <div className="flex flex-col sm:flex-row gap-3">
                     <Button
                       type="button"
-                      variant="outline"
-                      className="w-full"
-                      onClick={handleGoogleSignup}
-                      disabled={isSubmitting}
+                      onClick={() => {
+                        selectRole('job-seeker');
+                        handleNext();
+                      }}
+                      className="flex-1 h-14 text-lg font-bold bg-primary hover:bg-primary/90"
                     >
-                      Continuar con Google
+                      👤 Registrarme como Vecino
+                    </Button>
+                    <Button
+                      type="button"
+                      onClick={() => {
+                        selectRole('entrepreneur');
+                        handleNext();
+                      }}
+                      className="flex-1 h-14 text-lg font-bold bg-secondary hover:bg-secondary/90"
+                    >
+                      🛠️ Soy Emprendedor
                     </Button>
                   </div>
-                )}
+                </div>
               </div>
+
             </div>
           )}
 
@@ -449,104 +389,18 @@ const Register = () => {
               onComplete={() => {
                 setIsKycVerified(true);
                 localStorage.setItem('reg_kyc_done', 'true');
-                setStep(3);
+                setStep(4); // Saltar el antiguo paso 3
               }}
               onBack={() => setStep(1)}
             />
           )}
 
-          {step === 3 && (
-            <div className="space-y-6">
-              <div>
-                <Label className="text-lg mb-4 block">Selecciona tu rol:</Label>
-                <div className="space-y-4">
-                  <div
-                    className={`flex items-start space-x-3 p-4 border-2 rounded-xl cursor-pointer transition-colors ${selectedRole === 'job-seeker'
-                      ? 'border-primary bg-primary/5'
-                      : 'border-border hover:border-primary'
-                      }`}
-                    onClick={() => selectRole('job-seeker')}
-                  >
-                    <Checkbox
-                      id="job-seeker"
-                      checked={selectedRole === 'job-seeker'}
-                      onCheckedChange={() => selectRole('job-seeker')}
-                    />
-                    <div className="flex-1">
-                      <Label htmlFor="job-seeker" className="text-base font-semibold cursor-pointer">
-                        👤 Buscar Empleo
-                      </Label>
-                      <p className="text-sm text-muted-foreground mt-1">
-                        Estoy buscando oportunidades laborales
-                      </p>
-                    </div>
-                  </div>
-
-                  <div
-                    className={`flex items-start space-x-3 p-4 border-2 rounded-xl cursor-pointer transition-colors ${selectedRole === 'entrepreneur'
-                      ? 'border-secondary bg-secondary/5'
-                      : 'border-border hover:border-secondary'
-                      }`}
-                    onClick={() => selectRole('entrepreneur')}
-                  >
-                    <Checkbox
-                      id="entrepreneur"
-                      checked={selectedRole === 'entrepreneur'}
-                      onCheckedChange={() => selectRole('entrepreneur')}
-                    />
-                    <div className="flex-1">
-                      <Label htmlFor="entrepreneur" className="text-base font-semibold cursor-pointer">
-                        🛠️ Ofrecer Servicios
-                      </Label>
-                      <p className="text-sm text-muted-foreground mt-1">
-                        Soy emprendedor/a y ofrezco servicios
-                      </p>
-                    </div>
-                  </div>
-
-                  <div
-                    className={`flex items-start space-x-3 p-4 border-2 rounded-xl cursor-pointer transition-colors ${selectedRole === 'company'
-                      ? 'border-primary bg-primary/5'
-                      : 'border-border hover:border-primary'
-                      }`}
-                    onClick={() => selectRole('company')}
-                  >
-                    <Checkbox
-                      id="company"
-                      checked={selectedRole === 'company'}
-                      onCheckedChange={() => selectRole('company')}
-                    />
-                    <div className="flex-1">
-                      <Label htmlFor="company" className="text-base font-semibold cursor-pointer">
-                        🏢 Empresa
-                      </Label>
-                      <p className="text-sm text-muted-foreground mt-1">
-                        Represento una empresa que ofrece empleos
-                      </p>
-                    </div>
-                  </div>
-
-                </div>
-              </div>
-
-              <div className="flex gap-3">
-                <Button variant="outline" onClick={() => setStep(1)} className="flex-1">
-                  <ArrowLeft className="mr-2" size={18} />
-                  Atrás
-                </Button>
-                <Button onClick={handleNext} className="flex-1">
-                  Siguiente
-                  <ArrowRight className="ml-2" size={18} />
-                </Button>
-              </div>
-            </div>
-          )}
 
           {step === 4 && (
             <div className="space-y-6">
               {selectedRole === 'job-seeker' && (
                 <div className="space-y-4 p-4 border-2 border-primary/30 rounded-xl">
-                  <h3 className="font-heading font-semibold text-lg">Datos como Buscador de Empleo</h3>
+                  <h3 className="font-heading font-semibold text-lg">Datos como Vecino</h3>
                   <div>
                     <Label htmlFor="rubro">Rubro / Área</Label>
                     <Input
@@ -603,54 +457,12 @@ const Register = () => {
                 </div>
               )}
 
-              {selectedRole === 'company' && (
-                <div className="space-y-4 p-4 border-2 border-primary/30 rounded-xl">
-                  <h3 className="font-heading font-semibold text-lg">Datos de la Empresa</h3>
-                  <div>
-                    <Label htmlFor="companyRut">RUT Empresa</Label>
-                    <Input
-                      id="companyRut"
-                      value={companyRut}
-                      onChange={(e) => setCompanyRut(e.target.value)}
-                      placeholder="12.345.678-9"
-                    />
-                  </div>
-                  <div>
-                    <Label htmlFor="companyAddress">Dirección</Label>
-                    <Input
-                      id="companyAddress"
-                      value={companyAddress}
-                      onChange={(e) => setCompanyAddress(e.target.value)}
-                      placeholder="Dirección de la empresa"
-                    />
-                  </div>
-                  <div>
-                    <Label htmlFor="companyRubro">Rubro</Label>
-                    <Input
-                      id="companyRubro"
-                      value={companyRubro}
-                      onChange={(e) => setCompanyRubro(e.target.value)}
-                      placeholder="Sector o industria"
-                    />
-                  </div>
-                  <div>
-                    <Label htmlFor="hrContact">Contacto RRHH</Label>
-                    <Input
-                      id="hrContact"
-                      value={hrContact}
-                      onChange={(e) => setHrContact(e.target.value)}
-                      placeholder="Persona de contacto"
-                    />
-                  </div>
-                </div>
-              )}
-
-              <div className="flex gap-3">
-                <Button variant="outline" onClick={() => setStep(3)} className="flex-1">
+              <div className="flex gap-3 pt-6 border-t">
+                <Button variant="outline" onClick={() => setStep(2)} className="flex-1">
                   <ArrowLeft className="mr-2" size={18} />
                   Atrás
                 </Button>
-                <Button onClick={handleSubmit} className="flex-1" disabled={isSubmitting}>
+                <Button onClick={handleSubmit} className="flex-1 font-bold text-lg h-12" disabled={isSubmitting}>
                   {isSubmitting ? 'Registrando...' : 'Completar Registro'}
                 </Button>
               </div>

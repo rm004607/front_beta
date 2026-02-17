@@ -45,14 +45,6 @@ const Layout = ({ children }: LayoutProps) => {
 
             <nav className="hidden md:flex items-center gap-6">
               <Link
-                to="/empleos"
-                className={`flex items-center gap-2 transition-colors ${isActive('/empleos') ? 'text-primary font-semibold' : 'text-foreground hover:text-primary'
-                  }`}
-              >
-                <Briefcase size={18} />
-                <span>Empleos</span>
-              </Link>
-              <Link
                 to="/servicios"
                 className={`flex items-center gap-2 transition-colors ${isActive('/servicios') ? 'text-primary font-semibold' : 'text-foreground hover:text-primary'
                   }`}
@@ -68,16 +60,6 @@ const Layout = ({ children }: LayoutProps) => {
                 <MessageSquare size={18} />
                 <span>Muro</span>
               </Link>
-              {(user?.roles.includes('company') || user?.roles.includes('admin') || user?.role_number === 5) && (
-                <Link
-                  to="/postulaciones"
-                  className={`flex items-center gap-2 transition-colors ${isActive('/postulaciones') ? 'text-primary font-semibold' : 'text-foreground hover:text-primary'
-                    }`}
-                >
-                  <FileText size={18} />
-                  <span>Postulaciones</span>
-                </Link>
-              )}
             </nav>
 
             <div className="flex items-center gap-3">
@@ -120,14 +102,6 @@ const Layout = ({ children }: LayoutProps) => {
                             Mi Perfil
                           </Link>
                         </DropdownMenuItem>
-                        {(user?.roles.includes('company') || user?.roles.includes('admin') || user?.role_number === 5) && (
-                          <DropdownMenuItem asChild>
-                            <Link to="/postulaciones" className="cursor-pointer">
-                              <FileText size={16} className="mr-2" />
-                              Postulaciones
-                            </Link>
-                          </DropdownMenuItem>
-                        )}
                         <DropdownMenuItem
                           onClick={() => {
                             logout().catch(console.error);
@@ -167,12 +141,6 @@ const Layout = ({ children }: LayoutProps) => {
                     </Link>
                   </DropdownMenuItem>
                   <DropdownMenuItem asChild>
-                    <Link to="/empleos" className="cursor-pointer">
-                      <Briefcase size={16} className="mr-2" />
-                      Empleos
-                    </Link>
-                  </DropdownMenuItem>
-                  <DropdownMenuItem asChild>
                     <Link to="/servicios" className="cursor-pointer">
                       <Wrench size={16} className="mr-2" />
                       Servicios
@@ -199,14 +167,6 @@ const Layout = ({ children }: LayoutProps) => {
                           <Link to="/admin" className="cursor-pointer">
                             <Shield size={16} className="mr-2" />
                             Admin
-                          </Link>
-                        </DropdownMenuItem>
-                      )}
-                      {(user?.roles.includes('company') || user?.roles.includes('admin') || user?.role_number === 5) && (
-                        <DropdownMenuItem asChild>
-                          <Link to="/postulaciones" className="cursor-pointer">
-                            <FileText size={16} className="mr-2" />
-                            Postulaciones
                           </Link>
                         </DropdownMenuItem>
                       )}

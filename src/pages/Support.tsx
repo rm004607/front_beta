@@ -26,31 +26,15 @@ const Support = () => {
   const faqs = [
     {
       question: '¿Cómo puedo crear una cuenta?',
-      answer: 'Para crear una cuenta, haz clic en "Registrarse" en la parte superior de la página. Completa el formulario con tu información personal y selecciona el tipo de cuenta que deseas (Buscador de Empleo, Emprendedor o Empresa).',
-    },
-    {
-      question: '¿Cómo publico un empleo?',
-      answer: 'Si eres una empresa, ve a "Empleos" y haz clic en "Publicar Empleo". Completa el formulario con los detalles del puesto, requisitos, salario y ubicación. Los empleos son revisados antes de ser publicados.',
-    },
-    {
-      question: '¿Cómo puedo postular a un empleo?',
-      answer: 'Busca empleos en la sección "Empleos", lee los detalles y haz clic en "Postular Ahora". Asegúrate de tener tu CV actualizado en tu perfil. Las empresas recibirán tu postulación y te contactarán si estás interesado.',
-    },
-    {
-      question: '¿Cómo actualizo mi CV?',
-      answer: 'Ve a tu perfil, en la sección "Curriculum Vitae (CV)" puedes subir, reemplazar o eliminar tu CV. Solo se aceptan archivos PDF con un tamaño máximo de 10MB.',
+      answer: 'Para crear una cuenta, haz clic en "Registrarse" en la parte superior de la página. Completa el formulario con tu información personal y selecciona el tipo de cuenta que deseas (Vecino o Emprendedor).',
     },
     {
       question: '¿Qué hago si olvidé mi contraseña?',
       answer: 'En la página de inicio de sesión, haz clic en "¿Olvidaste tu contraseña?" y sigue las instrucciones para restablecerla. Recibirás un correo con un enlace para crear una nueva contraseña.',
     },
     {
-      question: '¿Cómo contacto con una empresa?',
-      answer: 'Puedes contactar con empresas a través de sus publicaciones de empleo. Si postulas a un empleo, la empresa podrá ver tu perfil y CV, y te contactará si están interesados.',
-    },
-    {
       question: '¿Puedo cambiar mi tipo de cuenta?',
-      answer: 'Para cambiar tu tipo de cuenta (por ejemplo, de Buscador de Empleo a Emprendedor), contacta con el soporte. Los cambios de rol importantes requieren verificación.',
+      answer: 'Para cambiar tu tipo de cuenta (por ejemplo, de Vecino a Emprendedor), contacta con el soporte. Los cambios de rol importantes requieren verificación.',
     },
     {
       question: '¿Cómo reporto un problema o contenido inapropiado?',

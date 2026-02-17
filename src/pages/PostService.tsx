@@ -11,6 +11,11 @@ import { useUser } from '@/contexts/UserContext';
 import { Wrench, AlertCircle } from 'lucide-react';
 import { toast } from 'sonner';
 import { servicesAPI, packagesAPI } from '@/lib/api';
+import {
+  isValidTextField,
+  isValidPhone,
+  sanitizeInput
+} from '@/lib/input-validator';
 import PackagesModal from '@/components/PackagesModal';
 
 const PostService = () => {
@@ -84,14 +89,32 @@ const PostService = () => {
       return;
     }
 
+    // Validaciones de seguridad
+    if (!isValidTextField(service, 100)) {
+      toast.error('El nombre del servicio contiene caracteres no permitidos');
+      return;
+    }
+    if (!isValidTextField(comuna, 50)) {
+      toast.error('La comuna contiene caracteres no permitidos');
+      return;
+    }
+    if (!isValidTextField(description, 2000)) {
+      toast.error('La descripción contiene caracteres no permitidos');
+      return;
+    }
+    if (phone && !isValidPhone(phone)) {
+      toast.error('El teléfono no es válido');
+      return;
+    }
+
     setIsSubmitting(true);
     try {
       const response = await servicesAPI.createService({
-        service_name: service,
-        description,
-        price_range: priceRange || undefined,
-        comuna,
-        phone: phone || undefined,
+        service_name: sanitizeInput(service, 100),
+        description: sanitizeInput(description, 2000),
+        price_range: priceRange ? sanitizeInput(priceRange, 100) : undefined,
+        comuna: sanitizeInput(comuna, 50),
+        phone: phone ? sanitizeInput(phone, 20) : undefined,
       });
 
       toast.success(response.message);
