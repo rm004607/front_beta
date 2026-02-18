@@ -310,7 +310,7 @@ const PostService = () => {
                           <SelectValue placeholder="Selecciona Comuna" />
                         </SelectTrigger>
                         <SelectContent>
-                          {baseRegion && chileData.find(r => r.id === baseRegion)?.communes.map((c) => (
+                          {baseRegion && chileData.find(r => String(r.id) === String(baseRegion))?.communes.map((c) => (
                             <SelectItem key={c} value={c}>{c}</SelectItem>
                           ))}
                         </SelectContent>
@@ -361,7 +361,7 @@ const PostService = () => {
                       <Label className="text-xs">Comunas en esta región:</Label>
                       <ScrollArea className="h-48 border rounded-md p-2 bg-background">
                         <div className="grid grid-cols-2 gap-2">
-                          {chileData.find(r => r.id === coverageRegion)?.communes.map((c) => (
+                          {chileData.find(r => String(r.id) === String(coverageRegion))?.communes.map((c) => (
                             <div key={c} className="flex items-center space-x-2">
                               <Checkbox
                                 id={`cov-${c}`}

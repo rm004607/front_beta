@@ -254,10 +254,18 @@ const Services = () => {
                 <SelectContent className="glass-card border-white/10 backdrop-blur-xl">
                   <SelectItem value="all">🌐 Todas las comunas</SelectItem>
                   {isLoggedIn && user?.region_id ? (
-                    // Mostrar comunas de la región del usuario
-                    chileData.find(r => r.id === user.region_id)?.communes.map(c => (
+                    // Mostrar comunas de la región del usuario casting a string para evitar errores de tipo
+                    chileData.find(r => String(r.id) === String(user.region_id))?.communes.map(c => (
                       <SelectItem key={c} value={c}>{c}</SelectItem>
-                    ))
+                    )) || (
+                      // Fallback si por alguna razón no se encuentran las comunas de la región
+                      <>
+                        <SelectItem value="santiago">Santiago Centro</SelectItem>
+                        <SelectItem value="providencia">Providencia</SelectItem>
+                        <SelectItem value="lascondes">Las Condes</SelectItem>
+                        <SelectItem value="maipu">Maipú</SelectItem>
+                      </>
+                    )
                   ) : (
                     // Fallback si no está logueado o no hay región
                     <>

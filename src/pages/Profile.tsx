@@ -989,7 +989,7 @@ const Profile = () => {
                         <SelectValue placeholder="Selecciona Comuna" />
                       </SelectTrigger>
                       <SelectContent>
-                        {editRegion && chileData.find(r => r.id === editRegion)?.communes.map((c) => (
+                        {editRegion && chileData.find(r => String(r.id) === String(editRegion))?.communes.map((c) => (
                           <SelectItem key={c} value={c}>{c}</SelectItem>
                         ))}
                       </SelectContent>
@@ -1192,7 +1192,7 @@ const Profile = () => {
                       <SelectValue placeholder="Selecciona Comuna" />
                     </SelectTrigger>
                     <SelectContent>
-                      {completeRegion && chileData.find(r => r.id === completeRegion)?.communes.map((c) => (
+                      {completeRegion && chileData.find(r => String(r.id) === String(completeRegion))?.communes.map((c) => (
                         <SelectItem key={c} value={c}>{c}</SelectItem>
                       ))}
                     </SelectContent>
