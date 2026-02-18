@@ -378,7 +378,17 @@ const Register = () => {
 
                 <div className="pt-4 border-t space-y-4">
                   <p className="text-center text-sm font-medium text-muted-foreground">Para continuar, selecciona tu perfil:</p>
-                  <div className="flex justify-center">
+                  <div className="flex flex-col items-center gap-4">
+                    <Button
+                      type="button"
+                      onClick={() => {
+                        selectRole('job-seeker');
+                        handleNext();
+                      }}
+                      className="w-full max-w-sm h-14 text-lg font-bold bg-primary hover:bg-primary/90 shadow-lg shadow-primary/20"
+                    >
+                      🏠 Soy Vecino
+                    </Button>
                     <Button
                       type="button"
                       onClick={() => {
