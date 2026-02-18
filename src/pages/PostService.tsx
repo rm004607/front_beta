@@ -117,9 +117,9 @@ const PostService = () => {
         phone: phone ? sanitizeInput(phone, 20) : undefined,
       });
 
-      toast.success(response.message);
+      toast.success('¡Servicio enviado! Será revisado por un administrador antes de publicarse.');
       await loadUserLimits(); // Actualizar límites
-      navigate('/servicios');
+      navigate('/perfil');
     } catch (error: any) {
       const errorMessage = error instanceof Error ? error.message : 'Error al publicar servicio';
 
@@ -186,6 +186,14 @@ const PostService = () => {
           </div>
         </CardHeader>
         <CardContent>
+          {/* Aviso de moderación */}
+          <Alert className="mb-6 border-blue-200 bg-blue-50 text-blue-800">
+            <AlertCircle className="h-4 w-4 text-blue-600" />
+            <AlertDescription className="text-blue-700">
+              Tu servicio será revisado por un administrador antes de aparecer públicamente. Este proceso puede tomar algunas horas.
+            </AlertDescription>
+          </Alert>
+
           {/* Información de límites */}
           {userLimits && user?.role_number !== 5 && (
             <Alert className="mb-6">

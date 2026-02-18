@@ -120,7 +120,10 @@ const Admin = () => {
   // Estados para services
   const [services, setServices] = useState<Service[]>([]);
   const [loadingServices, setLoadingServices] = useState(false);
-  const [serviceFilters, setServiceFilters] = useState({ comuna: '', status: 'all' });
+  const [serviceFilters, setServiceFilters] = useState({ comuna: '', status: 'pending' });
+  const [rejectDialogOpen, setRejectDialogOpen] = useState(false);
+  const [serviceToReject, setServiceToReject] = useState<Service | null>(null);
+  const [rejectReason, setRejectReason] = useState('');
 
   // Estados para users (solo super-admin)
   const [users, setUsers] = useState<User[]>([]);
@@ -365,6 +368,34 @@ const Admin = () => {
     } catch (error: any) {
       console.error('Error deleting service:', error);
       toast.error(error.message || 'Error al eliminar servicio');
+    }
+  };
+
+  const handleApproveService = async (id: string) => {
+    try {
+      await adminAPI.approveService(id);
+      toast.success('Servicio aprobado y publicado exitosamente');
+      loadServices();
+      loadStats();
+    } catch (error: any) {
+      console.error('Error approving service:', error);
+      toast.error(error.message || 'Error al aprobar el servicio');
+    }
+  };
+
+  const handleRejectService = async () => {
+    if (!serviceToReject) return;
+    try {
+      await adminAPI.rejectService(serviceToReject.id, rejectReason.trim() || undefined);
+      toast.success('Servicio rechazado');
+      setRejectDialogOpen(false);
+      setServiceToReject(null);
+      setRejectReason('');
+      loadServices();
+      loadStats();
+    } catch (error: any) {
+      console.error('Error rejecting service:', error);
+      toast.error(error.message || 'Error al rechazar el servicio');
     }
   };
 
@@ -831,19 +862,20 @@ const Admin = () => {
           <Card className="border-2">
             <CardHeader>
               <CardTitle>Servicios/Pymes</CardTitle>
-              <CardDescription>Gestiona todos los servicios/pymes publicados</CardDescription>
+              <CardDescription>Gestiona todos los servicios. Los pendientes requieren aprobación antes de publicarse.</CardDescription>
             </CardHeader>
             <CardContent>
               <div className="mb-4 flex gap-4">
                 <Select value={serviceFilters.status} onValueChange={(value) => setServiceFilters({ ...serviceFilters, status: value })}>
-                  <SelectTrigger className="w-40">
+                  <SelectTrigger className="w-44">
                     <SelectValue placeholder="Estado" />
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="all">Todos</SelectItem>
-                    <SelectItem value="active">Activos</SelectItem>
+                    <SelectItem value="pending">⏳ Pendientes</SelectItem>
+                    <SelectItem value="active">✅ Activos</SelectItem>
+                    <SelectItem value="rejected">❌ Rechazados</SelectItem>
                     <SelectItem value="inactive">Inactivos</SelectItem>
-                    <SelectItem value="suspended">Suspendidos</SelectItem>
                   </SelectContent>
                 </Select>
                 <Input
@@ -861,14 +893,14 @@ const Admin = () => {
                 </div>
               ) : services.length === 0 ? (
                 <div className="text-center py-8">
-                  <p className="text-muted-foreground">No hay servicios</p>
+                  <p className="text-muted-foreground">No hay servicios con ese filtro</p>
                 </div>
               ) : (
                 <div className="space-y-4">
                   {services.map((service) => (
-                    <Card key={service.id} className="border">
+                    <Card key={service.id} className={`border ${service.status === 'pending' ? 'border-amber-300 bg-amber-50/30' : ''}`}>
                       <CardHeader>
-                        <div className="flex justify-between items-start">
+                        <div className="flex justify-between items-start gap-2">
                           <div className="flex-1">
                             <CardTitle className="text-lg">{service.service_name}</CardTitle>
                             <CardDescription>
@@ -878,16 +910,48 @@ const Admin = () => {
                               {formatDate(service.created_at)}
                             </CardDescription>
                           </div>
-                          <div className="flex items-center gap-2">
-                            <Badge variant={service.status === 'active' ? 'default' : 'secondary'}>
-                              {service.status}
+                          <div className="flex flex-wrap items-center gap-2 justify-end">
+                            <Badge
+                              className={
+                                service.status === 'active' ? 'bg-green-100 text-green-800 border-green-300' :
+                                  service.status === 'pending' ? 'bg-amber-100 text-amber-800 border-amber-300' :
+                                    service.status === 'rejected' ? 'bg-red-100 text-red-800 border-red-300' :
+                                      'bg-gray-100 text-gray-800 border-gray-300'
+                              }
+                              variant="outline"
+                            >
+                              {service.status === 'active' ? '✅ Activo' :
+                                service.status === 'pending' ? '⏳ Pendiente' :
+                                  service.status === 'rejected' ? '❌ Rechazado' :
+                                    service.status}
                             </Badge>
+                            {service.status === 'pending' && (
+                              <>
+                                <Button
+                                  size="sm"
+                                  className="bg-green-600 hover:bg-green-700 text-white"
+                                  onClick={() => handleApproveService(service.id)}
+                                >
+                                  <CheckCircle size={14} className="mr-1" />
+                                  Aprobar
+                                </Button>
+                                <Button
+                                  size="sm"
+                                  variant="outline"
+                                  className="border-red-300 text-red-600 hover:bg-red-50"
+                                  onClick={() => { setServiceToReject(service); setRejectReason(''); setRejectDialogOpen(true); }}
+                                >
+                                  <X size={14} className="mr-1" />
+                                  Rechazar
+                                </Button>
+                              </>
+                            )}
                             <Button
                               variant="destructive"
                               size="sm"
                               onClick={() => handleDeleteService(service.id)}
                             >
-                              <Trash2 size={16} className="mr-2" />
+                              <Trash2 size={14} className="mr-1" />
                               Eliminar
                             </Button>
                           </div>
@@ -1960,6 +2024,39 @@ const Admin = () => {
           <DialogFooter>
             <Button variant="outline" onClick={() => setPackageDialogOpen(false)}>Cancelar</Button>
             <Button onClick={handleUpdatePackage}>Guardar Cambios</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Dialog para rechazar servicio */}
+      <Dialog open={rejectDialogOpen} onOpenChange={setRejectDialogOpen}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Rechazar Servicio</DialogTitle>
+            <DialogDescription>
+              Rechazando: <strong>{serviceToReject?.service_name}</strong> de {serviceToReject?.user_name}
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 pt-4">
+            <div>
+              <Label>Motivo del rechazo (opcional)</Label>
+              <Textarea
+                value={rejectReason}
+                onChange={(e) => setRejectReason(e.target.value)}
+                placeholder="Ej: El servicio no cumple con las políticas de la plataforma..."
+                rows={3}
+              />
+              <p className="text-xs text-muted-foreground mt-1">
+                Si proporcionas un motivo, el usuario podrá verlo en su perfil.
+              </p>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setRejectDialogOpen(false)}>Cancelar</Button>
+            <Button variant="destructive" onClick={handleRejectService}>
+              <X size={16} className="mr-2" />
+              Confirmar Rechazo
+            </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>

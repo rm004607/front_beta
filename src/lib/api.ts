@@ -629,6 +629,19 @@ export const adminAPI = {
     });
   },
 
+  approveService: async (id: string) => {
+    return request<{ message: string }>(`/admin/services/${id}/approve`, {
+      method: 'PUT',
+    });
+  },
+
+  rejectService: async (id: string, reason?: string) => {
+    return request<{ message: string }>(`/admin/services/${id}/reject`, {
+      method: 'PUT',
+      body: JSON.stringify({ reason }),
+    });
+  },
+
   // ========== USERS (Solo Super Admin) ==========
   getAllUsers: async (filters?: {
     role?: string;
