@@ -229,12 +229,14 @@ export const servicesAPI = {
   getServices: async (filters?: {
     search?: string;
     comuna?: string;
+    region_id?: string;
     page?: number;
     limit?: number;
   }) => {
     const params = new URLSearchParams();
     if (filters?.search) params.append('search', filters.search);
     if (filters?.comuna) params.append('comuna', filters.comuna);
+    if (filters?.region_id) params.append('region_id', filters.region_id);
     if (filters?.page) params.append('page', filters.page.toString());
     if (filters?.limit) params.append('limit', filters.limit.toString());
 
@@ -294,6 +296,8 @@ export const servicesAPI = {
     price_range?: string;
     comuna: string;
     phone?: string;
+    region_id?: string;
+    coverage_communes?: string[];
   }) => {
     return request<{
       message: string;

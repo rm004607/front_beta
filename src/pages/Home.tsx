@@ -26,18 +26,22 @@ interface Service {
 }
 
 const Home = () => {
-  const { isLoggedIn } = useUser();
+  const { isLoggedIn, user } = useUser();
   const [latestServices, setLatestServices] = useState<Service[]>([]);
   const [loadingServices, setLoadingServices] = useState(true);
 
   useEffect(() => {
     loadLatestServices();
-  }, []);
+  }, [isLoggedIn, user?.region_id]);
 
   const loadLatestServices = async () => {
     try {
       setLoadingServices(true);
-      const response = await servicesAPI.getServices({ page: 1, limit: 6 });
+      const response = await servicesAPI.getServices({
+        page: 1,
+        limit: 6,
+        region_id: user?.region_id ? String(user.region_id) : undefined
+      });
       setLatestServices(response.services);
     } catch (error) {
       console.error('Error loading latest services:', error);

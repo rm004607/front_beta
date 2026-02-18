@@ -6,7 +6,7 @@ import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
-import { MapPin, Search, MessageCircle, Loader2, Plus, TrendingUp, DollarSign, Star } from 'lucide-react';
+import { MapPin, Search, MessageCircle, Loader2, Plus, TrendingUp, DollarSign, Star, Globe } from 'lucide-react';
 import { servicesAPI, flowAPI, configAPI, reviewsAPI } from '@/lib/api';
 import { toast } from 'sonner';
 import { useUser } from '@/contexts/UserContext';
@@ -37,6 +37,7 @@ const Services = () => {
 
   const [searchTerm, setSearchTerm] = useState('');
   const [comunaFilter, setComunaFilter] = useState('all');
+  const [regionFilter, setRegionFilter] = useState(user?.region_id ? String(user.region_id) : 'all');
   const [services, setServices] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [pagination, setPagination] = useState({
@@ -63,7 +64,7 @@ const Services = () => {
 
   useEffect(() => {
     loadServices();
-  }, [searchTerm, comunaFilter]);
+  }, [searchTerm, comunaFilter, regionFilter, pagination.page]);
 
   // Cargar precio dinámico
   useEffect(() => {
@@ -98,6 +99,7 @@ const Services = () => {
       const response = await servicesAPI.getServices({
         search: searchTerm || undefined,
         comuna: comunaFilter !== 'all' ? comunaFilter : undefined,
+        region_id: regionFilter !== 'all' ? regionFilter : undefined,
         page: pagination.page,
         limit: pagination.limit,
       });
@@ -237,43 +239,58 @@ const Services = () => {
         {/* Filters */}
         <Card className="mb-8 glass-card border-white/5 bg-card/30">
           <CardContent className="pt-6">
-            <div className="grid md:grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <div className="relative">
                 <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground" size={18} />
                 <Input
                   placeholder="Buscar servicio..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
-                  className="pl-10"
+                  className="pl-10 h-11"
                 />
               </div>
-              <Select value={comunaFilter} onValueChange={setComunaFilter}>
-                <SelectTrigger className="glass-card border-white/10">
-                  <SelectValue placeholder="Comuna" />
+
+              <Select value={regionFilter} onValueChange={(val) => {
+                setRegionFilter(val);
+                setComunaFilter('all');
+                setPagination(prev => ({ ...prev, page: 1 }));
+              }}>
+                <SelectTrigger className="glass-card border-white/10 h-11">
+                  <div className="flex items-center gap-2">
+                    <Globe size={16} className="text-secondary" />
+                    <SelectValue placeholder="Selecciona Región" />
+                  </div>
+                </SelectTrigger>
+                <SelectContent className="glass-card border-white/10 backdrop-blur-xl">
+                  <SelectItem value="all">📍 Todas las regiones</SelectItem>
+                  {chileData.map((reg) => (
+                    <SelectItem key={reg.id} value={reg.id}>{reg.name}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+
+              <Select value={comunaFilter} onValueChange={(val) => {
+                setComunaFilter(val);
+                setPagination(prev => ({ ...prev, page: 1 }));
+              }}>
+                <SelectTrigger className="glass-card border-white/10 h-11">
+                  <div className="flex items-center gap-2">
+                    <MapPin size={16} className="text-primary" />
+                    <SelectValue placeholder="Selecciona Comuna" />
+                  </div>
                 </SelectTrigger>
                 <SelectContent className="glass-card border-white/10 backdrop-blur-xl">
                   <SelectItem value="all">🌐 Todas las comunas</SelectItem>
-                  {isLoggedIn && user?.region_id ? (
-                    // Mostrar comunas de la región del usuario casting a string para evitar errores de tipo
-                    chileData.find(r => String(r.id) === String(user.region_id))?.communes.map(c => (
+                  {regionFilter !== 'all' ? (
+                    chileData.find(r => String(r.id) === String(regionFilter))?.communes.map(c => (
                       <SelectItem key={c} value={c}>{c}</SelectItem>
-                    )) || (
-                      // Fallback si por alguna razón no se encuentran las comunas de la región
-                      <>
-                        <SelectItem value="santiago">Santiago Centro</SelectItem>
-                        <SelectItem value="providencia">Providencia</SelectItem>
-                        <SelectItem value="lascondes">Las Condes</SelectItem>
-                        <SelectItem value="maipu">Maipú</SelectItem>
-                      </>
-                    )
+                    ))
                   ) : (
-                    // Fallback si no está logueado o no hay región
                     <>
                       <SelectItem value="santiago">Santiago Centro</SelectItem>
                       <SelectItem value="providencia">Providencia</SelectItem>
                       <SelectItem value="lascondes">Las Condes</SelectItem>
                       <SelectItem value="maipu">Maipú</SelectItem>
-                      <SelectItem value="puente-alto">Puente Alto</SelectItem>
                     </>
                   )}
                 </SelectContent>
