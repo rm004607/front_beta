@@ -154,7 +154,7 @@ const AIChatBubble = () => {
           ? 'bg-destructive hover:bg-destructive/90'
           : 'bg-gradient-to-r from-accent to-accent/80 hover:from-accent/90 hover:to-accent/70'
           } flex items-center justify-center text-white border-2 border-white`}
-        aria-label="Abrir chat de Beta"
+        aria-label="Abrir chat de Dameldato"
       >
         {isOpen ? (
           <X size={24} />

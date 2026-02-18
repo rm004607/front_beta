@@ -25,7 +25,7 @@ const Footer = () => {
             </p>
             <div className="flex gap-4">
               <a
-                href="https://www.instagram.com/beta_coropcl/"
+                href="https://www.instagram.com/dameldato.cl/"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="text-muted-foreground hover:text-primary transition-colors"
@@ -126,7 +126,7 @@ const Footer = () => {
               </li>
               <li className="flex items-center gap-2 text-muted-foreground text-sm">
                 <Mail size={16} />
-                <span>betacontac@gmail.com</span>
+                <span>contacto@dameldato.cl</span>
               </li>
 
               <li className="flex items-center gap-2 text-muted-foreground text-sm">
