@@ -198,98 +198,152 @@ const PostService = () => {
   }
 
   return (
-    <div className="container mx-auto px-4 py-8 max-w-3xl">
-      <Card className="border-2">
-        <CardHeader>
-          <div className="flex items-center gap-3 mb-2">
-            <div className="bg-secondary/10 p-3 rounded-full">
-              <Wrench className="text-secondary" size={24} />
-            </div>
-            <div>
-              <CardTitle className="text-3xl font-heading">Ofrecer Servicio</CardTitle>
-              <CardDescription>Promociona tu oficio o emprendimiento</CardDescription>
-            </div>
-          </div>
-        </CardHeader>
-        <CardContent>
-          {/* Aviso de moderación */}
-          <Alert className="mb-6 border-blue-200 bg-blue-50 text-blue-800">
-            <AlertCircle className="h-4 w-4 text-blue-600" />
-            <AlertDescription className="text-blue-700">
-              Tu servicio será revisado por un administrador antes de aparecer públicamente. Este proceso puede tomar algunas horas.
-            </AlertDescription>
-          </Alert>
+    <div className="min-h-screen bg-background relative overflow-hidden pb-12">
+      {/* Decorative background elements */}
+      <div className="absolute top-0 left-0 w-full h-full pointer-events-none">
+        <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-primary/10 rounded-full blur-[120px]" />
+        <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-secondary/10 rounded-full blur-[120px]" />
+      </div>
 
-          {/* Información de límites */}
-          {userLimits && user?.role_number !== 5 && (
-            <Alert className="mb-6">
-              <AlertCircle className="h-4 w-4" />
-              <AlertDescription>
-                <div className="flex justify-between items-center">
-                  <span>
-                    Publicaciones gratis: {userLimits.services.used} / {userLimits.services.free_limit}
-                  </span>
-                </div>
-                {userLimits.services.remaining > 0 && (
-                  <p className="text-sm mt-1">
-                    Te quedan {userLimits.services.remaining} publicación(es) gratis
-                  </p>
-                )}
+      <div className="container mx-auto px-4 py-8 max-w-3xl relative z-10">
+        <Card className="glass-card border-white/5 shadow-2xl overflow-hidden">
+          <CardHeader className="text-center pb-2">
+            <CardTitle className="text-4xl font-heading font-bold bg-clip-text text-transparent bg-gradient-to-r from-primary to-secondary mb-2">
+              Ofrecer Servicio
+            </CardTitle>
+            <CardDescription className="text-muted-foreground text-lg">Promociona tu oficio o emprendimiento</CardDescription>
+          </CardHeader>
+          <CardContent>
+            {/* Aviso de moderación */}
+            <Alert className="mb-6 border-blue-200 bg-blue-50 text-blue-800">
+              <AlertCircle className="h-4 w-4 text-blue-600" />
+              <AlertDescription className="text-blue-700">
+                Tu servicio será revisado por un administrador antes de aparecer públicamente. Este proceso puede tomar algunas horas.
               </AlertDescription>
             </Alert>
-          )}
 
-          <form onSubmit={handleSubmit} className="space-y-6">
-            <div>
-              <Label htmlFor="service">Servicio que Ofreces *</Label>
-              <Input
-                id="service"
-                value={service}
-                onChange={(e) => setService(e.target.value)}
-                placeholder="Ej: Gasfitería, Peluquería, Diseño Web"
-                required
-              />
-            </div>
+            {/* Información de límites */}
+            {userLimits && user?.role_number !== 5 && (
+              <Alert className="mb-6">
+                <AlertCircle className="h-4 w-4" />
+                <AlertDescription>
+                  <div className="flex justify-between items-center">
+                    <span>
+                      Publicaciones gratis: {userLimits.services.used} / {userLimits.services.free_limit}
+                    </span>
+                  </div>
+                  {userLimits.services.remaining > 0 && (
+                    <p className="text-sm mt-1">
+                      Te quedan {userLimits.services.remaining} publicación(es) gratis
+                    </p>
+                  )}
+                </AlertDescription>
+              </Alert>
+            )}
 
-            <div className="space-y-4 p-4 border rounded-xl bg-primary/5">
-              <div className="flex justify-between items-center">
-                <div className="flex flex-col gap-1">
-                  <Label className="text-base font-semibold">Ubicación de Origen</Label>
-                  <p className="text-xs text-muted-foreground">Esta es tu ubicación base registrada en tu perfil.</p>
+            <form onSubmit={handleSubmit} className="space-y-6">
+              <div>
+                <Label htmlFor="service">Servicio que Ofreces *</Label>
+                <Input
+                  id="service"
+                  value={service}
+                  onChange={(e) => setService(e.target.value)}
+                  placeholder="Ej: Gasfitería, Peluquería, Diseño Web"
+                  required
+                />
+              </div>
+
+              <div className="space-y-4 p-4 border rounded-xl bg-primary/5">
+                <div className="flex justify-between items-center">
+                  <div className="flex flex-col gap-1">
+                    <Label className="text-base font-semibold">Ubicación de Origen</Label>
+                    <p className="text-xs text-muted-foreground">Esta es tu ubicación base registrada en tu perfil.</p>
+                  </div>
+                  {!editBaseLocation && (
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      className="text-primary hover:text-primary/80 h-7 text-xs"
+                      onClick={() => setEditBaseLocation(true)}
+                    >
+                      <Edit size={14} className="mr-1" />
+                      Cambiar para este servicio
+                    </Button>
+                  )}
                 </div>
-                {!editBaseLocation && (
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="sm"
-                    className="text-primary hover:text-primary/80 h-7 text-xs"
-                    onClick={() => setEditBaseLocation(true)}
-                  >
-                    <Edit size={14} className="mr-1" />
-                    Cambiar para este servicio
-                  </Button>
+
+                {!editBaseLocation ? (
+                  <div className="flex items-center gap-2">
+                    <Badge variant="outline" className="bg-background py-1.5 px-3 border-primary/20 flex items-center gap-2 text-sm">
+                      <MapPin size={14} className="text-primary" />
+                      {baseRegion && chileData.find(r => r.id === baseRegion)?.name}
+                      {baseRegion && ' - '}
+                      {comuna || 'Cargando...'}
+                    </Badge>
+                  </div>
+                ) : (
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2">
+                    <div>
+                      <Label htmlFor="baseRegion" className="text-xs">Región *</Label>
+                      <Select value={baseRegion} onValueChange={(val) => {
+                        setBaseRegion(val);
+                        setComuna('');
+                      }}>
+                        <SelectTrigger id="baseRegion" className="h-9">
+                          <SelectValue placeholder="Selecciona Región" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {chileData.map((reg) => (
+                            <SelectItem key={reg.id} value={reg.id}>{reg.name}</SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div>
+                      <Label htmlFor="comuna" className="text-xs">Comuna *</Label>
+                      <Select value={comuna} onValueChange={setComuna} disabled={!baseRegion}>
+                        <SelectTrigger id="comuna" className="h-9">
+                          <SelectValue placeholder="Selecciona Comuna" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {baseRegion && chileData.find(r => r.id === baseRegion)?.communes.map((c) => (
+                            <SelectItem key={c} value={c}>{c}</SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div className="sm:col-span-2">
+                      <Button
+                        type="button"
+                        variant="link"
+                        size="sm"
+                        className="p-0 h-auto text-xs"
+                        onClick={() => {
+                          setEditBaseLocation(false);
+                          if (user?.comuna) setComuna(user.comuna);
+                          if (user?.region_id) setBaseRegion(user.region_id);
+                        }}
+                      >
+                        Restablecer a mi ubicación de perfil
+                      </Button>
+                    </div>
+                  </div>
                 )}
               </div>
 
-              {!editBaseLocation ? (
-                <div className="flex items-center gap-2">
-                  <Badge variant="outline" className="bg-background py-1.5 px-3 border-primary/20 flex items-center gap-2 text-sm">
-                    <MapPin size={14} className="text-primary" />
-                    {baseRegion && chileData.find(r => r.id === baseRegion)?.name}
-                    {baseRegion && ' - '}
-                    {comuna || 'Cargando...'}
-                  </Badge>
+              <div className="space-y-4 p-4 border rounded-lg bg-muted/30">
+                <div className="flex flex-col gap-1">
+                  <Label className="text-base font-semibold">Zona de Desplazamiento / Cobertura</Label>
+                  <p className="text-xs text-muted-foreground">Selecciona las comunas a las que puedes desplazarte para ofrecer tu servicio.</p>
                 </div>
-              ) : (
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2">
+
+                <div className="space-y-4">
                   <div>
-                    <Label htmlFor="baseRegion" className="text-xs">Región *</Label>
-                    <Select value={baseRegion} onValueChange={(val) => {
-                      setBaseRegion(val);
-                      setComuna('');
-                    }}>
-                      <SelectTrigger id="baseRegion" className="h-9">
-                        <SelectValue placeholder="Selecciona Región" />
+                    <Label htmlFor="coverageRegion" className="text-xs">Seleccionar Región para cobertura</Label>
+                    <Select value={coverageRegion} onValueChange={setCoverageRegion}>
+                      <SelectTrigger id="coverageRegion" className="h-8">
+                        <SelectValue placeholder="Elegir Región" />
                       </SelectTrigger>
                       <SelectContent>
                         {chileData.map((reg) => (
@@ -298,180 +352,129 @@ const PostService = () => {
                       </SelectContent>
                     </Select>
                   </div>
-                  <div>
-                    <Label htmlFor="comuna" className="text-xs">Comuna *</Label>
-                    <Select value={comuna} onValueChange={setComuna} disabled={!baseRegion}>
-                      <SelectTrigger id="comuna" className="h-9">
-                        <SelectValue placeholder="Selecciona Comuna" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {baseRegion && chileData.find(r => r.id === baseRegion)?.communes.map((c) => (
-                          <SelectItem key={c} value={c}>{c}</SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  <div className="sm:col-span-2">
-                    <Button
-                      type="button"
-                      variant="link"
-                      size="sm"
-                      className="p-0 h-auto text-xs"
-                      onClick={() => {
-                        setEditBaseLocation(false);
-                        if (user?.comuna) setComuna(user.comuna);
-                        if (user?.region_id) setBaseRegion(user.region_id);
-                      }}
-                    >
-                      Restablecer a mi ubicación de perfil
-                    </Button>
-                  </div>
-                </div>
-              )}
-            </div>
 
-            <div className="space-y-4 p-4 border rounded-lg bg-muted/30">
-              <div className="flex flex-col gap-1">
-                <Label className="text-base font-semibold">Zona de Desplazamiento / Cobertura</Label>
-                <p className="text-xs text-muted-foreground">Selecciona las comunas a las que puedes desplazarte para ofrecer tu servicio.</p>
-              </div>
-
-              <div className="space-y-4">
-                <div>
-                  <Label htmlFor="coverageRegion" className="text-xs">Seleccionar Región para cobertura</Label>
-                  <Select value={coverageRegion} onValueChange={setCoverageRegion}>
-                    <SelectTrigger id="coverageRegion" className="h-8">
-                      <SelectValue placeholder="Elegir Región" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {chileData.map((reg) => (
-                        <SelectItem key={reg.id} value={reg.id}>{reg.name}</SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                {coverageRegion && (
-                  <div className="space-y-2">
-                    <Label className="text-xs">Comunas en esta región:</Label>
-                    <ScrollArea className="h-48 border rounded-md p-2 bg-background">
-                      <div className="grid grid-cols-2 gap-2">
-                        {chileData.find(r => r.id === coverageRegion)?.communes.map((c) => (
-                          <div key={c} className="flex items-center space-x-2">
-                            <Checkbox
-                              id={`cov-${c}`}
-                              checked={coverageCommunes.includes(c)}
-                              onCheckedChange={(checked) => {
-                                if (checked) {
-                                  setCoverageCommunes([...coverageCommunes, c]);
-                                } else {
-                                  setCoverageCommunes(coverageCommunes.filter(item => item !== c));
-                                }
-                              }}
-                            />
-                            <label htmlFor={`cov-${c}`} className="text-sm cursor-pointer truncate">{c}</label>
-                          </div>
-                        ))}
-                      </div>
-                    </ScrollArea>
-                  </div>
-                )}
-
-                {coverageCommunes.length > 0 && (
-                  <div className="pt-2">
-                    <Label className="text-xs mb-2 block">Comunas seleccionadas ({coverageCommunes.length}):</Label>
-                    <div className="flex flex-wrap gap-1">
-                      {coverageCommunes.map(c => (
-                        <Badge key={c} variant="secondary" className="pl-2 pr-1 h-6 flex items-center gap-1">
-                          {c}
-                          <button
-                            type="button"
-                            onClick={() => setCoverageCommunes(coverageCommunes.filter(item => item !== c))}
-                            className="bg-muted-foreground/20 rounded-full p-0.5 hover:bg-muted-foreground/40"
-                          >
-                            <X size={10} />
-                          </button>
-                        </Badge>
-                      ))}
-                      <Button
-                        type="button"
-                        variant="ghost"
-                        size="sm"
-                        className="h-6 text-[10px] text-destructive hover:text-destructive"
-                        onClick={() => setCoverageCommunes([])}
-                      >
-                        Limpiar todas
-                      </Button>
+                  {coverageRegion && (
+                    <div className="space-y-2">
+                      <Label className="text-xs">Comunas en esta región:</Label>
+                      <ScrollArea className="h-48 border rounded-md p-2 bg-background">
+                        <div className="grid grid-cols-2 gap-2">
+                          {chileData.find(r => r.id === coverageRegion)?.communes.map((c) => (
+                            <div key={c} className="flex items-center space-x-2">
+                              <Checkbox
+                                id={`cov-${c}`}
+                                checked={coverageCommunes.includes(c)}
+                                onCheckedChange={(checked) => {
+                                  if (checked) {
+                                    setCoverageCommunes([...coverageCommunes, c]);
+                                  } else {
+                                    setCoverageCommunes(coverageCommunes.filter(item => item !== c));
+                                  }
+                                }}
+                              />
+                              <label htmlFor={`cov-${c}`} className="text-sm cursor-pointer truncate">{c}</label>
+                            </div>
+                          ))}
+                        </div>
+                      </ScrollArea>
                     </div>
-                  </div>
-                )}
+                  )}
+
+                  {coverageCommunes.length > 0 && (
+                    <div className="pt-2">
+                      <Label className="text-xs mb-2 block">Comunas seleccionadas ({coverageCommunes.length}):</Label>
+                      <div className="flex flex-wrap gap-1">
+                        {coverageCommunes.map(c => (
+                          <Badge key={c} variant="secondary" className="pl-2 pr-1 h-6 flex items-center gap-1">
+                            {c}
+                            <button
+                              type="button"
+                              onClick={() => setCoverageCommunes(coverageCommunes.filter(item => item !== c))}
+                              className="bg-muted-foreground/20 rounded-full p-0.5 hover:bg-muted-foreground/40"
+                            >
+                              <X size={10} />
+                            </button>
+                          </Badge>
+                        ))}
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="sm"
+                          className="h-6 text-[10px] text-destructive hover:text-destructive"
+                          onClick={() => setCoverageCommunes([])}
+                        >
+                          Limpiar todas
+                        </Button>
+                      </div>
+                    </div>
+                  )}
+                </div>
               </div>
-            </div>
 
-            <div>
-              <Label htmlFor="description">Descripción de tu Servicio *</Label>
-              <Textarea
-                id="description"
-                value={description}
-                onChange={(e) => setDescription(e.target.value)}
-                placeholder="Describe tu experiencia, qué servicios específicos ofreces, etc."
-                rows={5}
-                required
-              />
-            </div>
+              <div>
+                <Label htmlFor="description">Descripción de tu Servicio *</Label>
+                <Textarea
+                  id="description"
+                  value={description}
+                  onChange={(e) => setDescription(e.target.value)}
+                  placeholder="Describe tu experiencia, qué servicios específicos ofreces, etc."
+                  rows={5}
+                  required
+                />
+              </div>
 
-            <div>
-              <Label htmlFor="priceRange">Rango de Precio (Opcional)</Label>
-              <Input
-                id="priceRange"
-                value={priceRange}
-                onChange={(e) => setPriceRange(e.target.value)}
-                placeholder="Ej: $15.000 - $30.000"
-              />
-              <p className="text-xs text-muted-foreground mt-1">
-                Indica un rango aproximado para que los clientes tengan una referencia
-              </p>
-            </div>
+              <div>
+                <Label htmlFor="priceRange">Rango de Precio (Opcional)</Label>
+                <Input
+                  id="priceRange"
+                  value={priceRange}
+                  onChange={(e) => setPriceRange(e.target.value)}
+                  placeholder="Ej: $15.000 - $30.000"
+                />
+                <p className="text-xs text-muted-foreground mt-1">
+                  Indica un rango aproximado para que los clientes tengan una referencia
+                </p>
+              </div>
 
-            <div>
-              <Label htmlFor="phone">Teléfono de Contacto (Opcional)</Label>
-              <Input
-                id="phone"
-                value={phone}
-                onChange={(e) => setPhone(e.target.value)}
-                placeholder={user?.phone || 'Ej: +56 9 1234 5678'}
-              />
-              <p className="text-xs text-muted-foreground mt-1">
-                Si no proporcionas un teléfono, se usará el de tu perfil
-              </p>
-            </div>
+              <div>
+                <Label htmlFor="phone">Teléfono de Contacto (Opcional)</Label>
+                <Input
+                  id="phone"
+                  value={phone}
+                  onChange={(e) => setPhone(e.target.value)}
+                  placeholder={user?.phone || 'Ej: +56 9 1234 5678'}
+                />
+                <p className="text-xs text-muted-foreground mt-1">
+                  Si no proporcionas un teléfono, se usará el de tu perfil
+                </p>
+              </div>
 
-            <div className="flex gap-3 pt-4">
-              <Button type="button" variant="outline" onClick={() => navigate('/servicios')} className="flex-1">
-                Cancelar
-              </Button>
-              <Button
-                type="submit"
-                className="flex-1 bg-secondary hover:bg-secondary/90"
-                disabled={isSubmitting || !canPublish}
-              >
-                {isSubmitting ? 'Publicando...' : 'Publicar Servicio'}
-              </Button>
-            </div>
-          </form>
-        </CardContent>
-      </Card>
+              <div className="flex gap-3 pt-4">
+                <Button type="button" variant="outline" onClick={() => navigate('/servicios')} className="flex-1">
+                  Cancelar
+                </Button>
+                <Button
+                  type="submit"
+                  className="flex-1 bg-secondary hover:bg-secondary/90"
+                  disabled={isSubmitting || !canPublish}
+                >
+                  {isSubmitting ? 'Publicando...' : 'Publicar Servicio'}
+                </Button>
+              </div>
+            </form>
+          </CardContent>
+        </Card>
 
-      {/* Modal de paquetes (solo se muestra si hay error al publicar) */}
-      <PackagesModal
-        open={packagesModalOpen && canPublish}
-        onOpenChange={setPackagesModalOpen}
-        type="services"
-        onPackageSelect={(packageId) => {
-          console.log('Paquete seleccionado:', packageId);
-          // Aquí se integraría con el sistema de pago
-        }}
-      />
+        {/* Modal de paquetes (solo se muestra si hay error al publicar) */}
+        <PackagesModal
+          open={packagesModalOpen && canPublish}
+          onOpenChange={setPackagesModalOpen}
+          type="services"
+          onPackageSelect={(packageId) => {
+            console.log('Paquete seleccionado:', packageId);
+            // Aquí se integraría con el sistema de pago
+          }}
+        />
+      </div>
     </div>
   );
 };

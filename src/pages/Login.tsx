@@ -65,88 +65,98 @@ const Login = () => {
   };
 
   return (
-    <div className="container mx-auto px-4 py-12 max-w-md">
-      <Card className="border-2">
-        <CardHeader>
-          <CardTitle className="text-3xl font-heading">Iniciar Sesión</CardTitle>
-          <CardDescription>Ingresa a tu cuenta de Dameldato</CardDescription>
-        </CardHeader>
-        <CardContent>
-          {/* Mensaje de ban */}
-          {banInfo && (
-            <Alert variant="destructive" className="mb-6">
-              <Ban className="h-4 w-4" />
-              <AlertTitle>Cuenta Bloqueada</AlertTitle>
-              <AlertDescription className="mt-2 space-y-2">
-                <p className="font-semibold">Tu cuenta ha sido bloqueada.</p>
-                <div className="space-y-1 text-sm">
-                  <p>
-                    <span className="font-semibold">Motivo:</span> {banInfo.reason}
-                  </p>
-                  {banInfo.is_permanent ? (
-                    <p className="font-semibold text-red-600">
-                      ⚠️ Esta cuenta está bloqueada permanentemente.
-                    </p>
-                  ) : banInfo.time_remaining ? (
+    <div className="min-h-screen bg-background relative overflow-hidden flex items-center justify-center py-12 px-4">
+      {/* Decorative background elements */}
+      <div className="absolute top-0 left-0 w-full h-full pointer-events-none">
+        <div className="absolute top-[-10%] left-[-10%] w-[50%] h-[50%] bg-primary/10 rounded-full blur-[120px]" />
+        <div className="absolute bottom-[-10%] right-[-10%] w-[50%] h-[50%] bg-secondary/10 rounded-full blur-[120px]" />
+      </div>
+
+      <div className="w-full max-w-md relative z-10">
+        <Card className="glass-card border-white/5 shadow-2xl overflow-hidden">
+          <CardHeader className="text-center pb-2">
+            <CardTitle className="text-4xl font-heading font-bold bg-clip-text text-transparent bg-gradient-to-r from-primary to-secondary mb-2">
+              ¡Hola de nuevo!
+            </CardTitle>
+            <CardDescription className="text-muted-foreground text-lg">Ingresa a tu cuenta de Dameldato</CardDescription>
+          </CardHeader>
+          <CardContent>
+            {/* Mensaje de ban */}
+            {banInfo && (
+              <Alert variant="destructive" className="mb-6">
+                <Ban className="h-4 w-4" />
+                <AlertTitle>Cuenta Bloqueada</AlertTitle>
+                <AlertDescription className="mt-2 space-y-2">
+                  <p className="font-semibold">Tu cuenta ha sido bloqueada.</p>
+                  <div className="space-y-1 text-sm">
                     <p>
-                      <span className="font-semibold">Tiempo restante:</span>{' '}
-                      <span className="font-semibold text-red-600">{banInfo.time_remaining}</span>
+                      <span className="font-semibold">Motivo:</span> {banInfo.reason}
                     </p>
-                  ) : null}
-                  {banInfo.ban_count > 0 && (
-                    <p className="text-xs text-muted-foreground">
-                      Infracciones: {banInfo.ban_count} {banInfo.ban_count >= 2 && '(Ban permanente por segunda infracción)'}
-                    </p>
-                  )}
-                </div>
-                <p className="text-xs text-muted-foreground mt-3">
-                  Si crees que esto es un error, contacta al soporte de Dameldato.
-                </p>
-              </AlertDescription>
-            </Alert>
-          )}
+                    {banInfo.is_permanent ? (
+                      <p className="font-semibold text-red-600">
+                        ⚠️ Esta cuenta está bloqueada permanentemente.
+                      </p>
+                    ) : banInfo.time_remaining ? (
+                      <p>
+                        <span className="font-semibold">Tiempo restante:</span>{' '}
+                        <span className="font-semibold text-red-600">{banInfo.time_remaining}</span>
+                      </p>
+                    ) : null}
+                    {banInfo.ban_count > 0 && (
+                      <p className="text-xs text-muted-foreground">
+                        Infracciones: {banInfo.ban_count} {banInfo.ban_count >= 2 && '(Ban permanente por segunda infracción)'}
+                      </p>
+                    )}
+                  </div>
+                  <p className="text-xs text-muted-foreground mt-3">
+                    Si crees que esto es un error, contacta al soporte de Dameldato.
+                  </p>
+                </AlertDescription>
+              </Alert>
+            )}
 
-          <form onSubmit={handleSubmit} className="space-y-6">
-            <div>
-              <Label htmlFor="email">Email</Label>
-              <Input
-                id="email"
-                type="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                placeholder="tu@email.com"
-                required
-                disabled={isSubmitting}
-              />
+            <form onSubmit={handleSubmit} className="space-y-6">
+              <div>
+                <Label htmlFor="email">Email</Label>
+                <Input
+                  id="email"
+                  type="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  placeholder="tu@email.com"
+                  required
+                  disabled={isSubmitting}
+                />
+              </div>
+              <div>
+                <Label htmlFor="password">Contraseña</Label>
+                <Input
+                  id="password"
+                  type="password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  placeholder="Tu contraseña"
+                  required
+                  disabled={isSubmitting}
+                />
+              </div>
+              <Button type="submit" className="w-full" disabled={isSubmitting}>
+                {isSubmitting ? 'Iniciando sesión...' : 'Iniciar Sesión'}
+              </Button>
+            </form>
+
+
+            <div className="mt-6 text-center">
+              <p className="text-sm text-muted-foreground">
+                ¿No tienes cuenta?{' '}
+                <Link to="/registro" className="text-primary hover:underline">
+                  Regístrate aquí
+                </Link>
+              </p>
             </div>
-            <div>
-              <Label htmlFor="password">Contraseña</Label>
-              <Input
-                id="password"
-                type="password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                placeholder="Tu contraseña"
-                required
-                disabled={isSubmitting}
-              />
-            </div>
-            <Button type="submit" className="w-full" disabled={isSubmitting}>
-              {isSubmitting ? 'Iniciando sesión...' : 'Iniciar Sesión'}
-            </Button>
-          </form>
-
-
-          <div className="mt-6 text-center">
-            <p className="text-sm text-muted-foreground">
-              ¿No tienes cuenta?{' '}
-              <Link to="/registro" className="text-primary hover:underline">
-                Regístrate aquí
-              </Link>
-            </p>
-          </div>
-        </CardContent>
-      </Card>
+          </CardContent>
+        </Card>
+      </div>
     </div>
   );
 };

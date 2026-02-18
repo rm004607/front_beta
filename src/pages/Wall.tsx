@@ -410,538 +410,546 @@ const Wall = () => {
   };
 
   return (
-    <div className="container mx-auto px-4 py-8 max-w-4xl">
-      {/* Header */}
-      <div className="mb-8">
-        <h1 className="text-4xl font-heading font-bold mb-2">Pared de Pegas</h1>
-        <p className="text-muted-foreground">Comparte información y datos de trabajo</p>
+    <div className="min-h-screen bg-background relative overflow-hidden pb-12">
+      {/* Decorative background elements */}
+      <div className="absolute top-0 left-0 w-full h-full pointer-events-none">
+        <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-primary/10 rounded-full blur-[120px]" />
+        <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-secondary/10 rounded-full blur-[120px]" />
       </div>
 
-      {/* Formulario de publicación estilo blog */}
-      {isLoggedIn && (
-        <Card className="mb-8 border-2">
-          <CardHeader>
-            <h2 className="text-xl font-semibold">¿Qué quieres compartir?</h2>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <Label htmlFor="type">Tipo de Publicación</Label>
-                <Select value={postType} onValueChange={setPostType}>
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="Busco Servicio">Busco Servicio</SelectItem>
-                    <SelectItem value="Ofrezco">Ofrezco (trabajo/servicio)</SelectItem>
-                    <SelectItem value="Info">Info (general)</SelectItem>
-                  </SelectContent>
-                </Select>
+      <div className="container mx-auto px-4 py-8 max-w-4xl relative z-10">
+        {/* Header */}
+        <div className="mb-8 p-6 glass-card rounded-3xl border-primary/10">
+          <h1 className="text-4xl font-heading font-bold mb-2 bg-clip-text text-transparent bg-gradient-to-r from-primary to-secondary">Pared de Pegas</h1>
+          <p className="text-muted-foreground italic">Comparte información, datos de trabajo y oportunidades con tu comunidad</p>
+        </div>
+
+        {/* Formulario de publicación estilo blog */}
+        {isLoggedIn && (
+          <Card className="mb-8 glass-card border-primary/10 bg-card/40 backdrop-blur-md shadow-2xl">
+            <CardHeader>
+              <h2 className="text-xl font-semibold">¿Qué quieres compartir?</h2>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <Label htmlFor="type">Tipo de Publicación</Label>
+                  <Select value={postType} onValueChange={setPostType}>
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="Busco Servicio">Busco Servicio</SelectItem>
+                      <SelectItem value="Ofrezco">Ofrezco (trabajo/servicio)</SelectItem>
+                      <SelectItem value="Info">Info (general)</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div>
+                  <Label htmlFor="comuna">Comuna</Label>
+                  <Input
+                    id="comuna"
+                    value={postComuna}
+                    onChange={(e) => setPostComuna(e.target.value)}
+                    placeholder="Tu comuna"
+                  />
+                </div>
               </div>
               <div>
-                <Label htmlFor="comuna">Comuna</Label>
-                <Input
-                  id="comuna"
-                  value={postComuna}
-                  onChange={(e) => setPostComuna(e.target.value)}
-                  placeholder="Tu comuna"
+                <Label htmlFor="content">Mensaje</Label>
+                <Textarea
+                  id="content"
+                  value={postContent}
+                  onChange={(e) => setPostContent(e.target.value)}
+                  placeholder="Comparte información, datos de pega, oportunidades..."
+                  rows={5}
+                  className="resize-none"
                 />
               </div>
-            </div>
-            <div>
-              <Label htmlFor="content">Mensaje</Label>
-              <Textarea
-                id="content"
-                value={postContent}
-                onChange={(e) => setPostContent(e.target.value)}
-                placeholder="Comparte información, datos de pega, oportunidades..."
-                rows={5}
-                className="resize-none"
-              />
-            </div>
-            <div className="flex justify-end">
-              <Button
-                onClick={handleSubmitPost}
-                disabled={isSubmitting || !postContent.trim() || !postComuna.trim()}
-                className="min-w-[120px]"
-              >
-                {isSubmitting ? 'Publicando...' : 'Publicar'}
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
-      )}
-
-      {/* Filtros */}
-      <div className="mb-6 flex gap-4">
-        <Select value={filterType} onValueChange={setFilterType}>
-          <SelectTrigger className="w-40">
-            <SelectValue placeholder="Tipo" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">Todos</SelectItem>
-            <SelectItem value="Busco Servicio">Busco Servicio</SelectItem>
-            <SelectItem value="Ofrezco">Ofrezco</SelectItem>
-            <SelectItem value="Info">Info</SelectItem>
-          </SelectContent>
-        </Select>
-        <Input
-          placeholder="Filtrar por comuna..."
-          value={filterComuna}
-          onChange={(e) => setFilterComuna(e.target.value)}
-          className="flex-1"
-        />
-      </div>
-
-      {/* Posts Feed */}
-      {loading ? (
-        <div className="text-center py-8">
-          <p className="text-muted-foreground">Cargando publicaciones...</p>
-        </div>
-      ) : posts.length === 0 ? (
-        <div className="text-center py-8">
-          <p className="text-muted-foreground">No hay publicaciones aún</p>
-        </div>
-      ) : (
-        <div className="space-y-6">
-          {posts.map((post) => (
-            <Card key={post.id} className="border-2 hover:shadow-lg transition-shadow">
-              <CardHeader>
-                <div className="flex items-start justify-between">
-                  <div className="flex items-center gap-3">
-                    <Avatar
-                      className={`${post.type === 'Busco Servicio' && canViewProfile() ? 'cursor-pointer hover:opacity-80 transition-opacity' : post.type === 'Busco Servicio' ? 'opacity-60' : ''}`}
-                      onClick={() => post.type === 'Busco Servicio' && canViewProfile() && handleProfileClick(post.user_id, post.type, post)}
-                      title={post.type === 'Busco Servicio' && !canViewProfile() ? 'Solo los emprendedores pueden contactar' : ''}
-                    >
-                      {post.profile_image && (
-                        <AvatarImage src={post.profile_image} alt={post.user_name} />
-                      )}
-                      <AvatarFallback className="bg-secondary text-white">
-                        {post.user_name.split(' ').map((n) => n[0]).join('')}
-                      </AvatarFallback>
-                    </Avatar>
-                    <div className="flex flex-col">
-                      <div className="flex items-center gap-1">
-                        <h3
-                          className={`font-semibold ${post.type === 'Busco Servicio' && canViewProfile() ? 'cursor-pointer hover:underline' : post.type === 'Busco Servicio' ? 'opacity-60' : ''}`}
-                          onClick={() => post.type === 'Busco Servicio' && canViewProfile() && handleProfileClick(post.user_id, post.type, post)}
-                          title={post.type === 'Busco Servicio' && !canViewProfile() ? 'Solo los emprendedores pueden contactar' : ''}
-                        >
-                          {post.user_name}
-                        </h3>
-                        {post.user_role_number === 5 && (
-                          <div title="Super Admin">
-                            <Crown size={14} className="text-yellow-500 fill-yellow-500" />
-                          </div>
-                        )}
-                      </div>
-                      <p className="text-sm text-muted-foreground">
-                        {formatDate(post.created_at)}
-                      </p>
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    {post.type === 'Ofrezco' && (
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        className="h-8 gap-2 bg-green-50 text-green-700 border-green-200 hover:bg-green-100 hover:text-green-800"
-                        onClick={() => handleDirectWhatsAppContact(post)}
-                        disabled={loadingContact[post.id]}
-                      >
-                        {loadingContact[post.id] ? (
-                          <span className="animate-spin">⏳</span>
-                        ) : (
-                          <MessageCircle size={14} />
-                        )}
-                        Contactar
-                      </Button>
-                    )}
-                    <Badge className={getTypeColor(post.type)}>
-                      {post.type}
-                    </Badge>
-                    {(user?.id === post.user_id || user?.role_number === 5) && (
-                      <div className="flex gap-1">
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => navigate(`/admin?tab=posts&search=${post.user_name}`)}
-                          className="h-8 w-8 p-0"
-                        >
-                          <Edit size={16} />
-                        </Button>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => handleDeletePost(post.id)}
-                          className="text-destructive hover:text-destructive h-8 w-8 p-0"
-                        >
-                          <Trash2 size={16} />
-                        </Button>
-                      </div>
-                    )}
-                  </div>
-                </div>
-              </CardHeader>
-              <CardContent>
-                <p className="text-foreground mb-4 whitespace-pre-wrap text-base leading-relaxed">
-                  {post.content}
-                </p>
-                <div className="flex items-center gap-2 text-sm text-muted-foreground mb-4">
-                  <MapPin size={16} className="text-secondary" />
-                  <span>{post.comuna}</span>
-                </div>
-
-                {/* Acciones: Like y Comentarios */}
-                <div className="flex items-center gap-4 pt-3 border-t">
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => handleLike(post.id)}
-                    className={`flex items-center gap-2 ${post.user_liked ? 'text-red-500' : ''
-                      }`}
-                    disabled={!isLoggedIn}
-                  >
-                    <Heart
-                      size={16}
-                      className={post.user_liked ? 'fill-current' : ''}
-                    />
-                    <span>{post.likes_count}</span>
-                  </Button>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => handleToggleComments(post.id)}
-                    className="flex items-center gap-2"
-                  >
-                    <MessageCircle size={16} />
-                    <span>{post.comments_count}</span>
-                  </Button>
-                </div>
-
-                {/* Sección de comentarios */}
-                {expandedPost === post.id && (
-                  <div className="mt-4 pt-4 border-t space-y-4">
-                    {/* Lista de comentarios */}
-                    {loadingComments[post.id] ? (
-                      <p className="text-sm text-muted-foreground">Cargando comentarios...</p>
-                    ) : (
-                      <>
-                        {comments[post.id] && comments[post.id].length > 0 && (
-                          <div className="space-y-3">
-                            {comments[post.id].map((comment) => (
-                              <div
-                                key={comment.id}
-                                className="flex items-start gap-3 p-3 bg-muted/50 rounded-lg"
-                              >
-                                <Avatar className="cursor-default">
-                                  {comment.profile_image && (
-                                    <AvatarImage src={comment.profile_image} alt={comment.user_name} />
-                                  )}
-                                  <AvatarFallback className="bg-secondary text-white text-xs">
-                                    {comment.user_name
-                                      .split(' ')
-                                      .map((n) => n[0])
-                                      .join('')}
-                                  </AvatarFallback>
-                                </Avatar>
-                                <div className="flex-1">
-                                  <div className="flex items-center justify-between mb-1">
-                                    <div className="flex items-center gap-2">
-                                      <p className="font-semibold text-sm">
-                                        {comment.user_name}
-                                      </p>
-                                      <Badge
-                                        className={`${getCommentTypeColor(comment.comment_type)} text-white text-xs`}
-                                      >
-                                        {comment.comment_type === 'info' ? (
-                                          <Info size={12} className="mr-1" />
-                                        ) : (
-                                          <Briefcase size={12} className="mr-1" />
-                                        )}
-                                        {getCommentTypeLabel(comment.comment_type)}
-                                      </Badge>
-                                    </div>
-                                    {(user?.id === comment.user_id ||
-                                      user?.role_number === 5) && (
-                                        <Button
-                                          variant="ghost"
-                                          size="sm"
-                                          onClick={() =>
-                                            handleDeleteComment(post.id, comment.id)
-                                          }
-                                          className="text-destructive hover:text-destructive h-6 w-6 p-0"
-                                        >
-                                          <Trash2 size={12} />
-                                        </Button>
-                                      )}
-                                  </div>
-                                  <p className="text-xs text-muted-foreground mb-1">
-                                    {formatDate(comment.created_at)}
-                                  </p>
-                                  <p className="text-sm mt-1 whitespace-pre-wrap">
-                                    {comment.content}
-                                  </p>
-                                </div>
-                              </div>
-                            ))}
-                          </div>
-                        )}
-
-                        {/* Botón para agregar comentario */}
-                        {isLoggedIn && (
-                          <Dialog
-                            open={isCommentDialogOpen[post.id] || false}
-                            onOpenChange={(open) =>
-                              setIsCommentDialogOpen((prev) => ({ ...prev, [post.id]: open }))
-                            }
-                          >
-                            <DialogTrigger asChild>
-                              <Button
-                                variant="outline"
-                                size="sm"
-                                onClick={() => handleOpenCommentDialog(post.id)}
-                                className="w-full"
-                              >
-                                <MessageCircle size={16} className="mr-2" />
-                                Agregar Comentario
-                              </Button>
-                            </DialogTrigger>
-                            <DialogContent className="sm:max-w-md">
-                              <DialogHeader>
-                                <DialogTitle>Nuevo Comentario</DialogTitle>
-                              </DialogHeader>
-                              <div className="space-y-4 pt-4">
-                                <div>
-                                  <Label htmlFor="comment-type">Tipo de Comentario</Label>
-                                  <Select
-                                    value={commentType[post.id] || 'info'}
-                                    onValueChange={(value: 'info' | 'dato_pega') =>
-                                      setCommentType((prev) => ({ ...prev, [post.id]: value }))
-                                    }
-                                  >
-                                    <SelectTrigger>
-                                      <SelectValue />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                      <SelectItem value="info">
-                                        Info (información general)
-                                      </SelectItem>
-                                      <SelectItem value="dato_pega">
-                                        Dato de Pega (oportunidad de trabajo)
-                                      </SelectItem>
-                                    </SelectContent>
-                                  </Select>
-                                </div>
-                                <div>
-                                  <Label htmlFor="comment-content">Comentario</Label>
-                                  <Textarea
-                                    id="comment-content"
-                                    placeholder="Escribe tu comentario..."
-                                    value={commentContent[post.id] || ''}
-                                    onChange={(e) =>
-                                      setCommentContent((prev) => ({
-                                        ...prev,
-                                        [post.id]: e.target.value,
-                                      }))
-                                    }
-                                    rows={4}
-                                  />
-                                </div>
-                                <div className="flex justify-end gap-2">
-                                  <Button
-                                    variant="outline"
-                                    onClick={() =>
-                                      setIsCommentDialogOpen((prev) => ({
-                                        ...prev,
-                                        [post.id]: false,
-                                      }))
-                                    }
-                                  >
-                                    Cancelar
-                                  </Button>
-                                  <Button
-                                    onClick={() => handleComment(post.id)}
-                                    disabled={!commentContent[post.id]?.trim()}
-                                  >
-                                    <Send size={16} className="mr-2" />
-                                    Comentar
-                                  </Button>
-                                </div>
-                              </div>
-                            </DialogContent>
-                          </Dialog>
-                        )}
-                        {!isLoggedIn && (
-                          <p className="text-sm text-muted-foreground text-center py-4">
-                            Inicia sesión para comentar
-                          </p>
-                        )}
-                      </>
-                    )}
-                  </div>
-                )}
-              </CardContent>
-            </Card>
-          ))}
-        </div>
-      )
-      }
-
-      {/* Dialog de perfil de usuario */}
-      <Dialog open={isProfileDialogOpen} onOpenChange={setIsProfileDialogOpen}>
-        <DialogContent className="sm:max-w-md">
-          <DialogHeader>
-            <DialogTitle>Perfil de Usuario</DialogTitle>
-          </DialogHeader>
-          {loadingProfile ? (
-            <div className="py-8 text-center">
-              <p className="text-muted-foreground">Cargando perfil...</p>
-            </div>
-          ) : userProfile ? (
-            <div className="space-y-4 pt-4">
-              <div className="flex items-center gap-4">
-                <Avatar className="w-16 h-16">
-                  <AvatarFallback className="bg-primary text-white text-xl">
-                    {userProfile.name.split(' ').map((n) => n[0]).join('')}
-                  </AvatarFallback>
-                </Avatar>
-                <div>
-                  <h3 className="text-xl font-semibold">{userProfile.name}</h3>
-                  <Badge variant="secondary">{userProfile.role}</Badge>
-                </div>
-              </div>
-              <div className="space-y-3">
-                <div className="flex items-center gap-2 text-sm">
-                  <MapPin size={16} className="text-muted-foreground" />
-                  <span>{userProfile.comuna}</span>
-                </div>
-                {userProfile.phone && (
-                  <div className="flex items-center gap-2 text-sm">
-                    <Phone size={16} className="text-muted-foreground" />
-                    <span>{userProfile.phone}</span>
-                  </div>
-                )}
-              </div>
-              {userProfile.phone && selectedPost && (
+              <div className="flex justify-end">
                 <Button
-                  onClick={() => handleWhatsAppContact(userProfile.phone, userProfile.name)}
-                  className="w-full bg-green-500 hover:bg-green-600 text-white"
+                  onClick={handleSubmitPost}
+                  disabled={isSubmitting || !postContent.trim() || !postComuna.trim()}
+                  className="min-w-[120px]"
                 >
-                  <Phone size={16} className="mr-2" />
-                  Contactar por WhatsApp
-                </Button>
-              )}
-            </div>
-          ) : (
-            <div className="py-8 text-center">
-              <p className="text-muted-foreground">No se pudo cargar el perfil</p>
-            </div>
-          )}
-        </DialogContent>
-      </Dialog>
-
-      {
-        !isLoggedIn && (
-          <div className="mt-8 text-center py-8 bg-muted/30 rounded-2xl">
-            <p className="text-muted-foreground mb-4">
-              ¿Quieres publicar en la Pared de Pegas?
-            </p>
-            <Button variant="outline">Inicia Sesión o Regístrate</Button>
-          </div>
-        )
-      }
-      {/* Dialog de cobro por contacto WhatsApp */}
-      <Dialog open={isPaidContactModalOpen} onOpenChange={setIsPaidContactModalOpen}>
-        <DialogContent className="sm:max-w-md p-0 overflow-hidden border-none bg-transparent shadow-none">
-          <Card className="border-t-4 border-t-primary shadow-2xl">
-            <CardHeader className="text-center pb-2">
-              <div className="mx-auto w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mb-4">
-                <MessageCircle className="w-10 h-10 text-green-600" />
-              </div>
-              <DialogTitle className="text-2xl font-bold text-gray-800">Contactar por WhatsApp</DialogTitle>
-            </CardHeader>
-            <CardContent className="space-y-6 p-6">
-              <div className="bg-blue-50 border border-blue-100 rounded-xl p-4 text-center">
-                <p className="text-blue-800 font-medium mb-1">Servicio de Contacto Premium</p>
-                <div className="text-3xl font-black text-blue-900">
-                  {new Intl.NumberFormat('es-CL', { style: 'currency', currency: 'CLP' }).format(whatsappPrice)}
-                </div>
-                <p className="text-blue-600 text-xs mt-1">Pago único por cada contacto directo</p>
-              </div>
-
-              <div className="space-y-3">
-                <div className="flex items-start gap-3">
-                  <div className="w-5 h-5 bg-green-500 rounded-full flex-shrink-0 flex items-center justify-center mt-0.5">
-                    <CheckCircle className="w-3 h-3 text-white" />
-                  </div>
-                  <p className="text-sm text-gray-600">Acceso inmediato al número de WhatsApp verificado.</p>
-                </div>
-                <div className="flex items-start gap-3">
-                  <div className="w-5 h-5 bg-green-500 rounded-full flex-shrink-0 flex items-center justify-center mt-0.5">
-                    <CheckCircle className="w-3 h-3 text-white" />
-                  </div>
-                  <p className="text-sm text-gray-600">Chat directo sin intermediarios.</p>
-                </div>
-              </div>
-
-              <div className="grid grid-cols-2 gap-3 pt-2">
-                <Button
-                  variant="outline"
-                  onClick={() => setIsPaidContactModalOpen(false)}
-                  className="h-12 border-gray-200 text-gray-600 hover:bg-gray-50"
-                >
-                  Cancelar
-                </Button>
-                <Button
-                  onClick={async () => {
-                    try {
-                      let targetUserId = '';
-                      let postId = '';
-
-                      if (pendingContactPost) {
-                        targetUserId = pendingContactPost.user_id;
-                        postId = pendingContactPost.id;
-                      } else if (pendingContactPhone && pendingContactName && userProfile) {
-                        targetUserId = userProfile.id;
-                      }
-
-                      if (!targetUserId) {
-                        toast.error('No se pudo identificar al usuario');
-                        return;
-                      }
-
-                      setIsPaidContactModalOpen(false);
-                      toast.loading('Preparando pago...', { id: 'contact-payment' });
-
-                      const response = await flowAPI.createContactPayment(targetUserId, postId);
-
-                      if (response && response.url) {
-                        toast.success('Redirigiendo a Flow...', { id: 'contact-payment' });
-                        window.location.href = response.url;
-                      } else {
-                        throw new Error('No se recibió la URL de pago del servidor');
-                      }
-                    } catch (error: any) {
-                      console.error('Error creating contact payment:', error);
-                      toast.error(error.message || 'Error al procesar el pago', { id: 'contact-payment' });
-                    }
-                  }}
-                  className="h-12 bg-green-600 hover:bg-green-700 text-white font-bold shadow-lg shadow-green-200"
-                >
-                  Pagar y Chatear
+                  {isSubmitting ? 'Publicando...' : 'Publicar'}
                 </Button>
               </div>
-
-              <p className="text-[10px] text-center text-gray-400">
-                Al continuar, aceptas nuestras políticas de servicio y cobro.
-              </p>
             </CardContent>
           </Card>
-        </DialogContent>
-      </Dialog>
-    </div >
+        )}
+
+        {/* Filtros */}
+        <div className="mb-6 flex gap-4">
+          <Select value={filterType} onValueChange={setFilterType}>
+            <SelectTrigger className="w-40">
+              <SelectValue placeholder="Tipo" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">Todos</SelectItem>
+              <SelectItem value="Busco Servicio">Busco Servicio</SelectItem>
+              <SelectItem value="Ofrezco">Ofrezco</SelectItem>
+              <SelectItem value="Info">Info</SelectItem>
+            </SelectContent>
+          </Select>
+          <Input
+            placeholder="Filtrar por comuna..."
+            value={filterComuna}
+            onChange={(e) => setFilterComuna(e.target.value)}
+            className="flex-1"
+          />
+        </div>
+
+        {/* Posts Feed */}
+        {loading ? (
+          <div className="text-center py-12 glass-card rounded-2xl border-white/5">
+            <p className="text-muted-foreground animate-pulse">Cargando publicaciones...</p>
+          </div>
+        ) : posts.length === 0 ? (
+          <div className="text-center py-12 glass-card rounded-2xl border-white/5">
+            <p className="text-muted-foreground">No hay publicaciones aún</p>
+          </div>
+        ) : (
+          <div className="space-y-6">
+            {posts.map((post) => (
+              <Card key={post.id} className="glass-card border-white/5 hover:border-primary/30 transition-all duration-300 hover:shadow-2xl hover:shadow-primary/5">
+                <CardHeader>
+                  <div className="flex items-start justify-between">
+                    <div className="flex items-center gap-3">
+                      <Avatar
+                        className={`${post.type === 'Busco Servicio' && canViewProfile() ? 'cursor-pointer hover:opacity-80 transition-opacity' : post.type === 'Busco Servicio' ? 'opacity-60' : ''}`}
+                        onClick={() => post.type === 'Busco Servicio' && canViewProfile() && handleProfileClick(post.user_id, post.type, post)}
+                        title={post.type === 'Busco Servicio' && !canViewProfile() ? 'Solo los emprendedores pueden contactar' : ''}
+                      >
+                        {post.profile_image && (
+                          <AvatarImage src={post.profile_image} alt={post.user_name} />
+                        )}
+                        <AvatarFallback className="bg-secondary text-white">
+                          {post.user_name.split(' ').map((n) => n[0]).join('')}
+                        </AvatarFallback>
+                      </Avatar>
+                      <div className="flex flex-col">
+                        <div className="flex items-center gap-1">
+                          <h3
+                            className={`font-semibold ${post.type === 'Busco Servicio' && canViewProfile() ? 'cursor-pointer hover:underline' : post.type === 'Busco Servicio' ? 'opacity-60' : ''}`}
+                            onClick={() => post.type === 'Busco Servicio' && canViewProfile() && handleProfileClick(post.user_id, post.type, post)}
+                            title={post.type === 'Busco Servicio' && !canViewProfile() ? 'Solo los emprendedores pueden contactar' : ''}
+                          >
+                            {post.user_name}
+                          </h3>
+                          {post.user_role_number === 5 && (
+                            <div title="Super Admin">
+                              <Crown size={14} className="text-yellow-500 fill-yellow-500" />
+                            </div>
+                          )}
+                        </div>
+                        <p className="text-sm text-muted-foreground">
+                          {formatDate(post.created_at)}
+                        </p>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      {post.type === 'Ofrezco' && (
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          className="h-8 gap-2 bg-green-50 text-green-700 border-green-200 hover:bg-green-100 hover:text-green-800"
+                          onClick={() => handleDirectWhatsAppContact(post)}
+                          disabled={loadingContact[post.id]}
+                        >
+                          {loadingContact[post.id] ? (
+                            <span className="animate-spin">⏳</span>
+                          ) : (
+                            <MessageCircle size={14} />
+                          )}
+                          Contactar
+                        </Button>
+                      )}
+                      <Badge className={getTypeColor(post.type)}>
+                        {post.type}
+                      </Badge>
+                      {(user?.id === post.user_id || user?.role_number === 5) && (
+                        <div className="flex gap-1">
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => navigate(`/admin?tab=posts&search=${post.user_name}`)}
+                            className="h-8 w-8 p-0"
+                          >
+                            <Edit size={16} />
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => handleDeletePost(post.id)}
+                            className="text-destructive hover:text-destructive h-8 w-8 p-0"
+                          >
+                            <Trash2 size={16} />
+                          </Button>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </CardHeader>
+                <CardContent>
+                  <p className="text-foreground mb-4 whitespace-pre-wrap text-base leading-relaxed">
+                    {post.content}
+                  </p>
+                  <div className="flex items-center gap-2 text-sm text-muted-foreground mb-4">
+                    <MapPin size={16} className="text-secondary" />
+                    <span>{post.comuna}</span>
+                  </div>
+
+                  {/* Acciones: Like y Comentarios */}
+                  <div className="flex items-center gap-4 pt-3 border-t">
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => handleLike(post.id)}
+                      className={`flex items-center gap-2 ${post.user_liked ? 'text-red-500' : ''
+                        }`}
+                      disabled={!isLoggedIn}
+                    >
+                      <Heart
+                        size={16}
+                        className={post.user_liked ? 'fill-current' : ''}
+                      />
+                      <span>{post.likes_count}</span>
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => handleToggleComments(post.id)}
+                      className="flex items-center gap-2"
+                    >
+                      <MessageCircle size={16} />
+                      <span>{post.comments_count}</span>
+                    </Button>
+                  </div>
+
+                  {/* Sección de comentarios */}
+                  {expandedPost === post.id && (
+                    <div className="mt-4 pt-4 border-t space-y-4">
+                      {/* Lista de comentarios */}
+                      {loadingComments[post.id] ? (
+                        <p className="text-sm text-muted-foreground">Cargando comentarios...</p>
+                      ) : (
+                        <>
+                          {comments[post.id] && comments[post.id].length > 0 && (
+                            <div className="space-y-3">
+                              {comments[post.id].map((comment) => (
+                                <div
+                                  key={comment.id}
+                                  className="flex items-start gap-3 p-3 bg-muted/50 rounded-lg"
+                                >
+                                  <Avatar className="cursor-default">
+                                    {comment.profile_image && (
+                                      <AvatarImage src={comment.profile_image} alt={comment.user_name} />
+                                    )}
+                                    <AvatarFallback className="bg-secondary text-white text-xs">
+                                      {comment.user_name
+                                        .split(' ')
+                                        .map((n) => n[0])
+                                        .join('')}
+                                    </AvatarFallback>
+                                  </Avatar>
+                                  <div className="flex-1">
+                                    <div className="flex items-center justify-between mb-1">
+                                      <div className="flex items-center gap-2">
+                                        <p className="font-semibold text-sm">
+                                          {comment.user_name}
+                                        </p>
+                                        <Badge
+                                          className={`${getCommentTypeColor(comment.comment_type)} text-white text-xs`}
+                                        >
+                                          {comment.comment_type === 'info' ? (
+                                            <Info size={12} className="mr-1" />
+                                          ) : (
+                                            <Briefcase size={12} className="mr-1" />
+                                          )}
+                                          {getCommentTypeLabel(comment.comment_type)}
+                                        </Badge>
+                                      </div>
+                                      {(user?.id === comment.user_id ||
+                                        user?.role_number === 5) && (
+                                          <Button
+                                            variant="ghost"
+                                            size="sm"
+                                            onClick={() =>
+                                              handleDeleteComment(post.id, comment.id)
+                                            }
+                                            className="text-destructive hover:text-destructive h-6 w-6 p-0"
+                                          >
+                                            <Trash2 size={12} />
+                                          </Button>
+                                        )}
+                                    </div>
+                                    <p className="text-xs text-muted-foreground mb-1">
+                                      {formatDate(comment.created_at)}
+                                    </p>
+                                    <p className="text-sm mt-1 whitespace-pre-wrap">
+                                      {comment.content}
+                                    </p>
+                                  </div>
+                                </div>
+                              ))}
+                            </div>
+                          )}
+
+                          {/* Botón para agregar comentario */}
+                          {isLoggedIn && (
+                            <Dialog
+                              open={isCommentDialogOpen[post.id] || false}
+                              onOpenChange={(open) =>
+                                setIsCommentDialogOpen((prev) => ({ ...prev, [post.id]: open }))
+                              }
+                            >
+                              <DialogTrigger asChild>
+                                <Button
+                                  variant="outline"
+                                  size="sm"
+                                  onClick={() => handleOpenCommentDialog(post.id)}
+                                  className="w-full"
+                                >
+                                  <MessageCircle size={16} className="mr-2" />
+                                  Agregar Comentario
+                                </Button>
+                              </DialogTrigger>
+                              <DialogContent className="sm:max-w-md">
+                                <DialogHeader>
+                                  <DialogTitle>Nuevo Comentario</DialogTitle>
+                                </DialogHeader>
+                                <div className="space-y-4 pt-4">
+                                  <div>
+                                    <Label htmlFor="comment-type">Tipo de Comentario</Label>
+                                    <Select
+                                      value={commentType[post.id] || 'info'}
+                                      onValueChange={(value: 'info' | 'dato_pega') =>
+                                        setCommentType((prev) => ({ ...prev, [post.id]: value }))
+                                      }
+                                    >
+                                      <SelectTrigger>
+                                        <SelectValue />
+                                      </SelectTrigger>
+                                      <SelectContent>
+                                        <SelectItem value="info">
+                                          Info (información general)
+                                        </SelectItem>
+                                        <SelectItem value="dato_pega">
+                                          Dato de Pega (oportunidad de trabajo)
+                                        </SelectItem>
+                                      </SelectContent>
+                                    </Select>
+                                  </div>
+                                  <div>
+                                    <Label htmlFor="comment-content">Comentario</Label>
+                                    <Textarea
+                                      id="comment-content"
+                                      placeholder="Escribe tu comentario..."
+                                      value={commentContent[post.id] || ''}
+                                      onChange={(e) =>
+                                        setCommentContent((prev) => ({
+                                          ...prev,
+                                          [post.id]: e.target.value,
+                                        }))
+                                      }
+                                      rows={4}
+                                    />
+                                  </div>
+                                  <div className="flex justify-end gap-2">
+                                    <Button
+                                      variant="outline"
+                                      onClick={() =>
+                                        setIsCommentDialogOpen((prev) => ({
+                                          ...prev,
+                                          [post.id]: false,
+                                        }))
+                                      }
+                                    >
+                                      Cancelar
+                                    </Button>
+                                    <Button
+                                      onClick={() => handleComment(post.id)}
+                                      disabled={!commentContent[post.id]?.trim()}
+                                    >
+                                      <Send size={16} className="mr-2" />
+                                      Comentar
+                                    </Button>
+                                  </div>
+                                </div>
+                              </DialogContent>
+                            </Dialog>
+                          )}
+                          {!isLoggedIn && (
+                            <p className="text-sm text-muted-foreground text-center py-4">
+                              Inicia sesión para comentar
+                            </p>
+                          )}
+                        </>
+                      )}
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        )
+        }
+
+        {/* Dialog de perfil de usuario */}
+        <Dialog open={isProfileDialogOpen} onOpenChange={setIsProfileDialogOpen}>
+          <DialogContent className="sm:max-w-md">
+            <DialogHeader>
+              <DialogTitle>Perfil de Usuario</DialogTitle>
+            </DialogHeader>
+            {loadingProfile ? (
+              <div className="py-8 text-center">
+                <p className="text-muted-foreground">Cargando perfil...</p>
+              </div>
+            ) : userProfile ? (
+              <div className="space-y-4 pt-4">
+                <div className="flex items-center gap-4">
+                  <Avatar className="w-16 h-16">
+                    <AvatarFallback className="bg-primary text-white text-xl">
+                      {userProfile.name.split(' ').map((n) => n[0]).join('')}
+                    </AvatarFallback>
+                  </Avatar>
+                  <div>
+                    <h3 className="text-xl font-semibold">{userProfile.name}</h3>
+                    <Badge variant="secondary">{userProfile.role}</Badge>
+                  </div>
+                </div>
+                <div className="space-y-3">
+                  <div className="flex items-center gap-2 text-sm">
+                    <MapPin size={16} className="text-muted-foreground" />
+                    <span>{userProfile.comuna}</span>
+                  </div>
+                  {userProfile.phone && (
+                    <div className="flex items-center gap-2 text-sm">
+                      <Phone size={16} className="text-muted-foreground" />
+                      <span>{userProfile.phone}</span>
+                    </div>
+                  )}
+                </div>
+                {userProfile.phone && selectedPost && (
+                  <Button
+                    onClick={() => handleWhatsAppContact(userProfile.phone, userProfile.name)}
+                    className="w-full bg-green-500 hover:bg-green-600 text-white"
+                  >
+                    <Phone size={16} className="mr-2" />
+                    Contactar por WhatsApp
+                  </Button>
+                )}
+              </div>
+            ) : (
+              <div className="py-8 text-center">
+                <p className="text-muted-foreground">No se pudo cargar el perfil</p>
+              </div>
+            )}
+          </DialogContent>
+        </Dialog>
+
+        {
+          !isLoggedIn && (
+            <div className="mt-8 text-center py-8 bg-muted/30 rounded-2xl">
+              <p className="text-muted-foreground mb-4">
+                ¿Quieres publicar en la Pared de Pegas?
+              </p>
+              <Button variant="outline">Inicia Sesión o Regístrate</Button>
+            </div>
+          )
+        }
+        {/* Dialog de cobro por contacto WhatsApp */}
+        <Dialog open={isPaidContactModalOpen} onOpenChange={setIsPaidContactModalOpen}>
+          <DialogContent className="sm:max-w-md p-0 overflow-hidden border-none bg-transparent shadow-none">
+            <Card className="border-t-4 border-t-primary shadow-2xl">
+              <CardHeader className="text-center pb-2">
+                <div className="mx-auto w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mb-4">
+                  <MessageCircle className="w-10 h-10 text-green-600" />
+                </div>
+                <DialogTitle className="text-2xl font-bold text-gray-800">Contactar por WhatsApp</DialogTitle>
+              </CardHeader>
+              <CardContent className="space-y-6 p-6">
+                <div className="bg-blue-50 border border-blue-100 rounded-xl p-4 text-center">
+                  <p className="text-blue-800 font-medium mb-1">Servicio de Contacto Premium</p>
+                  <div className="text-3xl font-black text-blue-900">
+                    {new Intl.NumberFormat('es-CL', { style: 'currency', currency: 'CLP' }).format(whatsappPrice)}
+                  </div>
+                  <p className="text-blue-600 text-xs mt-1">Pago único por cada contacto directo</p>
+                </div>
+
+                <div className="space-y-3">
+                  <div className="flex items-start gap-3">
+                    <div className="w-5 h-5 bg-green-500 rounded-full flex-shrink-0 flex items-center justify-center mt-0.5">
+                      <CheckCircle className="w-3 h-3 text-white" />
+                    </div>
+                    <p className="text-sm text-gray-600">Acceso inmediato al número de WhatsApp verificado.</p>
+                  </div>
+                  <div className="flex items-start gap-3">
+                    <div className="w-5 h-5 bg-green-500 rounded-full flex-shrink-0 flex items-center justify-center mt-0.5">
+                      <CheckCircle className="w-3 h-3 text-white" />
+                    </div>
+                    <p className="text-sm text-gray-600">Chat directo sin intermediarios.</p>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-2 gap-3 pt-2">
+                  <Button
+                    variant="outline"
+                    onClick={() => setIsPaidContactModalOpen(false)}
+                    className="h-12 border-gray-200 text-gray-600 hover:bg-gray-50"
+                  >
+                    Cancelar
+                  </Button>
+                  <Button
+                    onClick={async () => {
+                      try {
+                        let targetUserId = '';
+                        let postId = '';
+
+                        if (pendingContactPost) {
+                          targetUserId = pendingContactPost.user_id;
+                          postId = pendingContactPost.id;
+                        } else if (pendingContactPhone && pendingContactName && userProfile) {
+                          targetUserId = userProfile.id;
+                        }
+
+                        if (!targetUserId) {
+                          toast.error('No se pudo identificar al usuario');
+                          return;
+                        }
+
+                        setIsPaidContactModalOpen(false);
+                        toast.loading('Preparando pago...', { id: 'contact-payment' });
+
+                        const response = await flowAPI.createContactPayment(targetUserId, postId);
+
+                        if (response && response.url) {
+                          toast.success('Redirigiendo a Flow...', { id: 'contact-payment' });
+                          window.location.href = response.url;
+                        } else {
+                          throw new Error('No se recibió la URL de pago del servidor');
+                        }
+                      } catch (error: any) {
+                        console.error('Error creating contact payment:', error);
+                        toast.error(error.message || 'Error al procesar el pago', { id: 'contact-payment' });
+                      }
+                    }}
+                    className="h-12 bg-green-600 hover:bg-green-700 text-white font-bold shadow-lg shadow-green-200"
+                  >
+                    Pagar y Chatear
+                  </Button>
+                </div>
+
+                <p className="text-[10px] text-center text-gray-400">
+                  Al continuar, aceptas nuestras políticas de servicio y cobro.
+                </p>
+              </CardContent>
+            </Card>
+          </DialogContent>
+        </Dialog>
+      </div>
+    </div>
   );
 };
 

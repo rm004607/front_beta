@@ -73,101 +73,109 @@ const FlowCallback = () => {
     };
 
     return (
-        <div className="min-h-screen flex items-center justify-center bg-gray-50 p-4">
-            <Card className="w-full max-w-md">
-                <CardHeader className="text-center">
-                    {status === 'loading' && (
-                        <>
-                            <div className="flex justify-center mb-4">
-                                <Loader2 className="h-16 w-16 text-primary animate-spin" />
-                            </div>
-                            <CardTitle>Verificando pago...</CardTitle>
-                            <CardDescription>
-                                Por favor espera mientras verificamos tu transacción
-                            </CardDescription>
-                        </>
-                    )}
+        <div className="min-h-screen bg-background relative overflow-hidden flex items-center justify-center p-4">
+            {/* Decorative background elements */}
+            <div className="absolute top-0 left-0 w-full h-full pointer-events-none">
+                <div className="absolute top-[-10%] left-[-10%] w-[50%] h-[50%] bg-primary/10 rounded-full blur-[120px]" />
+                <div className="absolute bottom-[-10%] right-[-10%] w-[50%] h-[50%] bg-secondary/10 rounded-full blur-[120px]" />
+            </div>
 
-                    {status === 'success' && (
-                        <>
-                            <div className="flex justify-center mb-4">
-                                <CheckCircle className="h-16 w-16 text-green-500" />
+            <div className="w-full max-w-md relative z-10">
+                <Card className="glass-card border-white/5 shadow-2xl overflow-hidden">
+                    <CardHeader className="text-center">
+                        {status === 'loading' && (
+                            <>
+                                <div className="flex justify-center mb-4">
+                                    <Loader2 className="h-16 w-16 text-primary animate-spin" />
+                                </div>
+                                <CardTitle>Verificando pago...</CardTitle>
+                                <CardDescription>
+                                    Por favor espera mientras verificamos tu transacción
+                                </CardDescription>
+                            </>
+                        )}
+
+                        {status === 'success' && (
+                            <>
+                                <div className="flex justify-center mb-4">
+                                    <CheckCircle className="h-16 w-16 text-green-500" />
+                                </div>
+                                <CardTitle className="text-green-600">¡Pago exitoso!</CardTitle>
+                                <CardDescription>
+                                    Tu paquete ha sido activado correctamente
+                                </CardDescription>
+                            </>
+                        )}
+
+                        {(status === 'failed' || status === 'cancelled') && (
+                            <>
+                                <div className="flex justify-center mb-4">
+                                    <XCircle className="h-16 w-16 text-red-500" />
+                                </div>
+                                <CardTitle className="text-red-600">
+                                    {status === 'cancelled' ? 'Pago cancelado' : 'Pago fallido'}
+                                </CardTitle>
+                                <CardDescription>
+                                    {status === 'cancelled'
+                                        ? 'Has cancelado el proceso de pago'
+                                        : 'Hubo un problema procesando tu pago'}
+                                </CardDescription>
+                            </>
+                        )}
+                    </CardHeader>
+
+                    {paymentDetails && status === 'success' && (
+                        <CardContent className="space-y-4">
+                            <div className="bg-gray-50 p-4 rounded-lg space-y-2">
+                                <div className="flex justify-between">
+                                    <span className="text-sm text-gray-600">
+                                        {paymentDetails.packageType === 'whatsapp_contact' ? 'Contacto:' : 'Paquete:'}
+                                    </span>
+                                    <span className="text-sm font-medium">
+                                        {paymentDetails.packageType === 'whatsapp_contact'
+                                            ? paymentDetails.targetName
+                                            : paymentDetails.packageId.replace(/_/g, ' ')}
+                                    </span>
+                                </div>
+                                <div className="flex justify-between">
+                                    <span className="text-sm text-gray-600">Monto:</span>
+                                    <span className="text-sm font-medium">
+                                        {formatPrice(paymentDetails.amount)}
+                                    </span>
+                                </div>
+                                {paymentDetails.packageType !== 'whatsapp_contact' && (
+                                    <div className="flex justify-between">
+                                        <span className="text-sm text-gray-600">Publicaciones:</span>
+                                        <span className="text-sm font-medium">
+                                            +{paymentDetails.publicationsAdded}
+                                        </span>
+                                    </div>
+                                )}
                             </div>
-                            <CardTitle className="text-green-600">¡Pago exitoso!</CardTitle>
-                            <CardDescription>
-                                Tu paquete ha sido activado correctamente
-                            </CardDescription>
-                        </>
+
+                            <Button
+                                className="w-full"
+                                onClick={handleContinue}
+                            >
+                                Continuar
+                            </Button>
+                        </CardContent>
                     )}
 
                     {(status === 'failed' || status === 'cancelled') && (
-                        <>
-                            <div className="flex justify-center mb-4">
-                                <XCircle className="h-16 w-16 text-red-500" />
+                        <CardContent>
+                            <div className="space-y-2">
+                                <Button
+                                    className="w-full"
+                                    onClick={() => navigate('/')}
+                                >
+                                    Ir al Inicio
+                                </Button>
                             </div>
-                            <CardTitle className="text-red-600">
-                                {status === 'cancelled' ? 'Pago cancelado' : 'Pago fallido'}
-                            </CardTitle>
-                            <CardDescription>
-                                {status === 'cancelled'
-                                    ? 'Has cancelado el proceso de pago'
-                                    : 'Hubo un problema procesando tu pago'}
-                            </CardDescription>
-                        </>
+                        </CardContent>
                     )}
-                </CardHeader>
-
-                {paymentDetails && status === 'success' && (
-                    <CardContent className="space-y-4">
-                        <div className="bg-gray-50 p-4 rounded-lg space-y-2">
-                            <div className="flex justify-between">
-                                <span className="text-sm text-gray-600">
-                                    {paymentDetails.packageType === 'whatsapp_contact' ? 'Contacto:' : 'Paquete:'}
-                                </span>
-                                <span className="text-sm font-medium">
-                                    {paymentDetails.packageType === 'whatsapp_contact'
-                                        ? paymentDetails.targetName
-                                        : paymentDetails.packageId.replace(/_/g, ' ')}
-                                </span>
-                            </div>
-                            <div className="flex justify-between">
-                                <span className="text-sm text-gray-600">Monto:</span>
-                                <span className="text-sm font-medium">
-                                    {formatPrice(paymentDetails.amount)}
-                                </span>
-                            </div>
-                            {paymentDetails.packageType !== 'whatsapp_contact' && (
-                                <div className="flex justify-between">
-                                    <span className="text-sm text-gray-600">Publicaciones:</span>
-                                    <span className="text-sm font-medium">
-                                        +{paymentDetails.publicationsAdded}
-                                    </span>
-                                </div>
-                            )}
-                        </div>
-
-                        <Button
-                            className="w-full"
-                            onClick={handleContinue}
-                        >
-                            Continuar
-                        </Button>
-                    </CardContent>
-                )}
-
-                {(status === 'failed' || status === 'cancelled') && (
-                    <CardContent>
-                        <div className="space-y-2">
-                            <Button
-                                className="w-full"
-                                onClick={() => navigate('/')}
-                            >
-                                Ir al Inicio
-                            </Button>
-                        </div>
-                    </CardContent>
-                )}
-            </Card>
+                </Card>
+            </div>
         </div>
     );
 };

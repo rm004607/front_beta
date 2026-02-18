@@ -75,133 +75,141 @@ const Support = () => {
   };
 
   return (
-    <div className="container mx-auto px-4 py-8 max-w-6xl">
-      <div className="mb-8 text-center">
-        <div className="flex items-center justify-center gap-3 mb-4">
-          <HelpCircle className="text-primary" size={48} />
-          <h1 className="text-4xl font-heading font-bold">Centro de Ayuda</h1>
-        </div>
-        <p className="text-muted-foreground text-lg">
-          Estamos aquí para ayudarte. Encuentra respuestas rápidas o contáctanos directamente.
-        </p>
+    <div className="min-h-screen bg-background relative overflow-hidden pb-12">
+      {/* Decorative background elements */}
+      <div className="absolute top-0 left-0 w-full h-full pointer-events-none">
+        <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-primary/10 rounded-full blur-[120px]" />
+        <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-secondary/10 rounded-full blur-[120px]" />
       </div>
 
-      <Tabs defaultValue="faq" className="w-full">
-        <TabsList className="grid w-full grid-cols-2 mb-6">
-          <TabsTrigger value="faq" className="flex items-center gap-2">
-            <MessageSquare size={16} />
-            Preguntas Frecuentes
-          </TabsTrigger>
-          <TabsTrigger value="ticket" className="flex items-center gap-2">
-            <Send size={16} />
-            Enviar Ticket
-          </TabsTrigger>
-        </TabsList>
+      <div className="container mx-auto px-4 py-8 max-w-6xl relative z-10">
+        <div className="mb-8 p-8 glass-card rounded-3xl border-primary/10 text-center">
+          <div className="flex items-center justify-center gap-3 mb-4">
+            <HelpCircle className="text-primary animate-pulse-subtle" size={48} />
+            <h1 className="text-5xl font-heading font-bold bg-clip-text text-transparent bg-gradient-to-r from-primary to-secondary">Centro de Ayuda</h1>
+          </div>
+          <p className="text-muted-foreground text-xl italic max-w-2xl mx-auto">
+            Estamos aquí para apoyarte. Encuentra respuestas rápidas o contáctanos directamente para asistirte.
+          </p>
+        </div>
 
-        <TabsContent value="faq">
-          <Card>
-            <CardHeader>
-              <CardTitle>Preguntas Frecuentes (FAQ)</CardTitle>
-              <CardDescription>
-                Encuentra respuestas a las preguntas más comunes sobre Dameldato
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <Accordion type="single" collapsible className="w-full">
-                {faqs.map((faq, index) => (
-                  <AccordionItem key={index} value={`item-${index}`}>
-                    <AccordionTrigger className="text-left">
-                      {faq.question}
-                    </AccordionTrigger>
-                    <AccordionContent className="text-muted-foreground">
-                      {faq.answer}
-                    </AccordionContent>
-                  </AccordionItem>
-                ))}
-              </Accordion>
-            </CardContent>
-          </Card>
-        </TabsContent>
+        <Tabs defaultValue="faq" className="w-full">
+          <TabsList className="grid w-full grid-cols-2 mb-6">
+            <TabsTrigger value="faq" className="flex items-center gap-2">
+              <MessageSquare size={16} />
+              Preguntas Frecuentes
+            </TabsTrigger>
+            <TabsTrigger value="ticket" className="flex items-center gap-2">
+              <Send size={16} />
+              Enviar Ticket
+            </TabsTrigger>
+          </TabsList>
 
-        <TabsContent value="ticket">
-          <Card>
-            <CardHeader>
-              <CardTitle>Enviar un Ticket de Soporte</CardTitle>
-              <CardDescription>
-                ¿No encontraste la respuesta que buscabas? Envíanos un ticket y te ayudaremos.
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              {!isLoggedIn ? (
-                <div className="text-center py-8">
-                  <p className="text-muted-foreground mb-4">
-                    Debes iniciar sesión para enviar un ticket de soporte.
-                  </p>
-                  <Button onClick={() => window.location.href = '/login'}>
-                    Iniciar Sesión
-                  </Button>
-                </div>
-              ) : (
-                <form onSubmit={handleSubmitTicket} className="space-y-4">
-                  <div>
-                    <Label htmlFor="category">Categoría</Label>
-                    <select
-                      id="category"
-                      value={category}
-                      onChange={(e) => setCategory(e.target.value)}
-                      className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-                    >
-                      <option value="general">General</option>
-                      <option value="technical">Problema Técnico</option>
-                      <option value="account">Cuenta</option>
-                      <option value="payment">Pago</option>
-                      <option value="report">Reportar Contenido</option>
-                      <option value="other">Otro</option>
-                    </select>
+          <TabsContent value="faq">
+            <Card className="glass-card border-white/5 shadow-2xl overflow-hidden">
+              <CardHeader>
+                <CardTitle>Preguntas Frecuentes (FAQ)</CardTitle>
+                <CardDescription>
+                  Encuentra respuestas a las preguntas más comunes sobre Dameldato
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <Accordion type="single" collapsible className="w-full">
+                  {faqs.map((faq, index) => (
+                    <AccordionItem key={index} value={`item-${index}`}>
+                      <AccordionTrigger className="text-left">
+                        {faq.question}
+                      </AccordionTrigger>
+                      <AccordionContent className="text-muted-foreground">
+                        {faq.answer}
+                      </AccordionContent>
+                    </AccordionItem>
+                  ))}
+                </Accordion>
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          <TabsContent value="ticket">
+            <Card className="glass-card border-white/5 shadow-2xl overflow-hidden">
+              <CardHeader>
+                <CardTitle>Enviar un Ticket de Soporte</CardTitle>
+                <CardDescription>
+                  ¿No encontraste la respuesta que buscabas? Envíanos un ticket y te ayudaremos.
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                {!isLoggedIn ? (
+                  <div className="text-center py-8">
+                    <p className="text-muted-foreground mb-4">
+                      Debes iniciar sesión para enviar un ticket de soporte.
+                    </p>
+                    <Button onClick={() => window.location.href = '/login'}>
+                      Iniciar Sesión
+                    </Button>
                   </div>
+                ) : (
+                  <form onSubmit={handleSubmitTicket} className="space-y-4">
+                    <div>
+                      <Label htmlFor="category">Categoría</Label>
+                      <select
+                        id="category"
+                        value={category}
+                        onChange={(e) => setCategory(e.target.value)}
+                        className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                      >
+                        <option value="general">General</option>
+                        <option value="technical">Problema Técnico</option>
+                        <option value="account">Cuenta</option>
+                        <option value="payment">Pago</option>
+                        <option value="report">Reportar Contenido</option>
+                        <option value="other">Otro</option>
+                      </select>
+                    </div>
 
-                  <div>
-                    <Label htmlFor="subject">Asunto</Label>
-                    <Input
-                      id="subject"
-                      value={subject}
-                      onChange={(e) => setSubject(e.target.value)}
-                      placeholder="Ej: Problema al subir mi CV"
-                      required
-                    />
-                  </div>
+                    <div>
+                      <Label htmlFor="subject">Asunto</Label>
+                      <Input
+                        id="subject"
+                        value={subject}
+                        onChange={(e) => setSubject(e.target.value)}
+                        placeholder="Ej: Problema al subir mi CV"
+                        required
+                      />
+                    </div>
 
-                  <div>
-                    <Label htmlFor="message">Mensaje</Label>
-                    <Textarea
-                      id="message"
-                      value={message}
-                      onChange={(e) => setMessage(e.target.value)}
-                      placeholder="Describe tu problema o consulta en detalle..."
-                      rows={6}
-                      required
-                    />
-                  </div>
+                    <div>
+                      <Label htmlFor="message">Mensaje</Label>
+                      <Textarea
+                        id="message"
+                        value={message}
+                        onChange={(e) => setMessage(e.target.value)}
+                        placeholder="Describe tu problema o consulta en detalle..."
+                        rows={6}
+                        required
+                      />
+                    </div>
 
-                  <Button type="submit" disabled={isSubmitting} className="w-full">
-                    {isSubmitting ? (
-                      <>
-                        <Send size={16} className="mr-2 animate-pulse" />
-                        Enviando...
-                      </>
-                    ) : (
-                      <>
-                        <Send size={16} className="mr-2" />
-                        Enviar Ticket
-                      </>
-                    )}
-                  </Button>
-                </form>
-              )}
-            </CardContent>
-          </Card>
-        </TabsContent>
-      </Tabs>
+                    <Button type="submit" disabled={isSubmitting} className="w-full">
+                      {isSubmitting ? (
+                        <>
+                          <Send size={16} className="mr-2 animate-pulse" />
+                          Enviando...
+                        </>
+                      ) : (
+                        <>
+                          <Send size={16} className="mr-2" />
+                          Enviar Ticket
+                        </>
+                      )}
+                    </Button>
+                  </form>
+                )}
+              </CardContent>
+            </Card>
+          </TabsContent>
+        </Tabs>
+      </div>
     </div>
   );
 };
