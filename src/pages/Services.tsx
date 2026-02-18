@@ -99,7 +99,8 @@ const Services = () => {
       const response = await servicesAPI.getServices({
         search: searchTerm || undefined,
         comuna: comunaFilter !== 'all' ? comunaFilter : undefined,
-        region_id: regionFilter !== 'all' ? regionFilter : undefined,
+        // Si hay una comuna seleccionada, no filtramos por región para permitir ver servicios de otras regiones que cubren esa comuna
+        region_id: comunaFilter === 'all' && regionFilter !== 'all' ? regionFilter : undefined,
         page: pagination.page,
         limit: pagination.limit,
       });
