@@ -56,7 +56,6 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
   const handleUnauthorized = async () => {
     // Solo cerrar sesión si el usuario estaba logueado
     if (userRef.current) {
-      console.log('Cookie expirada, cerrando sesión automáticamente');
       toast.info('Tu sesión ha expirado. Por favor, inicia sesión nuevamente.');
       // Limpiar estado local
       localStorage.removeItem('token');
@@ -86,7 +85,6 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
       const urlToken = urlParams.get('token');
 
       if (urlToken) {
-        console.log('Token encontrado en URL, guardando en localStorage');
         localStorage.setItem('token', urlToken);
 
         // Limpiar parámetros de la URL para mayor seguridad y estética

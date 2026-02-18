@@ -21,7 +21,18 @@ app.use(helmet({
       "font-src": ["'self'", "https://fonts.gstatic.com"],
     },
   },
+  crossOriginEmbedderPolicy: false,
+  crossOriginResourcePolicy: { policy: "cross-origin" }
 }));
+
+// Additional Security Headers
+app.use((req, res, next) => {
+  res.setHeader('X-Frame-Options', 'DENY');
+  res.setHeader('X-Content-Type-Options', 'nosniff');
+  res.setHeader('Referrer-Policy', 'strict-origin-when-cross-origin');
+  res.setHeader('Permissions-Policy', 'camera=(), microphone=(), geolocation=()');
+  next();
+});
 
 // Render.com asigna el puerto automáticamente
 const PORT = process.env.PORT || 8080;
@@ -54,6 +65,11 @@ app.get('*', (req, res, next) => {
 
 app.listen(PORT, '0.0.0.0', () => {
   console.log(`Server is running on port ${PORT}`);
-  console.log(`Serving files from: ${distPath}`);
+});
+
+// Manejo global de errores para evitar fugas de información
+app.use((err, req, res, next) => {
+  console.error('Internal Server Error');
+  res.status(500).send('Ha ocurrido un error inesperado. Por favor, intente más tarde.');
 });
 

@@ -191,7 +191,8 @@ const PostService = () => {
           }}
           type="services"
           onPackageSelect={(packageId) => {
-            console.log('Paquete seleccionado:', packageId);
+            // Log removed for production security
+
             // Aquí se integraría con el sistema de pago
             // Después del pago, se actualizarían los límites y se podría publicar
           }}
@@ -486,7 +487,8 @@ const PostService = () => {
           onOpenChange={setPackagesModalOpen}
           type="services"
           onPackageSelect={(packageId) => {
-            console.log('Paquete seleccionado:', packageId);
+            // Log removed for production security
+
             // Aquí se integraría con el sistema de pago
           }}
         />
