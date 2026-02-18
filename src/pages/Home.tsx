@@ -122,9 +122,9 @@ const Home = () => {
                   <div className="w-full h-full glass-card rounded-[3rem] flex items-center justify-center p-8 overflow-hidden group border-none">
                     <div className="absolute inset-0 bg-gradient-to-tr from-transparent via-white/10 to-transparent translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-1000"></div>
                     <img
-                      src={logoDameldato}
-                      alt="Dameldato"
-                      className="w-full h-full object-contain drop-shadow-2xl scale-110 group-hover:scale-125 transition-transform duration-700"
+                      src="https://images.unsplash.com/photo-1582213782179-e0d53f98f2ca?q=80&w=2070&auto=format&fit=crop"
+                      alt="Dameldato Comunidad"
+                      className="w-full h-full object-cover drop-shadow-2xl scale-110 group-hover:scale-125 transition-transform duration-700"
                     />
                   </div>
                 </div>
@@ -180,7 +180,6 @@ const Home = () => {
                 {cat.icon}
               </div>
               <h3 className="font-bold text-lg">{cat.label}</h3>
-              <p className="text-xs text-muted-foreground mt-1">Ver servicios</p>
             </div>
           ))}
         </div>

@@ -28,7 +28,7 @@ import { postsAPI, authAPI, flowAPI, configAPI } from '@/lib/api';
 
 interface Post {
   id: string;
-  type: 'Busco Trabajo' | 'Busco Servicio' | 'Ofrezco' | 'Info';
+  type: 'Busco Servicio' | 'Ofrezco' | 'Info';
   content: string;
   comuna: string;
   created_at: string;
@@ -62,7 +62,7 @@ interface UserProfile {
 const Wall = () => {
   const navigate = useNavigate();
   const { isLoggedIn, user } = useUser();
-  const [postType, setPostType] = useState('Busco Trabajo');
+  const [postType, setPostType] = useState('Busco Servicio');
   const [postContent, setPostContent] = useState('');
   const [postComuna, setPostComuna] = useState('');
   const [posts, setPosts] = useState<Post[]>([]);
@@ -138,7 +138,7 @@ const Wall = () => {
     try {
       setIsSubmitting(true);
       await postsAPI.createPost({
-        type: postType as 'Busco Trabajo' | 'Busco Servicio' | 'Ofrezco' | 'Info',
+        type: postType as 'Busco Servicio' | 'Ofrezco' | 'Info',
         content: postContent.trim(),
         comuna: postComuna.trim(),
       });
@@ -432,7 +432,6 @@ const Wall = () => {
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="Busco Trabajo">Busco Trabajo</SelectItem>
                     <SelectItem value="Busco Servicio">Busco Servicio</SelectItem>
                     <SelectItem value="Ofrezco">Ofrezco (trabajo/servicio)</SelectItem>
                     <SelectItem value="Info">Info (general)</SelectItem>
@@ -481,7 +480,6 @@ const Wall = () => {
           </SelectTrigger>
           <SelectContent>
             <SelectItem value="all">Todos</SelectItem>
-            <SelectItem value="Busco Trabajo">Busco Trabajo</SelectItem>
             <SelectItem value="Busco Servicio">Busco Servicio</SelectItem>
             <SelectItem value="Ofrezco">Ofrezco</SelectItem>
             <SelectItem value="Info">Info</SelectItem>

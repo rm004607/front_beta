@@ -83,11 +83,6 @@ const Footer = () => {
                     Publicar Servicio
                   </Link>
                 </li>
-                <li>
-                  <Link to="/servicios" className="text-muted-foreground hover:text-primary transition-colors text-sm">
-                    Ver Servicios
-                  </Link>
-                </li>
               </ul>
             </div>
           )}
