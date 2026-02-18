@@ -18,7 +18,7 @@ import {
   sanitizeInput,
   getValidationErrorMessage
 } from '@/lib/input-validator';
-import KYCVerification from '@/components/KYCVerification';
+// import KYCVerification from '@/components/KYCVerification';
 
 const Register = () => {
   const navigate = useNavigate();
@@ -28,9 +28,7 @@ const Register = () => {
     const stepParam = searchParams.get('step');
     return stepParam ? parseInt(stepParam) : 1;
   });
-  const [isKycVerified, setIsKycVerified] = useState(() => {
-    return localStorage.getItem('reg_kyc_done') === 'true';
-  });
+  const [isKycVerified, setIsKycVerified] = useState(true);
 
 
   // Step 1: Basic data
@@ -126,12 +124,8 @@ const Register = () => {
       localStorage.setItem('reg_phone', phone);
       localStorage.setItem('reg_comuna', comuna);
     }
-    if (step === 2 && !isKycVerified) {
-      toast.error('Debes completar la verificación KYC');
-      return;
-    }
-    // Si viene del paso 1, va al 2. Si viene del 2, va al 4 (datos específicos)
-    setStep(step === 2 ? 4 : step + 1);
+    // Si viene del paso 1, saltamos el 2 (KYC) y vamos al 4 (datos específicos)
+    setStep(4);
   };
 
   // Validar formato de email real
@@ -239,7 +233,7 @@ const Register = () => {
       <Card className="border-2">
         <CardHeader>
           <CardTitle className="text-3xl font-heading">Crear Cuenta</CardTitle>
-          <CardDescription>Paso {step === 4 ? 3 : step} de 3</CardDescription>
+          <CardDescription>Paso {step === 4 ? 2 : 1} de 2</CardDescription>
         </CardHeader>
         <CardContent>
           {step === 1 && (
@@ -383,7 +377,8 @@ const Register = () => {
             </div>
           )}
 
-          {step === 2 && (
+          {/* KYC removido temporalmente */}
+          {/* step === 2 && (
             <KYCVerification
               email={email}
               onComplete={() => {
@@ -393,7 +388,7 @@ const Register = () => {
               }}
               onBack={() => setStep(1)}
             />
-          )}
+          ) */}
 
 
           {step === 4 && (
@@ -458,7 +453,7 @@ const Register = () => {
               )}
 
               <div className="flex gap-3 pt-6 border-t">
-                <Button variant="outline" onClick={() => setStep(2)} className="flex-1">
+                <Button variant="outline" onClick={() => setStep(1)} className="flex-1">
                   <ArrowLeft className="mr-2" size={18} />
                   Atrás
                 </Button>
