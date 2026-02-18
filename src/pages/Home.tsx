@@ -68,8 +68,8 @@ const Home = () => {
       <section className="relative py-20 md:py-32 overflow-hidden">
         {/* Animated Background Elements */}
         <div className="absolute inset-0 overflow-hidden pointer-events-none">
-          <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-primary/10 blur-[120px] rounded-full animate-pulse-subtle"></div>
-          <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-secondary/10 blur-[120px] rounded-full animate-pulse-subtle" style={{ animationDelay: '1s' }}></div>
+          <div className="absolute top-[-10%] left-[-10%] w-[60%] h-[60%] md:w-[40%] md:h-[40%] bg-primary/10 blur-[80px] md:blur-[120px] rounded-full animate-pulse-subtle"></div>
+          <div className="absolute bottom-[-10%] right-[-10%] w-[60%] h-[60%] md:w-[40%] md:h-[40%] bg-secondary/10 blur-[80px] md:blur-[120px] rounded-full animate-pulse-subtle" style={{ animationDelay: '1s' }}></div>
         </div>
 
         <div className="container mx-auto px-4 relative z-10">
@@ -81,8 +81,8 @@ const Home = () => {
                 Comunidad 100% Verificada
               </div>
 
-              <h1 className="text-5xl md:text-7xl font-sans font-extrabold leading-[1.1] tracking-tight animate-reveal delay-100">
-                ¡Acá está el <br />
+              <h1 className="text-4xl sm:text-5xl md:text-7xl font-sans font-extrabold leading-[1.1] tracking-tight animate-reveal delay-100">
+                ¡Acá está el <span className="sm:hidden"><br /></span>
                 <span className="text-primary text-glow">Dato que necesitas!</span>
               </h1>
 

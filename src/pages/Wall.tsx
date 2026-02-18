@@ -28,7 +28,7 @@ import { postsAPI, authAPI, flowAPI, configAPI } from '@/lib/api';
 
 interface Post {
   id: string;
-  type: 'Busco Servicio' | 'Ofrezco' | 'Info';
+  type: 'Busco Trabajo' | 'Busco Servicio' | 'Ofrezco' | 'Info';
   content: string;
   comuna: string;
   created_at: string;

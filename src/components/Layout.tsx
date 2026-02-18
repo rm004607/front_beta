@@ -213,7 +213,7 @@ const Layout = ({ children }: LayoutProps) => {
       <Footer />
 
       {/* AI Chat Bubble */}
-      <AIChatBubble />
+      
     </div>
   );
 };
