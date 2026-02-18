@@ -75,7 +75,8 @@ const Register = () => {
   const [experience, setExperience] = useState('');
   const [service, setService] = useState('');
   const [portfolio, setPortfolio] = useState('');
-  const [priceRange, setPriceRange] = useState('');
+  const [minPrice, setMinPrice] = useState('');
+  const [maxPrice, setMaxPrice] = useState('');
   const [companyRut, setCompanyRut] = useState('');
   const [companyAddress, setCompanyAddress] = useState('');
   const [companyRubro, setCompanyRubro] = useState('');
@@ -100,8 +101,8 @@ const Register = () => {
 
   const handleNext = () => {
     if (step === 1) {
-      if (!name || !email || !password || !phone || !comuna) {
-        toast.error('Por favor completa todos los campos');
+      if (!name || !email || !password || !phone) {
+        toast.error('Por favor completa todos los campos (Nombre, Email, Contraseña y Teléfono)');
         return;
       }
 
@@ -213,6 +214,8 @@ const Register = () => {
 
     setIsSubmitting(true);
     try {
+      const priceRangeString = minPrice && maxPrice ? `${minPrice} - ${maxPrice}` : minPrice || maxPrice || '';
+
       // Sanitizar inputs antes de enviar (capa adicional de seguridad)
       const sanitizedData = {
         name: sanitizeInput(name, 100),
@@ -221,6 +224,12 @@ const Register = () => {
         phone: sanitizeInput(phone, 20),
         comuna: sanitizeInput(comuna, 50),
         rol: roleToNumber(selectedRole),
+        // @ts-ignore - Agregando datos opcionales
+        rubro: sanitizeInput(rubro || '', 100),
+        experience: sanitizeInput(experience || '', 2000),
+        service: sanitizeInput(service || '', 100),
+        portfolio: sanitizeInput(portfolio || '', 2000),
+        priceRange: sanitizeInput(priceRangeString, 100),
       };
 
       // Registrar usuario directamente (sin verificación de código)
@@ -478,14 +487,27 @@ const Register = () => {
                         rows={3}
                       />
                     </div>
-                    <div>
-                      <Label htmlFor="priceRange">Rango de Precio (opcional)</Label>
-                      <Input
-                        id="priceRange"
-                        value={priceRange}
-                        onChange={(e) => setPriceRange(e.target.value)}
-                        placeholder="Ej: $15.000 - $30.000"
-                      />
+                    <div className="grid grid-cols-2 gap-4">
+                      <div>
+                        <Label htmlFor="minPrice">Precio Mínimo</Label>
+                        <Input
+                          id="minPrice"
+                          type="number"
+                          value={minPrice}
+                          onChange={(e) => setMinPrice(e.target.value)}
+                          placeholder="min"
+                        />
+                      </div>
+                      <div>
+                        <Label htmlFor="maxPrice">Precio Máximo</Label>
+                        <Input
+                          id="maxPrice"
+                          type="number"
+                          value={maxPrice}
+                          onChange={(e) => setMaxPrice(e.target.value)}
+                          placeholder="max"
+                        />
+                      </div>
                     </div>
                   </div>
                 )}

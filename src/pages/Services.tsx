@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
+import { chileData } from '@/lib/chile-data';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -247,15 +248,26 @@ const Services = () => {
                 />
               </div>
               <Select value={comunaFilter} onValueChange={setComunaFilter}>
-                <SelectTrigger>
+                <SelectTrigger className="glass-card border-white/10">
                   <SelectValue placeholder="Comuna" />
                 </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">Todas las comunas</SelectItem>
-                  <SelectItem value="santiago">Santiago Centro</SelectItem>
-                  <SelectItem value="providencia">Providencia</SelectItem>
-                  <SelectItem value="lascondes">Las Condes</SelectItem>
-                  <SelectItem value="maipu">Maipú</SelectItem>
+                <SelectContent className="glass-card border-white/10 backdrop-blur-xl">
+                  <SelectItem value="all">🌐 Todas las comunas</SelectItem>
+                  {isLoggedIn && user?.region_id ? (
+                    // Mostrar comunas de la región del usuario
+                    chileData.find(r => r.id === user.region_id)?.communes.map(c => (
+                      <SelectItem key={c} value={c}>{c}</SelectItem>
+                    ))
+                  ) : (
+                    // Fallback si no está logueado o no hay región
+                    <>
+                      <SelectItem value="santiago">Santiago Centro</SelectItem>
+                      <SelectItem value="providencia">Providencia</SelectItem>
+                      <SelectItem value="lascondes">Las Condes</SelectItem>
+                      <SelectItem value="maipu">Maipú</SelectItem>
+                      <SelectItem value="puente-alto">Puente Alto</SelectItem>
+                    </>
+                  )}
                 </SelectContent>
               </Select>
             </div>

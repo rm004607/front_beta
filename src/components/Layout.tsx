@@ -5,7 +5,6 @@ import { Button } from '@/components/ui/button';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import { useUser } from '@/contexts/UserContext';
 import Footer from '@/components/Footer';
-import { ThemeToggle } from '@/components/ThemeToggle';
 import ErrorBoundary from '@/components/ErrorBoundary';
 import logoDameldato from '/logoicono.png';
 import {
@@ -62,9 +61,6 @@ const Layout = ({ children }: LayoutProps) => {
             </nav>
 
             <div className="flex items-center gap-3">
-              <div className="flex items-center">
-                <ThemeToggle />
-              </div>
 
               {/* Desktop auth/actions */}
               <div className="hidden md:flex items-center gap-3">
@@ -213,7 +209,7 @@ const Layout = ({ children }: LayoutProps) => {
       <Footer />
 
       {/* AI Chat Bubble */}
-      
+
     </div>
   );
 };

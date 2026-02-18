@@ -34,7 +34,8 @@ const PostService = () => {
   const navigate = useNavigate();
   const [service, setService] = useState('');
   const [description, setDescription] = useState('');
-  const [priceRange, setPriceRange] = useState('');
+  const [minPrice, setMinPrice] = useState('');
+  const [maxPrice, setMaxPrice] = useState('');
   const [comuna, setComuna] = useState(user?.comuna || ''); // Comuna base
   const [baseRegion, setBaseRegion] = useState('');
   const [phone, setPhone] = useState(user?.phone || '');
@@ -132,10 +133,12 @@ const PostService = () => {
 
     setIsSubmitting(true);
     try {
+      const priceRangeString = minPrice && maxPrice ? `${minPrice} - ${maxPrice}` : minPrice || maxPrice || '';
+
       const response = await servicesAPI.createService({
         service_name: sanitizeInput(service, 100),
         description: sanitizeInput(description, 2000),
-        price_range: priceRange ? sanitizeInput(priceRange, 100) : undefined,
+        price_range: priceRangeString ? sanitizeInput(priceRangeString, 100) : undefined,
         comuna: sanitizeInput(comuna, 50),
         phone: phone ? sanitizeInput(phone, 20) : undefined,
         // @ts-ignore - Agregando campos nuevos para el backend
@@ -422,15 +425,28 @@ const PostService = () => {
                 />
               </div>
 
-              <div>
-                <Label htmlFor="priceRange">Rango de Precio (Opcional)</Label>
-                <Input
-                  id="priceRange"
-                  value={priceRange}
-                  onChange={(e) => setPriceRange(e.target.value)}
-                  placeholder="Ej: $15.000 - $30.000"
-                />
-                <p className="text-xs text-muted-foreground mt-1">
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <Label htmlFor="minPrice">Precio Mínimo</Label>
+                  <Input
+                    id="minPrice"
+                    type="number"
+                    value={minPrice}
+                    onChange={(e) => setMinPrice(e.target.value)}
+                    placeholder="min"
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="maxPrice">Precio Máximo</Label>
+                  <Input
+                    id="maxPrice"
+                    type="number"
+                    value={maxPrice}
+                    onChange={(e) => setMaxPrice(e.target.value)}
+                    placeholder="max"
+                  />
+                </div>
+                <p className="col-span-2 text-xs text-muted-foreground">
                   Indica un rango aproximado para que los clientes tengan una referencia
                 </p>
               </div>
