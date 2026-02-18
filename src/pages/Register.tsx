@@ -18,7 +18,6 @@ import {
   sanitizeInput,
   getValidationErrorMessage
 } from '@/lib/input-validator';
-// import KYCVerification from '@/components/KYCVerification';
 
 const Register = () => {
   const navigate = useNavigate();
