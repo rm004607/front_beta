@@ -251,7 +251,7 @@ const Register = () => {
   };
 
   return (
-    <div className="min-h-screen bg-background relative overflow-hidden flex items-center justify-center py-12 px-4 mt-6">
+    <div className="min-h-screen bg-background relative overflow-hidden flex items-center justify-center py-8 sm:py-12 px-4 mt-6">
       {/* Decorative background elements */}
       <div className="absolute top-0 left-0 w-full h-full pointer-events-none">
         <div className="absolute top-[-10%] right-[-10%] w-[50%] h-[50%] bg-primary/10 rounded-full blur-[120px]" />
@@ -260,13 +260,13 @@ const Register = () => {
 
       <div className="w-full max-w-2xl relative z-10">
         <Card className="glass-card border-white/5 shadow-2xl overflow-hidden">
-          <CardHeader className="text-center pb-2">
-            <CardTitle className="text-4xl font-heading font-bold bg-clip-text text-transparent bg-gradient-to-r from-primary to-secondary mb-2">
+          <CardHeader className="text-center pb-2 px-4 sm:px-6">
+            <CardTitle className="text-2xl sm:text-3xl md:text-4xl font-heading font-bold bg-clip-text text-transparent bg-gradient-to-r from-primary to-secondary mb-2">
               Únete a la Comunidad
             </CardTitle>
-            <CardDescription className="text-muted-foreground text-lg">Paso {step === 4 ? 2 : 1} de 2</CardDescription>
+            <CardDescription className="text-base sm:text-lg">Paso {step === 4 ? 2 : 1} de 2</CardDescription>
           </CardHeader>
-          <CardContent>
+          <CardContent className="p-4 sm:p-6">
             {step === 1 && (
               <div className="space-y-6">
                 <div>
@@ -396,14 +396,14 @@ const Register = () => {
 
                   <div className="pt-4 border-t space-y-4">
                     <p className="text-center text-sm font-medium text-muted-foreground">Para continuar, selecciona tu perfil:</p>
-                    <div className="flex flex-col items-center gap-4">
+                    <div className="flex flex-col items-center gap-3 sm:gap-4">
                       <Button
                         type="button"
                         onClick={() => {
                           selectRole('job-seeker');
                           handleNext();
                         }}
-                        className="w-full max-w-sm h-14 text-lg font-bold bg-primary hover:bg-primary/90 shadow-lg shadow-primary/20"
+                        className="w-full max-w-sm h-12 sm:h-14 text-base sm:text-lg font-bold bg-primary hover:bg-primary/90 shadow-lg shadow-primary/20"
                       >
                         🏠 Soy Vecino
                       </Button>
@@ -413,7 +413,7 @@ const Register = () => {
                           selectRole('entrepreneur');
                           handleNext();
                         }}
-                        className="w-full max-w-sm h-14 text-lg font-bold bg-secondary hover:bg-secondary/90 shadow-lg shadow-secondary/20"
+                        className="w-full max-w-sm h-12 sm:h-14 text-base sm:text-lg font-bold bg-secondary hover:bg-secondary/90 shadow-lg shadow-secondary/20"
                       >
                         🛠️ Soy Emprendedor
                       </Button>

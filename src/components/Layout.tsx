@@ -30,13 +30,13 @@ const Layout = ({ children }: LayoutProps) => {
       <header className="bg-card border-b border-border sticky top-0 z-50">
         <div className="container mx-auto px-4 py-4">
           <div className="flex items-center justify-between">
-            <Link to="/" className="flex items-center gap-3">
+            <Link to="/" className="flex items-center gap-2 sm:gap-3 shrink-0">
               <img
                 src={logoDameldato}
                 alt="Dameldato"
-                className="h-16 w-16 sm:h-20 sm:w-20 rounded-xl object-contain drop-shadow-md"
+                className="h-12 w-12 sm:h-16 sm:w-16 md:h-20 md:w-20 rounded-xl object-contain drop-shadow-md"
               />
-              <span className="text-2xl font-heading font-bold text-primary">
+              <span className="text-xl sm:text-2xl font-heading font-bold text-primary truncate max-w-[120px] sm:max-w-none">
                 Dameldato
               </span>
             </Link>
@@ -60,7 +60,7 @@ const Layout = ({ children }: LayoutProps) => {
               </Link>
             </nav>
 
-            <div className="flex items-center gap-3">
+            <div className="flex items-center gap-2 sm:gap-3">
 
               {/* Desktop auth/actions */}
               <div className="hidden md:flex items-center gap-3">

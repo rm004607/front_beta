@@ -221,8 +221,8 @@ const Services = () => {
         <div className="mb-8 p-6 glass-card rounded-3xl border-primary/10">
           <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
             <div className="space-y-1 text-center md:text-left">
-              <h1 className="text-4xl font-heading font-bold bg-clip-text text-transparent bg-gradient-to-r from-primary to-secondary">Servicios</h1>
-              <p className="text-muted-foreground italic">Encuentra profesionales y servicios de confianza en tu comunidad</p>
+              <h1 className="text-3xl sm:text-4xl font-heading font-bold bg-clip-text text-transparent bg-gradient-to-r from-primary to-secondary">Servicios</h1>
+              <p className="text-sm sm:text-base text-muted-foreground italic">Encuentra profesionales y servicios de confianza en tu comunidad</p>
             </div>
             <div className="flex flex-wrap gap-2 w-full md:w-auto justify-center md:justify-end">
               {(user?.roles.includes('entrepreneur') || user?.role_number === 5) && (
@@ -239,7 +239,7 @@ const Services = () => {
 
         {/* Filters */}
         <Card className="mb-8 glass-card border-white/5 bg-card/30">
-          <CardContent className="pt-6">
+          <CardContent className="p-4 sm:pt-6">
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <div className="relative">
                 <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground" size={18} />
@@ -332,7 +332,7 @@ const Services = () => {
 
         {/* Modal de Reseñas */}
         <Dialog open={isReviewsModalOpen} onOpenChange={setIsReviewsModalOpen}>
-          <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+          <DialogContent className="w-[95vw] max-w-2xl max-h-[90vh] overflow-y-auto rounded-2xl p-4 sm:p-6">
             <ServiceDetail
               service={selectedServiceForReviews}
               reviews={reviews}
@@ -358,7 +358,7 @@ const Services = () => {
         </Dialog>
         {/* Dialog de cobro por contacto WhatsApp */}
         <Dialog open={isPaidContactModalOpen} onOpenChange={setIsPaidContactModalOpen}>
-          <DialogContent className="sm:max-w-md p-0 overflow-hidden border-none bg-transparent shadow-none">
+          <DialogContent className="w-[95vw] sm:max-w-md p-0 overflow-hidden border-none bg-transparent shadow-none rounded-2xl">
             <Card className="border-t-4 border-t-primary shadow-2xl">
               <CardHeader className="text-center pb-2">
                 <div className="mx-auto w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mb-4">

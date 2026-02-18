@@ -85,7 +85,7 @@ const Home = () => {
                 Comunidad 100% Verificada
               </div>
 
-              <h1 className="text-4xl sm:text-5xl md:text-7xl font-sans font-extrabold leading-[1.1] tracking-tight animate-reveal delay-100">
+              <h1 className="text-3xl sm:text-5xl md:text-6xl lg:text-7xl font-sans font-extrabold leading-[1.1] tracking-tight animate-reveal delay-100">
                 ¡Acá está el <span className="sm:hidden"><br /></span>
                 <span className="text-primary text-glow">Dato que necesitas!</span>
               </h1>
@@ -134,23 +134,23 @@ const Home = () => {
                 </div>
 
                 {/* Floating Elements */}
-                <div className="absolute -top-6 -right-6 glass-card p-4 rounded-2xl animate-float shadow-xl flex items-center gap-3 border-primary/20" style={{ animationDelay: '1s' }}>
-                  <div className="w-10 h-10 bg-success rounded-full flex items-center justify-center text-white">
-                    <Star size={20} fill="currentColor" />
+                <div className="absolute -top-4 -right-4 sm:-top-6 sm:-right-6 glass-card p-3 sm:p-4 rounded-2xl animate-float shadow-xl flex items-center gap-2 sm:gap-3 border-primary/20" style={{ animationDelay: '1s' }}>
+                  <div className="w-8 h-8 sm:w-10 sm:h-10 bg-success rounded-full flex items-center justify-center text-white">
+                    <Star size={16} fill="currentColor" className="sm:w-5 sm:h-5" />
                   </div>
                   <div>
-                    <p className="text-xs text-muted-foreground">Calidad</p>
-                    <p className="font-bold text-sm">Expertos 5⭐</p>
+                    <p className="text-[10px] sm:text-xs text-muted-foreground">Calidad</p>
+                    <p className="font-bold text-xs sm:text-sm">Expertos 5⭐</p>
                   </div>
                 </div>
 
-                <div className="absolute -bottom-6 -left-6 glass-card p-4 rounded-2xl animate-float shadow-xl flex items-center gap-3 border-secondary/20" style={{ animationDelay: '2s' }}>
-                  <div className="w-10 h-10 bg-secondary rounded-full flex items-center justify-center text-white">
-                    <MapPin size={20} />
+                <div className="absolute -bottom-4 -left-4 sm:-bottom-6 sm:-left-6 glass-card p-3 sm:p-4 rounded-2xl animate-float shadow-xl flex items-center gap-2 sm:gap-3 border-secondary/20" style={{ animationDelay: '2s' }}>
+                  <div className="w-8 h-8 sm:w-10 sm:h-10 bg-secondary rounded-full flex items-center justify-center text-white">
+                    <MapPin size={16} className="sm:w-5 sm:h-5" />
                   </div>
                   <div>
-                    <p className="text-xs text-muted-foreground">Ubicuidad</p>
-                    <p className="font-bold text-sm">Tu Comuna</p>
+                    <p className="text-[10px] sm:text-xs text-muted-foreground">Ubicuidad</p>
+                    <p className="font-bold text-xs sm:text-sm">Tu Comuna</p>
                   </div>
                 </div>
               </div>
@@ -195,14 +195,14 @@ const Home = () => {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-5xl mx-auto">
             {/* Pared de Pegas */}
             <Link to="/muro" className="group animate-reveal">
-              <div className="relative overflow-hidden bg-white dark:bg-card border-none rounded-[3.5rem] p-10 hover:shadow-2xl transition-all duration-500 group-hover:-translate-y-2 h-full flex flex-col items-center lg:items-start text-center lg:text-left shadow-xl shadow-primary/5">
+              <div className="relative overflow-hidden bg-white dark:bg-card border-none rounded-[2.5rem] sm:rounded-[3.5rem] p-8 sm:p-10 hover:shadow-2xl transition-all duration-500 group-hover:-translate-y-2 h-full flex flex-col items-center lg:items-start text-center lg:text-left shadow-xl shadow-primary/5">
                 <div className="absolute top-0 right-0 w-32 h-32 bg-primary/10 rounded-bl-[100px] -z-0"></div>
-                <div className="bg-primary w-20 h-20 rounded-3xl flex items-center justify-center mb-8 shadow-xl shadow-primary/20 group-hover:rotate-12 transition-transform relative z-10">
-                  <MessageSquare className="text-white" size={36} strokeWidth={1.5} />
+                <div className="bg-primary w-16 h-16 sm:w-20 sm:h-20 rounded-2xl sm:rounded-3xl flex items-center justify-center mb-6 sm:mb-8 shadow-xl shadow-primary/20 group-hover:rotate-12 transition-transform relative z-10">
+                  <MessageSquare className="text-white w-8 h-8 sm:w-9 sm:h-9" strokeWidth={1.5} />
                 </div>
-                <h3 className="text-3xl font-heading font-extrabold mb-4 relative z-10">Muro de Datos</h3>
-                <p className="text-muted-foreground text-lg relative z-10 mb-6">¿Necesitas un dato rápido? Publica tu requerimiento o revisa lo que otros necesitan hoy mismo.</p>
-                <div className="text-primary font-bold p-0 text-lg group-hover:translate-x-2 transition-transform flex items-center">
+                <h3 className="text-2xl sm:text-3xl font-heading font-extrabold mb-4 relative z-10">Muro de Datos</h3>
+                <p className="text-muted-foreground text-base sm:text-lg relative z-10 mb-6">¿Necesitas un dato rápido? Publica tu requerimiento o revisa lo que otros necesitan hoy mismo.</p>
+                <div className="text-primary font-bold p-0 text-lg group-hover:translate-x-2 transition-transform flex items-center mt-auto">
                   Entrar al Muro <ArrowRight className="ml-2" />
                 </div>
               </div>
@@ -210,14 +210,14 @@ const Home = () => {
 
             {/* Ofrecer Servicio */}
             <Link to="/servicios/publicar" className="group animate-reveal delay-200">
-              <div className="relative overflow-hidden bg-white dark:bg-card border-none rounded-[3.5rem] p-10 hover:shadow-2xl transition-all duration-500 group-hover:-translate-y-2 h-full flex flex-col items-center lg:items-start text-center lg:text-left shadow-xl shadow-secondary/5">
+              <div className="relative overflow-hidden bg-white dark:bg-card border-none rounded-[2.5rem] sm:rounded-[3.5rem] p-8 sm:p-10 hover:shadow-2xl transition-all duration-500 group-hover:-translate-y-2 h-full flex flex-col items-center lg:items-start text-center lg:text-left shadow-xl shadow-secondary/5">
                 <div className="absolute top-0 right-0 w-32 h-32 bg-secondary/10 rounded-bl-[100px] -z-0"></div>
-                <div className="bg-secondary w-20 h-20 rounded-3xl flex items-center justify-center mb-8 shadow-xl shadow-secondary/20 group-hover:-rotate-12 transition-transform relative z-10">
-                  <Briefcase className="text-white" size={36} strokeWidth={1.5} />
+                <div className="bg-secondary w-16 h-16 sm:w-20 sm:h-20 rounded-2xl sm:rounded-3xl flex items-center justify-center mb-6 sm:mb-8 shadow-xl shadow-secondary/20 group-hover:-rotate-12 transition-transform relative z-10">
+                  <Briefcase className="text-white w-8 h-8 sm:w-9 sm:h-9" strokeWidth={1.5} />
                 </div>
-                <h3 className="text-3xl font-heading font-extrabold mb-4 relative z-10">Ofrecer Servicios</h3>
-                <p className="text-muted-foreground text-lg relative z-10 mb-6">Pon tu talento a disposición de tu comuna. Crea tu perfil profesional y empieza a recibir pedidos ahora.</p>
-                <div className="text-secondary font-bold p-0 text-lg group-hover:translate-x-2 transition-transform flex items-center">
+                <h3 className="text-2xl sm:text-3xl font-heading font-extrabold mb-4 relative z-10">Ofrecer Servicios</h3>
+                <p className="text-muted-foreground text-base sm:text-lg relative z-10 mb-6">Pon tu talento a disposición de tu comuna. Crea tu perfil profesional y empieza a recibir pedidos ahora.</p>
+                <div className="text-secondary font-bold p-0 text-lg group-hover:translate-x-2 transition-transform flex items-center mt-auto">
                   Empezar a Ofrecer <ArrowRight className="ml-2" />
                 </div>
               </div>

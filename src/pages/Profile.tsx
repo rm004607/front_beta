@@ -557,12 +557,12 @@ const Profile = () => {
       </div>
 
       <div className="container mx-auto px-4 py-8 max-w-4xl relative z-10">
-        <div className="flex justify-between items-center mb-8 p-6 glass-card rounded-3xl border-primary/10">
-          <h1 className="text-4xl font-heading font-bold bg-clip-text text-transparent bg-gradient-to-r from-primary to-secondary">Mi Perfil</h1>
+        <div className="flex flex-col sm:flex-row justify-between items-center mb-8 p-4 sm:p-6 glass-card rounded-2xl sm:rounded-3xl border-primary/10 gap-4">
+          <h1 className="text-3xl sm:text-4xl font-heading font-bold bg-clip-text text-transparent bg-gradient-to-r from-primary to-secondary">Mi Perfil</h1>
           <Button
             variant="outline"
             onClick={handleOpenEditDialog}
-            className="border-primary/20 hover:bg-primary/10 transition-all duration-300"
+            className="w-full sm:w-auto border-primary/20 hover:bg-primary/10 transition-all duration-300"
           >
             <Edit size={16} className="mr-2 text-primary" />
             Editar Perfil
@@ -893,7 +893,7 @@ const Profile = () => {
 
         {/* Dialog de Edición de Perfil */}
         <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
-          <DialogContent className="sm:max-w-[500px]">
+          <DialogContent className="w-[95vw] sm:max-w-[500px] max-h-[90vh] overflow-y-auto rounded-3xl p-4 sm:p-6">
             <DialogHeader>
               <DialogTitle>Editar Perfil</DialogTitle>
               <DialogDescription>
@@ -1019,7 +1019,7 @@ const Profile = () => {
 
         {/* Modal de edición de Post */}
         <Dialog open={!!editingPost} onOpenChange={(open) => !open && setEditingPost(null)}>
-          <DialogContent>
+          <DialogContent className="w-[95vw] sm:max-w-lg max-h-[90vh] overflow-y-auto rounded-2xl">
             <DialogHeader>
               <DialogTitle>Editar Publicación</DialogTitle>
               <DialogDescription>
@@ -1058,7 +1058,7 @@ const Profile = () => {
 
         {/* Modal de edición de Servicio */}
         <Dialog open={!!editingService} onOpenChange={(open) => !open && setEditingService(null)}>
-          <DialogContent>
+          <DialogContent className="w-[95vw] sm:max-w-xl max-h-[90vh] overflow-y-auto rounded-2xl">
             <DialogHeader>
               <DialogTitle>Editar Servicio</DialogTitle>
               <DialogDescription>
@@ -1149,7 +1149,7 @@ const Profile = () => {
 
         {/* Dialog para completar perfil */}
         <Dialog open={showCompleteProfileDialog} onOpenChange={setShowCompleteProfileDialog}>
-          <DialogContent className="sm:max-w-[500px]">
+          <DialogContent className="w-[95vw] sm:max-w-[500px] max-h-[90vh] overflow-y-auto rounded-2xl">
             <DialogHeader>
               <DialogTitle>Completar Perfil</DialogTitle>
               <DialogDescription>

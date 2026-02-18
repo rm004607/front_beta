@@ -137,17 +137,17 @@ export const ServiceCard = ({
                         </div>
                     )}
                 </div>
-                <div className="grid grid-cols-2 gap-2">
+                <div className="flex flex-col sm:grid sm:grid-cols-2 gap-2">
                     <Button
                         variant="outline"
-                        className="w-full border-yellow-400 text-yellow-700 hover:bg-yellow-50 transition-all duration-300"
+                        className="w-full border-yellow-400 text-yellow-700 hover:bg-yellow-50 transition-all duration-300 h-10 sm:h-11"
                         onClick={() => onOpenReviews(service)}
                     >
                         <Star size={16} className="mr-2 fill-yellow-400 text-yellow-400" />
                         Reseñas ({service.reviews_count || 0})
                     </Button>
                     <Button
-                        className="w-full bg-primary hover:bg-primary/90 text-primary-foreground hover-gold-glow transition-all duration-300"
+                        className="w-full bg-primary hover:bg-primary/90 text-primary-foreground hover-gold-glow transition-all duration-300 h-10 sm:h-11"
                         onClick={() => onWhatsApp(service)}
                         disabled={!service.phone}
                     >
