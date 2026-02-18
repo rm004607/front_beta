@@ -25,7 +25,7 @@ import {
 } from '@/components/ui/dialog';
 import { useUser } from '@/contexts/UserContext';
 import logoDameldato from '/logoicono.png';
-import { MapPin, Phone, Mail, Edit, Wrench, Building2, MessageSquare, Trash2, Upload, X, FileText, Download, AlertCircle, Eye, Plus, Star, Users } from 'lucide-react';
+import { MapPin, Phone, Mail, Edit, Wrench, Building2, MessageSquare, Trash2, Upload, X, FileText, Download, AlertCircle, Eye, Plus, Star, Users, Briefcase } from 'lucide-react';
 import { postsAPI, servicesAPI, authAPI } from '@/lib/api';
 import { toast } from 'sonner';
 import {
@@ -77,12 +77,7 @@ const Profile = () => {
   const [isUploading, setIsUploading] = useState(false);
   const [isUpdating, setIsUpdating] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const [selectedCV, setSelectedCV] = useState<File | null>(null);
-  const [isUploadingCV, setIsUploadingCV] = useState(false);
-  const [showCVSection, setShowCVSection] = useState(false);
-  const [showCVModal, setShowCVModal] = useState(false);
-  const [useGoogleViewer, setUseGoogleViewer] = useState(false);
-  const cvInputRef = useRef<HTMLInputElement>(null);
+  /* CV code removido */
   // Estados para edición
   const [editingPost, setEditingPost] = useState<Post | null>(null);
   // Estados para completar perfil
@@ -419,143 +414,11 @@ const Profile = () => {
     }
   };
 
-  const handleCVSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      // Validar que sea PDF
-      if (file.type !== 'application/pdf' && !file.name.toLowerCase().endsWith('.pdf')) {
-        toast.error('Por favor selecciona un archivo PDF');
-        return;
-      }
-      // Validar tamaño (máximo 5MB)
-      if (file.size > 5 * 1024 * 1024) {
-        toast.error('El CV no debe superar los 5MB');
-        return;
-      }
-      setSelectedCV(file);
-    }
-  };
+  /* CV handlers removidos */
 
-  const handleUploadCV = async (): Promise<{ url: string; cv_text: string | null; cv_analysis: any | null } | null> => {
-    if (!selectedCV) return null;
 
-    try {
-      setIsUploadingCV(true);
-      const formData = new FormData();
-      formData.append('cv', selectedCV);
 
-      const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000';
-      const response = await fetch(`${API_BASE_URL}/api/upload-cv`, {
-        method: 'POST',
-        credentials: 'include',
-        body: formData,
-      });
 
-      if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}));
-        throw new Error(errorData.message || 'Error al subir el CV');
-      }
-
-      const data = await response.json();
-      return {
-        url: data.url,
-        cv_text: data.cv_text || null,
-        cv_analysis: data.cv_analysis || null
-      };
-    } catch (error: any) {
-      console.error('Error uploading CV:', error);
-      toast.error(error.message || 'Error al subir el CV');
-      return null;
-    } finally {
-      setIsUploadingCV(false);
-    }
-  };
-
-  const handleSaveCV = async () => {
-    if (!user || !selectedCV) return;
-
-    try {
-      const cvData = await handleUploadCV();
-      if (!cvData) {
-        return; // Error ya fue manejado en handleUploadCV
-      }
-
-      // Guardar URL, texto y análisis del CV en el perfil
-      await authAPI.updateProfile({
-        cv_url: cvData.url,
-        cv_text: cvData.cv_text,
-        cv_analysis: cvData.cv_analysis
-      });
-      await loadUser();
-
-      toast.success('CV subido y analizado exitosamente');
-      setSelectedCV(null);
-      setShowCVSection(false);
-      if (cvInputRef.current) {
-        cvInputRef.current.value = '';
-      }
-    } catch (error: any) {
-      console.error('Error saving CV:', error);
-      toast.error(error.message || 'Error al guardar el CV');
-    }
-  };
-
-  const handleDeleteCV = async () => {
-    if (!user || !confirm('¿Estás seguro de que quieres eliminar tu CV?')) {
-      return;
-    }
-
-    try {
-      await authAPI.updateProfile({ cv_url: null });
-      await loadUser();
-      toast.success('CV eliminado exitosamente');
-    } catch (error: any) {
-      console.error('Error deleting CV:', error);
-      toast.error(error.message || 'Error al eliminar el CV');
-    }
-  };
-
-  // Función para obtener el URL del visor de Google Docs como fallback
-  const getGoogleDocsViewerUrl = (pdfUrl: string) => {
-    return `https://docs.google.com/viewer?url=${encodeURIComponent(pdfUrl)}&embedded=true`;
-  };
-
-  const handleDownloadCV = () => {
-    if (!user?.cv_url) {
-      toast.error('No hay CV disponible para descargar');
-      return;
-    }
-
-    try {
-      let cvUrl = user.cv_url;
-
-      // Verificar que el URL es válido
-      if (!cvUrl.startsWith('http://') && !cvUrl.startsWith('https://')) {
-        toast.error('URL del CV no válido');
-        return;
-      }
-
-      // Para Cloudinary, agregar parámetro para forzar descarga
-      if (cvUrl.includes('cloudinary.com')) {
-        cvUrl = cvUrl + (cvUrl.includes('?') ? '&' : '?') + 'fl_attachment';
-      }
-
-      // Crear enlace temporal para descargar
-      const link = document.createElement('a');
-      link.href = cvUrl;
-      link.download = `CV_${user.name || 'usuario'}.pdf`;
-      link.target = '_blank';
-      link.rel = 'noopener noreferrer';
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-
-      toast.success('Descargando CV...');
-    } catch (error: any) {
-      console.error('Error downloading CV:', error);
-      toast.error('Error al descargar el CV');
-    }
-  };
 
   const handleCompleteProfile = async () => {
     if (!completePhone.trim() || !completeComuna.trim()) {
@@ -614,15 +477,7 @@ const Profile = () => {
     }
   }, [searchParams, hasMissingFields, user, setSearchParams]);
 
-  // Manejar query param para abrir sección de CV
-  useEffect(() => {
-    if (searchParams.get('upload_cv') === 'true' && !user?.cv_url) {
-      setShowCVSection(true);
-      // Limpiar el query param
-      searchParams.delete('upload_cv');
-      setSearchParams(searchParams, { replace: true });
-    }
-  }, [searchParams, user, setSearchParams]);
+  /* Manejo de query param CV removido */
 
   // Cargar datos cuando el usuario esté disponible
   useEffect(() => {
@@ -635,35 +490,7 @@ const Profile = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user, isLoggedIn]); // loadPosts, loadServices, loadJobs son estables y no necesitan estar en deps
 
-  // Notificación cada 10 minutos si no tiene CV (para todos los usuarios)
-  useEffect(() => {
-    if (!user || !isLoggedIn || isLoading) return;
-
-    // Mostrar notificación a todos los usuarios sin CV
-    const hasNoCV = !user.cv_url;
-
-    if (!hasNoCV) return;
-
-    const showNotification = () => {
-      const message = '📄 ¡Completa tu perfil! Agrega tu CV para completar tu información profesional';
-
-      toast.info(message, {
-        duration: 8000,
-        action: {
-          label: 'Agregar CV',
-          onClick: () => setShowCVSection(true)
-        }
-      });
-    };
-
-    // Mostrar inmediatamente si no tiene CV
-    showNotification();
-
-    // Mostrar cada 10 minutos (600000 ms)
-    const interval = setInterval(showNotification, 600000);
-
-    return () => clearInterval(interval);
-  }, [user, isLoggedIn, isLoading]);
+  /* Notificación de CV removida */
 
   // Mostrar loading mientras se carga el usuario
   if (isLoading) {
@@ -690,8 +517,8 @@ const Profile = () => {
         </Button>
       </div>
 
-      {/* Banner para completar perfil (si faltan campos o CV) */}
-      {(hasMissingFields || !user.cv_url) && (
+      {/* Banner para completar perfil (si faltan campos) */}
+      {hasMissingFields && (
         <Card className="mb-6 border-2 bg-gradient-to-r from-accent/10 to-accent/20 dark:from-accent/10 dark:to-accent/20">
           <CardContent className="pt-6">
             <div className="flex items-center gap-6">
@@ -709,30 +536,19 @@ const Profile = () => {
                   ¡Completa tu perfil!
                 </h3>
                 <p className="text-muted-foreground mb-4">
-                  {hasMissingFields
-                    ? 'Completa tu información personal (teléfono y comuna) para que otros usuarios puedan contactarte.'
-                    : user.roles.includes('job-seeker')
-                      ? 'Agrega tu CV para que las empresas puedan conocerte mejor y aumentar tus oportunidades de encontrar el trabajo perfecto.'
-                      : 'Agrega tu CV para completar tu perfil profesional.'}
+                  Completa tu información personal (teléfono y comuna) para que otros usuarios puedan contactarte.
                 </p>
-                {hasMissingFields ? (
-                  <Button
-                    onClick={() => {
-                      setCompletePhone(user.phone || '');
-                      setCompleteComuna(user.comuna || '');
-                      setShowCompleteProfileDialog(true);
-                    }}
-                    className="bg-primary hover:bg-primary/90"
-                  >
-                    <Users size={16} className="mr-2" />
-                    Completar Perfil
-                  </Button>
-                ) : (
-                  <Button onClick={() => setShowCVSection(true)} className="bg-primary hover:bg-primary/90">
-                    <FileText size={16} className="mr-2" />
-                    Agregar CV
-                  </Button>
-                )}
+                <Button
+                  onClick={() => {
+                    setCompletePhone(user.phone || '');
+                    setCompleteComuna(user.comuna || '');
+                    setShowCompleteProfileDialog(true);
+                  }}
+                  className="bg-primary hover:bg-primary/90"
+                >
+                  <Users size={16} className="mr-2" />
+                  Completar Perfil
+                </Button>
               </div>
             </div>
           </CardContent>
@@ -807,174 +623,7 @@ const Profile = () => {
         )
       }
 
-      {/* Sección de CV (para todos los usuarios) */}
-      <Card className="mb-6 border-2">
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <FileText className="text-primary" />
-            Curriculum Vitae (CV)
-          </CardTitle>
-          <CardDescription>
-            Sube tu CV en formato PDF. Puedes arrastrar y soltar el archivo o hacer clic para seleccionarlo.
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          {user.cv_url ? (
-            <div className="space-y-4">
-              <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between p-4 bg-muted rounded-lg">
-                <div className="flex items-center gap-3">
-                  <FileText className="text-primary" size={24} />
-                  <div>
-                    <p className="font-semibold">CV Subido</p>
-                    <p className="text-sm text-muted-foreground">
-                      Tu CV está disponible
-                    </p>
-                  </div>
-                </div>
-                <div className="w-full md:w-auto grid grid-cols-1 sm:grid-cols-3 md:flex md:flex-wrap gap-2">
-                  <Button
-                    variant="outline"
-                    onClick={handleDownloadCV}
-                    className="w-full sm:w-auto"
-                  >
-                    <Download size={16} className="mr-2" />
-                    Descargar
-                  </Button>
-                  <Button
-                    variant="outline"
-                    onClick={() => setShowCVSection(true)}
-                    className="w-full sm:w-auto"
-                  >
-                    <Upload size={16} className="mr-2" />
-                    Reemplazar
-                  </Button>
-                  <Button
-                    variant="outline"
-                    onClick={handleDeleteCV}
-                    className="w-full sm:w-auto"
-                  >
-                    <Trash2 size={16} className="mr-2" />
-                    Eliminar
-                  </Button>
-                </div>
-              </div>
-            </div>
-          ) : (
-            <div className="space-y-4">
-              <Alert variant="default" className="bg-blue-50 dark:bg-blue-950 border-blue-200 dark:border-blue-800">
-                <AlertCircle className="h-4 w-4 text-blue-600 dark:text-blue-400" />
-                <AlertDescription className="text-blue-800 dark:text-blue-200">
-                  No has subido tu CV aún. Agrega tu CV para completar tu perfil.
-                </AlertDescription>
-              </Alert>
-              <Button onClick={() => setShowCVSection(true)} className="w-full">
-                <Upload size={16} className="mr-2" />
-                Agregar CV
-              </Button>
-            </div>
-          )}
-
-          {/* Sección para subir CV con drag and drop */}
-          {showCVSection && (
-            <div className="mt-6 p-4 border rounded-lg bg-muted/50">
-              <div className="space-y-4">
-                {/* Área de drag and drop */}
-                <div
-                  className={`border-2 border-dashed rounded-lg p-8 text-center transition-colors ${selectedCV
-                    ? 'border-primary bg-primary/5'
-                    : 'border-muted-foreground/25 hover:border-primary/50'
-                    }`}
-                  onDragOver={(e) => {
-                    e.preventDefault();
-                    e.stopPropagation();
-                  }}
-                  onDragEnter={(e) => {
-                    e.preventDefault();
-                    e.stopPropagation();
-                  }}
-                  onDrop={(e) => {
-                    e.preventDefault();
-                    e.stopPropagation();
-                    const file = e.dataTransfer.files[0];
-                    if (file) {
-                      if (file.type === 'application/pdf' || file.name.toLowerCase().endsWith('.pdf')) {
-                        if (file.size <= 10 * 1024 * 1024) {
-                          setSelectedCV(file);
-                        } else {
-                          toast.error('El CV no debe superar los 10MB');
-                        }
-                      } else {
-                        toast.error('Por favor selecciona un archivo PDF');
-                      }
-                    }
-                  }}
-                  onClick={() => cvInputRef.current?.click()}
-                  style={{ cursor: 'pointer' }}
-                >
-                  {selectedCV ? (
-                    <div className="space-y-2">
-                      <FileText className="mx-auto text-primary" size={48} />
-                      <p className="font-semibold text-lg">{selectedCV.name}</p>
-                      <p className="text-sm text-muted-foreground">
-                        {(selectedCV.size / 1024 / 1024).toFixed(2)} MB
-                      </p>
-                      <p className="text-xs text-muted-foreground mt-2">
-                        Haz clic para seleccionar otro archivo
-                      </p>
-                    </div>
-                  ) : (
-                    <div className="space-y-2">
-                      <Upload className="mx-auto text-muted-foreground" size={48} />
-                      <p className="font-semibold">
-                        Arrastra y suelta tu CV aquí
-                      </p>
-                      <p className="text-sm text-muted-foreground">
-                        o haz clic para seleccionar un archivo
-                      </p>
-                      <p className="text-xs text-muted-foreground mt-2">
-                        Solo archivos PDF (máximo 10MB)
-                      </p>
-                    </div>
-                  )}
-                </div>
-
-                <input
-                  id="cv-upload"
-                  ref={cvInputRef}
-                  type="file"
-                  accept=".pdf,application/pdf"
-                  onChange={handleCVSelect}
-                  disabled={isUploadingCV}
-                  className="hidden"
-                />
-
-                <div className="flex flex-col sm:flex-row gap-2">
-                  <Button
-                    onClick={handleSaveCV}
-                    disabled={!selectedCV || isUploadingCV}
-                    className="w-full sm:w-auto flex-1"
-                  >
-                    {isUploadingCV ? 'Subiendo...' : 'Guardar CV'}
-                  </Button>
-                  <Button
-                    variant="outline"
-                    onClick={() => {
-                      setShowCVSection(false);
-                      setSelectedCV(null);
-                      if (cvInputRef.current) {
-                        cvInputRef.current.value = '';
-                      }
-                    }}
-                    className="w-full sm:w-auto"
-                  >
-                    Cancelar
-                  </Button>
-                </div>
-              </div>
-            </div>
-          )}
-        </CardContent>
-      </Card>
+      {/* Sección de CV removida */}
 
       {
         user.roles.includes('entrepreneur') && (
@@ -1423,79 +1072,7 @@ const Profile = () => {
         </DialogContent>
       </Dialog>
 
-      {/* Modal para ver CV */}
-      <Dialog open={showCVModal} onOpenChange={setShowCVModal}>
-        <DialogContent className="max-w-5xl w-full h-[90vh] flex flex-col p-0">
-          <DialogHeader className="px-6 pt-6 pb-4">
-            <DialogTitle>Curriculum Vitae</DialogTitle>
-            <DialogDescription>
-              Vista previa de tu CV
-            </DialogDescription>
-          </DialogHeader>
-          <div className="flex-1 overflow-hidden border-t border-b bg-muted/30 relative">
-            {user?.cv_url ? (
-              <>
-                {useGoogleViewer ? (
-                  /* Usar Google Docs Viewer como alternativa */
-                  <iframe
-                    src={getGoogleDocsViewerUrl(user.cv_url)}
-                    className="w-full h-full border-0"
-                    title="CV Preview"
-                    style={{ minHeight: '600px' }}
-                    allow="fullscreen"
-                  />
-                ) : (
-                  /* Intentar mostrar PDF directamente primero */
-                  <object
-                    data={`${user.cv_url}#toolbar=0&navpanes=0&scrollbar=1`}
-                    type="application/pdf"
-                    className="w-full h-full"
-                    style={{ minHeight: '600px' }}
-                  >
-                    {/* Fallback: si el object no funciona, mostrar mensaje */}
-                    <div className="flex flex-col items-center justify-center h-full p-6 text-center">
-                      <p className="text-muted-foreground mb-4">
-                        No se pudo cargar el PDF directamente. Intentando con visor alternativo...
-                      </p>
-                      <Button
-                        onClick={() => setUseGoogleViewer(true)}
-                        className="mb-2"
-                      >
-                        Usar visor alternativo
-                      </Button>
-                      <Button
-                        variant="outline"
-                        onClick={() => window.open(user.cv_url!, '_blank', 'noopener,noreferrer')}
-                      >
-                        Abrir en nueva pestaña
-                      </Button>
-                    </div>
-                  </object>
-                )}
-              </>
-            ) : (
-              <div className="flex items-center justify-center h-full">
-                <p className="text-muted-foreground">No hay CV disponible</p>
-              </div>
-            )}
-          </div>
-          <DialogFooter className="px-6 pb-6 pt-4 flex gap-2">
-            <Button
-              variant="outline"
-              onClick={handleDownloadCV}
-            >
-              <Download size={16} className="mr-2" />
-              Descargar CV
-            </Button>
-            <Button
-              variant="outline"
-              onClick={() => setShowCVModal(false)}
-            >
-              Cerrar
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+      {/* Modal para ver CV removido */}
     </div >
   );
 };
