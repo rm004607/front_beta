@@ -280,7 +280,7 @@ const Register = () => {
                 />
               </div>
               <div>
-                <Label htmlFor="phone">Teléfono</Label>
+                <Label htmlFor="phone">Teléfono de Contacto <span className="text-destructive">*</span></Label>
                 <Input
                   id="phone"
                   value={phone}

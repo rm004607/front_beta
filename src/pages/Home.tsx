@@ -5,7 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import {
   Briefcase, Wrench, Building2, MessageSquare, ArrowRight, MapPin,
   Calendar, DollarSign, Clock, Star, Users, ShoppingBag,
-  ChefHat, Truck, HeartPulse, Lightbulb, ShieldCheck
+  ChefHat, Truck, HeartPulse, Lightbulb, ShieldCheck, Sparkles
 } from 'lucide-react';
 import { useUser } from '@/contexts/UserContext';
 import { servicesAPI } from '@/lib/api';
@@ -82,12 +82,12 @@ const Home = () => {
               </div>
 
               <h1 className="text-5xl md:text-7xl font-sans font-extrabold leading-[1.1] tracking-tight animate-reveal delay-100">
-                Tu Vecindario, <br />
-                <span className="text-primary text-glow">Mejor Conectado</span>
+                ¡Acá está el <br />
+                <span className="text-primary text-glow">Dato que necesitas!</span>
               </h1>
 
               <p className="text-muted-foreground text-lg md:text-xl animate-reveal delay-200 leading-relaxed">
-                Únete a la plataforma donde los vecinos ofrecen sus talentos y encuentran soluciones cercanas, rápidas y confiables.
+                (Gásfiter, electricista, cerrajero, limpieza, construcciones, mecánica automotriz, cuidadores y más...)
               </p>
 
               <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start animate-reveal delay-300">
@@ -136,7 +136,7 @@ const Home = () => {
                   </div>
                   <div>
                     <p className="text-xs text-muted-foreground">Calidad</p>
-                    <p className="font-bold text-sm">Vecinos 5⭐</p>
+                    <p className="font-bold text-sm">Expertos 5⭐</p>
                   </div>
                 </div>
 
@@ -158,22 +158,22 @@ const Home = () => {
       {/* Categories Grid */}
       <section className="py-20 container mx-auto px-4">
         <div className="text-center mb-16 space-y-4">
-          <h2 className="text-4xl font-heading font-extrabold animate-reveal">Explora por Categoría</h2>
+          <h2 className="text-4xl font-heading font-extrabold animate-reveal">Servicios que podrás encontrar</h2>
           <p className="text-muted-foreground text-lg max-w-2xl mx-auto animate-reveal delay-100">
-            Encuentra exactamente lo que necesitas, desde servicios para el hogar hasta consultoría profesional.
+            Encuentra exactamente lo que necesitas para tu hogar o negocio con datos reales y garantizados.
           </p>
         </div>
 
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-6 max-w-5xl mx-auto">
           {[
-            { icon: <ShoppingBag />, label: 'Comercio', color: 'bg-rose-500' },
-            { icon: <Wrench />, label: 'Reparaciones', color: 'bg-amber-500' },
-            { icon: <ChefHat />, label: 'Gastronomía', color: 'bg-orange-500' },
-            { icon: <Users />, label: 'Clases', color: 'bg-blue-500' },
-            { icon: <HeartPulse />, label: 'Salud', color: 'bg-emerald-500' },
-            { icon: <Truck />, label: 'Fletes', color: 'bg-purple-500' },
-            { icon: <Building2 />, label: 'Empresas', color: 'bg-indigo-500' },
-            { icon: <Lightbulb />, label: 'Consultoría', color: 'bg-teal-500' },
+            { icon: <Wrench />, label: 'Gásfiter', color: 'bg-blue-500' },
+            { icon: <Lightbulb />, label: 'Electricista', color: 'bg-amber-500' },
+            { icon: <ShieldCheck />, label: 'Cerrajero', color: 'bg-slate-700' },
+            { icon: <Sparkles />, label: 'Limpieza', color: 'bg-emerald-500' },
+            { icon: <Building2 />, label: 'Construcción', color: 'bg-orange-600' },
+            { icon: <Truck />, label: 'Fletes / Mudanza', color: 'bg-purple-500' },
+            { icon: <HeartPulse />, label: 'Cuidadores', color: 'bg-rose-500' },
+            { icon: <Briefcase />, label: 'Mecánica', color: 'bg-indigo-600' },
           ].map((cat, i) => (
             <div key={i} className="group glass-card p-6 rounded-3xl hover:scale-105 transition-all duration-300 border-transparent hover:border-primary/30 animate-reveal" style={{ animationDelay: `${100 * (i + 1)}ms` }}>
               <div className={`${cat.color} w-16 h-16 rounded-2xl flex items-center justify-center text-white mb-4 group-hover:scale-110 transition-transform shadow-lg`}>
@@ -198,7 +198,7 @@ const Home = () => {
                   <MessageSquare className="text-white" size={36} strokeWidth={1.5} />
                 </div>
                 <h3 className="text-3xl font-heading font-extrabold mb-4 relative z-10">Muro de Datos</h3>
-                <p className="text-muted-foreground text-lg relative z-10 mb-6">¿Necesitas algo rápido? Publica tu anuncio o revisa lo que tus vecinos necesitan hoy mismo.</p>
+                <p className="text-muted-foreground text-lg relative z-10 mb-6">¿Necesitas un dato rápido? Publica tu requerimiento o revisa lo que otros necesitan hoy mismo.</p>
                 <div className="text-primary font-bold p-0 text-lg group-hover:translate-x-2 transition-transform flex items-center">
                   Entrar al Muro <ArrowRight className="ml-2" />
                 </div>
@@ -329,7 +329,7 @@ const Home = () => {
                 1
               </div>
               <h3 className="text-2xl font-bold mb-4">Crea tu Cuenta</h3>
-              <p className="text-muted-foreground text-lg">Regístrate como vecino o emprendedor en menos de 2 minutos.</p>
+              <p className="text-muted-foreground text-lg">Regístrate en menos de 2 minutos para pedir o entregar un dato.</p>
             </div>
 
             <div className="text-center animate-reveal delay-200 relative group">
@@ -356,7 +356,7 @@ const Home = () => {
         <div className="absolute inset-0 bg-primary opacity-[0.03]"></div>
         <div className="container mx-auto px-4 relative z-10 text-center">
           <div className="glass-card max-w-4xl mx-auto p-12 md:p-20 rounded-[4rem] border-primary/10 shadow-primary/10">
-            <h2 className="text-4xl md:text-6xl font-extrabold mb-8">Empieza a trabajar con tus vecinos hoy</h2>
+            <h2 className="text-4xl md:text-6xl font-extrabold mb-8">Empieza a solucionar tus tareas hoy mismo</h2>
             <p className="text-xl text-muted-foreground mb-12 max-w-2xl mx-auto">
               Únete a miles de personas que ya están transformando su economía local.
             </p>
