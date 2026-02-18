@@ -8,39 +8,49 @@ All colors MUST be HSL.
 
 @layer base {
   :root {
-    /* ===== New Palette: Light Theme (Job board) ===== */
+    /* ===== New Palette: Neighborhood/Community Theme ===== */
     /* Base */
-    --background: 210 33% 98%; /* #F8FAFC */
-    --foreground: 222 47% 12%; /* #0F172A */
+    --background: 210 40% 98%;
+    /* Soft blue-gray white */
+    --foreground: 224 71% 4%;
+    /* Near black */
 
     /* Surfaces */
-    --card: 0 0% 100%; /* #FFFFFF */
+    --card: 0 0% 100%;
     --card-foreground: var(--foreground);
     --popover: 0 0% 100%;
     --popover-foreground: var(--foreground);
 
-    /* Brand */
-    --primary: 219 79% 53%; /* #2563EB */
-    --primary-foreground: 0 0% 100%; /* on brand */
-    --secondary: 214 32% 91%; /* #E2E8F0 */
-    --secondary-foreground: 215 28% 35%; /* #475569 */
+    /* Brand: Indigo / Teal / Rose */
+    --primary: 239 84% 67%;
+    /* Vibrant Indigo #7C3AEDish but slightly softer */
+    --primary-foreground: 210 40% 98%;
 
-    /* Accents */
-    --muted: 214 32% 91%; /* subtle backgrounds */
-    --muted-foreground: 217 17% 67%; /* #94A3B8 (disabled text) */
-    --accent: 38 92% 50%; /* Amber CTA #F59E0B */
-    --accent-foreground: 222 47% 12%; /* text on CTA */
-    --destructive: 0 84% 63%; /* #EF4444 */
-    --destructive-foreground: 0 0% 100%;
-    --success: 142 72% 47%; /* #22C55E */
-    --success-foreground: 222 47% 12%; /* dark text for contrast */
+    --secondary: 173 80% 40%;
+    /* Professional Teal #14B8A6ish */
+    --secondary-foreground: 210 40% 98%;
+
+    /* Accents & States */
+    --muted: 210 40% 96%;
+    --muted-foreground: 215 16% 47%;
+
+    --accent: 346 84% 61%;
+    /* Rose/Watermelon #F43F5Eish for "wow" CTAs */
+    --accent-foreground: 210 40% 98%;
+
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 210 40% 98%;
+
+    --success: 142 71% 45%;
+    --success-foreground: 210 40% 98%;
 
     /* Lines & rings */
-    --border: 214 32% 91%; /* #E2E8F0 */
+    --border: 214 32% 91%;
     --input: 214 32% 91%;
     --ring: var(--primary);
 
-    --radius: 0.5rem;
+    --radius: 0.75rem;
+    /* Smoother corners */
 
     /* Sidebar */
     --sidebar-background: var(--background);
@@ -54,44 +64,44 @@ All colors MUST be HSL.
   }
 
   .dark {
-    /* ===== New Palette: Dark Theme ===== */
-    --background: 222 93% 2%; /* #020617 */
-    --foreground: 220 12% 91%; /* #E5E7EB */
+    /* ===== Dark Theme: Deep Space Community ===== */
+    --background: 224 71% 4%;
+    --foreground: 210 40% 98%;
 
-    --card: 222 93% 2%;
+    --card: 224 71% 6%;
     --card-foreground: var(--foreground);
 
-    --popover: 222 93% 2%;
+    --popover: 224 71% 6%;
     --popover-foreground: var(--foreground);
 
-    --primary: 217 92% 67%; /* #60A5FA */
-    --primary-foreground: 222 47% 12%; /* dark text for contrast */
+    --primary: 239 84% 67%;
+    --primary-foreground: 224 71% 4%;
 
-    --secondary: 221 28% 19%; /* ~#1f2937 */
-    --secondary-foreground: 220 12% 91%;
+    --secondary: 173 80% 50%;
+    --secondary-foreground: 224 71% 4%;
 
-    --muted: 215 20% 46%; /* #64748B */
-    --muted-foreground: 217 17% 67%; /* #94A3B8 */
+    --muted: 224 71% 10%;
+    --muted-foreground: 215 20% 65%;
 
-    --accent: 45 96% 55%; /* #FBBF24 */
-    --accent-foreground: 222 47% 12%;
+    --accent: 346 84% 61%;
+    --accent-foreground: 224 71% 4%;
 
-    --destructive: 0 89% 72%; /* #F87171 */
-    --destructive-foreground: 222 47% 12%;
-    --success: 142 72% 47%; /* #22C55E */
-    --success-foreground: 222 47% 12%;
+    --destructive: 0 62% 30%;
+    --destructive-foreground: 210 40% 98%;
+    --success: 142 71% 45%;
+    --success-foreground: 210 40% 98%;
 
-    --border: 214 32% 91%; /* mantener divisores claros */
-    --input: 214 32% 91%;
+    --border: 217 19% 27%;
+    --input: 217 19% 27%;
     --ring: var(--primary);
-    
-    --sidebar-background: 222 93% 2%;
+
+    --sidebar-background: 224 71% 4%;
     --sidebar-foreground: var(--foreground);
     --sidebar-primary: var(--primary);
     --sidebar-primary-foreground: var(--primary-foreground);
-    --sidebar-accent: 215 20% 46%;
+    --sidebar-accent: 224 71% 12%;
     --sidebar-accent-foreground: var(--foreground);
-    --sidebar-border: 214 32% 91%;
+    --sidebar-border: 217 19% 27%;
     --sidebar-ring: var(--primary);
   }
 }
@@ -104,52 +114,103 @@ All colors MUST be HSL.
   body {
     @apply bg-background text-foreground;
     font-family: 'Inter', sans-serif;
-    background-image: linear-gradient(to bottom, transparent 80%, hsl(var(--primary) / 0.06) 100%);
+    background-image:
+      radial-gradient(at 0% 0%, hsl(var(--primary) / 0.05) 0px, transparent 50%),
+      radial-gradient(at 100% 0%, hsl(var(--secondary) / 0.05) 0px, transparent 50%);
     background-attachment: fixed;
   }
 
-  h1, h2, h3, h4, h5, h6 {
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
     font-family: 'Montserrat', sans-serif;
-    font-weight: 600;
+    font-weight: 700;
+    letter-spacing: -0.02em;
   }
 }
 
 @layer utilities {
-  .animate-fade-in-up {
-    animation: fadeInUp 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  .animate-reveal {
+    animation: reveal 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
     opacity: 0;
   }
-  
-  .animate-fade-in {
-    animation: fadeIn 0.6s ease-out forwards;
-    opacity: 0;
-  }
-  
-  .delay-100 { animation-delay: 100ms; }
-  .delay-200 { animation-delay: 200ms; }
-  .delay-300 { animation-delay: 300ms; }
 
-  @keyframes fadeInUp {
+  .animate-float {
+    animation: float 6s ease-in-out infinite;
+  }
+
+  .animate-pulse-subtle {
+    animation: pulse-subtle 3s ease-in-out infinite;
+  }
+
+  .delay-100 {
+    animation-delay: 100ms;
+  }
+
+  .delay-200 {
+    animation-delay: 200ms;
+  }
+
+  .delay-300 {
+    animation-delay: 300ms;
+  }
+
+  .delay-500 {
+    animation-delay: 500ms;
+  }
+
+  @keyframes reveal {
     from {
       opacity: 0;
-      transform: translateY(20px);
+      transform: translateY(30px) scale(0.98);
     }
+
     to {
       opacity: 1;
-      transform: translateY(0);
+      transform: translateY(0) scale(1);
     }
   }
 
-  @keyframes fadeIn {
-    from { opacity: 0; }
-    to { opacity: 1; }
+  @keyframes float {
+
+    0%,
+    100% {
+      transform: translateY(0);
+    }
+
+    50% {
+      transform: translateY(-15px);
+    }
   }
 
-  .hover-gold-glow:hover {
-    box-shadow: 0 0 20px -6px hsl(var(--accent) / 0.45);
+  @keyframes pulse-subtle {
+
+    0%,
+    100% {
+      opacity: 1;
+      transform: scale(1);
+    }
+
+    50% {
+      opacity: 0.8;
+      transform: scale(1.02);
+    }
   }
-  
+
   .glass-card {
-    @apply bg-background/80 backdrop-blur-md border border-white/20 dark:border-white/10;
+    @apply bg-card/60 backdrop-blur-xl border border-white/10 dark:border-white/5 shadow-2xl;
+  }
+
+  .text-glow {
+    text-shadow: 0 0 20px hsl(var(--primary) / 0.3);
+  }
+
+  .bg-mesh {
+    background-image:
+      radial-gradient(circle at 20% 30%, hsl(var(--primary) / 0.15), transparent 40%),
+      radial-gradient(circle at 80% 70%, hsl(var(--secondary) / 0.15), transparent 40%);
   }
 }
