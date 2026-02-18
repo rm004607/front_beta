@@ -793,12 +793,28 @@ const Profile = () => {
                         <CardHeader>
                           <div className="flex justify-between items-start">
                             <div className="flex-1">
-                              <CardTitle className="text-lg">{service.service_name}</CardTitle>
-                              <CardDescription className="flex flex-col gap-1 mt-1">
+                              <div className="flex items-center gap-2 mb-1">
+                                <CardTitle className="text-lg">{service.service_name}</CardTitle>
+                                <Badge
+                                  className={
+                                    service.status?.toLowerCase().trim() === 'active' ? 'bg-green-500/10 text-green-500 border-green-500/20 hover:bg-green-500/20' :
+                                      service.status?.toLowerCase().trim() === 'pending' ? 'bg-amber-500/10 text-amber-500 border-amber-500/20 hover:bg-amber-500/20' :
+                                        (service.status?.toLowerCase().trim() === 'rejected' || service.status?.toLowerCase().trim() === 'suspended') ? 'bg-red-500/10 text-red-500 border-red-500/20 hover:bg-red-500/20' :
+                                          'bg-gray-500/10 text-gray-500 border-gray-500/20 hover:bg-gray-500/20'
+                                  }
+                                  variant="outline"
+                                >
+                                  {service.status?.toLowerCase().trim() === 'active' ? '✅ Activo' :
+                                    service.status?.toLowerCase().trim() === 'pending' ? '⏳ Pendiente' :
+                                      (service.status?.toLowerCase().trim() === 'rejected' || service.status?.toLowerCase().trim() === 'suspended') ? '❌ Bloqueado' :
+                                        service.status}
+                                </Badge>
+                              </div>
+                              <CardDescription className="flex flex-col gap-1">
                                 <span>{service.comuna} | {formatDate(service.created_at)}</span>
                                 <div className="flex items-center gap-1 text-xs text-muted-foreground">
                                   <Star className="w-3 h-3 fill-yellow-400 text-yellow-400" />
-                                  <span className="font-bold text-yellow-700">
+                                  <span className="font-bold text-yellow-500">
                                     {service.average_rating ? Number(service.average_rating).toFixed(1) : '0.0'}
                                   </span>
                                   <span className="text-[10px]">({service.reviews_count || 0} reseñas)</span>
