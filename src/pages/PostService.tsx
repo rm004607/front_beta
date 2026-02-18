@@ -8,7 +8,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Badge } from '@/components/ui/badge';
 import { useUser } from '@/contexts/UserContext';
-import { Wrench, AlertCircle } from 'lucide-react';
+import { Wrench, AlertCircle, MapPin, Edit } from 'lucide-react';
 import { toast } from 'sonner';
 import { servicesAPI, packagesAPI } from '@/lib/api';
 import {
@@ -42,6 +42,7 @@ const PostService = () => {
   const [coverageRegion, setCoverageRegion] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [packagesModalOpen, setPackagesModalOpen] = useState(false);
+  const [editBaseLocation, setEditBaseLocation] = useState(false);
   const [userLimits, setUserLimits] = useState<{
     services: {
       free_limit: number;
@@ -63,6 +64,14 @@ const PostService = () => {
       loadUserLimits();
     }
   }, [isLoggedIn, user]);
+
+  // Pre-llenado de ubicación desde el perfil
+  useEffect(() => {
+    if (user) {
+      if (user.comuna) setComuna(user.comuna);
+      if (user.region_id) setBaseRegion(user.region_id);
+    }
+  }, [user]);
 
   const loadUserLimits = async () => {
     try {
@@ -242,36 +251,83 @@ const PostService = () => {
               />
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div>
-                <Label htmlFor="baseRegion">Región (Ubicación Base) *</Label>
-                <Select value={baseRegion} onValueChange={(val) => {
-                  setBaseRegion(val);
-                  setComuna('');
-                }}>
-                  <SelectTrigger id="baseRegion">
-                    <SelectValue placeholder="Selecciona Región" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {chileData.map((reg) => (
-                      <SelectItem key={reg.id} value={reg.id}>{reg.name}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+            <div className="space-y-4 p-4 border rounded-xl bg-primary/5">
+              <div className="flex justify-between items-center">
+                <div className="flex flex-col gap-1">
+                  <Label className="text-base font-semibold">Ubicación de Origen</Label>
+                  <p className="text-xs text-muted-foreground">Esta es tu ubicación base registrada en tu perfil.</p>
+                </div>
+                {!editBaseLocation && (
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    className="text-primary hover:text-primary/80 h-7 text-xs"
+                    onClick={() => setEditBaseLocation(true)}
+                  >
+                    <Edit size={14} className="mr-1" />
+                    Cambiar para este servicio
+                  </Button>
+                )}
               </div>
-              <div>
-                <Label htmlFor="comuna">Comuna (Ubicación Base) *</Label>
-                <Select value={comuna} onValueChange={setComuna} disabled={!baseRegion}>
-                  <SelectTrigger id="comuna">
-                    <SelectValue placeholder="Selecciona Comuna" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {baseRegion && chileData.find(r => r.id === baseRegion)?.communes.map((c) => (
-                      <SelectItem key={c} value={c}>{c}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
+
+              {!editBaseLocation ? (
+                <div className="flex items-center gap-2">
+                  <Badge variant="outline" className="bg-background py-1.5 px-3 border-primary/20 flex items-center gap-2 text-sm">
+                    <MapPin size={14} className="text-primary" />
+                    {baseRegion && chileData.find(r => r.id === baseRegion)?.name}
+                    {baseRegion && ' - '}
+                    {comuna || 'Cargando...'}
+                  </Badge>
+                </div>
+              ) : (
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2">
+                  <div>
+                    <Label htmlFor="baseRegion" className="text-xs">Región *</Label>
+                    <Select value={baseRegion} onValueChange={(val) => {
+                      setBaseRegion(val);
+                      setComuna('');
+                    }}>
+                      <SelectTrigger id="baseRegion" className="h-9">
+                        <SelectValue placeholder="Selecciona Región" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {chileData.map((reg) => (
+                          <SelectItem key={reg.id} value={reg.id}>{reg.name}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div>
+                    <Label htmlFor="comuna" className="text-xs">Comuna *</Label>
+                    <Select value={comuna} onValueChange={setComuna} disabled={!baseRegion}>
+                      <SelectTrigger id="comuna" className="h-9">
+                        <SelectValue placeholder="Selecciona Comuna" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {baseRegion && chileData.find(r => r.id === baseRegion)?.communes.map((c) => (
+                          <SelectItem key={c} value={c}>{c}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="sm:col-span-2">
+                    <Button
+                      type="button"
+                      variant="link"
+                      size="sm"
+                      className="p-0 h-auto text-xs"
+                      onClick={() => {
+                        setEditBaseLocation(false);
+                        if (user?.comuna) setComuna(user.comuna);
+                        if (user?.region_id) setBaseRegion(user.region_id);
+                      }}
+                    >
+                      Restablecer a mi ubicación de perfil
+                    </Button>
+                  </div>
+                </div>
+              )}
             </div>
 
             <div className="space-y-4 p-4 border rounded-lg bg-muted/30">

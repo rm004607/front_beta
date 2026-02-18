@@ -14,6 +14,7 @@ export interface UserProfile {
   cv_url?: string | null;
   roles: UserRole[];
   role_number?: number;
+  region_id?: string;
   // Job seeker specific
   rubro?: string;
   experience?: string;
@@ -127,6 +128,7 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
         cv_url: dbUser.cv_url || null,
         roles: [roleMap[Number(dbUser.role_number)] || 'job-seeker'],
         role_number: Number(dbUser.role_number),
+        region_id: dbUser.region_id,
       };
 
       setUser(userProfile);

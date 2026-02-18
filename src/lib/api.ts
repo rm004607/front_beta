@@ -138,6 +138,7 @@ export const authAPI = {
         is_banned: boolean;
         profile_image?: string | null;
         cv_url?: string | null;
+        region_id?: string;
       };
     }>('/auth/me', {
       method: 'GET',
