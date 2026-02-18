@@ -26,6 +26,10 @@ import {
   HelpCircle,
   Send,
   CheckCircle,
+  Loader2,
+  Crown,
+  MapPin,
+  Star,
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { adminAPI, authAPI, configAPI, packagesAPI } from '@/lib/api';
@@ -135,6 +139,8 @@ const Admin = () => {
   const [loadingLogs, setLoadingLogs] = useState(false);
   const [logLevel, setLogLevel] = useState('all');
   const [logsAutoRefresh, setLogsAutoRefresh] = useState(false);
+  const [activeTab, setActiveTab] = useState('wall');
+  const [isInitialLoading, setIsInitialLoading] = useState(true);
 
   // Estados para tickets
   const [tickets, setTickets] = useState<any[]>([]);
@@ -679,9 +685,29 @@ const Admin = () => {
   // TODOS LOS HOOKS DEBEN ESTAR ANTES DE CUALQUIER RETURN CONDICIONAL
   // Cargar estadísticas
   useEffect(() => {
-    loadStats();
+    const initAdmin = async () => {
+      setIsInitialLoading(true);
+      await loadStats();
+      setIsInitialLoading(false);
+    };
+    initAdmin();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []); // loadStats es estable y no necesita estar en deps
+  }, []);
+
+  // Recargar datos al cambiar de pestaña
+  useEffect(() => {
+    switch (activeTab) {
+      case 'wall': loadPosts(); break;
+      case 'services': loadServices(); break;
+      case 'users': loadUsers(); break;
+      case 'tickets': loadTickets(); break;
+      case 'prices':
+        loadAdminConfig();
+        loadAdminPackages();
+        break;
+      case 'logs': loadLogs(); break;
+    }
+  }, [activeTab]);
 
   // Auto-refresh de logs
   useEffect(() => {
@@ -704,6 +730,17 @@ const Admin = () => {
   // Mostrar loading o redirigir si no tiene permisos
   if (!isLoggedIn || (!user?.roles.includes('admin') && user?.role_number !== 5)) {
     return null;
+  }
+
+  if (isInitialLoading) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="flex flex-col items-center gap-4">
+          <Loader2 className="h-12 w-12 text-primary animate-spin" />
+          <p className="text-muted-foreground font-medium animate-pulse">Cargando Panel de Control...</p>
+        </div>
+      </div>
+    );
   }
 
   return (
@@ -757,8 +794,8 @@ const Admin = () => {
           </div>
         )}
 
-        <Tabs defaultValue="wall" className="w-full">
-          <TabsList className={`grid w-full h-auto mb-8 p-1 gap-1 ${isSuperAdmin ? 'grid-cols-2 sm:grid-cols-3 lg:grid-cols-7' : 'grid-cols-2 sm:grid-cols-3 lg:grid-cols-5'}`}>
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+          <TabsList className={`grid w-full h-auto mb-8 p-1 gap-1 glass-card border-white/5 ${isSuperAdmin ? 'grid-cols-2 sm:grid-cols-3 lg:grid-cols-7' : 'grid-cols-2 sm:grid-cols-3 lg:grid-cols-5'}`}>
             <TabsTrigger value="wall" onClick={loadPosts} className="flex items-center gap-2">
               <MessageSquare size={16} />
               Muro
@@ -797,26 +834,28 @@ const Admin = () => {
                 <CardDescription>Gestiona todas las publicaciones del muro</CardDescription>
               </CardHeader>
               <CardContent>
-                <div className="mb-4 flex gap-4">
+                <div className="mb-6 flex flex-col sm:flex-row gap-4">
                   <Select value={postFilters.type} onValueChange={(value) => setPostFilters({ ...postFilters, type: value })}>
-                    <SelectTrigger className="w-40">
+                    <SelectTrigger className="w-full sm:w-44 glass-card border-white/10 text-glow">
                       <SelectValue placeholder="Tipo" />
                     </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="all">Todos</SelectItem>
-                      <SelectItem value="Busco Trabajo">Busco Trabajo</SelectItem>
-                      <SelectItem value="Busco Servicio">Busco Servicio</SelectItem>
-                      <SelectItem value="Ofrezco">Ofrezco</SelectItem>
-                      <SelectItem value="Info">Info</SelectItem>
+                    <SelectContent className="glass-card border-white/10 backdrop-blur-xl">
+                      <SelectItem value="all">🌐 Todos</SelectItem>
+                      <SelectItem value="Busco Servicio">🔍 Busco Servicio</SelectItem>
+                      <SelectItem value="Ofrezco">💼 Ofrezco</SelectItem>
+                      <SelectItem value="Info">ℹ️ Info</SelectItem>
                     </SelectContent>
                   </Select>
-                  <Input
-                    placeholder="Filtrar por comuna..."
-                    value={postFilters.comuna}
-                    onChange={(e) => setPostFilters({ ...postFilters, comuna: e.target.value })}
-                    className="flex-1"
-                  />
-                  <Button onClick={loadPosts}>Buscar</Button>
+                  <div className="relative flex-1">
+                    <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 text-primary/50" size={16} />
+                    <Input
+                      placeholder="Filtrar por comuna..."
+                      value={postFilters.comuna}
+                      onChange={(e) => setPostFilters({ ...postFilters, comuna: e.target.value })}
+                      className="pl-10 glass-card border-white/10"
+                    />
+                  </div>
+                  <Button onClick={loadPosts} className="bg-primary hover:bg-primary/90 font-bold px-6">Buscar</Button>
                 </div>
 
                 {loadingPosts ? (
@@ -872,27 +911,30 @@ const Admin = () => {
                 <CardDescription>Gestiona todos los servicios. Los pendientes requieren aprobación antes de publicarse.</CardDescription>
               </CardHeader>
               <CardContent>
-                <div className="mb-4 flex gap-4">
+                <div className="mb-6 flex flex-col sm:flex-row gap-4">
                   <Select value={serviceFilters.status} onValueChange={(value) => setServiceFilters({ ...serviceFilters, status: value })}>
-                    <SelectTrigger className="w-44">
+                    <SelectTrigger className="w-full sm:w-56 glass-card border-white/10">
                       <SelectValue placeholder="Estado" />
                     </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="all">Todos</SelectItem>
-                      <SelectItem value="pending">⏳ Pendientes</SelectItem>
-                      <SelectItem value="active">✅ Activos</SelectItem>
-                      <SelectItem value="rejected">❌ Bloqueados / Rechazados</SelectItem>
-                      <SelectItem value="inactive">Inactivos</SelectItem>
-                      <SelectItem value="suspended">Suspendidos</SelectItem>
+                    <SelectContent className="glass-card border-white/10 backdrop-blur-xl">
+                      <SelectItem value="all">🌐 Todos los estados</SelectItem>
+                      <SelectItem value="pending">⏳ Pendientes (Aprobación)</SelectItem>
+                      <SelectItem value="active">✅ Activos / Publicados</SelectItem>
+                      <SelectItem value="rejected">🛑 Bloqueados / Rechazados</SelectItem>
+                      <SelectItem value="inactive">🌑 Inactivos (X)</SelectItem>
+                      <SelectItem value="suspended">⚠️ Suspendidos</SelectItem>
                     </SelectContent>
                   </Select>
-                  <Input
-                    placeholder="Filtrar por comuna..."
-                    value={serviceFilters.comuna}
-                    onChange={(e) => setServiceFilters({ ...serviceFilters, comuna: e.target.value })}
-                    className="flex-1"
-                  />
-                  <Button onClick={loadServices}>Buscar</Button>
+                  <div className="relative flex-1">
+                    <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 text-primary/50" size={16} />
+                    <Input
+                      placeholder="Filtrar por comuna..."
+                      value={serviceFilters.comuna}
+                      onChange={(e) => setServiceFilters({ ...serviceFilters, comuna: e.target.value })}
+                      className="pl-10 glass-card border-white/10"
+                    />
+                  </div>
+                  <Button onClick={loadServices} className="bg-primary hover:bg-primary/90">Buscar</Button>
                 </div>
 
                 {loadingServices ? (
@@ -986,40 +1028,40 @@ const Admin = () => {
                 <CardDescription>Gestiona usuarios, baneos y roles</CardDescription>
               </CardHeader>
               <CardContent>
-                <div className="mb-4 flex gap-4">
+                <div className="mb-6 flex flex-wrap gap-4">
                   <Select value={userFilters.role} onValueChange={(value) => setUserFilters({ ...userFilters, role: value })}>
-                    <SelectTrigger className="w-40">
+                    <SelectTrigger className="w-full sm:w-48 glass-card border-white/10">
                       <SelectValue placeholder="Rol" />
                     </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="all">Todos</SelectItem>
-                      <SelectItem value="job-seeker">Job Seeker</SelectItem>
-                      <SelectItem value="entrepreneur">Entrepreneur</SelectItem>
-                      <SelectItem value="company">Company</SelectItem>
-                      <SelectItem value="admin">Admin</SelectItem>
+                    <SelectContent className="glass-card border-white/10 backdrop-blur-xl">
+                      <SelectItem value="all">👥 Todos los roles</SelectItem>
+                      <SelectItem value="job-seeker">👤 Vecino</SelectItem>
+                      <SelectItem value="entrepreneur">🛠️ Emprendedor</SelectItem>
+                      <SelectItem value="company">🏢 Empresa</SelectItem>
+                      <SelectItem value="admin">🛡️ Admin</SelectItem>
                     </SelectContent>
                   </Select>
                   <Select value={userFilters.is_active} onValueChange={(value) => setUserFilters({ ...userFilters, is_active: value })}>
-                    <SelectTrigger className="w-32">
-                      <SelectValue placeholder="Activo" />
+                    <SelectTrigger className="w-full sm:w-40 glass-card border-white/10">
+                      <SelectValue placeholder="Estado" />
                     </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="all">Todos</SelectItem>
-                      <SelectItem value="1">Activos</SelectItem>
-                      <SelectItem value="0">Inactivos</SelectItem>
+                    <SelectContent className="glass-card border-white/10 backdrop-blur-xl">
+                      <SelectItem value="all">✨ Todos los estados</SelectItem>
+                      <SelectItem value="1">✅ Activos</SelectItem>
+                      <SelectItem value="0">🌑 Inactivos</SelectItem>
                     </SelectContent>
                   </Select>
                   <Select value={userFilters.is_banned} onValueChange={(value) => setUserFilters({ ...userFilters, is_banned: value })}>
-                    <SelectTrigger className="w-32">
+                    <SelectTrigger className="w-full sm:w-40 glass-card border-white/10">
                       <SelectValue placeholder="Ban" />
                     </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="all">Todos</SelectItem>
-                      <SelectItem value="1">Baneados</SelectItem>
-                      <SelectItem value="0">No Baneados</SelectItem>
+                    <SelectContent className="glass-card border-white/10 backdrop-blur-xl">
+                      <SelectItem value="all">🚫 Todos</SelectItem>
+                      <SelectItem value="1">❌ Baneados</SelectItem>
+                      <SelectItem value="0">🛡️ No Baneados</SelectItem>
                     </SelectContent>
                   </Select>
-                  <Button onClick={loadUsers}>Buscar</Button>
+                  <Button onClick={loadUsers} className="bg-primary hover:bg-primary/90 font-bold px-6">Buscar</Button>
                 </div>
 
                 {loadingUsers ? (
@@ -1328,16 +1370,16 @@ const Admin = () => {
                     ) : (
                       <div className="space-y-4">
                         {adminConfig.map((config) => (
-                          <div key={config.key} className="flex items-center justify-between p-4 border rounded-lg bg-card">
+                          <div key={config.key} className="flex flex-col sm:flex-row items-center justify-between p-5 glass-card border-white/5 bg-white/5 hover:bg-white/10 transition-all duration-300 gap-4">
                             <div>
-                              <p className="font-medium text-lg">{config.description}</p>
-                              <p className="text-sm text-muted-foreground font-mono">{config.key}</p>
+                              <p className="font-semibold text-lg text-white group-hover:text-primary transition-colors">{config.description}</p>
+                              <code className="text-[10px] text-primary/60 bg-primary/5 px-2 py-0.5 rounded uppercase tracking-wider">{config.key}</code>
                             </div>
-                            <div className="flex items-center gap-4">
-                              <span className="text-2xl font-bold bg-green-50 text-green-700 px-3 py-1 rounded">
+                            <div className="flex items-center gap-6">
+                              <span className="text-2xl font-black text-primary text-glow drop-shadow-[0_0_10px_rgba(var(--primary),0.3)]">
                                 {parseInt(config.value) ? new Intl.NumberFormat('es-CL', { style: 'currency', currency: 'CLP' }).format(parseInt(config.value)) : config.value}
                               </span>
-                              <Button variant="outline" size="sm" onClick={() => openEditConfig(config)}>
+                              <Button variant="outline" size="sm" onClick={() => openEditConfig(config)} className="glass-card hover:border-primary/50 transition-colors">
                                 <Wrench size={14} className="mr-2" />
                                 Editar
                               </Button>
@@ -1368,30 +1410,33 @@ const Admin = () => {
                         <TabsContent value="services-packages" className="mt-4">
                           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                             {adminPackages.services.map((pkg) => (
-                              <Card key={pkg.id} className="border bg-slate-50 relative overflow-hidden">
+                              <Card key={pkg.id} className="glass-card border-white/5 relative overflow-hidden group hover:border-primary/30 transition-all duration-300">
                                 <div className="absolute top-0 right-0 p-2">
-                                  <Badge variant={pkg.is_active ? "default" : "destructive"}>
+                                  <Badge className={pkg.is_active ? "bg-green-500/20 text-green-400 border-green-500/30" : "bg-red-500/20 text-red-400 border-red-500/30"}>
                                     {pkg.is_active ? "Activo" : "Inactivo"}
                                   </Badge>
                                 </div>
                                 <CardHeader className="pb-2">
-                                  <CardTitle className="text-base">{pkg.name}</CardTitle>
-                                  <CardDescription className="line-clamp-2 text-xs">{pkg.description}</CardDescription>
+                                  <CardTitle className="text-base flex items-center gap-2">
+                                    <Crown className="w-4 h-4 text-primary" />
+                                    {pkg.name}
+                                  </CardTitle>
+                                  <CardDescription className="line-clamp-2 text-xs text-muted-foreground">{pkg.description}</CardDescription>
                                 </CardHeader>
                                 <CardContent>
-                                  <div className="space-y-2 mb-4">
+                                  <div className="space-y-3 mb-4 p-3 rounded-2xl bg-white/5 border border-white/5">
                                     <div className="flex justify-between items-center text-sm">
                                       <span className="text-muted-foreground">Precio:</span>
-                                      <span className="font-bold text-lg text-primary">
+                                      <span className="font-bold text-lg text-primary text-glow">
                                         {new Intl.NumberFormat('es-CL', { style: 'currency', currency: 'CLP' }).format(pkg.price)}
                                       </span>
                                     </div>
                                     <div className="flex justify-between items-center text-sm">
                                       <span className="text-muted-foreground">Publicaciones:</span>
-                                      <span className="font-medium bg-white px-2 py-0.5 rounded border">+{pkg.publications}</span>
+                                      <span className="font-bold text-secondary">+{pkg.publications}</span>
                                     </div>
                                   </div>
-                                  <Button className="w-full" variant="outline" size="sm" onClick={() => openEditPackage(pkg)}>
+                                  <Button className="w-full glass-card border-white/10 hover:border-primary/50 transition-colors" variant="outline" size="sm" onClick={() => openEditPackage(pkg)}>
                                     Editar Paquete
                                   </Button>
                                 </CardContent>

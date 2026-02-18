@@ -61,12 +61,6 @@ const Footer = () => {
             <h3 className="text-white font-bold text-lg">Explorar</h3>
             <ul className="space-y-4">
               <li>
-                <Link to="/empleos" className="text-muted-foreground hover:text-primary transition-colors text-sm flex items-center gap-2">
-                  <div className="w-1 h-1 rounded-full bg-primary/40" />
-                  Buscar Empleos
-                </Link>
-              </li>
-              <li>
                 <Link to="/servicios" className="text-muted-foreground hover:text-primary transition-colors text-sm flex items-center gap-2">
                   <div className="w-1 h-1 rounded-full bg-primary/40" />
                   Buscar Servicios

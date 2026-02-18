@@ -107,6 +107,13 @@ const Wall = () => {
     loadConfig();
   }, []);
 
+  // Auto-seleccionar comuna del usuario
+  useEffect(() => {
+    if (isLoggedIn && user?.comuna && !postComuna) {
+      setPostComuna(user.comuna);
+    }
+  }, [isLoggedIn, user, postComuna]);
+
   // Cargar posts
   useEffect(() => {
     loadPosts();

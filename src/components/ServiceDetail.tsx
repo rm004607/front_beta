@@ -85,24 +85,24 @@ export const ServiceDetail = ({
             </DialogHeader>
 
             {stats && (
-                <div className="bg-yellow-50 p-4 rounded-xl border border-yellow-100 flex items-center justify-between mb-6">
-                    <div>
-                        <p className="text-sm text-yellow-800 font-medium">Calificación Promedio</p>
-                        <div className="flex items-center gap-2">
-                            <span className="text-3xl font-black text-yellow-900">{Number(stats.average_rating).toFixed(1)}</span>
-                            <div className="flex">
+                <div className="glass-card bg-yellow-400/10 p-5 rounded-2xl border border-yellow-400/20 flex flex-col sm:flex-row items-center justify-between gap-4 mb-8">
+                    <div className="text-center sm:text-left">
+                        <p className="text-xs uppercase tracking-widest text-yellow-500 font-bold mb-1">Calificación Promedio</p>
+                        <div className="flex items-center justify-center sm:justify-start gap-3">
+                            <span className="text-4xl font-black text-yellow-400 text-glow">{Number(stats.average_rating).toFixed(1)}</span>
+                            <div className="flex gap-0.5">
                                 {[1, 2, 3, 4, 5].map((s) => (
                                     <Star
                                         key={s}
-                                        className={`w-4 h-4 ${s <= Math.round(stats.average_rating) ? 'fill-yellow-400 text-yellow-400' : 'text-yellow-200'}`}
+                                        className={`w-4 h-4 ${s <= Math.round(stats.average_rating) ? 'fill-yellow-400 text-yellow-400' : 'text-yellow-400/20'}`}
                                     />
                                 ))}
                             </div>
                         </div>
                     </div>
-                    <div className="text-right">
-                        <p className="text-sm text-yellow-800 font-medium">Total de Reseñas</p>
-                        <p className="text-2xl font-bold text-yellow-900">{stats.total_reviews}</p>
+                    <div className="text-center sm:text-right border-t sm:border-t-0 sm:border-l border-yellow-400/10 pt-4 sm:pt-0 sm:pl-8">
+                        <p className="text-xs uppercase tracking-widest text-yellow-500 font-bold mb-1">Total Reseñas</p>
+                        <p className="text-3xl font-black text-yellow-400">{stats.total_reviews}</p>
                     </div>
                 </div>
             )}
