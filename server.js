@@ -15,7 +15,7 @@ app.use(helmet({
     directives: {
       ...helmet.contentSecurityPolicy.getDefaultDirectives(),
       "img-src": ["'self'", "data:", "https://res.cloudinary.com", "*.googleusercontent.com"],
-      "connect-src": ["'self'", "https://*.rehablab.cl", "https://*.dameldato.cl", "http://localhost:3000", "https://*.cloudinary.com"],
+      "connect-src": ["'self'", "https://*.dameldato.com", "https://*.onrender.com", "http://localhost:3000", "https://*.cloudinary.com"],
       "script-src": ["'self'", "'unsafe-inline'", "*.google.com"],
       "style-src": ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com"],
       "font-src": ["'self'", "https://fonts.gstatic.com"],
