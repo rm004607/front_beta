@@ -18,6 +18,14 @@ import {
   sanitizeInput,
   getValidationErrorMessage
 } from '@/lib/input-validator';
+import { chileData } from '@/lib/chile-data';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 const Register = () => {
   const navigate = useNavigate();
@@ -42,6 +50,7 @@ const Register = () => {
   const [acceptTerms, setAcceptTerms] = useState(false);
   const [showTerms, setShowTerms] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [selectedRegion, setSelectedRegion] = useState('');
 
   // Persistir datos si viene de QR
   useEffect(() => {
@@ -109,6 +118,11 @@ const Register = () => {
 
       if (!isValidComuna(comuna)) {
         toast.error(getValidationErrorMessage('comuna', containsSQLInjection(comuna) ? 'sql' : 'format'));
+        return;
+      }
+
+      if (!selectedRegion) {
+        toast.error('Por favor selecciona una región');
         return;
       }
 
@@ -293,20 +307,36 @@ const Register = () => {
                   </p>
                 )}
               </div>
-              <div>
-                <Label htmlFor="comuna">Comuna</Label>
-                <Input
-                  id="comuna"
-                  value={comuna}
-                  onChange={(e) => setComuna(e.target.value)}
-                  placeholder="Tu comuna"
-                  className={comuna && !isValidComuna(comuna) ? 'border-red-500' : ''}
-                />
-                {comuna && !isValidComuna(comuna) && (
-                  <p className="text-sm text-red-500 mt-1">
-                    {getValidationErrorMessage('comuna', containsSQLInjection(comuna) ? 'sql' : 'format')}
-                  </p>
-                )}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <Label htmlFor="region">Región</Label>
+                  <Select value={selectedRegion} onValueChange={(val) => {
+                    setSelectedRegion(val);
+                    setComuna(''); // Reset commune when region changes
+                  }}>
+                    <SelectTrigger id="region">
+                      <SelectValue placeholder="Selecciona Región" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {chileData.map((reg) => (
+                        <SelectItem key={reg.id} value={reg.id}>{reg.name}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div>
+                  <Label htmlFor="comuna">Comuna</Label>
+                  <Select value={comuna} onValueChange={setComuna} disabled={!selectedRegion}>
+                    <SelectTrigger id="comuna">
+                      <SelectValue placeholder="Selecciona Comuna" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {selectedRegion && chileData.find(r => r.id === selectedRegion)?.communes.map((c) => (
+                        <SelectItem key={c} value={c}>{c}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
               </div>
               <div className="space-y-3">
                 <div className="flex items-start gap-2">

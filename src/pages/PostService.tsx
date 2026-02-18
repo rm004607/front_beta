@@ -17,6 +17,17 @@ import {
   sanitizeInput
 } from '@/lib/input-validator';
 import PackagesModal from '@/components/PackagesModal';
+import { chileData } from '@/lib/chile-data';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Checkbox } from '@/components/ui/checkbox';
+import { ScrollArea } from '@/components/ui/scroll-area';
+import { X } from 'lucide-react';
 
 const PostService = () => {
   const { user, isLoggedIn } = useUser();
@@ -24,8 +35,11 @@ const PostService = () => {
   const [service, setService] = useState('');
   const [description, setDescription] = useState('');
   const [priceRange, setPriceRange] = useState('');
-  const [comuna, setComuna] = useState(user?.comuna || '');
+  const [comuna, setComuna] = useState(user?.comuna || ''); // Comuna base
+  const [baseRegion, setBaseRegion] = useState('');
   const [phone, setPhone] = useState(user?.phone || '');
+  const [coverageCommunes, setCoverageCommunes] = useState<string[]>([]);
+  const [coverageRegion, setCoverageRegion] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [packagesModalOpen, setPackagesModalOpen] = useState(false);
   const [userLimits, setUserLimits] = useState<{
@@ -115,6 +129,9 @@ const PostService = () => {
         price_range: priceRange ? sanitizeInput(priceRange, 100) : undefined,
         comuna: sanitizeInput(comuna, 50),
         phone: phone ? sanitizeInput(phone, 20) : undefined,
+        // @ts-ignore - Agregando campos nuevos para el backend
+        region_id: baseRegion,
+        coverage_communes: coverageCommunes,
       });
 
       toast.success('¡Servicio enviado! Será revisado por un administrador antes de publicarse.');
@@ -225,15 +242,114 @@ const PostService = () => {
               />
             </div>
 
-            <div>
-              <Label htmlFor="comuna">Comuna *</Label>
-              <Input
-                id="comuna"
-                value={comuna}
-                onChange={(e) => setComuna(e.target.value)}
-                placeholder="Comuna donde ofreces el servicio"
-                required
-              />
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div>
+                <Label htmlFor="baseRegion">Región (Ubicación Base) *</Label>
+                <Select value={baseRegion} onValueChange={(val) => {
+                  setBaseRegion(val);
+                  setComuna('');
+                }}>
+                  <SelectTrigger id="baseRegion">
+                    <SelectValue placeholder="Selecciona Región" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {chileData.map((reg) => (
+                      <SelectItem key={reg.id} value={reg.id}>{reg.name}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div>
+                <Label htmlFor="comuna">Comuna (Ubicación Base) *</Label>
+                <Select value={comuna} onValueChange={setComuna} disabled={!baseRegion}>
+                  <SelectTrigger id="comuna">
+                    <SelectValue placeholder="Selecciona Comuna" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {baseRegion && chileData.find(r => r.id === baseRegion)?.communes.map((c) => (
+                      <SelectItem key={c} value={c}>{c}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+
+            <div className="space-y-4 p-4 border rounded-lg bg-muted/30">
+              <div className="flex flex-col gap-1">
+                <Label className="text-base font-semibold">Zona de Desplazamiento / Cobertura</Label>
+                <p className="text-xs text-muted-foreground">Selecciona las comunas a las que puedes desplazarte para ofrecer tu servicio.</p>
+              </div>
+
+              <div className="space-y-4">
+                <div>
+                  <Label htmlFor="coverageRegion" className="text-xs">Seleccionar Región para cobertura</Label>
+                  <Select value={coverageRegion} onValueChange={setCoverageRegion}>
+                    <SelectTrigger id="coverageRegion" className="h-8">
+                      <SelectValue placeholder="Elegir Región" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {chileData.map((reg) => (
+                        <SelectItem key={reg.id} value={reg.id}>{reg.name}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                {coverageRegion && (
+                  <div className="space-y-2">
+                    <Label className="text-xs">Comunas en esta región:</Label>
+                    <ScrollArea className="h-48 border rounded-md p-2 bg-background">
+                      <div className="grid grid-cols-2 gap-2">
+                        {chileData.find(r => r.id === coverageRegion)?.communes.map((c) => (
+                          <div key={c} className="flex items-center space-x-2">
+                            <Checkbox
+                              id={`cov-${c}`}
+                              checked={coverageCommunes.includes(c)}
+                              onCheckedChange={(checked) => {
+                                if (checked) {
+                                  setCoverageCommunes([...coverageCommunes, c]);
+                                } else {
+                                  setCoverageCommunes(coverageCommunes.filter(item => item !== c));
+                                }
+                              }}
+                            />
+                            <label htmlFor={`cov-${c}`} className="text-sm cursor-pointer truncate">{c}</label>
+                          </div>
+                        ))}
+                      </div>
+                    </ScrollArea>
+                  </div>
+                )}
+
+                {coverageCommunes.length > 0 && (
+                  <div className="pt-2">
+                    <Label className="text-xs mb-2 block">Comunas seleccionadas ({coverageCommunes.length}):</Label>
+                    <div className="flex flex-wrap gap-1">
+                      {coverageCommunes.map(c => (
+                        <Badge key={c} variant="secondary" className="pl-2 pr-1 h-6 flex items-center gap-1">
+                          {c}
+                          <button
+                            type="button"
+                            onClick={() => setCoverageCommunes(coverageCommunes.filter(item => item !== c))}
+                            className="bg-muted-foreground/20 rounded-full p-0.5 hover:bg-muted-foreground/40"
+                          >
+                            <X size={10} />
+                          </button>
+                        </Badge>
+                      ))}
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="sm"
+                        className="h-6 text-[10px] text-destructive hover:text-destructive"
+                        onClick={() => setCoverageCommunes([])}
+                      >
+                        Limpiar todas
+                      </Button>
+                    </div>
+                  </div>
+                )}
+              </div>
             </div>
 
             <div>

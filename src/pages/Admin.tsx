@@ -874,8 +874,9 @@ const Admin = () => {
                     <SelectItem value="all">Todos</SelectItem>
                     <SelectItem value="pending">⏳ Pendientes</SelectItem>
                     <SelectItem value="active">✅ Activos</SelectItem>
-                    <SelectItem value="rejected">❌ Rechazados</SelectItem>
+                    <SelectItem value="rejected">❌ Bloqueados / Rechazados</SelectItem>
                     <SelectItem value="inactive">Inactivos</SelectItem>
+                    <SelectItem value="suspended">Suspendidos</SelectItem>
                   </SelectContent>
                 </Select>
                 <Input
@@ -913,19 +914,18 @@ const Admin = () => {
                           <div className="flex flex-wrap items-center gap-2 justify-end">
                             <Badge
                               className={
-                                service.status === 'active' ? 'bg-green-100 text-green-800 border-green-300' :
-                                  service.status === 'pending' ? 'bg-amber-100 text-amber-800 border-amber-300' :
-                                    service.status === 'rejected' ? 'bg-red-100 text-red-800 border-red-300' :
-                                      'bg-gray-100 text-gray-800 border-gray-300'
+                                service.status?.toLowerCase().trim() === 'active' ? 'bg-green-500 text-white border-green-600' :
+                                  service.status?.toLowerCase().trim() === 'pending' ? 'bg-amber-500 text-white border-amber-600' :
+                                    (service.status?.toLowerCase().trim() === 'rejected' || service.status?.toLowerCase().trim() === 'suspended') ? 'bg-red-500 text-white border-red-600' :
+                                      'bg-gray-500 text-white border-gray-600'
                               }
-                              variant="outline"
                             >
-                              {service.status === 'active' ? '✅ Activo' :
-                                service.status === 'pending' ? '⏳ Pendiente' :
-                                  service.status === 'rejected' ? '❌ Rechazado' :
+                              {service.status?.toLowerCase().trim() === 'active' ? '✅ Activo' :
+                                service.status?.toLowerCase().trim() === 'pending' ? '⏳ Pendiente' :
+                                  (service.status?.toLowerCase().trim() === 'rejected' || service.status?.toLowerCase().trim() === 'suspended') ? '❌ Bloqueado' :
                                     service.status}
                             </Badge>
-                            {service.status === 'pending' && (
+                            {(service.status?.toLowerCase().trim() === 'pending' || service.status?.toLowerCase().trim() === 'inactive') && (
                               <>
                                 <Button
                                   size="sm"
@@ -938,7 +938,7 @@ const Admin = () => {
                                 <Button
                                   size="sm"
                                   variant="outline"
-                                  className="border-red-300 text-red-600 hover:bg-red-50"
+                                  className="border-red-300 text-red-600 hover:bg-red-50 shadow-sm"
                                   onClick={() => { setServiceToReject(service); setRejectReason(''); setRejectDialogOpen(true); }}
                                 >
                                   <X size={14} className="mr-1" />
