@@ -524,315 +524,234 @@ const Profile = () => {
   }
 
   return (
-    <div className="container mx-auto px-4 py-8 max-w-4xl">
-      <div className="flex justify-between items-center mb-8">
-        <h1 className="text-4xl font-heading font-bold">Mi Perfil</h1>
-        <Button variant="outline" onClick={handleOpenEditDialog}>
-          <Edit size={16} className="mr-2" />
-          Editar Perfil
-        </Button>
+    <div className="min-h-screen bg-background relative overflow-hidden pb-12">
+      {/* Decorative background elements */}
+      <div className="absolute top-0 left-0 w-full h-full pointer-events-none">
+        <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-primary/10 rounded-full blur-[120px]" />
+        <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-secondary/10 rounded-full blur-[120px]" />
       </div>
 
-      {/* Banner para completar perfil (si faltan campos) */}
-      {hasMissingFields && (
-        <Card className="mb-6 border-2 bg-gradient-to-r from-accent/10 to-accent/20 dark:from-accent/10 dark:to-accent/20">
-          <CardContent className="pt-6">
-            <div className="flex items-center gap-6">
-              <div className="flex-shrink-0">
-                <div className="w-24 h-24 bg-accent rounded-full flex items-center justify-center p-2">
-                  <img
-                    src={logoDameldato}
-                    alt="Dameldato"
-                    className="w-full h-full object-contain"
-                  />
-                </div>
-              </div>
-              <div className="flex-1">
-                <h3 className="text-2xl font-heading font-bold mb-2">
-                  ¡Completa tu perfil!
-                </h3>
-                <p className="text-muted-foreground mb-4">
-                  Completa tu información personal (teléfono y comuna) para que otros usuarios puedan contactarte.
-                </p>
-                <Button
-                  onClick={() => {
-                    setCompletePhone(user.phone || '');
-                    setCompleteComuna(user.comuna || '');
-                    // @ts-ignore
-                    setCompleteRegion(user.region_id || '');
-                    setShowCompleteProfileDialog(true);
-                  }}
-                  className="bg-primary hover:bg-primary/90"
-                >
-                  <Users size={16} className="mr-2" />
-                  Completar Perfil
-                </Button>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-      )}
+      <div className="container mx-auto px-4 py-8 max-w-4xl relative z-10">
+        <div className="flex justify-between items-center mb-8 p-6 glass-card rounded-3xl border-primary/10">
+          <h1 className="text-4xl font-heading font-bold bg-clip-text text-transparent bg-gradient-to-r from-primary to-secondary">Mi Perfil</h1>
+          <Button
+            variant="outline"
+            onClick={handleOpenEditDialog}
+            className="border-primary/20 hover:bg-primary/10 transition-all duration-300"
+          >
+            <Edit size={16} className="mr-2 text-primary" />
+            Editar Perfil
+          </Button>
+        </div>
 
-      {/* Basic Info Card */}
-      <Card className="mb-6 border-2">
-        <CardHeader>
-          <div className="flex flex-col md:flex-row items-center md:items-start gap-6 text-center md:text-left">
-            <Avatar className="w-24 h-24">
-              {user.profile_image && (
-                <AvatarImage src={user.profile_image} alt={user.name} />
-              )}
-              <AvatarFallback className="text-3xl font-heading bg-primary text-white">
-                {user.name.split(' ').map(n => n[0]).join('')}
-              </AvatarFallback>
-            </Avatar>
-            <div className="flex-1 min-w-0 w-full">
-              <CardTitle className="text-3xl mb-3 break-words">{user.name}</CardTitle>
-              <div className="flex flex-wrap justify-center md:justify-start gap-2 mb-4">
-                {user.roles.map((role) => (
-                  <Badge key={role} variant="secondary" className="flex items-center gap-1">
-                    {getRoleIcon(role)}
-                    {getRoleLabel(role)}
-                  </Badge>
-                ))}
-              </div>
-              <div className="space-y-2 text-muted-foreground flex flex-col items-center md:items-start">
-                <div className="flex items-center gap-2 max-w-full">
-                  <Mail size={16} className="shrink-0" />
-                  <span className="break-all">{user.email}</span>
+        {/* Banner para completar perfil (si faltan campos) */}
+        {hasMissingFields && (
+          <Card className="mb-6 border-none bg-gradient-to-br from-accent/20 to-accent/5 backdrop-blur-md shadow-xl border-accent/20">
+            <CardContent className="pt-6">
+              <div className="flex items-center gap-6">
+                <div className="flex-shrink-0">
+                  <div className="w-24 h-24 bg-accent rounded-full flex items-center justify-center p-2">
+                    <img
+                      src={logoDameldato}
+                      alt="Dameldato"
+                      className="w-full h-full object-contain"
+                    />
+                  </div>
                 </div>
-                <div className="flex items-center gap-2">
-                  <Phone size={16} className="shrink-0" />
-                  <span>{user.phone}</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <MapPin size={16} className="shrink-0" />
-                  <span>{user.comuna}</span>
-                </div>
-              </div>
-            </div>
-          </div>
-        </CardHeader>
-      </Card>
-
-      {/* Role-specific information */}
-      {
-        user.roles.includes('job-seeker') && (
-          <Card className="mb-6 border-2">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Briefcase className="text-primary" />
-                Información Laboral
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-3">
-              {user.rubro && (
-                <div>
-                  <span className="font-semibold">Rubro:</span> {user.rubro}
-                </div>
-              )}
-              {user.experience && (
-                <div>
-                  <span className="font-semibold">Experiencia:</span>
-                  <p className="text-muted-foreground mt-1">{user.experience}</p>
-                </div>
-              )}
-            </CardContent>
-          </Card>
-        )
-      }
-
-      {/* Sección de CV removida */}
-
-      {
-        user.roles.includes('entrepreneur') && (
-          <Card className="mb-6 border-2">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Wrench className="text-secondary" />
-                Servicio Ofrecido
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-3">
-              {user.service && (
-                <div>
-                  <span className="font-semibold">Servicio:</span> {user.service}
-                </div>
-              )}
-              {user.priceRange && (
-                <div>
-                  <span className="font-semibold">Rango de Precio:</span> {user.priceRange}
-                </div>
-              )}
-              {user.portfolio && user.portfolio.length > 0 && (
-                <div>
-                  <span className="font-semibold">Descripción:</span>
-                  <p className="text-muted-foreground mt-1">{user.portfolio[0]}</p>
-                </div>
-              )}
-            </CardContent>
-          </Card>
-        )
-      }
-
-      {/* Tabs para mostrar publicaciones, servicios y empleos */}
-      <Tabs defaultValue="posts" className="w-full">
-        <TabsList className={`grid w-full h-auto mb-4 p-1 gap-1 ${user.roles.includes('admin') || user.role_number === 5
-          ? 'grid-cols-1 md:grid-cols-2'
-          : (user.roles.includes('entrepreneur') ||
-            user.roles.includes('admin') || user.role_number === 5)
-            ? 'grid-cols-1 sm:grid-cols-2'
-            : 'grid-cols-1'
-          }`}>
-          <TabsTrigger value="posts" className="flex items-center gap-2">
-            <MessageSquare size={16} />
-            Publicaciones ({posts.length})
-          </TabsTrigger>
-          {(user.roles.includes('entrepreneur') || user.roles.includes('admin') || user.role_number === 5) && (
-            <TabsTrigger value="services" className="flex items-center gap-2">
-              <Wrench size={16} />
-              Servicios ({services.length})
-            </TabsTrigger>
-          )}
-        </TabsList>
-
-        {/* Tab de Publicaciones */}
-        <TabsContent value="posts">
-          <Card className="border-2">
-            <CardHeader>
-              <CardTitle>Mis Publicaciones</CardTitle>
-              <CardDescription>Tus publicaciones activas en el muro</CardDescription>
-            </CardHeader>
-            <CardContent>
-              {loadingPosts ? (
-                <div className="text-center py-8">
-                  <p className="text-muted-foreground">Cargando publicaciones...</p>
-                </div>
-              ) : posts.length === 0 ? (
-                <div className="text-center py-8">
-                  <p className="text-muted-foreground">No has publicado nada aún</p>
-                  <Button className="mt-4" onClick={() => navigate('/muro')}>
-                    Crear Publicación
+                <div className="flex-1">
+                  <h3 className="text-2xl font-heading font-bold mb-2">
+                    ¡Completa tu perfil!
+                  </h3>
+                  <p className="text-muted-foreground mb-4">
+                    Completa tu información personal (teléfono y comuna) para que otros usuarios puedan contactarte.
+                  </p>
+                  <Button
+                    onClick={() => {
+                      setCompletePhone(user.phone || '');
+                      setCompleteComuna(user.comuna || '');
+                      // @ts-ignore
+                      setCompleteRegion(user.region_id || '');
+                      setShowCompleteProfileDialog(true);
+                    }}
+                    className="bg-primary hover:bg-primary/90"
+                  >
+                    <Users size={16} className="mr-2" />
+                    Completar Perfil
                   </Button>
                 </div>
-              ) : (
-                <div className="space-y-4">
-                  {posts.map((post) => (
-                    <Card key={post.id} className="border">
-                      <CardHeader>
-                        <div className="flex justify-between items-start">
-                          <div className="flex-1">
-                            <CardTitle className="text-lg">{post.type}</CardTitle>
-                            <CardDescription>
-                              {post.comuna} | {formatDate(post.created_at)}
-                            </CardDescription>
-                            <CardDescription className="mt-1">
-                              👍 {post.likes_count} | 💬 {post.comments_count}
-                            </CardDescription>
-                          </div>
-                          <div className="flex gap-2">
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              onClick={() => handleEditPost(post)}
-                            >
-                              <Edit size={16} />
-                            </Button>
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              onClick={() => handleDeletePost(post.id)}
-                            >
-                              <Trash2 size={16} className="text-destructive" />
-                            </Button>
-                          </div>
-                        </div>
-                      </CardHeader>
-                      <CardContent>
-                        <p className="whitespace-pre-wrap">{post.content}</p>
-                      </CardContent>
-                    </Card>
+              </div>
+            </CardContent>
+          </Card>
+        )}
+
+        {/* Basic Info Card */}
+        <Card className="mb-6 glass-card border-white/5 shadow-2xl overflow-hidden">
+          <CardHeader>
+            <div className="flex flex-col md:flex-row items-center md:items-start gap-6 text-center md:text-left">
+              <Avatar className="w-24 h-24">
+                {user.profile_image && (
+                  <AvatarImage src={user.profile_image} alt={user.name} />
+                )}
+                <AvatarFallback className="text-3xl font-heading bg-primary text-white">
+                  {user.name.split(' ').map(n => n[0]).join('')}
+                </AvatarFallback>
+              </Avatar>
+              <div className="flex-1 min-w-0 w-full">
+                <CardTitle className="text-3xl mb-3 break-words">{user.name}</CardTitle>
+                <div className="flex flex-wrap justify-center md:justify-start gap-2 mb-4">
+                  {user.roles.map((role) => (
+                    <Badge key={role} variant="secondary" className="flex items-center gap-1">
+                      {getRoleIcon(role)}
+                      {getRoleLabel(role)}
+                    </Badge>
                   ))}
                 </div>
-              )}
-            </CardContent>
-          </Card>
-        </TabsContent>
+                <div className="space-y-2 text-muted-foreground flex flex-col items-center md:items-start">
+                  <div className="flex items-center gap-2 max-w-full">
+                    <Mail size={16} className="shrink-0" />
+                    <span className="break-all">{user.email}</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Phone size={16} className="shrink-0" />
+                    <span>{user.phone}</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <MapPin size={16} className="shrink-0" />
+                    <span>{user.comuna}</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </CardHeader>
+        </Card>
 
-        {/* Tab de Servicios/Pymes (Emprendedores, Admin y Super-Admin) */}
-        {(user.roles.includes('entrepreneur') || user.roles.includes('admin') || user.role_number === 5) && (
-          <TabsContent value="services">
+        {/* Role-specific information */}
+        {
+          user.roles.includes('job-seeker') && (
+            <Card className="mb-6 border-2">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Briefcase className="text-primary" />
+                  Información Laboral
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-3">
+                {user.rubro && (
+                  <div>
+                    <span className="font-semibold">Rubro:</span> {user.rubro}
+                  </div>
+                )}
+                {user.experience && (
+                  <div>
+                    <span className="font-semibold">Experiencia:</span>
+                    <p className="text-muted-foreground mt-1">{user.experience}</p>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          )
+        }
+
+        {/* Sección de CV removida */}
+
+        {
+          user.roles.includes('entrepreneur') && (
+            <Card className="mb-6 border-2">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Wrench className="text-secondary" />
+                  Servicio Ofrecido
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-3">
+                {user.service && (
+                  <div>
+                    <span className="font-semibold">Servicio:</span> {user.service}
+                  </div>
+                )}
+                {user.priceRange && (
+                  <div>
+                    <span className="font-semibold">Rango de Precio:</span> {user.priceRange}
+                  </div>
+                )}
+                {user.portfolio && user.portfolio.length > 0 && (
+                  <div>
+                    <span className="font-semibold">Descripción:</span>
+                    <p className="text-muted-foreground mt-1">{user.portfolio[0]}</p>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          )
+        }
+
+        {/* Tabs para mostrar publicaciones, servicios y empleos */}
+        <Tabs defaultValue="posts" className="w-full">
+          <TabsList className={`grid w-full h-auto mb-4 p-1 gap-1 ${user.roles.includes('admin') || user.role_number === 5
+            ? 'grid-cols-1 md:grid-cols-2'
+            : (user.roles.includes('entrepreneur') ||
+              user.roles.includes('admin') || user.role_number === 5)
+              ? 'grid-cols-1 sm:grid-cols-2'
+              : 'grid-cols-1'
+            }`}>
+            <TabsTrigger value="posts" className="flex items-center gap-2">
+              <MessageSquare size={16} />
+              Publicaciones ({posts.length})
+            </TabsTrigger>
+            {(user.roles.includes('entrepreneur') || user.roles.includes('admin') || user.role_number === 5) && (
+              <TabsTrigger value="services" className="flex items-center gap-2">
+                <Wrench size={16} />
+                Servicios ({services.length})
+              </TabsTrigger>
+            )}
+          </TabsList>
+
+          {/* Tab de Publicaciones */}
+          <TabsContent value="posts">
             <Card className="border-2">
               <CardHeader>
-                <div className="flex justify-between items-start">
-                  <div>
-                    <CardTitle>Mis Servicios</CardTitle>
-                    <CardDescription>Servicios activos que has publicado</CardDescription>
-                  </div>
-                  <Button onClick={() => navigate('/servicios/publicar')} size="sm">
-                    <Plus size={16} className="mr-2" />
-                    Nuevo Servicio
-                  </Button>
-                </div>
+                <CardTitle>Mis Publicaciones</CardTitle>
+                <CardDescription>Tus publicaciones activas en el muro</CardDescription>
               </CardHeader>
               <CardContent>
-                {loadingServices ? (
+                {loadingPosts ? (
                   <div className="text-center py-8">
-                    <p className="text-muted-foreground">Cargando servicios...</p>
+                    <p className="text-muted-foreground">Cargando publicaciones...</p>
                   </div>
-                ) : services.length === 0 ? (
+                ) : posts.length === 0 ? (
                   <div className="text-center py-8">
-                    <p className="text-muted-foreground">No has publicado servicios aún</p>
-                    <Button className="mt-4" onClick={() => navigate('/servicios/publicar')}>
-                      Publicar Servicio
+                    <p className="text-muted-foreground">No has publicado nada aún</p>
+                    <Button className="mt-4" onClick={() => navigate('/muro')}>
+                      Crear Publicación
                     </Button>
                   </div>
                 ) : (
                   <div className="space-y-4">
-                    {services.map((service) => (
-                      <Card key={service.id} className="border">
+                    {posts.map((post) => (
+                      <Card key={post.id} className="border">
                         <CardHeader>
                           <div className="flex justify-between items-start">
                             <div className="flex-1">
-                              <div className="flex items-center gap-2 mb-1">
-                                <CardTitle className="text-lg">{service.service_name}</CardTitle>
-                                <Badge
-                                  className={
-                                    service.status?.toLowerCase().trim() === 'active' ? 'bg-green-500/10 text-green-500 border-green-500/20 hover:bg-green-500/20' :
-                                      service.status?.toLowerCase().trim() === 'pending' ? 'bg-amber-500/10 text-amber-500 border-amber-500/20 hover:bg-amber-500/20' :
-                                        (service.status?.toLowerCase().trim() === 'rejected' || service.status?.toLowerCase().trim() === 'suspended') ? 'bg-red-500/10 text-red-500 border-red-500/20 hover:bg-red-500/20' :
-                                          'bg-gray-500/10 text-gray-500 border-gray-500/20 hover:bg-gray-500/20'
-                                  }
-                                  variant="outline"
-                                >
-                                  {service.status?.toLowerCase().trim() === 'active' ? '✅ Activo' :
-                                    service.status?.toLowerCase().trim() === 'pending' ? '⏳ Pendiente' :
-                                      (service.status?.toLowerCase().trim() === 'rejected' || service.status?.toLowerCase().trim() === 'suspended') ? '❌ Bloqueado' :
-                                        service.status}
-                                </Badge>
-                              </div>
-                              <CardDescription className="flex flex-col gap-1">
-                                <span>{service.comuna} | {formatDate(service.created_at)}</span>
-                                <div className="flex items-center gap-1 text-xs text-muted-foreground">
-                                  <Star className="w-3 h-3 fill-yellow-400 text-yellow-400" />
-                                  <span className="font-bold text-yellow-500">
-                                    {service.average_rating ? Number(service.average_rating).toFixed(1) : '0.0'}
-                                  </span>
-                                  <span className="text-[10px]">({service.reviews_count || 0} reseñas)</span>
-                                </div>
+                              <CardTitle className="text-lg">{post.type}</CardTitle>
+                              <CardDescription>
+                                {post.comuna} | {formatDate(post.created_at)}
+                              </CardDescription>
+                              <CardDescription className="mt-1">
+                                👍 {post.likes_count} | 💬 {post.comments_count}
                               </CardDescription>
                             </div>
                             <div className="flex gap-2">
                               <Button
                                 variant="ghost"
                                 size="sm"
-                                onClick={() => handleEditService(service)}
+                                onClick={() => handleEditPost(post)}
                               >
                                 <Edit size={16} />
                               </Button>
                               <Button
                                 variant="ghost"
                                 size="sm"
-                                onClick={() => handleDeleteService(service.id)}
+                                onClick={() => handleDeletePost(post.id)}
                               >
                                 <Trash2 size={16} className="text-destructive" />
                               </Button>
@@ -840,10 +759,7 @@ const Profile = () => {
                           </div>
                         </CardHeader>
                         <CardContent>
-                          <p className="mb-2">{service.description}</p>
-                          {service.price_range && (
-                            <p className="text-sm text-muted-foreground">Precio: {service.price_range}</p>
-                          )}
+                          <p className="whitespace-pre-wrap">{post.content}</p>
                         </CardContent>
                       </Card>
                     ))}
@@ -852,91 +768,316 @@ const Profile = () => {
               </CardContent>
             </Card>
           </TabsContent>
-        )}
-      </Tabs>
 
-      {/* Dialog de Edición de Perfil */}
-      <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
-        <DialogContent className="sm:max-w-[500px]">
-          <DialogHeader>
-            <DialogTitle>Editar Perfil</DialogTitle>
-            <DialogDescription>
-              Actualiza tu información personal y foto de perfil
-            </DialogDescription>
-          </DialogHeader>
+          {/* Tab de Servicios/Pymes (Emprendedores, Admin y Super-Admin) */}
+          {(user.roles.includes('entrepreneur') || user.roles.includes('admin') || user.role_number === 5) && (
+            <TabsContent value="services">
+              <Card className="border-2">
+                <CardHeader>
+                  <div className="flex justify-between items-start">
+                    <div>
+                      <CardTitle>Mis Servicios</CardTitle>
+                      <CardDescription>Servicios activos que has publicado</CardDescription>
+                    </div>
+                    <Button onClick={() => navigate('/servicios/publicar')} size="sm">
+                      <Plus size={16} className="mr-2" />
+                      Nuevo Servicio
+                    </Button>
+                  </div>
+                </CardHeader>
+                <CardContent>
+                  {loadingServices ? (
+                    <div className="text-center py-8">
+                      <p className="text-muted-foreground">Cargando servicios...</p>
+                    </div>
+                  ) : services.length === 0 ? (
+                    <div className="text-center py-8">
+                      <p className="text-muted-foreground">No has publicado servicios aún</p>
+                      <Button className="mt-4" onClick={() => navigate('/servicios/publicar')}>
+                        Publicar Servicio
+                      </Button>
+                    </div>
+                  ) : (
+                    <div className="space-y-4">
+                      {services.map((service) => (
+                        <Card key={service.id} className="border">
+                          <CardHeader>
+                            <div className="flex justify-between items-start">
+                              <div className="flex-1">
+                                <div className="flex items-center gap-2 mb-1">
+                                  <CardTitle className="text-lg">{service.service_name}</CardTitle>
+                                  <Badge
+                                    className={
+                                      service.status?.toLowerCase().trim() === 'active' ? 'bg-green-500/10 text-green-500 border-green-500/20 hover:bg-green-500/20' :
+                                        service.status?.toLowerCase().trim() === 'pending' ? 'bg-amber-500/10 text-amber-500 border-amber-500/20 hover:bg-amber-500/20' :
+                                          (service.status?.toLowerCase().trim() === 'rejected' || service.status?.toLowerCase().trim() === 'suspended') ? 'bg-red-500/10 text-red-500 border-red-500/20 hover:bg-red-500/20' :
+                                            'bg-gray-500/10 text-gray-500 border-gray-500/20 hover:bg-gray-500/20'
+                                    }
+                                    variant="outline"
+                                  >
+                                    {service.status?.toLowerCase().trim() === 'active' ? '✅ Activo' :
+                                      service.status?.toLowerCase().trim() === 'pending' ? '⏳ Pendiente' :
+                                        (service.status?.toLowerCase().trim() === 'rejected' || service.status?.toLowerCase().trim() === 'suspended') ? '❌ Bloqueado' :
+                                          service.status}
+                                  </Badge>
+                                </div>
+                                <CardDescription className="flex flex-col gap-1">
+                                  <span>{service.comuna} | {formatDate(service.created_at)}</span>
+                                  <div className="flex items-center gap-1 text-xs text-muted-foreground">
+                                    <Star className="w-3 h-3 fill-yellow-400 text-yellow-400" />
+                                    <span className="font-bold text-yellow-500">
+                                      {service.average_rating ? Number(service.average_rating).toFixed(1) : '0.0'}
+                                    </span>
+                                    <span className="text-[10px]">({service.reviews_count || 0} reseñas)</span>
+                                  </div>
+                                </CardDescription>
+                              </div>
+                              <div className="flex gap-2">
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  onClick={() => handleEditService(service)}
+                                >
+                                  <Edit size={16} />
+                                </Button>
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  onClick={() => handleDeleteService(service.id)}
+                                >
+                                  <Trash2 size={16} className="text-destructive" />
+                                </Button>
+                              </div>
+                            </div>
+                          </CardHeader>
+                          <CardContent>
+                            <p className="mb-2">{service.description}</p>
+                            {service.price_range && (
+                              <p className="text-sm text-muted-foreground">Precio: {service.price_range}</p>
+                            )}
+                          </CardContent>
+                        </Card>
+                      ))}
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+            </TabsContent>
+          )}
+        </Tabs>
 
-          <div className="space-y-4 py-4">
-            {/* Avatar y subida de imagen */}
-            <div className="flex flex-col items-center gap-4">
-              <Avatar className="w-24 h-24">
-                {imagePreview && (
-                  <AvatarImage src={imagePreview} alt="Preview" />
-                )}
-                <AvatarFallback className="text-3xl font-heading bg-primary text-white">
-                  {editName.split(' ').map(n => n[0]).join('')}
-                </AvatarFallback>
-              </Avatar>
-              <div className="flex gap-2">
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="sm"
-                  onClick={() => fileInputRef.current?.click()}
-                  disabled={isUploading || isUpdating}
-                >
-                  <Upload size={16} className="mr-2" />
-                  {selectedImage ? 'Cambiar Imagen' : 'Subir Imagen'}
-                </Button>
-                {imagePreview && (
+        {/* Dialog de Edición de Perfil */}
+        <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
+          <DialogContent className="sm:max-w-[500px]">
+            <DialogHeader>
+              <DialogTitle>Editar Perfil</DialogTitle>
+              <DialogDescription>
+                Actualiza tu información personal y foto de perfil
+              </DialogDescription>
+            </DialogHeader>
+
+            <div className="space-y-4 py-4">
+              {/* Avatar y subida de imagen */}
+              <div className="flex flex-col items-center gap-4">
+                <Avatar className="w-24 h-24">
+                  {imagePreview && (
+                    <AvatarImage src={imagePreview} alt="Preview" />
+                  )}
+                  <AvatarFallback className="text-3xl font-heading bg-primary text-white">
+                    {editName.split(' ').map(n => n[0]).join('')}
+                  </AvatarFallback>
+                </Avatar>
+                <div className="flex gap-2">
                   <Button
                     type="button"
                     variant="outline"
                     size="sm"
-                    onClick={handleRemoveImage}
+                    onClick={() => fileInputRef.current?.click()}
                     disabled={isUploading || isUpdating}
                   >
-                    <X size={16} className="mr-2" />
-                    Eliminar
+                    <Upload size={16} className="mr-2" />
+                    {selectedImage ? 'Cambiar Imagen' : 'Subir Imagen'}
                   </Button>
-                )}
+                  {imagePreview && (
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={handleRemoveImage}
+                      disabled={isUploading || isUpdating}
+                    >
+                      <X size={16} className="mr-2" />
+                      Eliminar
+                    </Button>
+                  )}
+                </div>
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept="image/*"
+                  onChange={handleImageSelect}
+                  className="hidden"
+                />
               </div>
-              <input
-                ref={fileInputRef}
-                type="file"
-                accept="image/*"
-                onChange={handleImageSelect}
-                className="hidden"
-              />
+
+              {/* Campos del formulario */}
+              <div className="space-y-4">
+                <div>
+                  <Label htmlFor="edit-name">Nombre</Label>
+                  <Input
+                    id="edit-name"
+                    value={editName}
+                    onChange={(e) => setEditName(e.target.value)}
+                    disabled={isUpdating || isUploading}
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="edit-phone">Teléfono</Label>
+                  <Input
+                    id="edit-phone"
+                    value={editPhone}
+                    onChange={(e) => setEditPhone(e.target.value)}
+                    disabled={isUpdating || isUploading}
+                  />
+                </div>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div>
+                    <Label htmlFor="edit-region">Región</Label>
+                    <Select value={editRegion} onValueChange={(val) => {
+                      setEditRegion(val);
+                      setEditComuna('');
+                    }} disabled={isUpdating || isUploading}>
+                      <SelectTrigger id="edit-region">
+                        <SelectValue placeholder="Selecciona Región" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {chileData.map((reg) => (
+                          <SelectItem key={reg.id} value={reg.id}>{reg.name}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div>
+                    <Label htmlFor="edit-comuna">Comuna</Label>
+                    <Select value={editComuna} onValueChange={setEditComuna} disabled={!editRegion || isUpdating || isUploading}>
+                      <SelectTrigger id="edit-comuna">
+                        <SelectValue placeholder="Selecciona Comuna" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {editRegion && chileData.find(r => r.id === editRegion)?.communes.map((c) => (
+                          <SelectItem key={c} value={c}>{c}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+              </div>
             </div>
 
-            {/* Campos del formulario */}
+            <DialogFooter>
+              <Button
+                variant="outline"
+                onClick={() => setIsEditDialogOpen(false)}
+                disabled={isUpdating || isUploading}
+              >
+                Cancelar
+              </Button>
+              <Button
+                onClick={handleUpdateProfile}
+                disabled={isUpdating || isUploading}
+              >
+                {isUpdating || isUploading ? 'Guardando...' : 'Guardar Cambios'}
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+
+        {/* Modal de edición de Post */}
+        <Dialog open={!!editingPost} onOpenChange={(open) => !open && setEditingPost(null)}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Editar Publicación</DialogTitle>
+              <DialogDescription>
+                Modifica el contenido de tu publicación
+              </DialogDescription>
+            </DialogHeader>
             <div className="space-y-4">
               <div>
-                <Label htmlFor="edit-name">Nombre</Label>
-                <Input
-                  id="edit-name"
-                  value={editName}
-                  onChange={(e) => setEditName(e.target.value)}
-                  disabled={isUpdating || isUploading}
+                <Label htmlFor="edit-post-content">Contenido</Label>
+                <Textarea
+                  id="edit-post-content"
+                  value={editPostContent}
+                  onChange={(e) => setEditPostContent(e.target.value)}
+                  rows={6}
                 />
               </div>
               <div>
-                <Label htmlFor="edit-phone">Teléfono</Label>
+                <Label htmlFor="edit-post-comuna">Comuna</Label>
                 <Input
-                  id="edit-phone"
-                  value={editPhone}
-                  onChange={(e) => setEditPhone(e.target.value)}
-                  disabled={isUpdating || isUploading}
+                  id="edit-post-comuna"
+                  value={editPostComuna}
+                  onChange={(e) => setEditPostComuna(e.target.value)}
+                />
+              </div>
+            </div>
+            <DialogFooter>
+              <Button variant="outline" onClick={() => setEditingPost(null)}>
+                Cancelar
+              </Button>
+              <Button onClick={handleSavePost}>
+                Guardar
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+
+        {/* Modal de edición de Servicio */}
+        <Dialog open={!!editingService} onOpenChange={(open) => !open && setEditingService(null)}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Editar Servicio</DialogTitle>
+              <DialogDescription>
+                Modifica la información de tu servicio
+              </DialogDescription>
+            </DialogHeader>
+            <div className="space-y-4">
+              <div>
+                <Label htmlFor="edit-service-name">Nombre del Servicio</Label>
+                <Input
+                  id="edit-service-name"
+                  value={editServiceName}
+                  onChange={(e) => setEditServiceName(e.target.value)}
+                />
+              </div>
+              <div>
+                <Label htmlFor="edit-service-description">Descripción</Label>
+                <Textarea
+                  id="edit-service-description"
+                  value={editServiceDescription}
+                  onChange={(e) => setEditServiceDescription(e.target.value)}
+                  rows={4}
+                />
+              </div>
+              <div>
+                <Label htmlFor="edit-service-price">Rango de Precio</Label>
+                <Input
+                  id="edit-service-price"
+                  value={editServicePriceRange}
+                  onChange={(e) => setEditServicePriceRange(e.target.value)}
+                  placeholder="Ej: $10.000 - $50.000"
                 />
               </div>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
-                  <Label htmlFor="edit-region">Región</Label>
-                  <Select value={editRegion} onValueChange={(val) => {
-                    setEditRegion(val);
-                    setEditComuna('');
-                  }} disabled={isUpdating || isUploading}>
-                    <SelectTrigger id="edit-region">
+                  <Label htmlFor="edit-service-region">Región</Label>
+                  <Select
+                    value={chileData.find(r => r.communes.includes(editServiceComuna))?.id || ''}
+                    onValueChange={(val) => {
+                      // This is tricky since we don't have service_region_id in state yet
+                      // For now, we'll just let the commune update
+                    }}
+                  >
+                    <SelectTrigger id="edit-service-region">
                       <SelectValue placeholder="Selecciona Región" />
                     </SelectTrigger>
                     <SelectContent>
@@ -947,13 +1088,73 @@ const Profile = () => {
                   </Select>
                 </div>
                 <div>
-                  <Label htmlFor="edit-comuna">Comuna</Label>
-                  <Select value={editComuna} onValueChange={setEditComuna} disabled={!editRegion || isUpdating || isUploading}>
-                    <SelectTrigger id="edit-comuna">
+                  <Label htmlFor="edit-service-comuna">Comuna</Label>
+                  <Input
+                    id="edit-service-comuna"
+                    value={editServiceComuna}
+                    onChange={(e) => setEditServiceComuna(e.target.value)}
+                  />
+                </div>
+              </div>
+            </div>
+            <DialogFooter>
+              <Button variant="outline" onClick={() => setEditingService(null)}>
+                Cancelar
+              </Button>
+              <Button onClick={handleSaveService}>
+                Guardar
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+
+
+        {/* Dialog para completar perfil */}
+        <Dialog open={showCompleteProfileDialog} onOpenChange={setShowCompleteProfileDialog}>
+          <DialogContent className="sm:max-w-[500px]">
+            <DialogHeader>
+              <DialogTitle>Completar Perfil</DialogTitle>
+              <DialogDescription>
+                Completa tu información personal para que otros usuarios puedan contactarte
+              </DialogDescription>
+            </DialogHeader>
+
+            <div className="space-y-4 py-4">
+              <div>
+                <Label htmlFor="complete-phone">Teléfono *</Label>
+                <Input
+                  id="complete-phone"
+                  value={completePhone}
+                  onChange={(e) => setCompletePhone(e.target.value)}
+                  placeholder="+56 9 1234 5678"
+                  disabled={isCompletingProfile}
+                />
+              </div>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <Label htmlFor="complete-region">Región</Label>
+                  <Select value={completeRegion} onValueChange={(val) => {
+                    setCompleteRegion(val);
+                    setCompleteComuna('');
+                  }} disabled={isCompletingProfile}>
+                    <SelectTrigger id="complete-region">
+                      <SelectValue placeholder="Selecciona Región" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {chileData.map((reg) => (
+                        <SelectItem key={reg.id} value={reg.id}>{reg.name}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div>
+                  <Label htmlFor="complete-comuna">Comuna</Label>
+                  <Select value={completeComuna} onValueChange={setCompleteComuna} disabled={!completeRegion || isCompletingProfile}>
+                    <SelectTrigger id="complete-comuna">
                       <SelectValue placeholder="Selecciona Comuna" />
                     </SelectTrigger>
                     <SelectContent>
-                      {editRegion && chileData.find(r => r.id === editRegion)?.communes.map((c) => (
+                      {completeRegion && chileData.find(r => r.id === completeRegion)?.communes.map((c) => (
                         <SelectItem key={c} value={c}>{c}</SelectItem>
                       ))}
                     </SelectContent>
@@ -961,217 +1162,28 @@ const Profile = () => {
                 </div>
               </div>
             </div>
-          </div>
 
-          <DialogFooter>
-            <Button
-              variant="outline"
-              onClick={() => setIsEditDialogOpen(false)}
-              disabled={isUpdating || isUploading}
-            >
-              Cancelar
-            </Button>
-            <Button
-              onClick={handleUpdateProfile}
-              disabled={isUpdating || isUploading}
-            >
-              {isUpdating || isUploading ? 'Guardando...' : 'Guardar Cambios'}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-
-      {/* Modal de edición de Post */}
-      <Dialog open={!!editingPost} onOpenChange={(open) => !open && setEditingPost(null)}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Editar Publicación</DialogTitle>
-            <DialogDescription>
-              Modifica el contenido de tu publicación
-            </DialogDescription>
-          </DialogHeader>
-          <div className="space-y-4">
-            <div>
-              <Label htmlFor="edit-post-content">Contenido</Label>
-              <Textarea
-                id="edit-post-content"
-                value={editPostContent}
-                onChange={(e) => setEditPostContent(e.target.value)}
-                rows={6}
-              />
-            </div>
-            <div>
-              <Label htmlFor="edit-post-comuna">Comuna</Label>
-              <Input
-                id="edit-post-comuna"
-                value={editPostComuna}
-                onChange={(e) => setEditPostComuna(e.target.value)}
-              />
-            </div>
-          </div>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setEditingPost(null)}>
-              Cancelar
-            </Button>
-            <Button onClick={handleSavePost}>
-              Guardar
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-
-      {/* Modal de edición de Servicio */}
-      <Dialog open={!!editingService} onOpenChange={(open) => !open && setEditingService(null)}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Editar Servicio</DialogTitle>
-            <DialogDescription>
-              Modifica la información de tu servicio
-            </DialogDescription>
-          </DialogHeader>
-          <div className="space-y-4">
-            <div>
-              <Label htmlFor="edit-service-name">Nombre del Servicio</Label>
-              <Input
-                id="edit-service-name"
-                value={editServiceName}
-                onChange={(e) => setEditServiceName(e.target.value)}
-              />
-            </div>
-            <div>
-              <Label htmlFor="edit-service-description">Descripción</Label>
-              <Textarea
-                id="edit-service-description"
-                value={editServiceDescription}
-                onChange={(e) => setEditServiceDescription(e.target.value)}
-                rows={4}
-              />
-            </div>
-            <div>
-              <Label htmlFor="edit-service-price">Rango de Precio</Label>
-              <Input
-                id="edit-service-price"
-                value={editServicePriceRange}
-                onChange={(e) => setEditServicePriceRange(e.target.value)}
-                placeholder="Ej: $10.000 - $50.000"
-              />
-            </div>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div>
-                <Label htmlFor="edit-service-region">Región</Label>
-                <Select
-                  value={chileData.find(r => r.communes.includes(editServiceComuna))?.id || ''}
-                  onValueChange={(val) => {
-                    // This is tricky since we don't have service_region_id in state yet
-                    // For now, we'll just let the commune update
-                  }}
-                >
-                  <SelectTrigger id="edit-service-region">
-                    <SelectValue placeholder="Selecciona Región" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {chileData.map((reg) => (
-                      <SelectItem key={reg.id} value={reg.id}>{reg.name}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-              <div>
-                <Label htmlFor="edit-service-comuna">Comuna</Label>
-                <Input
-                  id="edit-service-comuna"
-                  value={editServiceComuna}
-                  onChange={(e) => setEditServiceComuna(e.target.value)}
-                />
-              </div>
-            </div>
-          </div>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setEditingService(null)}>
-              Cancelar
-            </Button>
-            <Button onClick={handleSaveService}>
-              Guardar
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-
-
-      {/* Dialog para completar perfil */}
-      <Dialog open={showCompleteProfileDialog} onOpenChange={setShowCompleteProfileDialog}>
-        <DialogContent className="sm:max-w-[500px]">
-          <DialogHeader>
-            <DialogTitle>Completar Perfil</DialogTitle>
-            <DialogDescription>
-              Completa tu información personal para que otros usuarios puedan contactarte
-            </DialogDescription>
-          </DialogHeader>
-
-          <div className="space-y-4 py-4">
-            <div>
-              <Label htmlFor="complete-phone">Teléfono *</Label>
-              <Input
-                id="complete-phone"
-                value={completePhone}
-                onChange={(e) => setCompletePhone(e.target.value)}
-                placeholder="+56 9 1234 5678"
+            <DialogFooter>
+              <Button
+                variant="outline"
+                onClick={() => setShowCompleteProfileDialog(false)}
                 disabled={isCompletingProfile}
-              />
-            </div>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div>
-                <Label htmlFor="complete-region">Región</Label>
-                <Select value={completeRegion} onValueChange={(val) => {
-                  setCompleteRegion(val);
-                  setCompleteComuna('');
-                }} disabled={isCompletingProfile}>
-                  <SelectTrigger id="complete-region">
-                    <SelectValue placeholder="Selecciona Región" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {chileData.map((reg) => (
-                      <SelectItem key={reg.id} value={reg.id}>{reg.name}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-              <div>
-                <Label htmlFor="complete-comuna">Comuna</Label>
-                <Select value={completeComuna} onValueChange={setCompleteComuna} disabled={!completeRegion || isCompletingProfile}>
-                  <SelectTrigger id="complete-comuna">
-                    <SelectValue placeholder="Selecciona Comuna" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {completeRegion && chileData.find(r => r.id === completeRegion)?.communes.map((c) => (
-                      <SelectItem key={c} value={c}>{c}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-            </div>
-          </div>
+              >
+                Cancelar
+              </Button>
+              <Button
+                onClick={handleCompleteProfile}
+                disabled={isCompletingProfile || !completePhone.trim() || !completeComuna.trim()}
+              >
+                {isCompletingProfile ? 'Guardando...' : 'Guardar'}
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
 
-          <DialogFooter>
-            <Button
-              variant="outline"
-              onClick={() => setShowCompleteProfileDialog(false)}
-              disabled={isCompletingProfile}
-            >
-              Cancelar
-            </Button>
-            <Button
-              onClick={handleCompleteProfile}
-              disabled={isCompletingProfile || !completePhone.trim() || !completeComuna.trim()}
-            >
-              {isCompletingProfile ? 'Guardando...' : 'Guardar'}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-
-      {/* Modal para ver CV removido */}
-    </div >
+        {/* Modal para ver CV removido */}
+      </div>
+    </div>
   );
 };
 
