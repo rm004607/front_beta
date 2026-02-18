@@ -6,7 +6,8 @@ import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import { useUser } from '@/contexts/UserContext';
 import Footer from '@/components/Footer';
 import ErrorBoundary from '@/components/ErrorBoundary';
-import logoDameldato from '/logoicono.png';
+import logoDameldato from '/logo nombre.png';
+import faviconDameldato from '/logoico.png';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -30,15 +31,12 @@ const Layout = ({ children }: LayoutProps) => {
       <header className="bg-card border-b border-border sticky top-0 z-50">
         <div className="container mx-auto px-4 py-4">
           <div className="flex items-center justify-between">
-            <Link to="/" className="flex items-center gap-2 sm:gap-3 shrink-0">
+            <Link to="/" className="flex items-center shrink-0">
               <img
                 src={logoDameldato}
                 alt="Dameldato"
-                className="h-12 w-12 sm:h-16 sm:w-16 md:h-20 md:w-20 rounded-xl object-contain drop-shadow-md"
+                className="h-10 sm:h-12 md:h-14 lg:h-16 w-auto object-contain drop-shadow-sm"
               />
-              <span className="text-xl sm:text-2xl font-heading font-bold text-primary truncate max-w-[120px] sm:max-w-none">
-                Dameldato
-              </span>
             </Link>
 
             <nav className="hidden md:flex items-center gap-6">

@@ -24,7 +24,7 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog';
 import { useUser } from '@/contexts/UserContext';
-import logoDameldato from '/logoicono.png';
+import logoDameldato from '/logo nombre.png';
 import { MapPin, Phone, Mail, Edit, Wrench, Building2, MessageSquare, Trash2, Upload, X, FileText, Download, AlertCircle, Eye, Plus, Star, Users, Briefcase } from 'lucide-react';
 import { postsAPI, servicesAPI, authAPI } from '@/lib/api';
 import { toast } from 'sonner';
@@ -575,11 +575,11 @@ const Profile = () => {
             <CardContent className="pt-6">
               <div className="flex items-center gap-6">
                 <div className="flex-shrink-0">
-                  <div className="w-24 h-24 bg-accent rounded-full flex items-center justify-center p-2">
+                  <div className="w-auto h-auto bg-transparent flex items-center justify-center p-0">
                     <img
                       src={logoDameldato}
                       alt="Dameldato"
-                      className="w-full h-full object-contain"
+                      className="h-12 sm:h-16 w-auto object-contain"
                     />
                   </div>
                 </div>

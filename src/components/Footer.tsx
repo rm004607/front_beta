@@ -1,7 +1,7 @@
 import { Link } from 'react-router-dom';
 import { Facebook, Twitter, Instagram, Linkedin, Mail, Phone, MapPin, HelpCircle } from 'lucide-react';
 import { useUser } from '@/contexts/UserContext';
-import logoDameldato from '/logoicono.png';
+import logoDameldato from '/logo nombre.png';
 
 const Footer = () => {
   const { user, isLoggedIn } = useUser();
@@ -16,13 +16,10 @@ const Footer = () => {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-12 gap-12 mb-16">
           {/* Brand Section */}
           <div className="lg:col-span-4 space-y-6">
-            <Link to="/" className="flex items-center gap-3 group">
-              <div className="p-2 bg-primary/10 rounded-xl group-hover:bg-primary/20 transition-colors">
-                <img src={logoDameldato} alt="Dameldato" className="h-10 w-10 object-contain" />
+            <Link to="/" className="flex items-center group">
+              <div className="p-0 transition-opacity group-hover:opacity-90">
+                <img src={logoDameldato} alt="Dameldato" className="h-14 sm:h-16 w-auto object-contain" />
               </div>
-              <span className="text-2xl font-heading font-bold bg-clip-text text-transparent bg-gradient-to-r from-primary to-secondary">
-                Dameldato
-              </span>
             </Link>
             <p className="text-muted-foreground leading-relaxed max-w-sm">
               La plataforma líder en Chile para conectar talentos, oportunidades laborales y emprendimientos locales. Impulsando el crecimiento de nuestra comunidad.
