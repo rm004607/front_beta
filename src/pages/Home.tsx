@@ -80,12 +80,12 @@ const Home = () => {
           <div className="flex flex-col lg:flex-row items-center gap-12 lg:gap-20">
             {/* Left Content */}
             <div className="flex-1 text-center lg:text-left space-y-8 max-w-2xl mx-auto lg:mx-0">
-              {/* Logo para móvil - Visible solo en pantallas XS/SM */}
-              <div className="lg:hidden flex justify-center mb-6">
+              {/* Logo de Marca - Visible en todo dispositivo */}
+              <div className="flex justify-center lg:justify-start mb-8 sm:mb-12">
                 <img
                   src={logoFull}
                   alt="Dameldato"
-                  className="h-16 sm:h-20 w-auto object-contain animate-reveal"
+                  className="h-24 sm:h-32 lg:h-40 w-auto object-contain animate-reveal drop-shadow-2xl"
                 />
               </div>
 
