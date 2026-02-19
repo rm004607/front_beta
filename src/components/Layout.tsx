@@ -32,10 +32,17 @@ const Layout = ({ children }: LayoutProps) => {
         <div className="container mx-auto px-4 py-4">
           <div className="flex items-center justify-between">
             <Link to="/" className="flex items-center shrink-0">
+              {/* Logo Completo - Visible en Desktop */}
               <img
                 src={logoDameldato}
                 alt="Dameldato"
-                className="h-10 sm:h-12 md:h-14 lg:h-16 w-auto object-contain drop-shadow-sm"
+                className="hidden sm:block h-12 md:h-14 lg:h-16 w-auto object-contain drop-shadow-sm transition-all"
+              />
+              {/* Icono Solo - Visible en Móvil */}
+              <img
+                src={faviconDameldato}
+                alt="Dameldato"
+                className="block sm:hidden h-10 w-10 object-contain drop-shadow-md"
               />
             </Link>
 

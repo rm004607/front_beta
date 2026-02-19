@@ -10,7 +10,7 @@ import {
 import { useUser } from '@/contexts/UserContext';
 import { servicesAPI } from '@/lib/api';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
-import logoDameldato from '/logoicono.png';
+import logoFull from '/logo nombre.png';
 
 interface Service {
   id: string;
@@ -80,6 +80,15 @@ const Home = () => {
           <div className="flex flex-col lg:flex-row items-center gap-12 lg:gap-20">
             {/* Left Content */}
             <div className="flex-1 text-center lg:text-left space-y-8 max-w-2xl mx-auto lg:mx-0">
+              {/* Logo para móvil - Visible solo en pantallas XS/SM */}
+              <div className="lg:hidden flex justify-center mb-6">
+                <img
+                  src={logoFull}
+                  alt="Dameldato"
+                  className="h-16 sm:h-20 w-auto object-contain animate-reveal"
+                />
+              </div>
+
               <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 border border-primary/20 text-primary text-sm font-semibold animate-reveal">
                 <ShieldCheck size={16} />
                 Comunidad 100% Verificada
@@ -103,7 +112,7 @@ const Home = () => {
                       </Button>
                     </Link>
                     <Link to="/login">
-                      <Button variant="outline" size="lg" className="border-2 font-bold px-8 py-7 text-lg rounded-xl w-full sm:w-auto h-auto">
+                      <Button variant="outline" size="lg" className="border-2 border-primary/30 bg-background/50 hover:bg-primary/5 hover:border-primary/50 font-bold px-8 py-7 text-lg rounded-xl w-full sm:w-auto h-auto transition-all">
                         Iniciar Sesión
                       </Button>
                     </Link>
@@ -370,7 +379,7 @@ const Home = () => {
                 </Button>
               </Link>
               <Link to="/muro">
-                <Button variant="outline" size="lg" className="border-2 font-bold px-10 py-8 text-xl rounded-2xl w-full sm:w-auto h-auto">
+                <Button variant="outline" size="lg" className="border-2 border-primary/20 bg-background/50 hover:bg-primary/5 hover:border-primary/40 font-bold px-10 py-8 text-xl rounded-2xl w-full sm:w-auto h-auto transition-all">
                   Ver Muro de Pegas
                 </Button>
               </Link>

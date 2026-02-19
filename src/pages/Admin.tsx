@@ -751,12 +751,12 @@ const Admin = () => {
         <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-secondary/10 rounded-full blur-[120px]" />
       </div>
 
-      <div className="container mx-auto px-4 py-8 relative z-10">
-        <div className="mb-8 p-6 glass-card rounded-3xl border-primary/10">
-          <h1 className="text-4xl font-heading font-bold mb-2 bg-clip-text text-transparent bg-gradient-to-r from-primary to-secondary">
+      <div className="container mx-auto px-2 sm:px-4 py-4 sm:py-8 relative z-10">
+        <div className="mb-6 sm:mb-8 p-4 sm:p-6 glass-card rounded-2xl sm:rounded-3xl border-primary/10">
+          <h1 className="text-2xl sm:text-4xl font-heading font-bold mb-2 bg-clip-text text-transparent bg-gradient-to-r from-primary to-secondary">
             Panel de {isSuperAdmin ? 'Super Admin' : 'Administración'}
           </h1>
-          <p className="text-muted-foreground">Gestiona el contenido, servicios y usuarios de la plataforma.</p>
+          <p className="text-sm sm:text-base text-muted-foreground">Gestiona el contenido, servicios y usuarios de la plataforma.</p>
         </div>
 
         {/* Estadísticas */}
@@ -795,36 +795,38 @@ const Admin = () => {
         )}
 
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-          <TabsList className={`grid w-full h-auto mb-8 p-1 gap-1 glass-card border-white/5 ${isSuperAdmin ? 'grid-cols-2 sm:grid-cols-3 lg:grid-cols-7' : 'grid-cols-2 sm:grid-cols-3 lg:grid-cols-5'}`}>
-            <TabsTrigger value="wall" onClick={loadPosts} className="flex items-center gap-2">
-              <MessageSquare size={16} />
-              Muro
-            </TabsTrigger>
-            <TabsTrigger value="services" onClick={loadServices} className="flex items-center gap-2">
-              <Wrench size={16} />
-              Servicios
-            </TabsTrigger>
-            <TabsTrigger value="users" onClick={loadUsers} className="flex items-center gap-2">
-              <Users size={16} />
-              Usuarios
-            </TabsTrigger>
-            <TabsTrigger value="tickets" onClick={loadTickets} className="flex items-center gap-2">
-              <HelpCircle size={16} />
-              Tickets
-            </TabsTrigger>
-            {isSuperAdmin && (
-              <>
-                <TabsTrigger value="prices" onClick={() => { loadAdminConfig(); loadAdminPackages(); }} className="flex items-center gap-2">
-                  <RefreshCw size={16} />
-                  Precios
-                </TabsTrigger>
-                <TabsTrigger value="logs" onClick={loadLogs} className="flex items-center gap-2">
-                  <FileText size={16} />
-                  Logs
-                </TabsTrigger>
-              </>
-            )}
-          </TabsList>
+          <div className="w-full overflow-x-auto pb-2 scrollbar-hide">
+            <TabsList className={`flex w-max min-w-full h-auto mb-2 p-1 gap-1 glass-card border-white/5`}>
+              <TabsTrigger value="wall" onClick={loadPosts} className="flex items-center gap-2">
+                <MessageSquare size={16} />
+                Muro
+              </TabsTrigger>
+              <TabsTrigger value="services" onClick={loadServices} className="flex items-center gap-2">
+                <Wrench size={16} />
+                Servicios
+              </TabsTrigger>
+              <TabsTrigger value="users" onClick={loadUsers} className="flex items-center gap-2">
+                <Users size={16} />
+                Usuarios
+              </TabsTrigger>
+              <TabsTrigger value="tickets" onClick={loadTickets} className="flex items-center gap-2">
+                <HelpCircle size={16} />
+                Tickets
+              </TabsTrigger>
+              {isSuperAdmin && (
+                <>
+                  <TabsTrigger value="prices" onClick={() => { loadAdminConfig(); loadAdminPackages(); }} className="flex items-center gap-2">
+                    <RefreshCw size={16} />
+                    Precios
+                  </TabsTrigger>
+                  <TabsTrigger value="logs" onClick={loadLogs} className="flex items-center gap-2">
+                    <FileText size={16} />
+                    Logs
+                  </TabsTrigger>
+                </>
+              )}
+            </TabsList>
+          </div>
 
           {/* Tab de Muro */}
           <TabsContent value="wall">
@@ -1077,10 +1079,10 @@ const Admin = () => {
                     {users.map((user) => (
                       <Card key={user.id} className="border">
                         <CardHeader>
-                          <div className="flex justify-between items-start">
-                            <div className="flex items-center gap-3 flex-1">
+                          <div className="flex flex-col sm:flex-row justify-between items-start gap-4">
+                            <div className="flex items-center gap-3 flex-1 w-full">
                               <Avatar
-                                className="cursor-pointer hover:opacity-80 transition-opacity"
+                                className="h-12 w-12 cursor-pointer hover:opacity-80 transition-opacity flex-shrink-0"
                                 onClick={() => handleViewUserProfile(user.id)}
                               >
                                 {user.profile_image && (
@@ -1090,11 +1092,11 @@ const Admin = () => {
                                   {user.name.split(' ').map(n => n[0]).join('')}
                                 </AvatarFallback>
                               </Avatar>
-                              <div className="flex-1">
-                                <CardTitle className="text-lg cursor-pointer hover:underline" onClick={() => handleViewUserProfile(user.id)}>
+                              <div className="flex-1 min-w-0">
+                                <CardTitle className="text-lg cursor-pointer hover:underline truncate" onClick={() => handleViewUserProfile(user.id)}>
                                   {user.name}
                                 </CardTitle>
-                                <CardDescription>{user.email}</CardDescription>
+                                <CardDescription className="truncate">{user.email}</CardDescription>
                                 <CardDescription className="mt-1">
                                   {user.comuna} | {user.phone} | Rol: {user.role}
                                 </CardDescription>
@@ -1249,9 +1251,9 @@ const Admin = () => {
                     {tickets.map((ticket) => (
                       <Card key={ticket.id} className="border">
                         <CardHeader>
-                          <div className="flex justify-between items-start">
-                            <div className="flex items-center gap-3 flex-1">
-                              <Avatar className="w-10 h-10">
+                          <div className="flex flex-col sm:flex-row justify-between items-start gap-4">
+                            <div className="flex items-center gap-3 flex-1 w-full">
+                              <Avatar className="w-10 h-10 flex-shrink-0">
                                 {ticket.profile_image && (
                                   <AvatarImage src={ticket.profile_image} alt={ticket.user_name} />
                                 )}
@@ -1259,12 +1261,12 @@ const Admin = () => {
                                   {ticket.user_name.split(' ').map(n => n[0]).join('')}
                                 </AvatarFallback>
                               </Avatar>
-                              <div className="flex-1">
-                                <CardTitle className="text-lg">{ticket.subject}</CardTitle>
-                                <CardDescription>
+                              <div className="flex-1 min-w-0">
+                                <CardTitle className="text-lg truncate">{ticket.subject}</CardTitle>
+                                <CardDescription className="truncate">
                                   {ticket.user_name} ({ticket.user_email}) | {new Date(ticket.created_at).toLocaleString('es-CL')}
                                 </CardDescription>
-                                <div className="flex gap-2 mt-2">
+                                <div className="flex gap-2 mt-2 flex-wrap">
                                   <Badge variant="outline">{ticket.category}</Badge>
                                   <Badge
                                     variant={
@@ -1282,7 +1284,7 @@ const Admin = () => {
                                 </div>
                               </div>
                             </div>
-                            <div className="flex gap-2">
+                            <div className="flex gap-2 w-full sm:w-auto">
                               <Button
                                 variant="outline"
                                 size="sm"
@@ -1402,10 +1404,12 @@ const Admin = () => {
                       <div className="text-center py-4">Cargando paquetes...</div>
                     ) : (
                       <Tabs defaultValue="services-packages" className="w-full">
-                        <TabsList className="w-full grid grid-cols-2">
-                          <TabsTrigger value="services-packages">Servicios / Pymes</TabsTrigger>
-                          <TabsTrigger value="jobs-packages">Empleos</TabsTrigger>
-                        </TabsList>
+                        <div className="w-full overflow-x-auto pb-2 scrollbar-hide">
+                          <TabsList className="flex w-max min-w-full h-auto mb-2 p-1 gap-1 glass-card border-white/5">
+                            <TabsTrigger value="services-packages">Servicios / Pymes</TabsTrigger>
+                            <TabsTrigger value="jobs-packages">Empleos</TabsTrigger>
+                          </TabsList>
+                        </div>
 
                         <TabsContent value="services-packages" className="mt-4">
                           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
