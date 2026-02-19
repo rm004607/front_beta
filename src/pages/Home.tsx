@@ -85,7 +85,7 @@ const Home = () => {
                 <img
                   src={logoFull}
                   alt="Dameldato"
-                  className="h-24 sm:h-32 lg:h-40 w-auto object-contain animate-reveal drop-shadow-2xl"
+                  className="h-32 sm:h-48 lg:h-64 w-auto object-contain animate-reveal drop-shadow-2xl"
                 />
               </div>
 
