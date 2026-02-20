@@ -8,6 +8,7 @@ import {
   ChefHat, Truck, HeartPulse, Lightbulb, ShieldCheck, Sparkles
 } from 'lucide-react';
 import { useUser } from '@/contexts/UserContext';
+import { useTranslation } from 'react-i18next';
 import { servicesAPI } from '@/lib/api';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import logoFull from '/logo nombre.png';
@@ -27,6 +28,7 @@ interface Service {
 
 const Home = () => {
   const { isLoggedIn, user } = useUser();
+  const { t } = useTranslation();
   const [latestServices, setLatestServices] = useState<Service[]>([]);
   const [loadingServices, setLoadingServices] = useState(true);
 
@@ -91,16 +93,16 @@ const Home = () => {
 
               <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 border border-primary/20 text-primary text-sm font-semibold animate-reveal">
                 <ShieldCheck size={16} />
-                Comunidad 100% Verificada
+                {t('hero.verified_community')}
               </div>
 
               <h1 className="text-3xl sm:text-5xl md:text-6xl lg:text-7xl font-sans font-extrabold leading-[1.1] tracking-tight animate-reveal delay-100">
-                ¡Acá está el <span className="sm:hidden"><br /></span>
-                <span className="text-primary text-glow">Dato que necesitas!</span>
+                {t('hero.title_part1')} <span className="sm:hidden"><br /></span>
+                <span className="text-primary text-glow">{t('hero.title_part2')}</span>
               </h1>
 
               <p className="text-muted-foreground text-lg md:text-xl animate-reveal delay-200 leading-relaxed">
-                (Gásfiter, electricista, cerrajero, limpieza, construcciones, mecánica automotriz, cuidadores y más...)
+                {t('hero.description')}
               </p>
 
               <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start animate-reveal delay-300">
@@ -108,19 +110,19 @@ const Home = () => {
                   <>
                     <Link to="/registro">
                       <Button size="lg" className="bg-primary hover:bg-primary/90 text-primary-foreground font-bold px-8 py-7 text-lg rounded-xl shadow-xl shadow-primary/20 transition-all hover:scale-105 active:scale-95 w-full sm:w-auto h-auto">
-                        Únete Ahora
+                        {t('hero.join_now')}
                       </Button>
                     </Link>
                     <Link to="/login">
                       <Button variant="outline" size="lg" className="border-2 border-primary/30 bg-background/50 hover:bg-primary/5 hover:border-primary/50 font-bold px-8 py-7 text-lg rounded-xl w-full sm:w-auto h-auto transition-all">
-                        Iniciar Sesión
+                        {t('nav.login')}
                       </Button>
                     </Link>
                   </>
                 ) : (
                   <Link to="/servicios">
                     <Button size="lg" className="bg-primary hover:bg-primary/90 text-primary-foreground font-bold px-8 py-7 text-lg rounded-xl shadow-xl shadow-primary/20 transition-all hover:scale-105 active:scale-95 w-full sm:w-auto h-auto">
-                      Explorar Servicios
+                      {t('hero.explore_services')}
                     </Button>
                   </Link>
                 )}

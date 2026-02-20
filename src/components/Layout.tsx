@@ -4,6 +4,7 @@ import { Menu, User, LogOut, Home, Briefcase, Wrench, MessageSquare, Building2, 
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import { useUser } from '@/contexts/UserContext';
+import { useTranslation } from 'react-i18next';
 import Footer from '@/components/Footer';
 import ErrorBoundary from '@/components/ErrorBoundary';
 import logoDameldato from '/logo nombre.png';
@@ -21,7 +22,13 @@ interface LayoutProps {
 
 const Layout = ({ children }: LayoutProps) => {
   const { user, isLoggedIn, logout } = useUser();
+  const { t, i18n } = useTranslation();
   const location = useLocation();
+
+  const toggleLanguage = () => {
+    const newLang = i18n.language === 'es' ? 'en' : 'es';
+    i18n.changeLanguage(newLang);
+  };
 
   const isActive = (path: string) => location.pathname === path;
 
@@ -53,7 +60,7 @@ const Layout = ({ children }: LayoutProps) => {
                   }`}
               >
                 <Wrench size={18} />
-                <span>Servicios</span>
+                <span>{t('nav.services')}</span>
               </Link>
               <Link
                 to="/muro"
@@ -61,11 +68,19 @@ const Layout = ({ children }: LayoutProps) => {
                   }`}
               >
                 <MessageSquare size={18} />
-                <span>Muro de Datos</span>
+                <span>{t('nav.wall')}</span>
               </Link>
             </nav>
 
             <div className="flex items-center gap-2 sm:gap-3">
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={toggleLanguage}
+                className="px-2 font-bold text-xs hover:bg-primary/10"
+              >
+                {i18n.language === 'es' ? 'EN' : 'ES'}
+              </Button>
 
               {/* Desktop auth/actions */}
               <div className="hidden md:flex items-center gap-3">
@@ -99,7 +114,7 @@ const Layout = ({ children }: LayoutProps) => {
                         <DropdownMenuItem asChild>
                           <Link to="/perfil" className="cursor-pointer">
                             <User size={16} className="mr-2" />
-                            Mi Perfil
+                            {t('nav.profile')}
                           </Link>
                         </DropdownMenuItem>
                         <DropdownMenuItem
@@ -117,10 +132,10 @@ const Layout = ({ children }: LayoutProps) => {
                 ) : (
                   <>
                     <Link to="/login">
-                      <Button variant="outline">Iniciar Sesión</Button>
+                      <Button variant="outline">{t('nav.login')}</Button>
                     </Link>
                     <Link to="/registro">
-                      <Button>Registrarse</Button>
+                      <Button>{t('nav.register')}</Button>
                     </Link>
                   </>
                 )}
@@ -137,19 +152,19 @@ const Layout = ({ children }: LayoutProps) => {
                   <DropdownMenuItem asChild>
                     <Link to="/" className="cursor-pointer">
                       <Home size={16} className="mr-2" />
-                      Inicio
+                      {t('nav.home')}
                     </Link>
                   </DropdownMenuItem>
                   <DropdownMenuItem asChild>
                     <Link to="/servicios" className="cursor-pointer">
                       <Wrench size={16} className="mr-2" />
-                      Servicios
+                      {t('nav.services')}
                     </Link>
                   </DropdownMenuItem>
                   <DropdownMenuItem asChild>
                     <Link to="/muro" className="cursor-pointer">
                       <MessageSquare size={16} className="mr-2" />
-                      Muro de Datos
+                      {t('nav.wall')}
                     </Link>
                   </DropdownMenuItem>
 
@@ -159,14 +174,14 @@ const Layout = ({ children }: LayoutProps) => {
                       <DropdownMenuItem asChild>
                         <Link to="/perfil" className="cursor-pointer">
                           <User size={16} className="mr-2" />
-                          Mi Perfil
+                          {t('nav.profile')}
                         </Link>
                       </DropdownMenuItem>
                       {(user?.roles.includes('admin') || user?.role_number === 5) && (
                         <DropdownMenuItem asChild>
                           <Link to="/admin" className="cursor-pointer">
                             <Shield size={16} className="mr-2" />
-                            Admin
+                            {t('nav.admin')}
                           </Link>
                         </DropdownMenuItem>
                       )}
@@ -177,7 +192,7 @@ const Layout = ({ children }: LayoutProps) => {
                         className="cursor-pointer"
                       >
                         <LogOut size={16} className="mr-2" />
-                        Cerrar Sesión
+                        {t('nav.logout')}
                       </DropdownMenuItem>
                     </>
                   ) : (
