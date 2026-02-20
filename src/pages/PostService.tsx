@@ -8,6 +8,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Badge } from '@/components/ui/badge';
 import { useUser } from '@/contexts/UserContext';
+import { useLocation } from '@/contexts/LocationContext';
 import { Wrench, AlertCircle, MapPin, Edit } from 'lucide-react';
 import { toast } from 'sonner';
 import { servicesAPI, packagesAPI } from '@/lib/api';
@@ -31,6 +32,7 @@ import { X } from 'lucide-react';
 
 const PostService = () => {
   const { user, isLoggedIn } = useUser();
+  const { pricingEnabled } = useLocation();
   const navigate = useNavigate();
   const [service, setService] = useState('');
   const [description, setDescription] = useState('');
@@ -80,8 +82,8 @@ const PostService = () => {
       const limits = await packagesAPI.getUserLimits();
       setUserLimits(limits);
 
-      // Si es super-admin, siempre puede publicar
-      if (user?.role_number === 5) {
+      // Si es super-admin o el cobro global está desactivado, siempre puede publicar
+      if (user?.role_number === 5 || !pricingEnabled) {
         setCanPublish(true);
       } else if (limits.services.requires_payment) {
         // Si requiere pago, mostrar modal y no permitir publicar

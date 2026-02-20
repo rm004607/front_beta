@@ -7,6 +7,7 @@ import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import { Plus, MapPin, MessageCircle, Heart, Trash2, Send, Info, Briefcase, Phone, Mail, CheckCircle, Edit, Crown } from 'lucide-react';
 import { useUser } from '@/contexts/UserContext';
+import { useLocation } from '@/contexts/LocationContext';
 import { toast } from 'sonner';
 import {
   Select,
@@ -63,6 +64,7 @@ interface UserProfile {
 const Wall = () => {
   const navigate = useNavigate();
   const { isLoggedIn, user } = useUser();
+  const { pricingEnabled } = useLocation();
   const [postType, setPostType] = useState('Busco Servicio');
   const [postContent, setPostContent] = useState('');
   const [postComuna, setPostComuna] = useState('');
@@ -348,6 +350,11 @@ const Wall = () => {
   };
 
   const handleWhatsAppContact = (phone: string, userName: string) => {
+    if (!pricingEnabled) {
+      const cleanPhone = phone.replace(/\D/g, '');
+      window.open(`https://wa.me/${cleanPhone}`, '_blank');
+      return;
+    }
     setPendingContactPost(null);
     setPendingContactPhone(phone);
     setPendingContactName(userName);

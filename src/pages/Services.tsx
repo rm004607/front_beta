@@ -10,6 +10,7 @@ import { MapPin, Search, MessageCircle, Loader2, Plus, TrendingUp, DollarSign, S
 import { servicesAPI, flowAPI, configAPI, reviewsAPI } from '@/lib/api';
 import { toast } from 'sonner';
 import { useUser } from '@/contexts/UserContext';
+import { useLocation } from '@/contexts/LocationContext';
 import { Label } from '@/components/ui/label';
 import { CheckCircle } from 'lucide-react';
 import {
@@ -32,6 +33,7 @@ import HierarchicalLocationSelector from '@/components/HierarchicalLocationSelec
 
 const Services = () => {
   const { user, isLoggedIn } = useUser();
+  const { pricingEnabled } = useLocation();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const highlightId = searchParams.get('highlight');
@@ -124,6 +126,12 @@ const Services = () => {
 
     if (!service.phone) {
       toast.error('Este servicio no tiene número de teléfono disponible');
+      return;
+    }
+
+    if (!pricingEnabled) {
+      const cleanPhone = service.phone.replace(/\D/g, '');
+      window.open(`https://wa.me/${cleanPhone}`, '_blank');
       return;
     }
 
