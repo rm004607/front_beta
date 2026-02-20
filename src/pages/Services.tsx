@@ -28,6 +28,7 @@ import {
 } from '@/components/ui/select';
 import { ServiceCard } from '@/components/ServiceCard';
 import { ServiceDetail } from '@/components/ServiceDetail';
+import HierarchicalLocationSelector from '@/components/HierarchicalLocationSelector';
 
 const Services = () => {
   const { user, isLoggedIn } = useUser();
@@ -36,8 +37,7 @@ const Services = () => {
   const highlightId = searchParams.get('highlight');
 
   const [searchTerm, setSearchTerm] = useState('');
-  const [comunaFilter, setComunaFilter] = useState('all');
-  const [regionFilter, setRegionFilter] = useState(user?.region_id ? String(user.region_id) : 'all');
+  const [locationIdFilter, setLocationIdFilter] = useState<string | null>(null);
   const [services, setServices] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [pagination, setPagination] = useState({
@@ -64,7 +64,7 @@ const Services = () => {
 
   useEffect(() => {
     loadServices();
-  }, [searchTerm, comunaFilter, regionFilter, pagination.page]);
+  }, [searchTerm, locationIdFilter, pagination.page]);
 
   // Cargar precio dinámico
   useEffect(() => {
@@ -98,9 +98,8 @@ const Services = () => {
     try {
       const response = await servicesAPI.getServices({
         search: searchTerm || undefined,
-        comuna: comunaFilter !== 'all' ? comunaFilter : undefined,
-        // Si hay una comuna seleccionada, no filtramos por región para permitir ver servicios de otras regiones que cubren esa comuna
-        region_id: comunaFilter === 'all' && regionFilter !== 'all' ? regionFilter : undefined,
+        // @ts-ignore - Updating for backward compatibility if needed, but the plan is to use location_id
+        location_id: locationIdFilter || undefined,
         page: pagination.page,
         limit: pagination.limit,
       });
@@ -241,61 +240,26 @@ const Services = () => {
         <Card className="mb-8 glass-card border-white/5 bg-card/30">
           <CardContent className="p-4 sm:pt-6">
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <div className="relative">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground" size={18} />
-                <Input
-                  placeholder="Buscar servicio..."
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  className="pl-10 h-11"
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="relative">
+                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground" size={18} />
+                  <Input
+                    placeholder="Buscar servicio..."
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    className="pl-10 h-11"
+                  />
+                </div>
+
+                <HierarchicalLocationSelector
+                  onLocationSelect={(id) => {
+                    setLocationIdFilter(id);
+                    setPagination(prev => ({ ...prev, page: 1 }));
+                  }}
+                  className="md:flex-row gap-2"
+                  placeholder="Filtrar por ubicación"
                 />
               </div>
-
-              <Select value={regionFilter} onValueChange={(val) => {
-                setRegionFilter(val);
-                setComunaFilter('all');
-                setPagination(prev => ({ ...prev, page: 1 }));
-              }}>
-                <SelectTrigger className="glass-card border-white/10 h-11">
-                  <div className="flex items-center gap-2">
-                    <Globe size={16} className="text-secondary" />
-                    <SelectValue placeholder="Selecciona Región" />
-                  </div>
-                </SelectTrigger>
-                <SelectContent className="glass-card border-white/10 backdrop-blur-xl">
-                  <SelectItem value="all">📍 Todas las regiones</SelectItem>
-                  {chileData.map((reg) => (
-                    <SelectItem key={reg.id} value={reg.id}>{reg.name}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-
-              <Select value={comunaFilter} onValueChange={(val) => {
-                setComunaFilter(val);
-                setPagination(prev => ({ ...prev, page: 1 }));
-              }}>
-                <SelectTrigger className="glass-card border-white/10 h-11">
-                  <div className="flex items-center gap-2">
-                    <MapPin size={16} className="text-primary" />
-                    <SelectValue placeholder="Selecciona Comuna" />
-                  </div>
-                </SelectTrigger>
-                <SelectContent className="glass-card border-white/10 backdrop-blur-xl">
-                  <SelectItem value="all">🌐 Todas las comunas</SelectItem>
-                  {regionFilter !== 'all' ? (
-                    chileData.find(r => String(r.id) === String(regionFilter))?.communes.map(c => (
-                      <SelectItem key={c} value={c}>{c}</SelectItem>
-                    ))
-                  ) : (
-                    <>
-                      <SelectItem value="santiago">Santiago Centro</SelectItem>
-                      <SelectItem value="providencia">Providencia</SelectItem>
-                      <SelectItem value="lascondes">Las Condes</SelectItem>
-                      <SelectItem value="maipu">Maipú</SelectItem>
-                    </>
-                  )}
-                </SelectContent>
-              </Select>
             </div>
           </CardContent>
         </Card>

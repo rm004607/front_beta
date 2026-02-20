@@ -230,6 +230,7 @@ export const servicesAPI = {
     search?: string;
     comuna?: string;
     region_id?: string;
+    location_id?: string;
     page?: number;
     limit?: number;
   }) => {
@@ -237,6 +238,7 @@ export const servicesAPI = {
     if (filters?.search) params.append('search', filters.search);
     if (filters?.comuna) params.append('comuna', filters.comuna);
     if (filters?.region_id) params.append('region_id', filters.region_id);
+    if (filters?.location_id) params.append('location_id', filters.location_id);
     if (filters?.page) params.append('page', filters.page.toString());
     if (filters?.limit) params.append('limit', filters.limit.toString());
 
@@ -295,9 +297,11 @@ export const servicesAPI = {
     description: string;
     price_range?: string;
     comuna: string;
+    location_id?: string;
     phone?: string;
     region_id?: string;
     coverage_communes?: string[];
+    coverage_location_ids?: string[];
   }) => {
     return request<{
       message: string;
@@ -372,12 +376,14 @@ export const postsAPI = {
   getPosts: async (filters?: {
     type?: string;
     comuna?: string;
+    location_id?: string;
     page?: number;
     limit?: number;
   }) => {
     const params = new URLSearchParams();
     if (filters?.type) params.append('type', filters.type);
     if (filters?.comuna) params.append('comuna', filters.comuna);
+    if (filters?.location_id) params.append('location_id', filters.location_id);
     if (filters?.page) params.append('page', filters.page.toString());
     if (filters?.limit) params.append('limit', filters.limit.toString());
 
@@ -443,7 +449,8 @@ export const postsAPI = {
   createPost: async (data: {
     type: 'Busco Trabajo' | 'Busco Servicio' | 'Ofrezco' | 'Info';
     content: string;
-    comuna: string;
+    comuna: string; // Keep for now
+    location_id?: string;
   }) => {
     return request<{
       message: string;
@@ -1294,6 +1301,61 @@ export const aiAPI = {
     }>('/api/ai/chat', {
       method: 'POST',
       body: JSON.stringify({ message }),
+    });
+  },
+};
+
+// API de ubicaciones
+export const locationsAPI = {
+  // Detectar ubicación automática
+  detect: async () => {
+    return request<{
+      country?: {
+        id: string;
+        name: string;
+        language_code: string;
+        type: string;
+      };
+    }>('/api/locations/detect', {
+      method: 'GET',
+    });
+  },
+
+  // Listar países
+  getCountries: async () => {
+    return request<{
+      countries: Array<{
+        id: string;
+        name: string;
+        type: string;
+      }>;
+    }>('/api/locations/countries', {
+      method: 'GET',
+    });
+  },
+
+  // Obtener hijos de una ubicación
+  getChildren: async (id: string) => {
+    return request<{
+      children: Array<{
+        id: string;
+        name: string;
+        type: string;
+      }>;
+    }>(`/api/locations/children/${id}`, {
+      method: 'GET',
+    });
+  },
+};
+
+// API de precios y estados globales
+export const pricingAPI = {
+  // Obtener estado global de precios
+  getStatus: async () => {
+    return request<{
+      pricing_enabled: boolean;
+    }>('/api/pricing-status', {
+      method: 'GET',
     });
   },
 };

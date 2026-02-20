@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import { Label } from '@/components/ui/label';
+import { useLocation } from '@/contexts/LocationContext';
 
 interface Service {
     id: string;
@@ -41,6 +42,8 @@ export const ServiceCard = ({
     onEdit,
     onDelete
 }: ServiceCardProps) => {
+    const { pricingEnabled } = useLocation();
+
     return (
         <Card
             id={`service-${service.id}`}
@@ -131,7 +134,7 @@ export const ServiceCard = ({
                             </div>
                         </div>
                     </div>
-                    {service.price_range && (
+                    {pricingEnabled && service.price_range && (
                         <div className="text-sm font-semibold text-primary">
                             {service.price_range}
                         </div>
