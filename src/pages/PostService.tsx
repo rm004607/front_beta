@@ -8,6 +8,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Badge } from '@/components/ui/badge';
 import { useUser } from '@/contexts/UserContext';
+import { useTranslation } from 'react-i18next';
 import { Wrench, AlertCircle, MapPin, Edit } from 'lucide-react';
 import { toast } from 'sonner';
 import { servicesAPI, packagesAPI, configAPI } from '@/lib/api';
@@ -31,6 +32,7 @@ import { X } from 'lucide-react';
 
 const PostService = () => {
   const { user, isLoggedIn } = useUser();
+  const { t, i18n } = useTranslation();
   const navigate = useNavigate();
   const [service, setService] = useState('');
   const [description, setDescription] = useState('');
@@ -117,7 +119,7 @@ const PostService = () => {
 
   // Verificar que el usuario sea emprendedor o super-admin (opcional, el backend también lo valida)
   if (!user?.roles.includes('entrepreneur') && user?.role_number !== 5) {
-    toast.error('Solo los emprendedores pueden publicar servicios');
+    toast.error(t('post_service.entrepreneur_only'));
     navigate('/servicios');
     return null;
   }
@@ -125,25 +127,25 @@ const PostService = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!service || !description || !comuna) {
-      toast.error('Por favor completa todos los campos obligatorios');
+      toast.error(t('post_service.complete_fields'));
       return;
     }
 
     // Validaciones de seguridad
     if (!isValidTextField(service, 100)) {
-      toast.error('El nombre del servicio contiene caracteres no permitidos');
+      toast.error(t('post_service.invalid_name'));
       return;
     }
     if (!isValidTextField(comuna, 50)) {
-      toast.error('La comuna contiene caracteres no permitidos');
+      toast.error(t('post_service.invalid_comuna'));
       return;
     }
     if (!isValidTextField(description, 2000)) {
-      toast.error('La descripción contiene caracteres no permitidos');
+      toast.error(t('post_service.invalid_description'));
       return;
     }
     if (phone && !isValidPhone(phone)) {
-      toast.error('El teléfono no es válido');
+      toast.error(t('post_service.invalid_phone'));
       return;
     }
 
@@ -162,11 +164,11 @@ const PostService = () => {
         coverage_communes: coverageCommunes,
       });
 
-      toast.success('¡Servicio enviado! Será revisado por un administrador antes de publicarse.');
+      toast.success(t('post_service.service_submitted'));
       await loadUserLimits(); // Actualizar límites
       navigate('/perfil');
     } catch (error: any) {
-      const errorMessage = error instanceof Error ? error.message : 'Error al publicar servicio';
+      const errorMessage = error instanceof Error ? error.message : t('post_service.publish_error');
 
       // Si el error indica que requiere pago, abrir modal de paquetes
       if ((error.requires_payment || error.status === 403) && pricingEnabled) {
@@ -188,7 +190,7 @@ const PostService = () => {
       <div className="container mx-auto px-4 py-8 max-w-3xl">
         <Card className="border-2">
           <CardContent className="py-12 text-center">
-            <p className="text-muted-foreground">Verificando límites de publicaciones...</p>
+            <p className="text-muted-foreground">{t('post_service.verifying_limits')}</p>
           </CardContent>
         </Card>
       </div>
@@ -232,16 +234,16 @@ const PostService = () => {
         <Card className="glass-card border-white/5 shadow-2xl overflow-hidden">
           <CardHeader className="text-center pb-2">
             <CardTitle className="text-4xl font-heading font-bold bg-clip-text text-transparent bg-gradient-to-r from-primary to-secondary mb-2">
-              Ofrecer Servicio
+              {t('post_service.title')}
             </CardTitle>
-            <CardDescription className="text-muted-foreground text-lg">Promociona tu oficio o emprendimiento</CardDescription>
+            <CardDescription className="text-muted-foreground text-lg">{t('post_service.subtitle')}</CardDescription>
           </CardHeader>
           <CardContent>
             {/* Aviso de moderación */}
             <Alert className="mb-6 border-blue-200 bg-blue-50 text-blue-800">
               <AlertCircle className="h-4 w-4 text-blue-600" />
               <AlertDescription className="text-blue-700">
-                Tu servicio será revisado por un administrador antes de aparecer públicamente. Este proceso puede tomar algunas horas.
+                {t('post_service.moderation_alert')}
               </AlertDescription>
             </Alert>
 
@@ -252,12 +254,12 @@ const PostService = () => {
                 <AlertDescription>
                   <div className="flex justify-between items-center">
                     <span>
-                      Publicaciones gratis: {userLimits.services.used} / {userLimits.services.free_limit}
+                      {t('post_service.free_posts')}: {userLimits.services.used} / {userLimits.services.free_limit}
                     </span>
                   </div>
                   {userLimits.services.remaining > 0 && (
                     <p className="text-sm mt-1">
-                      Te quedan {userLimits.services.remaining} publicación(es) gratis
+                      {t('post_service.remaining_posts', { count: userLimits.services.remaining })}
                     </p>
                   )}
                 </AlertDescription>
@@ -266,12 +268,12 @@ const PostService = () => {
 
             <form onSubmit={handleSubmit} className="space-y-6">
               <div>
-                <Label htmlFor="service">Servicio que Ofreces *</Label>
+                <Label htmlFor="service">{t('post_service.service_label')}</Label>
                 <Input
                   id="service"
                   value={service}
                   onChange={(e) => setService(e.target.value)}
-                  placeholder="Ej: Gasfitería, Peluquería, Diseño Web"
+                  placeholder={t('post_service.service_placeholder')}
                   required
                 />
               </div>
@@ -279,8 +281,8 @@ const PostService = () => {
               <div className="space-y-4 p-4 border rounded-xl bg-primary/5">
                 <div className="flex justify-between items-center">
                   <div className="flex flex-col gap-1">
-                    <Label className="text-base font-semibold">Ubicación de Origen</Label>
-                    <p className="text-xs text-muted-foreground">Esta es tu ubicación base registrada en tu perfil.</p>
+                    <Label className="text-base font-semibold">{t('post_service.origin_location')}</Label>
+                    <p className="text-xs text-muted-foreground">{t('post_service.base_location_desc')}</p>
                   </div>
                   {!editBaseLocation && (
                     <Button
@@ -291,7 +293,7 @@ const PostService = () => {
                       onClick={() => setEditBaseLocation(true)}
                     >
                       <Edit size={14} className="mr-1" />
-                      Cambiar para este servicio
+                      {t('post_service.change_for_service')}
                     </Button>
                   )}
                 </div>
@@ -302,7 +304,7 @@ const PostService = () => {
                       <MapPin size={14} className="text-primary" />
                       {baseRegion && chileData.find(r => r.id === baseRegion)?.name}
                       {baseRegion && ' - '}
-                      {comuna || 'Cargando...'}
+                      {comuna || t('common.loading')}
                     </Badge>
                   </div>
                 ) : (
@@ -314,7 +316,7 @@ const PostService = () => {
                         setComuna('');
                       }}>
                         <SelectTrigger id="baseRegion" className="h-9">
-                          <SelectValue placeholder="Selecciona Región" />
+                          <SelectValue placeholder={t('services.region_placeholder')} />
                         </SelectTrigger>
                         <SelectContent>
                           {chileData.map((reg) => (
@@ -324,10 +326,10 @@ const PostService = () => {
                       </Select>
                     </div>
                     <div>
-                      <Label htmlFor="comuna" className="text-xs">Comuna *</Label>
+                      <Label htmlFor="comuna" className="text-xs">{t('wall.comuna')} *</Label>
                       <Select value={comuna} onValueChange={setComuna} disabled={!baseRegion}>
                         <SelectTrigger id="comuna" className="h-9">
-                          <SelectValue placeholder="Selecciona Comuna" />
+                          <SelectValue placeholder={t('services.comuna_placeholder')} />
                         </SelectTrigger>
                         <SelectContent>
                           {baseRegion && chileData.find(r => String(r.id) === String(baseRegion))?.communes.map((c) => (
@@ -348,7 +350,7 @@ const PostService = () => {
                           if (user?.region_id) setBaseRegion(user.region_id);
                         }}
                       >
-                        Restablecer a mi ubicación de perfil
+                        {t('post_service.reset_location')}
                       </Button>
                     </div>
                   </div>
@@ -357,16 +359,16 @@ const PostService = () => {
 
               <div className="space-y-4 p-4 border rounded-lg bg-muted/30">
                 <div className="flex flex-col gap-1">
-                  <Label className="text-base font-semibold">Zona de Desplazamiento / Cobertura</Label>
-                  <p className="text-xs text-muted-foreground">Selecciona las comunas a las que puedes desplazarte para ofrecer tu servicio.</p>
+                  <Label className="text-base font-semibold">{t('post_service.coverage_zone')}</Label>
+                  <p className="text-xs text-muted-foreground">{t('post_service.coverage_desc')}</p>
                 </div>
 
                 <div className="space-y-4">
                   <div>
-                    <Label htmlFor="coverageRegion" className="text-xs">Seleccionar Región para cobertura</Label>
+                    <Label htmlFor="coverageRegion" className="text-xs">{t('post_service.coverage_region_label')}</Label>
                     <Select value={coverageRegion} onValueChange={setCoverageRegion}>
                       <SelectTrigger id="coverageRegion" className="h-8">
-                        <SelectValue placeholder="Elegir Región" />
+                        <SelectValue placeholder={t('post_service.choose_region')} />
                       </SelectTrigger>
                       <SelectContent>
                         {chileData.map((reg) => (
@@ -378,7 +380,7 @@ const PostService = () => {
 
                   {coverageRegion && (
                     <div className="space-y-2">
-                      <Label className="text-xs">Comunas en esta región:</Label>
+                      <Label className="text-xs">{t('post_service.communes_in_region')}</Label>
                       <ScrollArea className="h-48 border rounded-md p-2 bg-background">
                         <div className="grid grid-cols-2 gap-2">
                           {chileData.find(r => String(r.id) === String(coverageRegion))?.communes.map((c) => (
@@ -404,7 +406,7 @@ const PostService = () => {
 
                   {coverageCommunes.length > 0 && (
                     <div className="pt-2">
-                      <Label className="text-xs mb-2 block">Comunas seleccionadas ({coverageCommunes.length}):</Label>
+                      <Label className="text-xs mb-2 block">{t('post_service.selected_communes', { count: coverageCommunes.length })}:</Label>
                       <div className="flex flex-wrap gap-1">
                         {coverageCommunes.map(c => (
                           <Badge key={c} variant="secondary" className="pl-2 pr-1 h-6 flex items-center gap-1">
@@ -425,7 +427,7 @@ const PostService = () => {
                           className="h-6 text-[10px] text-destructive hover:text-destructive"
                           onClick={() => setCoverageCommunes([])}
                         >
-                          Limpiar todas
+                          {t('post_service.clear_all')}
                         </Button>
                       </div>
                     </div>
@@ -434,12 +436,12 @@ const PostService = () => {
               </div>
 
               <div>
-                <Label htmlFor="description">Descripción de tu Servicio *</Label>
+                <Label htmlFor="description">{t('post_service.description_label')}</Label>
                 <Textarea
                   id="description"
                   value={description}
                   onChange={(e) => setDescription(e.target.value)}
-                  placeholder="Describe tu experiencia, qué servicios específicos ofreces, etc."
+                  placeholder={t('post_service.description_placeholder')}
                   rows={5}
                   required
                 />
@@ -447,7 +449,7 @@ const PostService = () => {
 
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <Label htmlFor="minPrice">Precio Mínimo</Label>
+                  <Label htmlFor="minPrice">{t('post_service.min_price')}</Label>
                   <Input
                     id="minPrice"
                     type="number"
@@ -457,7 +459,7 @@ const PostService = () => {
                   />
                 </div>
                 <div>
-                  <Label htmlFor="maxPrice">Precio Máximo</Label>
+                  <Label htmlFor="maxPrice">{t('post_service.max_price')}</Label>
                   <Input
                     id="maxPrice"
                     type="number"
@@ -467,33 +469,33 @@ const PostService = () => {
                   />
                 </div>
                 <p className="col-span-2 text-xs text-muted-foreground">
-                  Indica un rango aproximado para que los clientes tengan una referencia
+                  {t('post_service.price_desc')}
                 </p>
               </div>
 
               <div>
-                <Label htmlFor="phone">Teléfono de Contacto (Opcional)</Label>
+                <Label htmlFor="phone">{t('post_service.phone_label')}</Label>
                 <Input
                   id="phone"
                   value={phone}
                   onChange={(e) => setPhone(e.target.value)}
-                  placeholder={user?.phone || 'Ej: +56 9 1234 5678'}
+                  placeholder={user?.phone || t('post_service.phone_placeholder')}
                 />
                 <p className="text-xs text-muted-foreground mt-1">
-                  Si no proporcionas un teléfono, se usará el de tu perfil
+                  {t('post_service.phone_desc')}
                 </p>
               </div>
 
               <div className="flex gap-3 pt-4">
                 <Button type="button" variant="outline" onClick={() => navigate('/servicios')} className="flex-1">
-                  Cancelar
+                  {t('common.cancel')}
                 </Button>
                 <Button
                   type="submit"
                   className="flex-1 bg-secondary hover:bg-secondary/90"
                   disabled={isSubmitting || !canPublish}
                 >
-                  {isSubmitting ? 'Publicando...' : 'Publicar Servicio'}
+                  {isSubmitting ? t('wall.publishing') : t('services.publish_btn')}
                 </Button>
               </div>
             </form>

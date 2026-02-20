@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Textarea } from '@/components/ui/textarea';
@@ -7,6 +7,7 @@ import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import { Plus, MapPin, MessageCircle, Heart, Trash2, Send, Info, Briefcase, Phone, Mail, CheckCircle, Edit, Crown } from 'lucide-react';
 import { useUser } from '@/contexts/UserContext';
+import { useTranslation } from 'react-i18next';
 import { toast } from 'sonner';
 import {
   Select,
@@ -62,6 +63,7 @@ interface UserProfile {
 const Wall = () => {
   const navigate = useNavigate();
   const { isLoggedIn, user } = useUser();
+  const { t, i18n } = useTranslation();
   const [postType, setPostType] = useState('Busco Servicio');
   const [postContent, setPostContent] = useState('');
   const [postComuna, setPostComuna] = useState('');
@@ -134,7 +136,7 @@ const Wall = () => {
       setPosts(response.posts);
     } catch (error: any) {
       console.error('Error loading posts:', error);
-      toast.error(error.message || 'Error al cargar publicaciones');
+      toast.error(error.message || t('wall.loading_error'));
     } finally {
       setLoading(false);
     }
@@ -142,7 +144,7 @@ const Wall = () => {
 
   const handleSubmitPost = async () => {
     if (!postContent.trim() || !postComuna.trim()) {
-      toast.error('Completa todos los campos');
+      toast.error(t('wall.fields_required'));
       return;
     }
 
@@ -153,13 +155,13 @@ const Wall = () => {
         content: postContent.trim(),
         comuna: postComuna.trim(),
       });
-      toast.success('Publicación creada exitosamente');
+      toast.success(t('wall.post_created'));
       setPostContent('');
       setPostComuna('');
       loadPosts(); // Recargar posts
     } catch (error: any) {
       console.error('Error creating post:', error);
-      toast.error(error.message || 'Error al crear publicación');
+      toast.error(error.message || t('wall.post_create_error'));
     } finally {
       setIsSubmitting(false);
     }
@@ -167,7 +169,7 @@ const Wall = () => {
 
   const handleLike = async (postId: string) => {
     if (!isLoggedIn) {
-      toast.error('Debes iniciar sesión para dar like');
+      toast.error(t('wall.login_to_like'));
       return;
     }
 
@@ -187,7 +189,7 @@ const Wall = () => {
       );
     } catch (error: any) {
       console.error('Error liking post:', error);
-      toast.error(error.message || 'Error al dar like');
+      toast.error(error.message || t('wall.like_error'));
     }
   };
 
@@ -207,7 +209,7 @@ const Wall = () => {
         setComments((prev) => ({ ...prev, [postId]: response.comments }));
       } catch (error: any) {
         console.error('Error loading comments:', error);
-        toast.error(error.message || 'Error al cargar comentarios');
+        toast.error(error.message || t('wall.comments_error'));
       } finally {
         setLoadingComments((prev) => ({ ...prev, [postId]: false }));
       }
@@ -224,19 +226,19 @@ const Wall = () => {
 
   const handleComment = async (postId: string) => {
     if (!isLoggedIn) {
-      toast.error('Debes iniciar sesión para comentar');
+      toast.error(t('wall.login_to_comment'));
       return;
     }
 
     const content = commentContent[postId]?.trim();
     if (!content) {
-      toast.error('El comentario no puede estar vacío');
+      toast.error(t('wall.comment_empty'));
       return;
     }
 
     const type = commentType[postId] || 'info';
     if (!type) {
-      toast.error('Debes seleccionar el tipo de comentario');
+      toast.error(t('wall.comment_type_required'));
       return;
     }
 
@@ -258,32 +260,32 @@ const Wall = () => {
             : post
         )
       );
-      toast.success('Comentario agregado');
+      toast.success(t('wall.comment_added'));
     } catch (error: any) {
       console.error('Error commenting:', error);
-      toast.error(error.message || 'Error al comentar');
+      toast.error(error.message || t('wall.comment_error'));
     }
   };
 
   const handleDeletePost = async (postId: string) => {
-    if (!confirm('¿Estás seguro de que quieres eliminar esta publicación?')) {
+    if (!confirm(t('wall.delete_post_confirm'))) {
       return;
     }
 
     try {
       await postsAPI.deletePost(postId);
-      toast.success('Publicación eliminada');
+      toast.success(t('wall.post_deleted'));
       setPosts((prevPosts) => prevPosts.filter((post) => post.id !== postId));
     } catch (error: any) {
       console.error('Error deleting post:', error);
-      toast.error(error.message || 'Error al eliminar publicación');
+      toast.error(error.message || t('wall.delete_error'));
     }
   };
 
   const handleDeleteComment = async (postId: string, commentId: string) => {
     try {
       await postsAPI.deleteComment(postId, commentId);
-      toast.success('Comentario eliminado');
+      toast.success(t('wall.comment_deleted'));
       setComments((prev) => ({
         ...prev,
         [postId]: prev[postId]?.filter((c) => c.id !== commentId) || [],
@@ -298,7 +300,7 @@ const Wall = () => {
       );
     } catch (error: any) {
       console.error('Error deleting comment:', error);
-      toast.error(error.message || 'Error al eliminar comentario');
+      toast.error(error.message || t('wall.comment_delete_error'));
     }
   };
 
@@ -430,19 +432,19 @@ const Wall = () => {
       const diffInSeconds = Math.floor((now.getTime() - date.getTime()) / 1000);
 
       if (diffInSeconds < 60) {
-        return 'hace unos segundos';
+        return t('common.just_now');
       } else if (diffInSeconds < 3600) {
         const minutes = Math.floor(diffInSeconds / 60);
-        return `hace ${minutes} ${minutes === 1 ? 'minuto' : 'minutos'}`;
+        return `${t('common.ago')} ${minutes} ${minutes === 1 ? t('common.minute') : t('common.minutes')}`;
       } else if (diffInSeconds < 86400) {
         const hours = Math.floor(diffInSeconds / 3600);
-        return `hace ${hours} ${hours === 1 ? 'hora' : 'horas'}`;
+        return `${t('common.ago')} ${hours} ${hours === 1 ? t('common.hour') : t('common.hours')}`;
       } else if (diffInSeconds < 604800) {
         const days = Math.floor(diffInSeconds / 86400);
-        return `hace ${days} ${days === 1 ? 'día' : 'días'}`;
+        return `${t('common.ago')} ${days} ${days === 1 ? t('common.day') : t('common.days')}`;
       } else {
         const weeks = Math.floor(diffInSeconds / 604800);
-        return `hace ${weeks} ${weeks === 1 ? 'semana' : 'semanas'}`;
+        return `${t('common.ago')} ${weeks} ${weeks === 1 ? t('common.week') : t('common.weeks')}`;
       }
     } catch {
       return dateString;
@@ -460,48 +462,48 @@ const Wall = () => {
       <div className="container mx-auto px-4 py-8 max-w-4xl relative z-10">
         {/* Header */}
         <div className="mb-8 p-6 glass-card rounded-3xl border-primary/10">
-          <h1 className="text-4xl font-heading font-bold mb-2 bg-clip-text text-transparent bg-gradient-to-r from-primary to-secondary">Pared de Pegas</h1>
-          <p className="text-muted-foreground italic">Comparte información, datos de trabajo y oportunidades con tu comunidad</p>
+          <h1 className="text-4xl font-heading font-bold mb-2 bg-clip-text text-transparent bg-gradient-to-r from-primary to-secondary">{t('wall.title')}</h1>
+          <p className="text-muted-foreground italic">{t('wall.subtitle')}</p>
         </div>
 
         {/* Formulario de publicación estilo blog */}
         {isLoggedIn && (
           <Card className="mb-8 glass-card border-primary/10 bg-card/40 backdrop-blur-md shadow-2xl">
             <CardHeader>
-              <h2 className="text-xl font-semibold">¿Qué quieres compartir?</h2>
+              <h2 className="text-xl font-semibold">{t('wall.form_title')}</h2>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <Label htmlFor="type">Tipo de Publicación</Label>
+                  <Label htmlFor="type">{t('wall.post_type')}</Label>
                   <Select value={postType} onValueChange={setPostType}>
                     <SelectTrigger>
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="Busco Servicio">Busco Servicio</SelectItem>
-                      <SelectItem value="Ofrezco">Ofrezco (trabajo/servicio)</SelectItem>
-                      <SelectItem value="Info">Info (general)</SelectItem>
+                      <SelectItem value="Busco Servicio">{t('wall.type_busco_servicio')}</SelectItem>
+                      <SelectItem value="Ofrezco">{t('wall.type_ofrezco')}</SelectItem>
+                      <SelectItem value="Info">{t('wall.type_info')}</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
                 <div>
-                  <Label htmlFor="comuna">Comuna</Label>
+                  <Label htmlFor="comuna">{t('wall.comuna')}</Label>
                   <Input
                     id="comuna"
                     value={postComuna}
                     onChange={(e) => setPostComuna(e.target.value)}
-                    placeholder="Tu comuna"
+                    placeholder={t('wall.comuna_placeholder') || "Tu comuna"}
                   />
                 </div>
               </div>
               <div>
-                <Label htmlFor="content">Mensaje</Label>
+                <Label htmlFor="content">{t('wall.message')}</Label>
                 <Textarea
                   id="content"
                   value={postContent}
                   onChange={(e) => setPostContent(e.target.value)}
-                  placeholder="Comparte información, datos de pega, oportunidades..."
+                  placeholder={t('wall.placeholder')}
                   rows={5}
                   className="resize-none"
                 />
@@ -512,7 +514,7 @@ const Wall = () => {
                   disabled={isSubmitting || !postContent.trim() || !postComuna.trim()}
                   className="min-w-[120px]"
                 >
-                  {isSubmitting ? 'Publicando...' : 'Publicar'}
+                  {isSubmitting ? t('wall.publishing') : t('wall.publish')}
                 </Button>
               </div>
             </CardContent>
@@ -523,17 +525,17 @@ const Wall = () => {
         <div className="mb-6 flex gap-4">
           <Select value={filterType} onValueChange={setFilterType}>
             <SelectTrigger className="w-40">
-              <SelectValue placeholder="Tipo" />
+              <SelectValue placeholder={t('wall.filter_type')} />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="all">Todos</SelectItem>
-              <SelectItem value="Busco Servicio">Busco Servicio</SelectItem>
-              <SelectItem value="Ofrezco">Ofrezco</SelectItem>
-              <SelectItem value="Info">Info</SelectItem>
+              <SelectItem value="all">{t('wall.all')}</SelectItem>
+              <SelectItem value="Busco Servicio">{t('wall.type_busco_servicio')}</SelectItem>
+              <SelectItem value="Ofrezco">{t('wall.type_ofrezco')}</SelectItem>
+              <SelectItem value="Info">{t('wall.type_info')}</SelectItem>
             </SelectContent>
           </Select>
           <Input
-            placeholder="Filtrar por comuna..."
+            placeholder={t('wall.filter_comuna')}
             value={filterComuna}
             onChange={(e) => setFilterComuna(e.target.value)}
             className="flex-1"
@@ -543,11 +545,11 @@ const Wall = () => {
         {/* Posts Feed */}
         {loading ? (
           <div className="text-center py-12 glass-card rounded-2xl border-white/5">
-            <p className="text-muted-foreground animate-pulse">Cargando publicaciones...</p>
+            <p className="text-muted-foreground animate-pulse">{t('wall.loading')}</p>
           </div>
         ) : posts.length === 0 ? (
           <div className="text-center py-12 glass-card rounded-2xl border-white/5">
-            <p className="text-muted-foreground">No hay publicaciones aún</p>
+            <p className="text-muted-foreground">{t('wall.empty')}</p>
           </div>
         ) : (
           <div className="space-y-6">
@@ -602,11 +604,14 @@ const Wall = () => {
                           ) : (
                             <MessageCircle size={14} />
                           )}
-                          Contactar
+                          {t('wall.contact')}
                         </Button>
                       )}
                       <Badge className={getTypeColor(post.type)}>
-                        {post.type}
+                        {post.type === 'Busco Servicio' ? t('wall.type_busco_servicio') :
+                          post.type === 'Ofrezco' ? t('wall.type_ofrezco') :
+                            post.type === 'Info' ? t('wall.type_info') :
+                              post.type === 'Busco Trabajo' ? t('wall.type_trabajo') : post.type}
                       </Badge>
                       {(user?.id === post.user_id || user?.role_number === 5) && (
                         <div className="flex gap-1">
@@ -672,7 +677,7 @@ const Wall = () => {
                     <div className="mt-4 pt-4 border-t space-y-4">
                       {/* Lista de comentarios */}
                       {loadingComments[post.id] ? (
-                        <p className="text-sm text-muted-foreground">Cargando comentarios...</p>
+                        <p className="text-sm text-muted-foreground">{t('common.loading')}</p>
                       ) : (
                         <>
                           {comments[post.id] && comments[post.id].length > 0 && (
@@ -752,16 +757,16 @@ const Wall = () => {
                                   className="w-full"
                                 >
                                   <MessageCircle size={16} className="mr-2" />
-                                  Agregar Comentario
+                                  {t('wall.add_comment')}
                                 </Button>
                               </DialogTrigger>
                               <DialogContent className="sm:max-w-md">
                                 <DialogHeader>
-                                  <DialogTitle>Nuevo Comentario</DialogTitle>
+                                  <DialogTitle>{t('wall.new_comment')}</DialogTitle>
                                 </DialogHeader>
                                 <div className="space-y-4 pt-4">
                                   <div>
-                                    <Label htmlFor="comment-type">Tipo de Comentario</Label>
+                                    <Label htmlFor="comment-type">{t('wall.comment_type')}</Label>
                                     <Select
                                       value={commentType[post.id] || 'info'}
                                       onValueChange={(value: 'info' | 'dato_pega') =>
@@ -773,19 +778,19 @@ const Wall = () => {
                                       </SelectTrigger>
                                       <SelectContent>
                                         <SelectItem value="info">
-                                          Info (información general)
+                                          {t('wall.comment_info_label')}
                                         </SelectItem>
                                         <SelectItem value="dato_pega">
-                                          Dato de Pega (oportunidad de trabajo)
+                                          {t('wall.comment_pega_label')}
                                         </SelectItem>
                                       </SelectContent>
                                     </Select>
                                   </div>
                                   <div>
-                                    <Label htmlFor="comment-content">Comentario</Label>
+                                    <Label htmlFor="comment-content">{t('wall.comments')}</Label>
                                     <Textarea
                                       id="comment-content"
-                                      placeholder="Escribe tu comentario..."
+                                      placeholder={t('wall.comment_placeholder')}
                                       value={commentContent[post.id] || ''}
                                       onChange={(e) =>
                                         setCommentContent((prev) => ({
@@ -806,14 +811,14 @@ const Wall = () => {
                                         }))
                                       }
                                     >
-                                      Cancelar
+                                      {t('common.cancel')}
                                     </Button>
                                     <Button
                                       onClick={() => handleComment(post.id)}
                                       disabled={!commentContent[post.id]?.trim()}
                                     >
                                       <Send size={16} className="mr-2" />
-                                      Comentar
+                                      {t('wall.comment_btn')}
                                     </Button>
                                   </div>
                                 </div>
@@ -822,7 +827,7 @@ const Wall = () => {
                           )}
                           {!isLoggedIn && (
                             <p className="text-sm text-muted-foreground text-center py-4">
-                              Inicia sesión para comentar
+                              {t('wall.login_to_comment_msg')}
                             </p>
                           )}
                         </>
@@ -840,11 +845,11 @@ const Wall = () => {
         <Dialog open={isProfileDialogOpen} onOpenChange={setIsProfileDialogOpen}>
           <DialogContent className="sm:max-w-md">
             <DialogHeader>
-              <DialogTitle>Perfil de Usuario</DialogTitle>
+              <DialogTitle>{t('wall.user_profile')}</DialogTitle>
             </DialogHeader>
             {loadingProfile ? (
               <div className="py-8 text-center">
-                <p className="text-muted-foreground">Cargando perfil...</p>
+                <p className="text-muted-foreground">{t('wall.loading_profile')}</p>
               </div>
             ) : userProfile ? (
               <div className="space-y-4 pt-4">
@@ -877,13 +882,13 @@ const Wall = () => {
                     className="w-full bg-green-500 hover:bg-green-600 text-white"
                   >
                     <Phone size={16} className="mr-2" />
-                    Contactar por WhatsApp
+                    {t('services.contact_whatsapp')}
                   </Button>
                 )}
               </div>
             ) : (
               <div className="py-8 text-center">
-                <p className="text-muted-foreground">No se pudo cargar el perfil</p>
+                <p className="text-muted-foreground">{t('wall.profile_error')}</p>
               </div>
             )}
           </DialogContent>
@@ -893,9 +898,11 @@ const Wall = () => {
           !isLoggedIn && (
             <div className="mt-8 text-center py-8 bg-muted/30 rounded-2xl">
               <p className="text-muted-foreground mb-4">
-                ¿Quieres publicar en la Pared de Pegas?
+                {t('wall.want_to_post')}
               </p>
-              <Button variant="outline">Inicia Sesión o Regístrate</Button>
+              <Link to="/registro">
+                <Button variant="outline">{t('wall.login_register')}</Button>
+              </Link>
             </div>
           )
         }
@@ -907,15 +914,15 @@ const Wall = () => {
                 <div className="mx-auto w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mb-4">
                   <MessageCircle className="w-10 h-10 text-green-600" />
                 </div>
-                <DialogTitle className="text-2xl font-bold text-gray-800">Contactar por WhatsApp</DialogTitle>
+                <DialogTitle className="text-2xl font-bold text-gray-800">{t('services.contact_whatsapp')}</DialogTitle>
               </CardHeader>
               <CardContent className="space-y-6 p-6">
                 <div className="bg-blue-50 border border-blue-100 rounded-xl p-4 text-center">
-                  <p className="text-blue-800 font-medium mb-1">Servicio de Contacto Premium</p>
+                  <p className="text-blue-800 font-medium mb-1">{t('services.premium_service')}</p>
                   <div className="text-3xl font-black text-blue-900">
-                    {new Intl.NumberFormat('es-CL', { style: 'currency', currency: 'CLP' }).format(whatsappPrice)}
+                    {new Intl.NumberFormat(i18n.language === 'en' ? 'en-US' : 'es-CL', { style: 'currency', currency: 'CLP' }).format(whatsappPrice)}
                   </div>
-                  <p className="text-blue-600 text-xs mt-1">Pago único por cada contacto directo</p>
+                  <p className="text-blue-600 text-xs mt-1">{t('services.one_time_payment')}</p>
                 </div>
 
                 <div className="space-y-3">
@@ -923,13 +930,13 @@ const Wall = () => {
                     <div className="w-5 h-5 bg-green-500 rounded-full flex-shrink-0 flex items-center justify-center mt-0.5">
                       <CheckCircle className="w-3 h-3 text-white" />
                     </div>
-                    <p className="text-sm text-gray-600">Acceso inmediato al número de WhatsApp verificado.</p>
+                    <p className="text-sm text-gray-600">{t('services.immediate_access')}</p>
                   </div>
                   <div className="flex items-start gap-3">
                     <div className="w-5 h-5 bg-green-500 rounded-full flex-shrink-0 flex items-center justify-center mt-0.5">
                       <CheckCircle className="w-3 h-3 text-white" />
                     </div>
-                    <p className="text-sm text-gray-600">Chat directo sin intermediarios.</p>
+                    <p className="text-sm text-gray-600">{t('services.direct_chat')}</p>
                   </div>
                 </div>
 
@@ -939,7 +946,7 @@ const Wall = () => {
                     onClick={() => setIsPaidContactModalOpen(false)}
                     className="h-12 border-gray-200 text-gray-600 hover:bg-gray-50"
                   >
-                    Cancelar
+                    {t('common.cancel')}
                   </Button>
                   <Button
                     onClick={async () => {
@@ -955,34 +962,34 @@ const Wall = () => {
                         }
 
                         if (!targetUserId) {
-                          toast.error('No se pudo identificar al usuario');
+                          toast.error(t('wall.contact_error'));
                           return;
                         }
 
                         setIsPaidContactModalOpen(false);
-                        toast.loading('Preparando pago...', { id: 'contact-payment' });
+                        toast.loading(t('wall.preparing_payment'), { id: 'contact-payment' });
 
                         const response = await flowAPI.createContactPayment(targetUserId, postId);
 
                         if (response && response.url) {
-                          toast.success('Redirigiendo a Flow...', { id: 'contact-payment' });
+                          toast.success(t('wall.redirecting_flow'), { id: 'contact-payment' });
                           window.location.href = response.url;
                         } else {
                           throw new Error('No se recibió la URL de pago del servidor');
                         }
                       } catch (error: any) {
                         console.error('Error creating contact payment:', error);
-                        toast.error(error.message || 'Error al procesar el pago', { id: 'contact-payment' });
+                        toast.error(error.message || t('wall.payment_error'), { id: 'contact-payment' });
                       }
                     }}
                     className="h-12 bg-green-600 hover:bg-green-700 text-white font-bold shadow-lg shadow-green-200"
                   >
-                    Pagar y Chatear
+                    {t('services.pay_chat')}
                   </Button>
                 </div>
 
                 <p className="text-[10px] text-center text-gray-400">
-                  Al continuar, aceptas nuestras políticas de servicio y cobro.
+                  {t('services.accept_policies')}
                 </p>
               </CardContent>
             </Card>

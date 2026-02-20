@@ -10,6 +10,7 @@ import { MapPin, Search, MessageCircle, Loader2, Plus, TrendingUp, DollarSign, S
 import { servicesAPI, flowAPI, configAPI, reviewsAPI } from '@/lib/api';
 import { toast } from 'sonner';
 import { useUser } from '@/contexts/UserContext';
+import { useTranslation } from 'react-i18next';
 import { Label } from '@/components/ui/label';
 import { CheckCircle } from 'lucide-react';
 import {
@@ -31,6 +32,7 @@ import { ServiceDetail } from '@/components/ServiceDetail';
 
 const Services = () => {
   const { user, isLoggedIn } = useUser();
+  const { t, i18n } = useTranslation();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const highlightId = searchParams.get('highlight');
@@ -111,7 +113,7 @@ const Services = () => {
       setServices(response.services);
       setPagination(response.pagination);
     } catch (error) {
-      toast.error('Error al cargar servicios');
+      toast.error(t('services.loading_error'));
       console.error('Error loading services:', error);
     } finally {
       setLoading(false);
@@ -122,13 +124,13 @@ const Services = () => {
   const handleWhatsApp = (service: any) => {
     // Verificar si el usuario está logueado
     if (!isLoggedIn) {
-      toast.error('Debes iniciar sesión para contactar por WhatsApp');
+      toast.error(t('services.contact_login_msg'));
       navigate('/login');
       return;
     }
 
     if (!service.phone) {
-      toast.error('Este servicio no tiene número de teléfono disponible');
+      toast.error(t('services.no_phone_msg'));
       return;
     }
 
@@ -152,7 +154,7 @@ const Services = () => {
       setReviewStats(response.stats);
     } catch (error) {
       console.error('Error loading reviews:', error);
-      toast.error('Error al cargar las reseñas');
+      toast.error(t('services.reviews_error'));
     } finally {
       setLoadingReviews(false);
     }
@@ -167,35 +169,35 @@ const Services = () => {
   };
 
   const handleDeleteService = async (service: any) => {
-    if (!window.confirm(`¿Estás seguro de que deseas eliminar el servicio de "${service.user_name}"?`)) return;
+    if (!window.confirm(t('services.delete_confirm'))) return;
 
     try {
       await servicesAPI.deleteService(service.id);
-      toast.success('Servicio eliminado correctamente');
+      toast.success(t('services.delete_success'));
       loadServices();
     } catch (error: any) {
       console.error('Error deleting service:', error);
-      toast.error(error.message || 'Error al eliminar el servicio');
+      toast.error(error.message || t('services.delete_error'));
     }
   };
 
   const handleSubmitReview = async () => {
     if (!userRating) {
-      toast.error('Por favor selecciona una puntuación');
+      toast.error(t('services.select_rating_msg'));
       return;
     }
     if (!userComment.trim()) {
-      toast.error('Por favor escribe un comentario');
+      toast.error(t('services.write_comment_msg'));
       return;
     }
 
     if (!isLoggedIn) {
-      toast.error('Debes iniciar sesión para dejar una reseña');
+      toast.error(t('services.login_to_review_msg'));
       return;
     }
 
     if (selectedServiceForReviews?.user_id === user?.id && user?.role_number !== 5) {
-      toast.error('No puedes calificar tu propio servicio');
+      toast.error(t('services.own_service_review_msg'));
       return;
     }
 
@@ -205,7 +207,7 @@ const Services = () => {
         rating: userRating,
         comment: userComment,
       });
-      toast.success('Reseña enviada correctamente');
+      toast.success(t('services.review_success'));
       setUserRating(0);
       setUserComment('');
       // Recargar reseñas
@@ -214,7 +216,7 @@ const Services = () => {
       loadServices();
     } catch (error: any) {
       console.error('Error submitting review:', error);
-      toast.error(error.message || 'Error al enviar la reseña');
+      toast.error(error.message || t('services.review_error'));
     } finally {
       setIsSubmittingReview(false);
     }
@@ -233,15 +235,15 @@ const Services = () => {
         <div className="mb-8 p-6 glass-card rounded-3xl border-primary/10">
           <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
             <div className="space-y-1 text-center md:text-left">
-              <h1 className="text-3xl sm:text-4xl font-heading font-bold bg-clip-text text-transparent bg-gradient-to-r from-primary to-secondary">Servicios</h1>
-              <p className="text-sm sm:text-base text-muted-foreground italic">Encuentra profesionales y servicios de confianza en tu comunidad</p>
+              <h1 className="text-3xl sm:text-4xl font-heading font-bold bg-clip-text text-transparent bg-gradient-to-r from-primary to-secondary">{t('services.title')}</h1>
+              <p className="text-sm sm:text-base text-muted-foreground italic">{t('services.subtitle')}</p>
             </div>
             <div className="flex flex-wrap gap-2 w-full md:w-auto justify-center md:justify-end">
               {(user?.roles.includes('entrepreneur') || user?.role_number === 5) && (
                 <Link to="/servicios/publicar">
                   <Button className="bg-primary hover:bg-primary/90 text-primary-foreground hover-gold-glow transition-all duration-300 w-full sm:w-auto font-bold px-6">
                     <Plus size={18} className="mr-2" />
-                    Publicar Servicio
+                    {t('services.publish_btn')}
                   </Button>
                 </Link>
               )}
@@ -256,7 +258,7 @@ const Services = () => {
               <div className="relative">
                 <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground" size={18} />
                 <Input
-                  placeholder="Buscar servicio..."
+                  placeholder={t('services.search_placeholder')}
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
                   className="pl-10 h-11"
@@ -271,11 +273,11 @@ const Services = () => {
                 <SelectTrigger className="glass-card border-white/10 h-11">
                   <div className="flex items-center gap-2">
                     <Globe size={16} className="text-secondary" />
-                    <SelectValue placeholder="Selecciona Región" />
+                    <SelectValue placeholder={t('services.region_placeholder')} />
                   </div>
                 </SelectTrigger>
                 <SelectContent className="glass-card border-white/10 backdrop-blur-xl">
-                  <SelectItem value="all">📍 Todas las regiones</SelectItem>
+                  <SelectItem value="all">{t('services.all_regions')}</SelectItem>
                   {chileData.map((reg) => (
                     <SelectItem key={reg.id} value={reg.id}>{reg.name}</SelectItem>
                   ))}
@@ -289,11 +291,11 @@ const Services = () => {
                 <SelectTrigger className="glass-card border-white/10 h-11">
                   <div className="flex items-center gap-2">
                     <MapPin size={16} className="text-primary" />
-                    <SelectValue placeholder="Selecciona Comuna" />
+                    <SelectValue placeholder={t('services.comuna_placeholder')} />
                   </div>
                 </SelectTrigger>
                 <SelectContent className="glass-card border-white/10 backdrop-blur-xl">
-                  <SelectItem value="all">🌐 Todas las comunas</SelectItem>
+                  <SelectItem value="all">{t('services.all_comunas')}</SelectItem>
                   {regionFilter !== 'all' ? (
                     chileData.find(r => String(r.id) === String(regionFilter))?.communes.map(c => (
                       <SelectItem key={c} value={c}>{c}</SelectItem>
@@ -314,8 +316,9 @@ const Services = () => {
 
         {/* Service Listings */}
         {loading ? (
-          <div className="flex justify-center items-center py-12">
+          <div className="flex flex-col justify-center items-center py-12 gap-2">
             <Loader2 className="animate-spin text-secondary" size={32} />
+            <p className="text-muted-foreground text-sm">{t('services.loading')}</p>
           </div>
         ) : (
           <>
@@ -336,7 +339,7 @@ const Services = () => {
 
             {services.length === 0 && !loading && (
               <div className="text-center py-12">
-                <p className="text-muted-foreground text-lg">No se encontraron servicios con esos filtros</p>
+                <p className="text-muted-foreground text-lg">{t('services.not_found')}</p>
               </div>
             )}
           </>
@@ -376,15 +379,15 @@ const Services = () => {
                 <div className="mx-auto w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mb-4">
                   <MessageCircle className="w-10 h-10 text-green-600" />
                 </div>
-                <DialogTitle className="text-2xl font-bold text-gray-800">Contactar por WhatsApp</DialogTitle>
+                <DialogTitle className="text-2xl font-bold text-gray-800">{t('services.contact_whatsapp')}</DialogTitle>
               </CardHeader>
               <CardContent className="space-y-6 p-6">
                 <div className="bg-blue-50 border border-blue-100 rounded-xl p-4 text-center">
-                  <p className="text-blue-800 font-medium mb-1">Servicio de Contacto Premium</p>
+                  <p className="text-blue-800 font-medium mb-1">{t('services.premium_service')}</p>
                   <div className="text-3xl font-black text-blue-900">
-                    {new Intl.NumberFormat('es-CL', { style: 'currency', currency: 'CLP' }).format(whatsappPrice)}
+                    {new Intl.NumberFormat(i18n.language === 'en' ? 'en-US' : 'es-CL', { style: 'currency', currency: 'CLP' }).format(whatsappPrice)}
                   </div>
-                  <p className="text-blue-600 text-xs mt-1">Pago único por cada contacto directo</p>
+                  <p className="text-blue-600 text-xs mt-1">{t('services.one_time_payment')}</p>
                 </div>
 
                 <div className="space-y-3">
@@ -392,13 +395,13 @@ const Services = () => {
                     <div className="w-5 h-5 bg-green-500 rounded-full flex-shrink-0 flex items-center justify-center mt-0.5">
                       <CheckCircle className="w-3 h-3 text-white" />
                     </div>
-                    <p className="text-sm text-gray-600">Acceso inmediato al número de WhatsApp verificado.</p>
+                    <p className="text-sm text-gray-600">{t('services.immediate_access')}</p>
                   </div>
                   <div className="flex items-start gap-3">
                     <div className="w-5 h-5 bg-green-500 rounded-full flex-shrink-0 flex items-center justify-center mt-0.5">
                       <CheckCircle className="w-3 h-3 text-white" />
                     </div>
-                    <p className="text-sm text-gray-600">Chat directo sin intermediarios.</p>
+                    <p className="text-sm text-gray-600">{t('services.direct_chat')}</p>
                   </div>
                 </div>
 
@@ -408,14 +411,14 @@ const Services = () => {
                     onClick={() => setIsPaidContactModalOpen(false)}
                     className="h-12 border-gray-200 text-gray-600 hover:bg-gray-50"
                   >
-                    Cancelar
+                    {t('common.cancel')}
                   </Button>
                   <Button
                     onClick={async () => {
                       if (!pendingContactService) return;
                       try {
                         setIsPaidContactModalOpen(false);
-                        toast.loading('Preparando pago...', { id: 'contact-payment' });
+                        toast.loading(t('wall.preparing_payment'), { id: 'contact-payment' });
 
                         const response = await flowAPI.createContactPayment(
                           pendingContactService.user_id,
@@ -424,14 +427,14 @@ const Services = () => {
                         );
 
                         if (response && response.url) {
-                          toast.success('Redirigiendo a Flow...', { id: 'contact-payment' });
+                          toast.success(t('wall.redirecting_flow'), { id: 'contact-payment' });
                           window.location.href = response.url;
                         } else {
                           throw new Error('No se recibió la URL de pago del servidor');
                         }
                       } catch (error: any) {
                         console.error('Error creating contact payment:', error);
-                        toast.error(error.message || 'Error al procesar el pago', { id: 'contact-payment' });
+                        toast.error(error.message || t('wall.payment_error'), { id: 'contact-payment' });
                       }
                     }}
                     className="h-12 bg-green-600 hover:bg-green-700 text-white font-bold shadow-lg shadow-green-200"
@@ -441,7 +444,7 @@ const Services = () => {
                 </div>
 
                 <p className="text-[10px] text-center text-gray-400">
-                  Al continuar, aceptas nuestras políticas de servicio y cobro.
+                  {t('services.accept_policies')}
                 </p>
               </CardContent>
             </Card>

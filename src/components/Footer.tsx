@@ -1,10 +1,12 @@
 import { Link } from 'react-router-dom';
 import { Facebook, Twitter, Instagram, Linkedin, Mail, Phone, MapPin, HelpCircle } from 'lucide-react';
 import { useUser } from '@/contexts/UserContext';
+import { useTranslation } from 'react-i18next';
 import logoDameldato from '/logo nombre.png';
 
 const Footer = () => {
   const { user, isLoggedIn } = useUser();
+  const { t } = useTranslation();
 
   const isCompany = user?.roles.includes('company');
   const isEntrepreneur = user?.roles.includes('entrepreneur');
@@ -22,7 +24,7 @@ const Footer = () => {
               </div>
             </Link>
             <p className="text-muted-foreground leading-relaxed max-w-sm">
-              La plataforma líder en Chile para conectar talentos, oportunidades laborales y emprendimientos locales. Impulsando el crecimiento de nuestra comunidad.
+              {t('footer.desc')}
             </p>
             <div className="flex gap-4">
               <a
@@ -55,37 +57,37 @@ const Footer = () => {
 
           {/* Navigation Links */}
           <div className="lg:col-span-2 space-y-6">
-            <h3 className="text-white font-bold text-lg">Explorar</h3>
+            <h3 className="text-white font-bold text-lg">{t('footer.explore')}</h3>
             <ul className="space-y-4">
               <li>
                 <Link to="/servicios" className="text-muted-foreground hover:text-primary transition-colors text-sm flex items-center gap-2">
                   <div className="w-1 h-1 rounded-full bg-primary/40" />
-                  Buscar Servicios
+                  {t('services.title')}
                 </Link>
               </li>
               <li>
                 <Link to="/muro" className="text-muted-foreground hover:text-primary transition-colors text-sm flex items-center gap-2">
                   <div className="w-1 h-1 rounded-full bg-primary/40" />
-                  Muro de Avisos
+                  {t('wall.title')}
                 </Link>
               </li>
             </ul>
           </div>
 
           <div className="lg:col-span-3 space-y-6">
-            <h3 className="text-white font-bold text-lg">Tu Cuenta</h3>
+            <h3 className="text-white font-bold text-lg">{t('footer.account')}</h3>
             <ul className="space-y-4">
               <li>
                 <Link to="/perfil" className="text-muted-foreground hover:text-primary transition-colors text-sm flex items-center gap-2">
                   <div className="w-1 h-1 rounded-full bg-primary/40" />
-                  Mi Perfil
+                  {t('nav.profile')}
                 </Link>
               </li>
               {(isEntrepreneur || isAdmin) && (
                 <li>
                   <Link to="/servicios/publicar" className="text-primary font-medium hover:underline transition-all text-sm flex items-center gap-2">
                     <div className="w-1 h-1 rounded-full bg-primary" />
-                    Publicar mi Servicio
+                    {t('services.publish_btn')}
                   </Link>
                 </li>
               )}
@@ -93,7 +95,7 @@ const Footer = () => {
                 <li>
                   <Link to="/admin" className="text-amber-500 hover:text-amber-400 transition-colors text-sm flex items-center gap-2 font-medium">
                     <div className="w-1 h-1 rounded-full bg-amber-500/40" />
-                    Panel Admin
+                    {t('nav.admin')}
                   </Link>
                 </li>
               )}
@@ -102,13 +104,13 @@ const Footer = () => {
 
           {/* Contact Section */}
           <div className="lg:col-span-3 space-y-6">
-            <h3 className="text-white font-bold text-lg">Soporte</h3>
+            <h3 className="text-white font-bold text-lg">{t('footer.support')}</h3>
             <div className="bg-white/5 p-4 rounded-2xl border border-white/5 space-y-4">
               <Link to="/ayuda" className="flex items-center gap-3 text-sm text-muted-foreground hover:text-primary transition-colors">
                 <div className="p-2 bg-primary/10 rounded-lg text-primary">
                   <HelpCircle size={18} />
                 </div>
-                <span>Centro de Ayuda</span>
+                <span>{t('footer.help_center')}</span>
               </Link>
               <div className="flex items-center gap-3 text-sm text-muted-foreground">
                 <div className="p-2 bg-secondary/10 rounded-lg text-secondary">
@@ -123,14 +125,14 @@ const Footer = () => {
         {/* Bottom Bar */}
         <div className="pt-8 border-t border-white/5 flex flex-col md:flex-row justify-between items-center gap-4">
           <p className="text-muted-foreground text-xs">
-            © {new Date().getFullYear()} Dameldato. Todos los derechos reservados.
+            © {new Date().getFullYear()} Dameldato. {t('footer.rights')}
           </p>
           <div className="flex gap-6">
             <Link to="/terminos" className="text-xs text-muted-foreground hover:text-primary transition-colors">
-              Términos y Condiciones
+              {t('footer.terms')}
             </Link>
             <Link to="/privacidad" className="text-xs text-muted-foreground hover:text-primary transition-colors">
-              Privacidad
+              {t('footer.privacy')}
             </Link>
           </div>
         </div>

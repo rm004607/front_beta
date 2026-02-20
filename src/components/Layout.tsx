@@ -124,7 +124,7 @@ const Layout = ({ children }: LayoutProps) => {
                           className="cursor-pointer"
                         >
                           <LogOut size={16} className="mr-2" />
-                          Cerrar Sesión
+                          {t('nav.logout')}
                         </DropdownMenuItem>
                       </DropdownMenuContent>
                     </DropdownMenu>
@@ -200,13 +200,13 @@ const Layout = ({ children }: LayoutProps) => {
                       <DropdownMenuItem asChild>
                         <Link to="/login" className="cursor-pointer">
                           <User size={16} className="mr-2" />
-                          Iniciar Sesión
+                          {t('nav.login')}
                         </Link>
                       </DropdownMenuItem>
                       <DropdownMenuItem asChild>
                         <Link to="/registro" className="cursor-pointer">
                           <User size={16} className="mr-2" />
-                          Registrarse
+                          {t('nav.register')}
                         </Link>
                       </DropdownMenuItem>
                     </>

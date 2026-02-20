@@ -28,7 +28,7 @@ interface Service {
 
 const Home = () => {
   const { isLoggedIn, user } = useUser();
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const [latestServices, setLatestServices] = useState<Service[]>([]);
   const [loadingServices, setLoadingServices] = useState(true);
 
@@ -59,10 +59,12 @@ const Home = () => {
       const diffTime = Math.abs(now.getTime() - date.getTime());
       const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
 
-      if (diffDays === 0) return 'Hoy';
-      if (diffDays === 1) return 'Ayer';
-      if (diffDays < 7) return `Hace ${diffDays} días`;
-      return date.toLocaleDateString('es-CL', { day: 'numeric', month: 'short' });
+      if (diffDays === 0) return t('common.today');
+      if (diffDays === 1) return t('common.yesterday');
+      if (diffDays < 7) return `${t('common.ago')} ${diffDays} ${t('common.days')}`;
+
+      const locale = i18n.language === 'en' ? 'en-US' : 'es-CL';
+      return date.toLocaleDateString(locale, { day: 'numeric', month: 'short' });
     } catch {
       return dateString;
     }
@@ -173,9 +175,9 @@ const Home = () => {
       {/* Categories Grid */}
       <section className="py-20 container mx-auto px-4">
         <div className="text-center mb-16 space-y-4">
-          <h2 className="text-4xl font-heading font-extrabold animate-reveal">Servicios que podrás encontrar</h2>
+          <h2 className="text-4xl font-heading font-extrabold animate-reveal">{t('home.categories_title')}</h2>
           <p className="text-muted-foreground text-lg max-w-2xl mx-auto animate-reveal delay-100">
-            Encuentra exactamente lo que necesitas para tu hogar o negocio con datos reales y garantizados.
+            {t('home.categories_desc')}
           </p>
         </div>
 
@@ -211,10 +213,10 @@ const Home = () => {
                 <div className="bg-primary w-16 h-16 sm:w-20 sm:h-20 rounded-2xl sm:rounded-3xl flex items-center justify-center mb-6 sm:mb-8 shadow-xl shadow-primary/20 group-hover:rotate-12 transition-transform relative z-10">
                   <MessageSquare className="text-white w-8 h-8 sm:w-9 sm:h-9" strokeWidth={1.5} />
                 </div>
-                <h3 className="text-2xl sm:text-3xl font-heading font-extrabold mb-4 relative z-10">Muro de Datos</h3>
-                <p className="text-muted-foreground text-base sm:text-lg relative z-10 mb-6">¿Necesitas un dato rápido? Publica tu requerimiento o revisa lo que otros necesitan hoy mismo.</p>
+                <h3 className="text-2xl sm:text-3xl font-heading font-extrabold mb-4 relative z-10">{t('home.wall_title')}</h3>
+                <p className="text-muted-foreground text-base sm:text-lg relative z-10 mb-6">{t('home.wall_desc')}</p>
                 <div className="text-primary font-bold p-0 text-lg group-hover:translate-x-2 transition-transform flex items-center mt-auto">
-                  Entrar al Muro de Datos <ArrowRight className="ml-2" />
+                  {t('home.wall_cta')} <ArrowRight className="ml-2" />
                 </div>
               </div>
             </Link>
@@ -226,10 +228,10 @@ const Home = () => {
                 <div className="bg-secondary w-16 h-16 sm:w-20 sm:h-20 rounded-2xl sm:rounded-3xl flex items-center justify-center mb-6 sm:mb-8 shadow-xl shadow-secondary/20 group-hover:-rotate-12 transition-transform relative z-10">
                   <Briefcase className="text-white w-8 h-8 sm:w-9 sm:h-9" strokeWidth={1.5} />
                 </div>
-                <h3 className="text-2xl sm:text-3xl font-heading font-extrabold mb-4 relative z-10">Ofrecer Servicios</h3>
-                <p className="text-muted-foreground text-base sm:text-lg relative z-10 mb-6">Pon tu talento a disposición de tu comuna. Crea tu perfil profesional y empieza a recibir pedidos ahora.</p>
+                <h3 className="text-2xl sm:text-3xl font-heading font-extrabold mb-4 relative z-10">{t('home.offer_title')}</h3>
+                <p className="text-muted-foreground text-base sm:text-lg relative z-10 mb-6">{t('home.offer_desc')}</p>
                 <div className="text-secondary font-bold p-0 text-lg group-hover:translate-x-2 transition-transform flex items-center mt-auto">
-                  Ofrecer un Servicio <ArrowRight className="ml-2" />
+                  {t('home.offer_cta')} <ArrowRight className="ml-2" />
                 </div>
               </div>
             </Link>
@@ -246,13 +248,13 @@ const Home = () => {
                 <div className="bg-primary/15 p-3 rounded-2xl">
                   <Star className="text-primary" size={32} fill="currentColor" />
                 </div>
-                Nuevos Talentos
+                {t('home.new_talents')}
               </h2>
-              <p className="text-muted-foreground mt-2">Descubre los servicios más recientes en tu área.</p>
+              <p className="text-muted-foreground mt-2">{t('home.new_talents_desc')}</p>
             </div>
             <Link to="/servicios" className="animate-reveal delay-200">
               <Button variant="outline" className="border-2 rounded-xl h-14 px-8 font-bold hover:bg-primary hover:text-white hover:border-primary transition-all">
-                Ver Todo el Directorio
+                {t('home.view_all')}
                 <ArrowRight size={18} className="ml-2" />
               </Button>
             </Link>
@@ -328,9 +330,9 @@ const Home = () => {
       <section className="bg-mesh border-y border-primary/10 py-24">
         <div className="container mx-auto px-4">
           <div className="text-center mb-16 space-y-4">
-            <h2 className="text-4xl font-heading font-extrabold animate-reveal">¿Cómo funciona?</h2>
+            <h2 className="text-4xl font-heading font-extrabold animate-reveal">{t('home.how_it_works')}</h2>
             <p className="text-muted-foreground text-lg max-w-2xl mx-auto animate-reveal delay-100">
-              Es muy sencillo conectar con tu comunidad en solo tres pasos.
+              {t('home.how_it_works_desc')}
             </p>
           </div>
 
@@ -342,24 +344,24 @@ const Home = () => {
               <div className="bg-primary text-white w-20 h-20 rounded-[2rem] flex items-center justify-center mx-auto mb-8 shadow-2xl shadow-primary/30 text-3xl font-bold rotate-6 group-hover:rotate-0 transition-transform">
                 1
               </div>
-              <h3 className="text-2xl font-bold mb-4">Crea tu Cuenta</h3>
-              <p className="text-muted-foreground text-lg">Regístrate en menos de 2 minutos para pedir o entregar un dato.</p>
+              <h3 className="text-2xl font-bold mb-4">{t('home.step1_title')}</h3>
+              <p className="text-muted-foreground text-lg">{t('home.step1_desc')}</p>
             </div>
 
             <div className="text-center animate-reveal delay-200 relative group">
               <div className="bg-secondary text-white w-20 h-20 rounded-[2rem] flex items-center justify-center mx-auto mb-8 shadow-2xl shadow-secondary/30 text-3xl font-bold -rotate-6 group-hover:rotate-0 transition-transform">
                 2
               </div>
-              <h3 className="text-2xl font-bold mb-4">Publica o Busca</h3>
-              <p className="text-muted-foreground text-lg">Muestra tu talento o encuentra el servicio que necesitas cerca de ti.</p>
+              <h3 className="text-2xl font-bold mb-4">{t('home.step2_title')}</h3>
+              <p className="text-muted-foreground text-lg">{t('home.step2_desc')}</p>
             </div>
 
             <div className="text-center animate-reveal delay-500 relative group">
               <div className="bg-accent text-white w-20 h-20 rounded-[2rem] flex items-center justify-center mx-auto mb-8 shadow-2xl shadow-accent/30 text-3xl font-bold rotate-12 group-hover:rotate-0 transition-transform">
                 3
               </div>
-              <h3 className="text-2xl font-bold mb-4">¡Listo!</h3>
-              <p className="text-muted-foreground text-lg">Conecta directamente por chat o teléfono y resuelve tus necesidades.</p>
+              <h3 className="text-2xl font-bold mb-4">{t('home.step3_title')}</h3>
+              <p className="text-muted-foreground text-lg">{t('home.step3_desc')}</p>
             </div>
           </div>
         </div>
@@ -370,19 +372,19 @@ const Home = () => {
         <div className="absolute inset-0 bg-primary opacity-[0.03]"></div>
         <div className="container mx-auto px-4 relative z-10 text-center">
           <div className="glass-card max-w-4xl mx-auto p-12 md:p-20 rounded-[4rem] border-primary/10 shadow-primary/10">
-            <h2 className="text-4xl md:text-6xl font-extrabold mb-8">Empieza a solucionar tus tareas hoy mismo</h2>
+            <h2 className="text-4xl md:text-6xl font-extrabold mb-8">{t('home.final_cta_title')}</h2>
             <p className="text-xl text-muted-foreground mb-12 max-w-2xl mx-auto">
-              Únete a miles de personas que ya están transformando su economía local.
+              {t('home.final_cta_desc')}
             </p>
             <div className="flex flex-col sm:flex-row gap-6 justify-center">
               <Link to="/registro">
                 <Button size="lg" className="bg-primary hover:bg-primary/90 text-primary-foreground font-bold px-10 py-8 text-xl rounded-2xl shadow-2xl shadow-primary/20 transition-all hover:scale-105 w-full sm:w-auto">
-                  Crear Mi Cuenta Gratis
+                  {t('home.final_cta_btn')}
                 </Button>
               </Link>
               <Link to="/muro">
                 <Button variant="outline" size="lg" className="border-2 border-primary/20 bg-background/50 hover:bg-primary/5 hover:border-primary/40 font-bold px-10 py-8 text-xl rounded-2xl w-full sm:w-auto h-auto transition-all">
-                  Ver Muro de Datos
+                  {t('wall.title')}
                 </Button>
               </Link>
             </div>
