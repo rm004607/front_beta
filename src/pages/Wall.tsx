@@ -64,7 +64,7 @@ interface UserProfile {
 const Wall = () => {
   const navigate = useNavigate();
   const { isLoggedIn, user } = useUser();
-  const { pricingEnabled } = useLocation();
+  const { pricingEnabled, currentCountry } = useLocation();
   const [postType, setPostType] = useState('Busco Servicio');
   const [postContent, setPostContent] = useState('');
   const [postComuna, setPostComuna] = useState('');
@@ -128,6 +128,7 @@ const Wall = () => {
       const response = await postsAPI.getPosts({
         type: filterType !== 'all' ? filterType : undefined,
         location_id: filterLocationId || undefined,
+        country_id: currentCountry?.id,
         limit: 50,
       });
       setPosts(response.posts);

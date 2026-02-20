@@ -33,7 +33,7 @@ import HierarchicalLocationSelector from '@/components/HierarchicalLocationSelec
 
 const Services = () => {
   const { user, isLoggedIn } = useUser();
-  const { pricingEnabled } = useLocation();
+  const { pricingEnabled, currentCountry } = useLocation();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const highlightId = searchParams.get('highlight');
@@ -100,8 +100,8 @@ const Services = () => {
     try {
       const response = await servicesAPI.getServices({
         search: searchTerm || undefined,
-        // @ts-ignore - Updating for backward compatibility if needed, but the plan is to use location_id
         location_id: locationIdFilter || undefined,
+        country_id: currentCountry?.id,
         page: pagination.page,
         limit: pagination.limit,
       });

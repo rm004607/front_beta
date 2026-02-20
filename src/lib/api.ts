@@ -231,6 +231,7 @@ export const servicesAPI = {
     comuna?: string;
     region_id?: string;
     location_id?: string;
+    country_id?: string;
     page?: number;
     limit?: number;
   }) => {
@@ -239,6 +240,7 @@ export const servicesAPI = {
     if (filters?.comuna) params.append('comuna', filters.comuna);
     if (filters?.region_id) params.append('region_id', filters.region_id);
     if (filters?.location_id) params.append('location_id', filters.location_id);
+    if (filters?.country_id) params.append('country_id', filters.country_id);
     if (filters?.page) params.append('page', filters.page.toString());
     if (filters?.limit) params.append('limit', filters.limit.toString());
 
@@ -377,6 +379,7 @@ export const postsAPI = {
     type?: string;
     comuna?: string;
     location_id?: string;
+    country_id?: string;
     page?: number;
     limit?: number;
   }) => {
@@ -384,6 +387,7 @@ export const postsAPI = {
     if (filters?.type) params.append('type', filters.type);
     if (filters?.comuna) params.append('comuna', filters.comuna);
     if (filters?.location_id) params.append('location_id', filters.location_id);
+    if (filters?.country_id) params.append('country_id', filters.country_id);
     if (filters?.page) params.append('page', filters.page.toString());
     if (filters?.limit) params.append('limit', filters.limit.toString());
 

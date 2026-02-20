@@ -55,8 +55,10 @@ export const LocationProvider: React.FC<{ children: React.ReactNode }> = ({ chil
                         // For now, we still call the detect API but we have the intention to use coordinates
                         const response = await locationsAPI.detect();
                         if (response.country) {
+                            console.log('Detected country:', response.country.name, 'Language:', response.country.language_code);
                             setCurrentCountry(response.country);
                             i18n.changeLanguage(response.country.language_code);
+                            localStorage.setItem('selected_country_id', response.country.id);
                             setShowLocationModal(false);
                             setIsLoading(false);
                             return;
@@ -70,11 +72,17 @@ export const LocationProvider: React.FC<{ children: React.ReactNode }> = ({ chil
             // Fallback to IP-based detection
             const response = await locationsAPI.detect();
             if (response.country) {
+                console.log('Fallback detected country:', response.country.name);
                 setCurrentCountry(response.country);
                 i18n.changeLanguage(response.country.language_code);
+                localStorage.setItem('selected_country_id', response.country.id);
                 setShowLocationModal(false);
             } else {
-                setShowLocationModal(true);
+                // If we have a stored ID, maybe we don't need the modal yet
+                const storedId = localStorage.getItem('selected_country_id');
+                if (!storedId) {
+                    setShowLocationModal(true);
+                }
             }
         } catch (error) {
             console.error('Error detecting location:', error);

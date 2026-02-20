@@ -111,6 +111,9 @@ const HierarchicalLocationSelector: React.FC<HierarchicalLocationSelectorProps> 
                             ))}
                         </SelectContent>
                     </Select>
+                    {level.items.length === 0 && !loadingLevelIdx && (
+                        <p className="text-xs text-destructive mt-1 px-1">No se encontraron resultados para {level.type}</p>
+                    )}
                 </div>
             ))}
             {loadingLevelIdx !== null && loadingLevelIdx >= levels.length && (
