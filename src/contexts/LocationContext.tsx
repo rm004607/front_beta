@@ -33,7 +33,6 @@ export const LocationProvider: React.FC<{ children: React.ReactNode }> = ({ chil
             setPricingEnabled(response.pricing_enabled);
         } catch (error) {
             console.error('Error fetching pricing status:', error);
-            // Default to enabled if it fails
             setPricingEnabled(true);
         }
     }, []);
@@ -41,6 +40,34 @@ export const LocationProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     const detectLocation = useCallback(async () => {
         setIsLoading(true);
         try {
+            // First try browser geolocation
+            if ("geolocation" in navigator) {
+                try {
+                    const position = await new Promise<GeolocationPosition>((resolve, reject) => {
+                        navigator.geolocation.getCurrentPosition(resolve, reject, {
+                            timeout: 5000,
+                            enableHighAccuracy: false
+                        });
+                    });
+
+                    if (position) {
+                        // In a real app, we would call a reverse geocoding API here
+                        // For now, we still call the detect API but we have the intention to use coordinates
+                        const response = await locationsAPI.detect();
+                        if (response.country) {
+                            setCurrentCountry(response.country);
+                            i18n.changeLanguage(response.country.language_code);
+                            setShowLocationModal(false);
+                            setIsLoading(false);
+                            return;
+                        }
+                    }
+                } catch (geoError) {
+                    console.warn('Geolocation error or denied:', geoError);
+                }
+            }
+
+            // Fallback to IP-based detection
             const response = await locationsAPI.detect();
             if (response.country) {
                 setCurrentCountry(response.country);
@@ -51,7 +78,11 @@ export const LocationProvider: React.FC<{ children: React.ReactNode }> = ({ chil
             }
         } catch (error) {
             console.error('Error detecting location:', error);
-            setShowLocationModal(true);
+            // If already has a stored country, don't show modal
+            const storedCountryId = localStorage.getItem('selected_country_id');
+            if (!storedCountryId) {
+                setShowLocationModal(true);
+            }
         } finally {
             setIsLoading(false);
         }
@@ -61,12 +92,19 @@ export const LocationProvider: React.FC<{ children: React.ReactNode }> = ({ chil
         setCurrentCountry(country);
         i18n.changeLanguage(country.language_code);
         setShowLocationModal(false);
-        // Persist country selection if needed
         localStorage.setItem('selected_country_id', country.id);
     };
 
     useEffect(() => {
-        detectLocation();
+        // Check if we already have a selection
+        const storedCountryId = localStorage.getItem('selected_country_id');
+        if (storedCountryId) {
+            // In a full implementation, we would fetch the country details by ID
+            // For now, we detect once to ensure fresh state or show modal
+            detectLocation();
+        } else {
+            detectLocation();
+        }
         refreshPricingStatus();
     }, [detectLocation, refreshPricingStatus]);
 

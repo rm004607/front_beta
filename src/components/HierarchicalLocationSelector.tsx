@@ -13,10 +13,11 @@ interface SelectionLevel {
     id: string;
     name: string;
     type: string;
+    language_code?: string;
 }
 
 interface HierarchicalLocationSelectorProps {
-    onLocationSelect: (locationId: string | null) => void;
+    onLocationSelect: (location: SelectionLevel | null) => void;
     initialLocationId?: string;
     className?: string;
     placeholder?: string;
@@ -59,7 +60,10 @@ const HierarchicalLocationSelector: React.FC<HierarchicalLocationSelectorProps> 
             return;
         }
 
-        onLocationSelect(value);
+        const selectedItem = updatedLevels[levelIdx].items.find(item => item.id === value);
+        if (selectedItem) {
+            onLocationSelect(selectedItem);
+        }
 
         // Fetch children
         setLoadingLevelIdx(levelIdx + 1);

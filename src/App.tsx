@@ -20,6 +20,7 @@ import FlowCallback from "./pages/FlowCallback";
 import NotFound from "./pages/NotFound";
 import { LocationProvider } from "@/contexts/LocationContext";
 import ScrollToTop from "@/components/ScrollToTop";
+import LocationModal from "@/components/LocationModal";
 import "./i18n";
 
 const queryClient = new QueryClient();
@@ -33,6 +34,7 @@ const App = () => {
             <ScrollToTop />
             <UserProvider>
               <LocationProvider>
+                <LocationModal />
                 <TooltipProvider>
                   <Toaster />
                   <Sonner />

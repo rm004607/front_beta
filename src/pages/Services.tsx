@@ -252,12 +252,12 @@ const Services = () => {
                 </div>
 
                 <HierarchicalLocationSelector
-                  onLocationSelect={(id) => {
-                    setLocationIdFilter(id);
+                  onLocationSelect={(location) => {
+                    setLocationIdFilter(location?.id || null);
                     setPagination(prev => ({ ...prev, page: 1 }));
                   }}
-                  className="md:flex-row gap-2"
-                  placeholder="Filtrar por ubicación"
+                  className="flex-1"
+                  placeholder="Filtrar por ubicación..."
                 />
               </div>
             </div>

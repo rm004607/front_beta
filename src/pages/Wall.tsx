@@ -428,7 +428,7 @@ const Wall = () => {
       <div className="container mx-auto px-4 py-8 max-w-4xl relative z-10">
         {/* Header */}
         <div className="mb-8 p-6 glass-card rounded-3xl border-primary/10">
-          <h1 className="text-4xl font-heading font-bold mb-2 bg-clip-text text-transparent bg-gradient-to-r from-primary to-secondary">Pared de Pegas</h1>
+          <h1 className="text-4xl font-heading font-bold mb-2 bg-clip-text text-transparent bg-gradient-to-r from-primary to-secondary">Muro de Datos</h1>
           <p className="text-muted-foreground italic">Comparte información, datos de trabajo y oportunidades con tu comunidad</p>
         </div>
 
@@ -503,7 +503,7 @@ const Wall = () => {
           </Select>
 
           <HierarchicalLocationSelector
-            onLocationSelect={setFilterLocationId}
+            onLocationSelect={(location) => setFilterLocationId(location?.id || null)}
             className="flex-1"
             placeholder="Filtrar por ubicación..."
           />

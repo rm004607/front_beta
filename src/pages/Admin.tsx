@@ -49,6 +49,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Switch } from '@/components/ui/switch';
 
 interface Post {
   id: string;
@@ -1378,13 +1379,33 @@ const Admin = () => {
                               <code className="text-[10px] text-primary/60 bg-primary/5 px-2 py-0.5 rounded uppercase tracking-wider">{config.key}</code>
                             </div>
                             <div className="flex items-center gap-6">
-                              <span className="text-2xl font-black text-primary text-glow drop-shadow-[0_0_10px_rgba(var(--primary),0.3)]">
-                                {parseInt(config.value) ? new Intl.NumberFormat('es-CL', { style: 'currency', currency: 'CLP' }).format(parseInt(config.value)) : config.value}
-                              </span>
-                              <Button variant="outline" size="sm" onClick={() => openEditConfig(config)} className="glass-card hover:border-primary/50 transition-colors">
-                                <Wrench size={14} className="mr-2" />
-                                Editar
-                              </Button>
+                              {(config.value === 'true' || config.value === 'false' || typeof config.value === 'boolean') ? (
+                                <div className="flex items-center gap-3">
+                                  <span className="text-sm text-muted-foreground">{config.value === 'true' || config.value === true ? 'Activado' : 'Desactivado'}</span>
+                                  <Switch
+                                    checked={config.value === 'true' || config.value === true}
+                                    onCheckedChange={async (checked) => {
+                                      try {
+                                        await configAPI.updateAdminConfig(config.key, checked.toString());
+                                        toast.success(`${config.description} ${checked ? 'activado' : 'desactivado'}`);
+                                        loadAdminConfig();
+                                      } catch (error) {
+                                        toast.error('Error al actualizar configuración');
+                                      }
+                                    }}
+                                  />
+                                </div>
+                              ) : (
+                                <>
+                                  <span className="text-2xl font-black text-primary text-glow drop-shadow-[0_0_10px_rgba(var(--primary),0.3)]">
+                                    {parseInt(config.value) ? new Intl.NumberFormat('es-CL', { style: 'currency', currency: 'CLP' }).format(parseInt(config.value)) : config.value}
+                                  </span>
+                                  <Button variant="outline" size="sm" onClick={() => openEditConfig(config)} className="glass-card hover:border-primary/50 transition-colors">
+                                    <Wrench size={14} className="mr-2" />
+                                    Editar
+                                  </Button>
+                                </>
+                              )}
                             </div>
                           </div>
                         ))}
