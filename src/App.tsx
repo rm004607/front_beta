@@ -19,6 +19,7 @@ import Support from "./pages/Support";
 import FlowCallback from "./pages/FlowCallback";
 import NotFound from "./pages/NotFound";
 import { LocationProvider } from "@/contexts/LocationContext";
+import ScrollToTop from "@/components/ScrollToTop";
 import "./i18n";
 
 const queryClient = new QueryClient();
@@ -29,6 +30,7 @@ const App = () => {
       <QueryClientProvider client={queryClient}>
         <ThemeProvider attribute="class" defaultTheme="dark" forcedTheme="dark">
           <BrowserRouter>
+            <ScrollToTop />
             <UserProvider>
               <LocationProvider>
                 <TooltipProvider>

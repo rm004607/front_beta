@@ -129,7 +129,7 @@ const Home = () => {
 
             {/* Right Content - Visual */}
             <div className="flex-1 relative animate-reveal delay-500">
-              <div className="relative z-10 w-full max-w-[500px] mx-auto">
+              <div className="relative z-10 w-full max-w-[650px] mx-auto">
                 <div className="relative aspect-square rounded-[3rem] bg-gradient-to-br from-primary/20 to-secondary/20 p-1 animate-float">
                   <div className="absolute inset-0 bg-mesh opacity-50 rounded-[3rem]"></div>
                   <div className="w-full h-full glass-card rounded-[3rem] flex items-center justify-center p-8 overflow-hidden group border-none">
@@ -212,7 +212,7 @@ const Home = () => {
                 <h3 className="text-2xl sm:text-3xl font-heading font-extrabold mb-4 relative z-10">Muro de Datos</h3>
                 <p className="text-muted-foreground text-base sm:text-lg relative z-10 mb-6">¿Necesitas un dato rápido? Publica tu requerimiento o revisa lo que otros necesitan hoy mismo.</p>
                 <div className="text-primary font-bold p-0 text-lg group-hover:translate-x-2 transition-transform flex items-center mt-auto">
-                  Entrar al Muro <ArrowRight className="ml-2" />
+                  Entrar al Muro de Datos <ArrowRight className="ml-2" />
                 </div>
               </div>
             </Link>
@@ -227,7 +227,7 @@ const Home = () => {
                 <h3 className="text-2xl sm:text-3xl font-heading font-extrabold mb-4 relative z-10">Ofrecer Servicios</h3>
                 <p className="text-muted-foreground text-base sm:text-lg relative z-10 mb-6">Pon tu talento a disposición de tu comuna. Crea tu perfil profesional y empieza a recibir pedidos ahora.</p>
                 <div className="text-secondary font-bold p-0 text-lg group-hover:translate-x-2 transition-transform flex items-center mt-auto">
-                  Empezar a Ofrecer <ArrowRight className="ml-2" />
+                  Ofrecer un Servicio <ArrowRight className="ml-2" />
                 </div>
               </div>
             </Link>
@@ -380,7 +380,7 @@ const Home = () => {
               </Link>
               <Link to="/muro">
                 <Button variant="outline" size="lg" className="border-2 border-primary/20 bg-background/50 hover:bg-primary/5 hover:border-primary/40 font-bold px-10 py-8 text-xl rounded-2xl w-full sm:w-auto h-auto transition-all">
-                  Ver Muro de Pegas
+                  Ver Muro de Datos
                 </Button>
               </Link>
             </div>
