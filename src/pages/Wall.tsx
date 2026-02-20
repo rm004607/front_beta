@@ -25,6 +25,7 @@ import {
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { postsAPI, authAPI, flowAPI, configAPI } from '@/lib/api';
+import HierarchicalLocationSelector from '@/components/HierarchicalLocationSelector';
 
 interface Post {
   id: string;
@@ -75,7 +76,7 @@ const Wall = () => {
   const [loadingComments, setLoadingComments] = useState<Record<string, boolean>>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [filterType, setFilterType] = useState<string>('all');
-  const [filterComuna, setFilterComuna] = useState<string>('');
+  const [filterLocationId, setFilterLocationId] = useState<string | null>(null);
   const [selectedUserId, setSelectedUserId] = useState<string | null>(null);
   const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
   const [isProfileDialogOpen, setIsProfileDialogOpen] = useState(false);
@@ -117,14 +118,14 @@ const Wall = () => {
   // Cargar posts
   useEffect(() => {
     loadPosts();
-  }, [filterType, filterComuna]);
+  }, [filterType, filterLocationId]);
 
   const loadPosts = async () => {
     try {
       setLoading(true);
       const response = await postsAPI.getPosts({
         type: filterType !== 'all' ? filterType : undefined,
-        comuna: filterComuna || undefined,
+        location_id: filterLocationId || undefined,
         limit: 50,
       });
       setPosts(response.posts);
@@ -487,23 +488,24 @@ const Wall = () => {
         )}
 
         {/* Filtros */}
-        <div className="mb-6 flex gap-4">
+        <div className="mb-6 flex flex-col md:flex-row gap-4">
           <Select value={filterType} onValueChange={setFilterType}>
-            <SelectTrigger className="w-40">
-              <SelectValue placeholder="Tipo" />
+            <SelectTrigger className="w-full md:w-[200px] h-11">
+              <SelectValue placeholder="Tipo de publicación" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="all">Todos</SelectItem>
+              <SelectItem value="all">Todas las publicaciones</SelectItem>
               <SelectItem value="Busco Servicio">Busco Servicio</SelectItem>
               <SelectItem value="Ofrezco">Ofrezco</SelectItem>
-              <SelectItem value="Info">Info</SelectItem>
+              <SelectItem value="Info">Información/Datos</SelectItem>
+              <SelectItem value="Busco Trabajo">Busco Trabajo</SelectItem>
             </SelectContent>
           </Select>
-          <Input
-            placeholder="Filtrar por comuna..."
-            value={filterComuna}
-            onChange={(e) => setFilterComuna(e.target.value)}
+
+          <HierarchicalLocationSelector
+            onLocationSelect={setFilterLocationId}
             className="flex-1"
+            placeholder="Filtrar por ubicación..."
           />
         </div>
 
