@@ -19,7 +19,6 @@ import Support from "./pages/Support";
 import FlowCallback from "./pages/FlowCallback";
 import NotFound from "./pages/NotFound";
 import ScrollToTop from "@/components/ScrollToTop";
-import "./i18n";
 
 const queryClient = new QueryClient();
 
