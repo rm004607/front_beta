@@ -18,12 +18,8 @@ import Admin from "./pages/Admin";
 import Support from "./pages/Support";
 import FlowCallback from "./pages/FlowCallback";
 import NotFound from "./pages/NotFound";
-<<<<<<< HEAD
-import { LocationProvider } from "@/contexts/LocationContext";
 import ScrollToTop from "@/components/ScrollToTop";
 import "./i18n";
-=======
->>>>>>> parent of 68faae9 (a)
 
 const queryClient = new QueryClient();
 
