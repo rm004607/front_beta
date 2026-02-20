@@ -14,7 +14,6 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import LocationModal from '@/components/LocationModal';
 
 interface LayoutProps {
   children: ReactNode;
@@ -37,13 +36,13 @@ const Layout = ({ children }: LayoutProps) => {
               <img
                 src={logoDameldato}
                 alt="Dameldato"
-                className="hidden sm:block h-16 md:h-20 lg:h-24 w-auto object-contain drop-shadow-md transition-all scale-110"
+                className="hidden sm:block h-12 md:h-14 lg:h-16 w-auto object-contain drop-shadow-sm transition-all"
               />
               {/* Icono Solo - Visible en Móvil */}
               <img
                 src={faviconDameldato}
                 alt="Dameldato"
-                className="block sm:hidden h-14 w-14 object-contain drop-shadow-xl scale-125"
+                className="block sm:hidden h-10 w-10 object-contain drop-shadow-md"
               />
             </Link>
 
@@ -62,7 +61,7 @@ const Layout = ({ children }: LayoutProps) => {
                   }`}
               >
                 <MessageSquare size={18} />
-                <span>Muro de Datos</span>
+                <span>Muro</span>
               </Link>
             </nav>
 
@@ -150,7 +149,7 @@ const Layout = ({ children }: LayoutProps) => {
                   <DropdownMenuItem asChild>
                     <Link to="/muro" className="cursor-pointer">
                       <MessageSquare size={16} className="mr-2" />
-                      Muro de Datos
+                      Muro
                     </Link>
                   </DropdownMenuItem>
 
@@ -213,9 +212,6 @@ const Layout = ({ children }: LayoutProps) => {
 
       {/* Footer */}
       <Footer />
-
-      {/* Location Modal */}
-      <LocationModal />
 
       {/* AI Chat Bubble */}
 

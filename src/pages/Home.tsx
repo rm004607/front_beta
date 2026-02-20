@@ -129,7 +129,7 @@ const Home = () => {
 
             {/* Right Content - Visual */}
             <div className="flex-1 relative animate-reveal delay-500">
-              <div className="relative z-10 w-full max-w-[650px] mx-auto">
+              <div className="relative z-10 w-full max-w-[500px] mx-auto">
                 <div className="relative aspect-square rounded-[3rem] bg-gradient-to-br from-primary/20 to-secondary/20 p-1 animate-float">
                   <div className="absolute inset-0 bg-mesh opacity-50 rounded-[3rem]"></div>
                   <div className="w-full h-full glass-card rounded-[3rem] flex items-center justify-center p-8 overflow-hidden group border-none">
@@ -202,7 +202,7 @@ const Home = () => {
       <section className="py-20 bg-primary/5">
         <div className="container mx-auto px-4">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-5xl mx-auto">
-            {/* Muro de Datos */}
+            {/* Pared de Pegas */}
             <Link to="/muro" className="group animate-reveal">
               <div className="relative overflow-hidden bg-white dark:bg-card border-none rounded-[2.5rem] sm:rounded-[3.5rem] p-8 sm:p-10 hover:shadow-2xl transition-all duration-500 group-hover:-translate-y-2 h-full flex flex-col items-center lg:items-start text-center lg:text-left shadow-xl shadow-primary/5">
                 <div className="absolute top-0 right-0 w-32 h-32 bg-primary/10 rounded-bl-[100px] -z-0"></div>
@@ -212,7 +212,7 @@ const Home = () => {
                 <h3 className="text-2xl sm:text-3xl font-heading font-extrabold mb-4 relative z-10">Muro de Datos</h3>
                 <p className="text-muted-foreground text-base sm:text-lg relative z-10 mb-6">¿Necesitas un dato rápido? Publica tu requerimiento o revisa lo que otros necesitan hoy mismo.</p>
                 <div className="text-primary font-bold p-0 text-lg group-hover:translate-x-2 transition-transform flex items-center mt-auto">
-                  Entrar al Muro de Datos <ArrowRight className="ml-2" />
+                  Entrar al Muro <ArrowRight className="ml-2" />
                 </div>
               </div>
             </Link>
@@ -227,7 +227,7 @@ const Home = () => {
                 <h3 className="text-2xl sm:text-3xl font-heading font-extrabold mb-4 relative z-10">Ofrecer Servicios</h3>
                 <p className="text-muted-foreground text-base sm:text-lg relative z-10 mb-6">Pon tu talento a disposición de tu comuna. Crea tu perfil profesional y empieza a recibir pedidos ahora.</p>
                 <div className="text-secondary font-bold p-0 text-lg group-hover:translate-x-2 transition-transform flex items-center mt-auto">
-                  Ofrecer un Servicio <ArrowRight className="ml-2" />
+                  Empezar a Ofrecer <ArrowRight className="ml-2" />
                 </div>
               </div>
             </Link>
@@ -380,7 +380,7 @@ const Home = () => {
               </Link>
               <Link to="/muro">
                 <Button variant="outline" size="lg" className="border-2 border-primary/20 bg-background/50 hover:bg-primary/5 hover:border-primary/40 font-bold px-10 py-8 text-xl rounded-2xl w-full sm:w-auto h-auto transition-all">
-                  Ver Muro de Datos
+                  Ver Muro de Pegas
                 </Button>
               </Link>
             </div>

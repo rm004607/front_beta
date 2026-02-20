@@ -7,7 +7,6 @@ import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import { Plus, MapPin, MessageCircle, Heart, Trash2, Send, Info, Briefcase, Phone, Mail, CheckCircle, Edit, Crown } from 'lucide-react';
 import { useUser } from '@/contexts/UserContext';
-import { useLocation } from '@/contexts/LocationContext';
 import { toast } from 'sonner';
 import {
   Select,
@@ -26,7 +25,6 @@ import {
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { postsAPI, authAPI, flowAPI, configAPI } from '@/lib/api';
-import HierarchicalLocationSelector from '@/components/HierarchicalLocationSelector';
 
 interface Post {
   id: string;
@@ -64,7 +62,6 @@ interface UserProfile {
 const Wall = () => {
   const navigate = useNavigate();
   const { isLoggedIn, user } = useUser();
-  const { pricingEnabled, currentCountry } = useLocation();
   const [postType, setPostType] = useState('Busco Servicio');
   const [postContent, setPostContent] = useState('');
   const [postComuna, setPostComuna] = useState('');
@@ -78,7 +75,7 @@ const Wall = () => {
   const [loadingComments, setLoadingComments] = useState<Record<string, boolean>>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [filterType, setFilterType] = useState<string>('all');
-  const [filterLocationId, setFilterLocationId] = useState<string | null>(null);
+  const [filterComuna, setFilterComuna] = useState<string>('');
   const [selectedUserId, setSelectedUserId] = useState<string | null>(null);
   const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
   const [isProfileDialogOpen, setIsProfileDialogOpen] = useState(false);
@@ -120,15 +117,14 @@ const Wall = () => {
   // Cargar posts
   useEffect(() => {
     loadPosts();
-  }, [filterType, filterLocationId]);
+  }, [filterType, filterComuna]);
 
   const loadPosts = async () => {
     try {
       setLoading(true);
       const response = await postsAPI.getPosts({
         type: filterType !== 'all' ? filterType : undefined,
-        location_id: filterLocationId || undefined,
-        country_id: currentCountry?.id,
+        comuna: filterComuna || undefined,
         limit: 50,
       });
       setPosts(response.posts);
@@ -351,11 +347,6 @@ const Wall = () => {
   };
 
   const handleWhatsAppContact = (phone: string, userName: string) => {
-    if (!pricingEnabled) {
-      const cleanPhone = phone.replace(/\D/g, '');
-      window.open(`https://wa.me/${cleanPhone}`, '_blank');
-      return;
-    }
     setPendingContactPost(null);
     setPendingContactPhone(phone);
     setPendingContactName(userName);
@@ -436,7 +427,7 @@ const Wall = () => {
       <div className="container mx-auto px-4 py-8 max-w-4xl relative z-10">
         {/* Header */}
         <div className="mb-8 p-6 glass-card rounded-3xl border-primary/10">
-          <h1 className="text-4xl font-heading font-bold mb-2 bg-clip-text text-transparent bg-gradient-to-r from-primary to-secondary">Muro de Datos</h1>
+          <h1 className="text-4xl font-heading font-bold mb-2 bg-clip-text text-transparent bg-gradient-to-r from-primary to-secondary">Pared de Pegas</h1>
           <p className="text-muted-foreground italic">Comparte información, datos de trabajo y oportunidades con tu comunidad</p>
         </div>
 
@@ -496,24 +487,23 @@ const Wall = () => {
         )}
 
         {/* Filtros */}
-        <div className="mb-6 flex flex-col md:flex-row gap-4">
+        <div className="mb-6 flex gap-4">
           <Select value={filterType} onValueChange={setFilterType}>
-            <SelectTrigger className="w-full md:w-[200px] h-11">
-              <SelectValue placeholder="Tipo de publicación" />
+            <SelectTrigger className="w-40">
+              <SelectValue placeholder="Tipo" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="all">Todas las publicaciones</SelectItem>
+              <SelectItem value="all">Todos</SelectItem>
               <SelectItem value="Busco Servicio">Busco Servicio</SelectItem>
               <SelectItem value="Ofrezco">Ofrezco</SelectItem>
-              <SelectItem value="Info">Información/Datos</SelectItem>
-              <SelectItem value="Busco Trabajo">Busco Trabajo</SelectItem>
+              <SelectItem value="Info">Info</SelectItem>
             </SelectContent>
           </Select>
-
-          <HierarchicalLocationSelector
-            onLocationSelect={(location) => setFilterLocationId(location?.id || null)}
+          <Input
+            placeholder="Filtrar por comuna..."
+            value={filterComuna}
+            onChange={(e) => setFilterComuna(e.target.value)}
             className="flex-1"
-            placeholder="Filtrar por ubicación..."
           />
         </div>
 

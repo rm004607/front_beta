@@ -10,7 +10,6 @@ import { MapPin, Search, MessageCircle, Loader2, Plus, TrendingUp, DollarSign, S
 import { servicesAPI, flowAPI, configAPI, reviewsAPI } from '@/lib/api';
 import { toast } from 'sonner';
 import { useUser } from '@/contexts/UserContext';
-import { useLocation } from '@/contexts/LocationContext';
 import { Label } from '@/components/ui/label';
 import { CheckCircle } from 'lucide-react';
 import {
@@ -29,17 +28,16 @@ import {
 } from '@/components/ui/select';
 import { ServiceCard } from '@/components/ServiceCard';
 import { ServiceDetail } from '@/components/ServiceDetail';
-import HierarchicalLocationSelector from '@/components/HierarchicalLocationSelector';
 
 const Services = () => {
   const { user, isLoggedIn } = useUser();
-  const { pricingEnabled, currentCountry } = useLocation();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const highlightId = searchParams.get('highlight');
 
   const [searchTerm, setSearchTerm] = useState('');
-  const [locationIdFilter, setLocationIdFilter] = useState<string | null>(null);
+  const [comunaFilter, setComunaFilter] = useState('all');
+  const [regionFilter, setRegionFilter] = useState(user?.region_id ? String(user.region_id) : 'all');
   const [services, setServices] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [pagination, setPagination] = useState({
@@ -66,7 +64,7 @@ const Services = () => {
 
   useEffect(() => {
     loadServices();
-  }, [searchTerm, locationIdFilter, pagination.page]);
+  }, [searchTerm, comunaFilter, regionFilter, pagination.page]);
 
   // Cargar precio dinámico
   useEffect(() => {
@@ -100,8 +98,9 @@ const Services = () => {
     try {
       const response = await servicesAPI.getServices({
         search: searchTerm || undefined,
-        location_id: locationIdFilter || undefined,
-        country_id: currentCountry?.id,
+        comuna: comunaFilter !== 'all' ? comunaFilter : undefined,
+        // Si hay una comuna seleccionada, no filtramos por región para permitir ver servicios de otras regiones que cubren esa comuna
+        region_id: comunaFilter === 'all' && regionFilter !== 'all' ? regionFilter : undefined,
         page: pagination.page,
         limit: pagination.limit,
       });
@@ -126,12 +125,6 @@ const Services = () => {
 
     if (!service.phone) {
       toast.error('Este servicio no tiene número de teléfono disponible');
-      return;
-    }
-
-    if (!pricingEnabled) {
-      const cleanPhone = service.phone.replace(/\D/g, '');
-      window.open(`https://wa.me/${cleanPhone}`, '_blank');
       return;
     }
 
@@ -248,26 +241,61 @@ const Services = () => {
         <Card className="mb-8 glass-card border-white/5 bg-card/30">
           <CardContent className="p-4 sm:pt-6">
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="relative">
-                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground" size={18} />
-                  <Input
-                    placeholder="Buscar servicio..."
-                    value={searchTerm}
-                    onChange={(e) => setSearchTerm(e.target.value)}
-                    className="pl-10 h-11"
-                  />
-                </div>
-
-                <HierarchicalLocationSelector
-                  onLocationSelect={(location) => {
-                    setLocationIdFilter(location?.id || null);
-                    setPagination(prev => ({ ...prev, page: 1 }));
-                  }}
-                  className="flex-1"
-                  placeholder="Filtrar por ubicación..."
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground" size={18} />
+                <Input
+                  placeholder="Buscar servicio..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="pl-10 h-11"
                 />
               </div>
+
+              <Select value={regionFilter} onValueChange={(val) => {
+                setRegionFilter(val);
+                setComunaFilter('all');
+                setPagination(prev => ({ ...prev, page: 1 }));
+              }}>
+                <SelectTrigger className="glass-card border-white/10 h-11">
+                  <div className="flex items-center gap-2">
+                    <Globe size={16} className="text-secondary" />
+                    <SelectValue placeholder="Selecciona Región" />
+                  </div>
+                </SelectTrigger>
+                <SelectContent className="glass-card border-white/10 backdrop-blur-xl">
+                  <SelectItem value="all">📍 Todas las regiones</SelectItem>
+                  {chileData.map((reg) => (
+                    <SelectItem key={reg.id} value={reg.id}>{reg.name}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+
+              <Select value={comunaFilter} onValueChange={(val) => {
+                setComunaFilter(val);
+                setPagination(prev => ({ ...prev, page: 1 }));
+              }}>
+                <SelectTrigger className="glass-card border-white/10 h-11">
+                  <div className="flex items-center gap-2">
+                    <MapPin size={16} className="text-primary" />
+                    <SelectValue placeholder="Selecciona Comuna" />
+                  </div>
+                </SelectTrigger>
+                <SelectContent className="glass-card border-white/10 backdrop-blur-xl">
+                  <SelectItem value="all">🌐 Todas las comunas</SelectItem>
+                  {regionFilter !== 'all' ? (
+                    chileData.find(r => String(r.id) === String(regionFilter))?.communes.map(c => (
+                      <SelectItem key={c} value={c}>{c}</SelectItem>
+                    ))
+                  ) : (
+                    <>
+                      <SelectItem value="santiago">Santiago Centro</SelectItem>
+                      <SelectItem value="providencia">Providencia</SelectItem>
+                      <SelectItem value="lascondes">Las Condes</SelectItem>
+                      <SelectItem value="maipu">Maipú</SelectItem>
+                    </>
+                  )}
+                </SelectContent>
+              </Select>
             </div>
           </CardContent>
         </Card>

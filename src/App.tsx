@@ -18,10 +18,6 @@ import Admin from "./pages/Admin";
 import Support from "./pages/Support";
 import FlowCallback from "./pages/FlowCallback";
 import NotFound from "./pages/NotFound";
-import { LocationProvider } from "@/contexts/LocationContext";
-import ScrollToTop from "@/components/ScrollToTop";
-import LocationModal from "@/components/LocationModal";
-import "./i18n";
 
 const queryClient = new QueryClient();
 
@@ -31,30 +27,26 @@ const App = () => {
       <QueryClientProvider client={queryClient}>
         <ThemeProvider attribute="class" defaultTheme="dark" forcedTheme="dark">
           <BrowserRouter>
-            <ScrollToTop />
             <UserProvider>
-              <LocationProvider>
-                <LocationModal />
-                <TooltipProvider>
-                  <Toaster />
-                  <Sonner />
-                  <Layout>
-                    <Routes>
-                      <Route path="/" element={<Home />} />
-                      <Route path="/registro" element={<Register />} />
-                      <Route path="/login" element={<Login />} />
-                      <Route path="/servicios" element={<Services />} />
-                      <Route path="/servicios/publicar" element={<PostService />} />
-                      <Route path="/muro" element={<Wall />} />
-                      <Route path="/perfil" element={<Profile />} />
-                      <Route path="/admin" element={<Admin />} />
-                      <Route path="/ayuda" element={<Support />} />
-                      <Route path="/flow/callback" element={<FlowCallback />} />
-                      <Route path="*" element={<NotFound />} />
-                    </Routes>
-                  </Layout>
-                </TooltipProvider>
-              </LocationProvider>
+              <TooltipProvider>
+                <Toaster />
+                <Sonner />
+                <Layout>
+                  <Routes>
+                    <Route path="/" element={<Home />} />
+                    <Route path="/registro" element={<Register />} />
+                    <Route path="/login" element={<Login />} />
+                    <Route path="/servicios" element={<Services />} />
+                    <Route path="/servicios/publicar" element={<PostService />} />
+                    <Route path="/muro" element={<Wall />} />
+                    <Route path="/perfil" element={<Profile />} />
+                    <Route path="/admin" element={<Admin />} />
+                    <Route path="/ayuda" element={<Support />} />
+                    <Route path="/flow/callback" element={<FlowCallback />} />
+                    <Route path="*" element={<NotFound />} />
+                  </Routes>
+                </Layout>
+              </TooltipProvider>
             </UserProvider>
           </BrowserRouter>
         </ThemeProvider>
