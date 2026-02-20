@@ -14,7 +14,6 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import LocationModal from '@/components/LocationModal';
 
 interface LayoutProps {
   children: ReactNode;
@@ -213,9 +212,6 @@ const Layout = ({ children }: LayoutProps) => {
 
       {/* Footer */}
       <Footer />
-
-      {/* Location Modal */}
-      <LocationModal />
 
       {/* AI Chat Bubble */}
 

@@ -18,9 +18,12 @@ import Admin from "./pages/Admin";
 import Support from "./pages/Support";
 import FlowCallback from "./pages/FlowCallback";
 import NotFound from "./pages/NotFound";
+<<<<<<< HEAD
 import { LocationProvider } from "@/contexts/LocationContext";
 import ScrollToTop from "@/components/ScrollToTop";
 import "./i18n";
+=======
+>>>>>>> parent of 68faae9 (a)
 
 const queryClient = new QueryClient();
 
@@ -32,27 +35,25 @@ const App = () => {
           <BrowserRouter>
             <ScrollToTop />
             <UserProvider>
-              <LocationProvider>
-                <TooltipProvider>
-                  <Toaster />
-                  <Sonner />
-                  <Layout>
-                    <Routes>
-                      <Route path="/" element={<Home />} />
-                      <Route path="/registro" element={<Register />} />
-                      <Route path="/login" element={<Login />} />
-                      <Route path="/servicios" element={<Services />} />
-                      <Route path="/servicios/publicar" element={<PostService />} />
-                      <Route path="/muro" element={<Wall />} />
-                      <Route path="/perfil" element={<Profile />} />
-                      <Route path="/admin" element={<Admin />} />
-                      <Route path="/ayuda" element={<Support />} />
-                      <Route path="/flow/callback" element={<FlowCallback />} />
-                      <Route path="*" element={<NotFound />} />
-                    </Routes>
-                  </Layout>
-                </TooltipProvider>
-              </LocationProvider>
+              <TooltipProvider>
+                <Toaster />
+                <Sonner />
+                <Layout>
+                  <Routes>
+                    <Route path="/" element={<Home />} />
+                    <Route path="/registro" element={<Register />} />
+                    <Route path="/login" element={<Login />} />
+                    <Route path="/servicios" element={<Services />} />
+                    <Route path="/servicios/publicar" element={<PostService />} />
+                    <Route path="/muro" element={<Wall />} />
+                    <Route path="/perfil" element={<Profile />} />
+                    <Route path="/admin" element={<Admin />} />
+                    <Route path="/ayuda" element={<Support />} />
+                    <Route path="/flow/callback" element={<FlowCallback />} />
+                    <Route path="*" element={<NotFound />} />
+                  </Routes>
+                </Layout>
+              </TooltipProvider>
             </UserProvider>
           </BrowserRouter>
         </ThemeProvider>
