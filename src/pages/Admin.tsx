@@ -49,6 +49,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Switch } from '@/components/ui/switch';
 
 interface Post {
   id: string;
@@ -650,6 +651,17 @@ const Admin = () => {
     } catch (error: any) {
       console.error('Error updating config:', error);
       toast.error('Error al actualizar configuración');
+    }
+  };
+
+  const handleTogglePricing = async (enabled: boolean) => {
+    try {
+      await configAPI.updateAdminConfig('PRICING_ENABLED', enabled ? 'true' : 'false');
+      toast.success(enabled ? 'Pagos activados' : 'Modo Gratuito activado');
+      loadAdminConfig();
+    } catch (error: any) {
+      console.error('Error toggling pricing:', error);
+      toast.error('Error al cambiar el modo de precios');
     }
   };
 
@@ -1378,13 +1390,27 @@ const Admin = () => {
                               <code className="text-[10px] text-primary/60 bg-primary/5 px-2 py-0.5 rounded uppercase tracking-wider">{config.key}</code>
                             </div>
                             <div className="flex items-center gap-6">
-                              <span className="text-2xl font-black text-primary text-glow drop-shadow-[0_0_10px_rgba(var(--primary),0.3)]">
-                                {parseInt(config.value) ? new Intl.NumberFormat('es-CL', { style: 'currency', currency: 'CLP' }).format(parseInt(config.value)) : config.value}
-                              </span>
-                              <Button variant="outline" size="sm" onClick={() => openEditConfig(config)} className="glass-card hover:border-primary/50 transition-colors">
-                                <Wrench size={14} className="mr-2" />
-                                Editar
-                              </Button>
+                              {config.key === 'PRICING_ENABLED' ? (
+                                <div className="flex items-center gap-3">
+                                  <span className={`text-sm font-medium ${config.value === 'true' ? 'text-primary' : 'text-muted-foreground'}`}>
+                                    {config.value === 'true' ? 'Activado' : 'Desactivado (Gratis)'}
+                                  </span>
+                                  <Switch
+                                    checked={config.value === 'true'}
+                                    onCheckedChange={handleTogglePricing}
+                                  />
+                                </div>
+                              ) : (
+                                <>
+                                  <span className="text-2xl font-black text-primary text-glow drop-shadow-[0_0_10px_rgba(var(--primary),0.3)]">
+                                    {parseInt(config.value) ? new Intl.NumberFormat('es-CL', { style: 'currency', currency: 'CLP' }).format(parseInt(config.value)) : config.value}
+                                  </span>
+                                  <Button variant="outline" size="sm" onClick={() => openEditConfig(config)} className="glass-card hover:border-primary/50 transition-colors">
+                                    <Wrench size={14} className="mr-2" />
+                                    Editar
+                                  </Button>
+                                </>
+                              )}
                             </div>
                           </div>
                         ))}

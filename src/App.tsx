@@ -18,7 +18,7 @@ import Admin from "./pages/Admin";
 import Support from "./pages/Support";
 import FlowCallback from "./pages/FlowCallback";
 import NotFound from "./pages/NotFound";
-import ScrollToTop from "@/components/ScrollToTop";
+
 
 const queryClient = new QueryClient();
 
@@ -28,7 +28,7 @@ const App = () => {
       <QueryClientProvider client={queryClient}>
         <ThemeProvider attribute="class" defaultTheme="dark" forcedTheme="dark">
           <BrowserRouter>
-            <ScrollToTop />
+
             <UserProvider>
               <TooltipProvider>
                 <Toaster />
