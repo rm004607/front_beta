@@ -1177,6 +1177,7 @@ export const configAPI = {
   getPublicPrices: async () => {
     return request<{
       whatsapp_contact_price: number;
+      pricing_enabled?: boolean;
     }>('/api/prices', {
       method: 'GET',
     });

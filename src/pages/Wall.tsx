@@ -91,14 +91,18 @@ const Wall = () => {
   const [pendingContactPhone, setPendingContactPhone] = useState<string | null>(null);
   const [pendingContactName, setPendingContactName] = useState<string | null>(null);
   const [whatsappPrice, setWhatsappPrice] = useState<number>(2990); // Valor por defecto
+  const [pricingEnabled, setPricingEnabled] = useState<boolean>(true); // Por defecto true (seguro)
 
-  // Cargar precio dinámico
+  // Cargar precio dinámico y estado de pricing
   useEffect(() => {
     const loadConfig = async () => {
       try {
         const response = await configAPI.getPublicPrices();
         if (response.whatsapp_contact_price) {
           setWhatsappPrice(response.whatsapp_contact_price);
+        }
+        if (response.pricing_enabled !== undefined) {
+          setPricingEnabled(response.pricing_enabled);
         }
       } catch (error) {
         console.error('Error loading config:', error);
@@ -340,6 +344,27 @@ const Wall = () => {
       return;
     }
 
+    // Si pricing está desactivado, contactar gratis
+    if (!pricingEnabled) {
+      try {
+        setLoadingContact((prev) => ({ ...prev, [post.id]: true }));
+        const response = await authAPI.getUserById(post.user_id);
+        if (response.user?.phone) {
+          const cleanPhone = response.user.phone.replace(/\D/g, '');
+          const message = `Hola ${response.user.name}, te contacto por tu publicación en Dameldato.`;
+          window.open(`https://wa.me/${cleanPhone}?text=${encodeURIComponent(message)}`, '_blank');
+        } else {
+          toast.error('Este usuario no tiene número de teléfono disponible');
+        }
+      } catch (error: any) {
+        console.error('Error loading user profile:', error);
+        toast.error('Error al obtener datos de contacto');
+      } finally {
+        setLoadingContact((prev) => ({ ...prev, [post.id]: false }));
+      }
+      return;
+    }
+
     setPendingContactPost(post);
     setPendingContactPhone(null);
     setPendingContactName(null);
@@ -347,6 +372,14 @@ const Wall = () => {
   };
 
   const handleWhatsAppContact = (phone: string, userName: string) => {
+    // Si pricing está desactivado, contactar gratis
+    if (!pricingEnabled) {
+      const cleanPhone = phone.replace(/\D/g, '');
+      const message = `Hola ${userName}, te contacto a través de Dameldato.`;
+      window.open(`https://wa.me/${cleanPhone}?text=${encodeURIComponent(message)}`, '_blank');
+      return;
+    }
+
     setPendingContactPost(null);
     setPendingContactPhone(phone);
     setPendingContactName(userName);

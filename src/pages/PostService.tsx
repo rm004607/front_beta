@@ -10,7 +10,7 @@ import { Badge } from '@/components/ui/badge';
 import { useUser } from '@/contexts/UserContext';
 import { Wrench, AlertCircle, MapPin, Edit } from 'lucide-react';
 import { toast } from 'sonner';
-import { servicesAPI, packagesAPI } from '@/lib/api';
+import { servicesAPI, packagesAPI, configAPI } from '@/lib/api';
 import {
   isValidTextField,
   isValidPhone,
@@ -54,6 +54,7 @@ const PostService = () => {
   } | null>(null);
   const [loadingLimits, setLoadingLimits] = useState(true);
   const [canPublish, setCanPublish] = useState(false);
+  const [pricingEnabled, setPricingEnabled] = useState<boolean>(true);
 
   if (!isLoggedIn) {
     navigate('/registro');
@@ -64,6 +65,18 @@ const PostService = () => {
     if (isLoggedIn && (user?.roles.includes('entrepreneur') || user?.role_number === 5)) {
       loadUserLimits();
     }
+    // Cargar estado de pricing
+    const loadPricingConfig = async () => {
+      try {
+        const response = await configAPI.getPublicPrices();
+        if (response.pricing_enabled !== undefined) {
+          setPricingEnabled(response.pricing_enabled);
+        }
+      } catch (error) {
+        console.error('Error loading pricing config:', error);
+      }
+    };
+    loadPricingConfig();
   }, [isLoggedIn, user]);
 
   // Pre-llenado de ubicación desde el perfil
@@ -82,6 +95,9 @@ const PostService = () => {
 
       // Si es super-admin, siempre puede publicar
       if (user?.role_number === 5) {
+        setCanPublish(true);
+      } else if (!pricingEnabled) {
+        // Si pricing está desactivado, siempre permitir publicar gratis
         setCanPublish(true);
       } else if (limits.services.requires_payment) {
         // Si requiere pago, mostrar modal y no permitir publicar
@@ -153,8 +169,11 @@ const PostService = () => {
       const errorMessage = error instanceof Error ? error.message : 'Error al publicar servicio';
 
       // Si el error indica que requiere pago, abrir modal de paquetes
-      if (error.requires_payment || error.status === 403) {
+      if ((error.requires_payment || error.status === 403) && pricingEnabled) {
         setPackagesModalOpen(true);
+      } else if (!pricingEnabled) {
+        // Si pricing está desactivado, ignorar errores de pago
+        toast.error(errorMessage);
       } else {
         toast.error(errorMessage);
       }

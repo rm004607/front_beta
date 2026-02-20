@@ -51,6 +51,7 @@ const Services = () => {
   const [isPaidContactModalOpen, setIsPaidContactModalOpen] = useState(false);
   const [pendingContactService, setPendingContactService] = useState<any>(null);
   const [whatsappPrice, setWhatsappPrice] = useState<number>(2990);
+  const [pricingEnabled, setPricingEnabled] = useState<boolean>(true);
 
   // Reseñas
   const [isReviewsModalOpen, setIsReviewsModalOpen] = useState(false);
@@ -66,13 +67,16 @@ const Services = () => {
     loadServices();
   }, [searchTerm, comunaFilter, regionFilter, pagination.page]);
 
-  // Cargar precio dinámico
+  // Cargar precio dinámico y estado de pricing
   useEffect(() => {
     const loadConfig = async () => {
       try {
         const response = await configAPI.getPublicPrices();
         if (response.whatsapp_contact_price) {
           setWhatsappPrice(response.whatsapp_contact_price);
+        }
+        if (response.pricing_enabled !== undefined) {
+          setPricingEnabled(response.pricing_enabled);
         }
       } catch (error) {
         console.error('Error loading config:', error);
@@ -125,6 +129,14 @@ const Services = () => {
 
     if (!service.phone) {
       toast.error('Este servicio no tiene número de teléfono disponible');
+      return;
+    }
+
+    // Si pricing está desactivado, contactar gratis
+    if (!pricingEnabled) {
+      const cleanPhone = service.phone.replace(/\D/g, '');
+      const message = `Hola, te contacto por tu servicio "${service.service_name}" en Dameldato.`;
+      window.open(`https://wa.me/${cleanPhone}?text=${encodeURIComponent(message)}`, '_blank');
       return;
     }
 
