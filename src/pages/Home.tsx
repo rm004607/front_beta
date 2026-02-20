@@ -218,7 +218,7 @@ const Home = () => {
             </Link>
 
             {/* Ofrecer Servicio */}
-            <Link to="/servicios/publicar" className="group animate-reveal delay-200">
+            <Link to={isLoggedIn ? "/servicios/publicar" : "/servicios"} className="group animate-reveal delay-200">
               <div className="relative overflow-hidden bg-white dark:bg-card border-none rounded-[2.5rem] sm:rounded-[3.5rem] p-8 sm:p-10 hover:shadow-2xl transition-all duration-500 group-hover:-translate-y-2 h-full flex flex-col items-center lg:items-start text-center lg:text-left shadow-xl shadow-secondary/5">
                 <div className="absolute top-0 right-0 w-32 h-32 bg-secondary/10 rounded-bl-[100px] -z-0"></div>
                 <div className="bg-secondary w-16 h-16 sm:w-20 sm:h-20 rounded-2xl sm:rounded-3xl flex items-center justify-center mb-6 sm:mb-8 shadow-xl shadow-secondary/20 group-hover:-rotate-12 transition-transform relative z-10">
