@@ -151,6 +151,56 @@ export const formatChileanPhone = (phone: string): string => {
 };
 
 /**
+ * Valida un RUT chileno (con o sin puntos/guión)
+ */
+export const isValidRut = (rut: string): boolean => {
+    if (!rut || typeof rut !== 'string') return false;
+
+    // Limpiar RUT de puntos y guiones
+    let valor = rut.replace(/\./g, '').replace(/\-/g, '').toUpperCase();
+
+    // Validar longitud mínima
+    if (valor.length < 8) return false;
+
+    // Extraer cuerpo y dígito verificador
+    let cuerpo = valor.slice(0, -1);
+    let dv = valor.slice(-1);
+
+    // Validar que el cuerpo sea numérico
+    if (!/^\d+$/.test(cuerpo)) return false;
+
+    // Calcular dígito verificador y comparar
+    let suma = 0;
+    let multiplo = 2;
+    for (let i = 1; i <= cuerpo.length; i++) {
+        let index = multiplo * Math.floor(cuerpo.length - i);
+        suma = suma + parseInt(cuerpo.charAt(cuerpo.length - i)) * multiplo;
+        if (multiplo < 7) {
+            multiplo = multiplo + 1;
+        } else {
+            multiplo = 2;
+        }
+    }
+    let dvEsperado = 11 - (suma % 11);
+    let dvCalculado = dvEsperado === 11 ? '0' : dvEsperado === 10 ? 'K' : dvEsperado.toString();
+
+    return dvCalculado === dv;
+};
+
+/**
+ * Formatea un RUT a XX.XXX.XXX-X
+ */
+export const formatRut = (rut: string): string => {
+    const cleanRut = rut.replace(/[^0-9kK]/g, '').toUpperCase();
+    if (cleanRut.length < 2) return cleanRut;
+
+    const body = cleanRut.slice(0, -1);
+    const dv = cleanRut.slice(-1);
+
+    return body.replace(/\B(?=(\d{3})+(?!\d))/g, '.') + '-' + dv;
+};
+
+/**
  * Mensajes de error amigables
  */
 export const getValidationErrorMessage = (field: string, type: 'sql' | 'format' | 'length'): string => {
@@ -159,6 +209,7 @@ export const getValidationErrorMessage = (field: string, type: 'sql' | 'format' 
             name: 'El nombre contiene caracteres no permitidos',
             phone: 'El teléfono contiene caracteres no permitidos',
             comuna: 'La comuna contiene caracteres no permitidos',
+            rut: 'El RUT contiene caracteres no permitidos',
             default: 'Este campo contiene caracteres no permitidos'
         },
         format: {
@@ -166,12 +217,14 @@ export const getValidationErrorMessage = (field: string, type: 'sql' | 'format' 
             phone: 'El teléfono solo puede contener números y los caracteres + - ( )',
             comuna: 'La comuna solo puede contener letras, espacios y guiones',
             email: 'Por favor ingresa un email válido',
+            rut: 'El RUT ingresado no es válido',
             default: 'El formato de este campo no es válido'
         },
         length: {
             name: 'El nombre debe tener entre 2 y 100 caracteres',
             phone: 'El teléfono debe tener entre 8 y 15 dígitos',
             comuna: 'La comuna debe tener entre 2 y 50 caracteres',
+            rut: 'El RUT debe tener un largo razonable',
             default: 'La longitud de este campo no es válida'
         }
     };

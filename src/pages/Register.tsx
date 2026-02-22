@@ -14,6 +14,8 @@ import {
   isValidName,
   isValidPhone,
   isValidComuna,
+  isValidRut,
+  formatRut,
   containsSQLInjection,
   sanitizeInput,
   getValidationErrorMessage
@@ -40,6 +42,7 @@ const Register = () => {
 
   // Step 1: Basic data
   const [name, setName] = useState('');
+  const [rut, setRut] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [phone, setPhone] = useState('');
@@ -62,13 +65,15 @@ const Register = () => {
 
     const savedName = localStorage.getItem('reg_name');
     if (savedName && !name) setName(savedName);
+    const savedRut = localStorage.getItem('reg_rut');
+    if (savedRut && !rut) setRut(savedRut);
     const savedEmail = localStorage.getItem('reg_email');
     if (savedEmail && !email) setEmail(savedEmail);
     const savedPhone = localStorage.getItem('reg_phone');
     if (savedPhone && !phone) setPhone(savedPhone);
     const savedComuna = localStorage.getItem('reg_comuna');
     if (savedComuna && !comuna) setComuna(savedComuna);
-  }, [searchParams, name, email, phone, comuna]);
+  }, [searchParams, name, rut, email, phone, comuna]);
 
   // Step 3: Role-specific data
   const [rubro, setRubro] = useState('');
@@ -101,14 +106,19 @@ const Register = () => {
 
   const handleNext = () => {
     if (step === 1) {
-      if (!name || !email || !password || !phone) {
-        toast.error('Por favor completa todos los campos (Nombre, Email, Contraseña y Teléfono)');
+      if (!name || !rut || !email || !password || !phone) {
+        toast.error('Por favor completa todos los campos requeridos');
         return;
       }
 
       // Validaciones de seguridad
       if (!isValidName(name)) {
         toast.error(getValidationErrorMessage('name', containsSQLInjection(name) ? 'sql' : 'format'));
+        return;
+      }
+
+      if (!isValidRut(rut)) {
+        toast.error(getValidationErrorMessage('rut', containsSQLInjection(rut) ? 'sql' : 'format'));
         return;
       }
 
@@ -134,6 +144,7 @@ const Register = () => {
 
       // Guardar datos temporalmente si necesita pasar a móvil
       localStorage.setItem('reg_name', name);
+      localStorage.setItem('reg_rut', rut);
       localStorage.setItem('reg_email', email);
       localStorage.setItem('reg_phone', phone);
       localStorage.setItem('reg_comuna', comuna);
@@ -202,6 +213,11 @@ const Register = () => {
       return;
     }
 
+    if (!isValidRut(rut)) {
+      toast.error(getValidationErrorMessage('rut', containsSQLInjection(rut) ? 'sql' : 'format'));
+      return;
+    }
+
     if (!isValidPhone(phone)) {
       toast.error(getValidationErrorMessage('phone', containsSQLInjection(phone) ? 'sql' : 'format'));
       return;
@@ -219,6 +235,7 @@ const Register = () => {
       // Sanitizar inputs antes de enviar (capa adicional de seguridad)
       const sanitizedData = {
         name: sanitizeInput(name, 100),
+        rut: sanitizeInput(rut.replace(/[^0-9kK]/g, ''), 12),
         email: email.trim().toLowerCase(),
         password,
         phone: sanitizeInput(phone, 20),
@@ -281,6 +298,22 @@ const Register = () => {
                   {name && !isValidName(name) && (
                     <p className="text-sm text-red-500 mt-1">
                       {getValidationErrorMessage('name', containsSQLInjection(name) ? 'sql' : 'format')}
+                    </p>
+                  )}
+                </div>
+                <div>
+                  <Label htmlFor="rut">RUT</Label>
+                  <Input
+                    id="rut"
+                    value={rut}
+                    onChange={(e) => setRut(formatRut(e.target.value))}
+                    placeholder="12.345.678-9"
+                    className={rut && !isValidRut(rut) ? 'border-red-500' : ''}
+                    maxLength={12}
+                  />
+                  {rut && !isValidRut(rut) && (
+                    <p className="text-sm text-red-500 mt-1">
+                      {getValidationErrorMessage('rut', containsSQLInjection(rut) ? 'sql' : 'format')}
                     </p>
                   )}
                 </div>
