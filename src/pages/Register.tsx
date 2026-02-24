@@ -204,14 +204,18 @@ const Register = () => {
     return true;
   };
 
-  const handleSubmit = async () => {
-    if (!selectedRole) {
+  const handleSubmit = async (roleOverride?: UserRole) => {
+    const finalRole = roleOverride || selectedRole;
+
+    if (!finalRole) {
       toast.error('Selecciona un rol');
       return;
     }
 
-    // Validar email real
-    if (!isValidEmail(email)) {
+    const isGoogleCompletion = !!searchParams.get('token') || (isGoogleVerified && user);
+
+    // Validar email real (solo if no es Google completion o si el email está vacío y no es Google)
+    if (!isGoogleCompletion && !isValidEmail(email)) {
       toast.error('Por favor ingresa un email válido y real');
       return;
     }
@@ -248,12 +252,12 @@ const Register = () => {
         phone: sanitizeInput(phone, 20),
         comuna: sanitizeInput(comuna, 50),
         region_id: selectedRegion,
-        rol: roleToNumber(selectedRole),
-        role_number: roleToNumber(selectedRole),
-        rubro: selectedRole === 'entrepreneur' ? sanitizeInput(rubro || '', 100) : undefined,
-        experience: selectedRole === 'entrepreneur' ? sanitizeInput(experience || '', 2000) : undefined,
-        service: selectedRole === 'entrepreneur' ? sanitizeInput(service || '', 100) : undefined,
-        portfolio: selectedRole === 'entrepreneur' ? sanitizeInput(portfolio || '', 2000) : undefined,
+        rol: roleToNumber(finalRole),
+        role_number: roleToNumber(finalRole),
+        rubro: finalRole === 'entrepreneur' ? sanitizeInput(rubro || '', 100) : undefined,
+        experience: finalRole === 'entrepreneur' ? sanitizeInput(experience || '', 2000) : undefined,
+        service: finalRole === 'entrepreneur' ? sanitizeInput(service || '', 100) : undefined,
+        portfolio: finalRole === 'entrepreneur' ? sanitizeInput(portfolio || '', 2000) : undefined,
       };
 
       if (isGoogleCompletion) {
@@ -486,8 +490,8 @@ const Register = () => {
                     type="button"
                     onClick={() => {
                       setSelectedRole('job-seeker');
-                      // No pide datos, así que enviamos directo
-                      setTimeout(() => handleSubmit(), 100);
+                      // Enviamos el rol directamente para evitar problemas de estado asíncrono
+                      handleSubmit('job-seeker');
                     }}
                     className="w-full max-w-md h-20 text-xl font-bold bg-primary hover:bg-primary/90 shadow-lg shadow-primary/20 flex items-center justify-between px-8"
                   >
