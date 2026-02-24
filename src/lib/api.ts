@@ -373,6 +373,20 @@ export const servicesAPI = {
       method: 'DELETE',
     });
   },
+
+  // Obtener tipos de servicios (catálogo estructurado)
+  getServiceTypes: async () => {
+    return request<{
+      types: Array<{
+        id: string;
+        name: string;
+        description?: string;
+        icon?: string;
+      }>;
+    }>('/api/services/types', {
+      method: 'GET',
+    });
+  },
 };
 
 // API de posts del muro
@@ -640,6 +654,66 @@ export const adminAPI = {
   deleteService: async (id: string) => {
     return request<{ message: string }>(`/admin/services/${id}`, {
       method: 'DELETE',
+    });
+  },
+
+  // ========== SERVICE CATALOG (Super Admin) ==========
+  getAdminServiceTypes: async () => {
+    return request<{
+      types: Array<{
+        id: string;
+        name: string;
+        description?: string;
+        icon?: string;
+        is_active: boolean;
+        created_at: string;
+      }>;
+    }>('/admin/services/types', {
+      method: 'GET',
+    });
+  },
+
+  createServiceType: async (data: { name: string; description?: string; icon?: string }) => {
+    return request<{ message: string; type: any }>('/admin/services/types', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    });
+  },
+
+  updateServiceType: async (id: string, data: { name?: string; description?: string; icon?: string; is_active?: boolean }) => {
+    return request<{ message: string; type: any }>(`/admin/services/types/${id}`, {
+      method: 'PUT',
+      body: JSON.stringify(data),
+    });
+  },
+
+  deleteServiceType: async (id: string) => {
+    return request<{ message: string }>(`/admin/services/types/${id}`, {
+      method: 'DELETE',
+    });
+  },
+
+  // ========== SERVICE SUGGESTIONS (Super Admin) ==========
+  getServiceSuggestions: async () => {
+    return request<{
+      suggestions: Array<{
+        id: string;
+        custom_service_name: string;
+        user_id: string;
+        user_name: string;
+        user_email: string;
+        status: 'pending' | 'approved' | 'rejected';
+        created_at: string;
+      }>;
+    }>('/admin/services/suggestions', {
+      method: 'GET',
+    });
+  },
+
+  processServiceSuggestion: async (id: string, action: 'approve' | 'reject') => {
+    return request<{ message: string }>(`/admin/services/suggestions/${id}/process`, {
+      method: 'POST',
+      body: JSON.stringify({ action }),
     });
   },
 

@@ -57,6 +57,10 @@ const PostService = () => {
   const [loadingLimits, setLoadingLimits] = useState(true);
   const [canPublish, setCanPublish] = useState(false);
   const [pricingEnabled, setPricingEnabled] = useState<boolean>(true);
+  const [serviceTypes, setServiceTypes] = useState<any[]>([]);
+  const [selectedServiceTypeIds, setSelectedServiceTypeIds] = useState<string[]>([]);
+  const [customServiceName, setCustomServiceName] = useState('');
+  const [loadingServiceTypes, setLoadingServiceTypes] = useState(false);
 
   if (!isLoggedIn) {
     navigate('/registro');
@@ -79,7 +83,20 @@ const PostService = () => {
       }
     };
     loadPricingConfig();
+    loadServiceTypes();
   }, [isLoggedIn, user]);
+
+  const loadServiceTypes = async () => {
+    try {
+      setLoadingServiceTypes(true);
+      const response = await servicesAPI.getServiceTypes();
+      setServiceTypes(response.types || []);
+    } catch (error) {
+      console.error('Error loading service types:', error);
+    } finally {
+      setLoadingServiceTypes(false);
+    }
+  };
 
   // Pre-llenado de ubicación desde el perfil
   useEffect(() => {
@@ -126,13 +143,13 @@ const PostService = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!service || !description || !comuna) {
+    if ((selectedServiceTypeIds.length === 0 && !customServiceName.trim()) || !description || !comuna) {
       toast.error(t('post_service.complete_fields'));
       return;
     }
 
     // Validaciones de seguridad
-    if (!isValidTextField(service, 100)) {
+    if (customServiceName && !isValidTextField(customServiceName, 100)) {
       toast.error(t('post_service.invalid_name'));
       return;
     }
@@ -154,12 +171,13 @@ const PostService = () => {
       const priceRangeString = minPrice && maxPrice ? `${minPrice} - ${maxPrice}` : minPrice || maxPrice || '';
 
       const response = await servicesAPI.createService({
-        service_name: sanitizeInput(service, 100),
+        // @ts-ignore - Backend expects service_type_ids and custom_service_name
+        service_type_ids: selectedServiceTypeIds,
+        custom_service_name: customServiceName ? sanitizeInput(customServiceName, 100) : undefined,
         description: sanitizeInput(description, 2000),
         price_range: priceRangeString ? sanitizeInput(priceRangeString, 100) : undefined,
         comuna: sanitizeInput(comuna, 50),
         phone: phone ? sanitizeInput(phone, 20) : undefined,
-        // @ts-ignore - Agregando campos nuevos para el backend
         region_id: baseRegion,
         coverage_communes: coverageCommunes,
       });
@@ -267,15 +285,61 @@ const PostService = () => {
             )}
 
             <form onSubmit={handleSubmit} className="space-y-6">
-              <div>
-                <Label htmlFor="service">{t('post_service.service_label')}</Label>
-                <Input
-                  id="service"
-                  value={service}
-                  onChange={(e) => setService(e.target.value)}
-                  placeholder={t('post_service.service_placeholder')}
-                  required
-                />
+              <div className="space-y-4">
+                <Label>{t('post_service.service_label')}</Label>
+                {loadingServiceTypes ? (
+                  <p className="text-sm text-muted-foreground animate-pulse">Cargando categorías...</p>
+                ) : (
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 p-4 border rounded-xl bg-muted/20">
+                    {serviceTypes.map((type) => (
+                      <div key={type.id} className="flex items-center space-x-2">
+                        <Checkbox
+                          id={`type-${type.id}`}
+                          checked={selectedServiceTypeIds.includes(type.id)}
+                          onCheckedChange={(checked) => {
+                            if (checked) {
+                              setSelectedServiceTypeIds([...selectedServiceTypeIds, type.id]);
+                            } else {
+                              setSelectedServiceTypeIds(selectedServiceTypeIds.filter(id => id !== type.id));
+                            }
+                          }}
+                        />
+                        <label htmlFor={`type-${type.id}`} className="text-sm font-medium leading-none cursor-pointer peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
+                          {type.name}
+                        </label>
+                      </div>
+                    ))}
+                    <div className="flex items-center space-x-2">
+                      <Checkbox
+                        id="type-other"
+                        checked={!!customServiceName}
+                        onCheckedChange={(checked) => {
+                          if (!checked) setCustomServiceName('');
+                          else if (!customServiceName) setCustomServiceName(' '); // Trigger show input
+                        }}
+                      />
+                      <label htmlFor="type-other" className="text-sm font-medium leading-none cursor-pointer">
+                        Otro / No está en la lista
+                      </label>
+                    </div>
+                  </div>
+                )}
+
+                {(customServiceName || selectedServiceTypeIds.length === 0) && (
+                  <div className="animate-in fade-in slide-in-from-top-2 duration-300">
+                    <Label htmlFor="customService" className="text-xs text-primary mb-1 block">
+                      {selectedServiceTypeIds.length === 0 ? "Sugiere un nombre para tu servicio *" : "Especifica tu servicio *"}
+                    </Label>
+                    <Input
+                      id="customService"
+                      value={customServiceName === ' ' ? '' : customServiceName}
+                      onChange={(e) => setCustomServiceName(e.target.value)}
+                      placeholder="Ej: Gasfitería de urgencia, Paseo de mascotas exóticas..."
+                      className="border-primary/30"
+                      required={selectedServiceTypeIds.length === 0 || !!customServiceName}
+                    />
+                  </div>
+                )}
               </div>
 
               <div className="space-y-4 p-4 border rounded-xl bg-primary/5">

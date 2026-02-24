@@ -30,6 +30,9 @@ import {
   Crown,
   MapPin,
   Star,
+  List,
+  Plus,
+  XCircle,
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { adminAPI, authAPI, configAPI, packagesAPI } from '@/lib/api';
@@ -201,6 +204,16 @@ const Admin = () => {
   const [editPackageForm, setEditPackageForm] = useState({ price: 0, publications: 0, is_active: true });
   const [packageDialogOpen, setPackageDialogOpen] = useState(false);
 
+  // Estados para Catálogo de Servicios
+  const [catalogTypes, setCatalogTypes] = useState<any[]>([]);
+  const [loadingCatalog, setLoadingCatalog] = useState(false);
+  const [suggestions, setSuggestions] = useState<any[]>([]);
+  const [loadingSuggestions, setLoadingSuggestions] = useState(false);
+  const [typeDialogOpen, setTypeDialogOpen] = useState(false);
+  const [selectedType, setSelectedType] = useState<any | null>(null);
+  const [typeForm, setTypeForm] = useState({ name: '', description: '', icon: '' });
+  const [isProcessingSuggestion, setIsProcessingSuggestion] = useState<string | null>(null);
+
   // Definir funciones antes de los hooks que las usan
   const loadStats = async () => {
     try {
@@ -299,6 +312,76 @@ const Admin = () => {
       toast.error(error.message || 'Error al cargar tickets');
     } finally {
       setLoadingTickets(false);
+    }
+  };
+
+  const loadAdminServiceTypes = async () => {
+    try {
+      setLoadingCatalog(true);
+      const response = await adminAPI.getAdminServiceTypes();
+      setCatalogTypes(response.types);
+    } catch (error: any) {
+      console.error('Error loading service types:', error);
+      toast.error(error.message || 'Error al cargar tipos de servicios');
+    } finally {
+      setLoadingCatalog(false);
+    }
+  };
+
+  const loadServiceSuggestions = async () => {
+    try {
+      setLoadingSuggestions(true);
+      const response = await adminAPI.getServiceSuggestions();
+      setSuggestions(response.suggestions);
+    } catch (error: any) {
+      console.error('Error loading service suggestions:', error);
+      toast.error(error.message || 'Error al cargar sugerencias');
+    } finally {
+      setLoadingSuggestions(false);
+    }
+  };
+
+  const handleProcessSuggestion = async (id: string, action: 'approve' | 'reject') => {
+    try {
+      setIsProcessingSuggestion(id);
+      await adminAPI.processServiceSuggestion(id, action);
+      toast.success(action === 'approve' ? 'Sugerencia aprobada' : 'Sugerencia rechazada');
+      loadServiceSuggestions();
+      if (action === 'approve') loadAdminServiceTypes();
+    } catch (error: any) {
+      console.error('Error processing suggestion:', error);
+      toast.error(error.message || 'Error al procesar sugerencia');
+    } finally {
+      setIsProcessingSuggestion(null);
+    }
+  };
+
+  const handleSaveServiceType = async () => {
+    try {
+      if (selectedType) {
+        await adminAPI.updateServiceType(selectedType.id, typeForm);
+        toast.success('Tipo de servicio actualizado');
+      } else {
+        await adminAPI.createServiceType(typeForm);
+        toast.success('Tipo de servicio creado');
+      }
+      setTypeDialogOpen(false);
+      loadAdminServiceTypes();
+    } catch (error: any) {
+      console.error('Error saving service type:', error);
+      toast.error(error.message || 'Error al guardar tipo de servicio');
+    }
+  };
+
+  const handleDeleteServiceType = async (id: string) => {
+    if (!confirm('¿Estás seguro de eliminar este tipo de servicio?')) return;
+    try {
+      await adminAPI.deleteServiceType(id);
+      toast.success('Tipo de servicio eliminado');
+      loadAdminServiceTypes();
+    } catch (error: any) {
+      console.error('Error deleting service type:', error);
+      toast.error(error.message || 'Error al eliminar tipo de servicio');
     }
   };
 
@@ -825,6 +908,10 @@ const Admin = () => {
               <TabsTrigger value="tickets" onClick={loadTickets} className="flex items-center gap-2">
                 <HelpCircle size={16} />
                 Tickets
+              </TabsTrigger>
+              <TabsTrigger value="catalog" onClick={() => { loadAdminServiceTypes(); loadServiceSuggestions(); }} className="flex items-center gap-2">
+                <List size={16} />
+                Catálogo
               </TabsTrigger>
               {isSuperAdmin && (
                 <>
@@ -1370,6 +1457,157 @@ const Admin = () => {
               </CardContent>
             </Card>
           </TabsContent>
+
+          {/* Tab de Catálogo de Servicios */}
+          <TabsContent value="catalog" className="mt-6">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 pb-20">
+              {/* Gestión de Categorías */}
+              <Card className="border-2 shadow-sm">
+                <CardHeader className="flex flex-row items-center justify-between space-y-0">
+                  <div className="space-y-1">
+                    <CardTitle className="text-xl">Categorías de Servicios</CardTitle>
+                    <CardDescription>Tipos de servicios oficiales del catálogo</CardDescription>
+                  </div>
+                  <Button size="sm" onClick={() => {
+                    setSelectedType(null);
+                    setTypeForm({ name: '', description: '', icon: '' });
+                    setTypeDialogOpen(true);
+                  }}>
+                    <Plus size={16} className="mr-2" />
+                    Nuevo Tipo
+                  </Button>
+                </CardHeader>
+                <CardContent>
+                  {loadingCatalog ? (
+                    <div className="space-y-2 py-4">
+                      {[1, 2, 3].map(i => <div key={i} className="h-16 w-full rounded-lg bg-muted animate-pulse" />)}
+                    </div>
+                  ) : catalogTypes.length === 0 ? (
+                    <div className="text-center py-10 text-muted-foreground border-2 border-dashed rounded-xl">
+                      No hay categorías configuradas
+                    </div>
+                  ) : (
+                    <div className="space-y-3 max-h-[600px] overflow-y-auto pr-2 scrollbar-thin">
+                      {catalogTypes.map((type) => (
+                        <div key={type.id} className="flex items-center justify-between p-4 border rounded-xl bg-card hover:shadow-md transition-all duration-200">
+                          <div className="flex-1 min-w-0 mr-4">
+                            <p className="font-bold text-lg">{type.name}</p>
+                            {type.description && <p className="text-sm text-muted-foreground line-clamp-1">{type.description}</p>}
+                          </div>
+                          <div className="flex gap-1 shrink-0">
+                            <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => {
+                              setSelectedType(type);
+                              setTypeForm({ name: type.name, description: type.description || '', icon: type.icon || '' });
+                              setTypeDialogOpen(true);
+                            }}>
+                              <Wrench size={16} />
+                            </Button>
+                            <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive hover:text-destructive hover:bg-destructive/10" onClick={() => handleDeleteServiceType(type.id)}>
+                              <Trash2 size={16} />
+                            </Button>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+
+              {/* Buzón de Sugerencias */}
+              <Card className="border-2 shadow-sm">
+                <CardHeader className="space-y-1">
+                  <CardTitle className="text-xl">Buzón de Sugerencias</CardTitle>
+                  <CardDescription>Servicios sugeridos por usuarios ('Otro')</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  {loadingSuggestions ? (
+                    <div className="space-y-2 py-4">
+                      {[1, 2].map(i => <div key={i} className="h-32 w-full rounded-lg bg-muted animate-pulse" />)}
+                    </div>
+                  ) : suggestions.length === 0 ? (
+                    <div className="text-center py-10 text-muted-foreground border-2 border-dashed rounded-xl">
+                      No hay sugerencias pendientes
+                    </div>
+                  ) : (
+                    <div className="space-y-4 max-h-[600px] overflow-y-auto pr-2 scrollbar-thin">
+                      {suggestions.map((sug) => (
+                        <div key={sug.id} className="p-5 border-2 rounded-2xl bg-secondary/5 border-secondary/10 group hover:border-primary/20 transition-all duration-300">
+                          <div className="flex justify-between items-start mb-3">
+                            <div className="flex-1 min-w-0 pr-4">
+                              <h4 className="font-black text-xl text-primary leading-tight truncate">{sug.custom_service_name}</h4>
+                              <div className="mt-1 flex flex-col gap-0.5">
+                                <p className="text-xs font-semibold text-muted-foreground">Por: {sug.user_name}</p>
+                                <p className="text-[10px] text-muted-foreground/60">{sug.user_email}</p>
+                              </div>
+                            </div>
+                            <Badge variant="secondary" className="font-mono text-[10px]">{new Date(sug.created_at).toLocaleDateString('es-CL')}</Badge>
+                          </div>
+                          <div className="flex gap-3 mt-5">
+                            <Button
+                              className="flex-1 bg-green-600 hover:bg-green-700 shadow-lg shadow-green-900/10 h-10 font-bold"
+                              onClick={() => handleProcessSuggestion(sug.id, 'approve')}
+                              disabled={!!isProcessingSuggestion}
+                            >
+                              <CheckCircle size={16} className="mr-2" />
+                              {isProcessingSuggestion === sug.id ? '...' : 'Aprobar'}
+                            </Button>
+                            <Button
+                              variant="destructive"
+                              className="flex-1 shadow-lg shadow-red-900/10 h-10 font-bold"
+                              onClick={() => handleProcessSuggestion(sug.id, 'reject')}
+                              disabled={!!isProcessingSuggestion}
+                            >
+                              <XCircle size={16} className="mr-2" />
+                              {isProcessingSuggestion === sug.id ? '...' : 'Rechazar'}
+                            </Button>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+            </div>
+          </TabsContent>
+
+          {/* Dialog para Editar/Crear Tipo de Servicio */}
+          <Dialog open={typeDialogOpen} onOpenChange={setTypeDialogOpen}>
+            <DialogContent className="sm:max-w-[425px] rounded-3xl border-2">
+              <DialogHeader>
+                <DialogTitle className="text-2xl font-black">{selectedType ? 'Editar Categoría' : 'Nueva Categoría'}</DialogTitle>
+                <DialogDescription className="text-base">Configura un tipo de servicio oficial para el catálogo</DialogDescription>
+              </DialogHeader>
+              <div className="space-y-6 py-6">
+                <div className="space-y-2">
+                  <Label htmlFor="type-name" className="text-sm font-bold ml-1">Nombre de la Categoría</Label>
+                  <Input
+                    id="type-name"
+                    value={typeForm.name}
+                    onChange={(e) => setTypeForm({ ...typeForm, name: e.target.value })}
+                    placeholder="Ej: Gasfitería, Electricista, Mudanzas..."
+                    className="h-12 text-lg rounded-xl border-2 focus-visible:ring-primary"
+                    autoFocus
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="type-desc" className="text-sm font-bold ml-1">Descripción (Opcional)</Label>
+                  <Textarea
+                    id="type-desc"
+                    value={typeForm.description}
+                    onChange={(e) => setTypeForm({ ...typeForm, description: e.target.value })}
+                    placeholder="Describe los servicios que incluye esta categoría..."
+                    className="rounded-xl border-2 min-h-[120px] focus-visible:ring-primary"
+                  />
+                </div>
+              </div>
+              <DialogFooter className="gap-2">
+                <Button variant="ghost" className="rounded-xl h-11" onClick={() => setTypeDialogOpen(false)}>Cancelar</Button>
+                <Button className="rounded-xl h-11 px-8 font-bold" onClick={handleSaveServiceType} disabled={!typeForm.name.trim()}>
+                  {selectedType ? 'Guardar Cambios' : 'Crear Categoría'}
+                </Button>
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
 
           {/* Tab de Precios y Paquetes */}
           {isSuperAdmin && (
