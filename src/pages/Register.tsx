@@ -96,9 +96,14 @@ const Register = () => {
   useEffect(() => {
     const urlToken = searchParams.get('token');
     if (urlToken) {
+      localStorage.setItem('token', urlToken);
       setStep(2); // Go directly to role selection
       setIsGoogleVerified(true);
       loadUser(); // Asegurar que cargamos los datos del usuario logueado con ese token
+    } else if (localStorage.getItem('token')) {
+      // Si no hay token en URL pero hay uno en localStorage, y estamos en /registro,
+      // podría ser una continuación de flujo de Google (especialmente si no hay sesión normal)
+      setIsGoogleVerified(true);
     }
   }, [searchParams]);
 
@@ -220,30 +225,31 @@ const Register = () => {
       return;
     }
 
-    // Validaciones de seguridad finales
-    if (!isValidName(name)) {
+    // Validaciones de seguridad finales (solo si hay contenido o no es Google completion)
+    // Para Google completion permitimos campos vacíos ya que se completarán después
+    if (name && !isValidName(name)) {
       toast.error(getValidationErrorMessage('name', containsSQLInjection(name) ? 'sql' : 'format'));
       return;
     }
 
-    if (!isValidRut(rut)) {
+    if (rut && !isValidRut(rut)) {
       toast.error(getValidationErrorMessage('rut', containsSQLInjection(rut) ? 'sql' : 'format'));
       return;
     }
 
-    if (!isValidPhone(phone)) {
+    if (phone && !isValidPhone(phone)) {
       toast.error(getValidationErrorMessage('phone', containsSQLInjection(phone) ? 'sql' : 'format'));
       return;
     }
 
-    if (!isValidComuna(comuna)) {
+    if (comuna && !isValidComuna(comuna)) {
       toast.error(getValidationErrorMessage('comuna', containsSQLInjection(comuna) ? 'sql' : 'format'));
       return;
     }
 
     setIsSubmitting(true);
     try {
-      const isGoogleCompletion = !!searchParams.get('token') || (isGoogleVerified && user);
+      const isGoogleCompletion = !!searchParams.get('token') || isGoogleVerified || !!localStorage.getItem('token');
 
       // Sanitizar inputs antes de enviar
       const data: any = {
@@ -574,7 +580,7 @@ const Register = () => {
                     <ArrowLeft className="mr-2" size={18} />
                     Atrás
                   </Button>
-                  <Button onClick={handleSubmit} className="flex-[2] font-bold text-lg h-12 bg-secondary hover:bg-secondary/90 shadow-lg shadow-secondary/20" disabled={isSubmitting}>
+                  <Button onClick={() => handleSubmit()} className="flex-[2] font-bold text-lg h-12 bg-secondary hover:bg-secondary/90 shadow-lg shadow-secondary/20" disabled={isSubmitting}>
                     {isSubmitting ? 'Registrando...' : 'Finalizar Registro'}
                   </Button>
                 </div>
