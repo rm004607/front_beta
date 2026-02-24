@@ -499,6 +499,10 @@ const PostService = () => {
                   rows={5}
                   required
                 />
+                <p className="text-[10px] text-secondary font-medium italic mt-1.5 flex items-center gap-1.5">
+                  <span className="w-1.5 h-1.5 rounded-full bg-secondary animate-pulse" />
+                  Nota: El precio de tu servicio se coordina por interno con los interesados.
+                </p>
               </div>
 
 

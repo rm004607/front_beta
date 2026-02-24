@@ -159,14 +159,14 @@ export const ServiceCard = ({
                                             )}
                                         </div>
                                     </div>
-                                    {service.price_range && (
-                                        <div className="space-y-2 pt-2 border-t">
-                                            <Label className="text-[10px] uppercase tracking-wider text-muted-foreground font-bold">Rango de cobro:</Label>
-                                            <div className="text-xl font-extrabold text-primary">
-                                                {service.price_range}
-                                            </div>
+                                    <div className="space-y-2 pt-2 border-t mt-4">
+                                        <div className="flex items-center gap-2 p-3 bg-secondary/5 rounded-lg border border-secondary/10">
+                                            <div className="w-2 h-2 rounded-full bg-secondary animate-pulse" />
+                                            <p className="text-sm font-medium text-secondary-foreground/80 italic">
+                                                El precio se coordina por interno con el que ofrezca el servicio
+                                            </p>
                                         </div>
-                                    )}
+                                    </div>
                                 </div>
                                 <div className="flex flex-col sm:grid sm:grid-cols-2 gap-3 pt-4 border-t">
                                     <Button
@@ -232,11 +232,12 @@ export const ServiceCard = ({
                             </div>
                         </div>
                     </div>
-                    {service.price_range && (
-                        <div className="text-sm font-semibold text-primary">
-                            {service.price_range}
-                        </div>
-                    )}
+                    {/* Nota de coordinación de precio */}
+                    <div className="mt-1">
+                        <p className="text-[10px] font-medium text-secondary italic">
+                            * Precio a coordinar por interno
+                        </p>
+                    </div>
                 </div>
                 <div className="flex flex-col sm:grid sm:grid-cols-2 gap-2">
                     <Button

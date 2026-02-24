@@ -13,7 +13,7 @@ const Footer = () => {
   const isAdmin = user?.roles.includes('admin') || user?.role_number === 5;
 
   return (
-    <footer className="bg-[#0a0b14] border-t border-primary/10 mt-auto pt-16 pb-8">
+    <footer className="bg-card border-t border-border mt-auto pt-16 pb-8">
       <div className="container mx-auto px-4">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-12 gap-12 mb-16">
           {/* Brand Section */}
@@ -31,7 +31,7 @@ const Footer = () => {
                 href="https://www.instagram.com/dameldato.com/"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="w-10 h-10 rounded-full bg-white/5 flex items-center justify-center text-muted-foreground hover:bg-primary hover:text-white transition-all duration-300"
+                className="w-10 h-10 rounded-full bg-muted flex items-center justify-center text-muted-foreground hover:bg-primary hover:text-white transition-all duration-300"
                 aria-label="Instagram"
               >
                 <Instagram size={18} />
@@ -40,14 +40,14 @@ const Footer = () => {
                 href="https://www.linkedin.com/feed/"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="w-10 h-10 rounded-full bg-white/5 flex items-center justify-center text-muted-foreground hover:bg-primary hover:text-white transition-all duration-300"
+                className="w-10 h-10 rounded-full bg-muted flex items-center justify-center text-muted-foreground hover:bg-primary hover:text-white transition-all duration-300"
                 aria-label="LinkedIn"
               >
                 <Linkedin size={18} />
               </a>
               <a
                 href="mailto:contacto@dameldato.com"
-                className="w-10 h-10 rounded-full bg-white/5 flex items-center justify-center text-muted-foreground hover:bg-primary hover:text-white transition-all duration-300"
+                className="w-10 h-10 rounded-full bg-muted flex items-center justify-center text-muted-foreground hover:bg-primary hover:text-white transition-all duration-300"
                 aria-label="Email"
               >
                 <Mail size={18} />
@@ -57,7 +57,7 @@ const Footer = () => {
 
           {/* Navigation Links */}
           <div className="lg:col-span-2 space-y-6">
-            <h3 className="text-white font-bold text-lg">{t('footer.explore')}</h3>
+            <h3 className="text-foreground font-bold text-lg">{t('footer.explore')}</h3>
             <ul className="space-y-4">
               <li>
                 <Link to="/servicios" className="text-muted-foreground hover:text-primary transition-colors text-sm flex items-center gap-2">
@@ -75,7 +75,7 @@ const Footer = () => {
           </div>
 
           <div className="lg:col-span-3 space-y-6">
-            <h3 className="text-white font-bold text-lg">{t('footer.account')}</h3>
+            <h3 className="text-foreground font-bold text-lg">{t('footer.account')}</h3>
             <ul className="space-y-4">
               <li>
                 <Link to="/perfil" className="text-muted-foreground hover:text-primary transition-colors text-sm flex items-center gap-2">
@@ -104,8 +104,8 @@ const Footer = () => {
 
           {/* Contact Section */}
           <div className="lg:col-span-3 space-y-6">
-            <h3 className="text-white font-bold text-lg">{t('footer.support')}</h3>
-            <div className="bg-white/5 p-4 rounded-2xl border border-white/5 space-y-4">
+            <h3 className="text-foreground font-bold text-lg">{t('footer.support')}</h3>
+            <div className="bg-muted/50 p-4 rounded-2xl border border-border space-y-4">
               <Link to="/ayuda" className="flex items-center gap-3 text-sm text-muted-foreground hover:text-primary transition-colors">
                 <div className="p-2 bg-primary/10 rounded-lg text-primary">
                   <HelpCircle size={18} />
@@ -123,7 +123,7 @@ const Footer = () => {
         </div>
 
         {/* Bottom Bar */}
-        <div className="pt-8 border-t border-white/5 flex flex-col md:flex-row justify-between items-center gap-4">
+        <div className="pt-8 border-t border-border flex flex-col md:flex-row justify-between items-center gap-4">
           <p className="text-muted-foreground text-xs">
             © {new Date().getFullYear()} Dameldato. {t('footer.rights')}
           </p>
