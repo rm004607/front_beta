@@ -320,10 +320,10 @@ const PostService = () => {
                   </div>
                 )}
 
-                {(customServiceName || selectedServiceTypeIds.length === 0) && (
+                {!!customServiceName && (
                   <div className="animate-in fade-in slide-in-from-top-2 duration-300">
                     <Label htmlFor="customService" className="text-xs text-primary mb-1 block">
-                      {selectedServiceTypeIds.length === 0 ? "Sugiere un nombre para tu servicio *" : "Especifica tu servicio *"}
+                      Sugiere un nombre para tu servicio *
                     </Label>
                     <Input
                       id="customService"
@@ -331,7 +331,7 @@ const PostService = () => {
                       onChange={(e) => setCustomServiceName(e.target.value)}
                       placeholder="Ej: Gasfitería de urgencia, Paseo de mascotas exóticas..."
                       className="border-primary/30"
-                      required={selectedServiceTypeIds.length === 0 || !!customServiceName}
+                      required
                     />
                   </div>
                 )}
