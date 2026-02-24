@@ -32,12 +32,13 @@ import {
 const Register = () => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
-  const { setUser, loadUser } = useUser();
+  const { user, setUser, loadUser } = useUser();
   const [step, setStep] = useState(() => {
     const stepParam = searchParams.get('step');
     return stepParam ? parseInt(stepParam) : 1;
   });
   const [isKycVerified, setIsKycVerified] = useState(true);
+  const [isGoogleVerified, setIsGoogleVerified] = useState(false);
 
 
   // Step 1: Basic data
@@ -55,8 +56,18 @@ const Register = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [selectedRegion, setSelectedRegion] = useState('');
 
-  // Persistir datos si viene de QR
+  // Persistir datos si viene de QR o Google
   useEffect(() => {
+    // Si ya hay un usuario cargado (ej. por token de Google), pre-poblar campos
+    if (user) {
+      if (user.name && !name) setName(user.name);
+      if (user.email && !email) setEmail(user.email);
+      if (user.phone && !phone) setPhone(user.phone);
+      if (user.rut && !rut) setRut(formatRut(user.rut));
+      if (user.comuna && !comuna) setComuna(user.comuna);
+      if (user.region_id && !selectedRegion) setSelectedRegion(user.region_id);
+    }
+
     const emailParam = searchParams.get('email');
     if (emailParam) {
       setEmail(emailParam);
@@ -86,6 +97,8 @@ const Register = () => {
     const urlToken = searchParams.get('token');
     if (urlToken) {
       setStep(2); // Go directly to role selection
+      setIsGoogleVerified(true);
+      loadUser(); // Asegurar que cargamos los datos del usuario logueado con ese token
     }
   }, [searchParams]);
 
@@ -226,31 +239,31 @@ const Register = () => {
 
     setIsSubmitting(true);
     try {
+      const isGoogleCompletion = !!searchParams.get('token') || (isGoogleVerified && user);
+
       // Sanitizar inputs antes de enviar
-      const data = {
+      const data: any = {
         name: sanitizeInput(name, 100),
-        rut: sanitizeInput(rut.replace(/[^0-9kK]/g, ''), 12),
-        email: email.trim().toLowerCase(),
-        password,
+        rut: rut ? sanitizeInput(rut.replace(/[^0-9kK]/g, ''), 12) : undefined,
         phone: sanitizeInput(phone, 20),
         comuna: sanitizeInput(comuna, 50),
         region_id: selectedRegion,
         rol: roleToNumber(selectedRole),
         role_number: roleToNumber(selectedRole),
-        // @ts-ignore
         rubro: selectedRole === 'entrepreneur' ? sanitizeInput(rubro || '', 100) : undefined,
         experience: selectedRole === 'entrepreneur' ? sanitizeInput(experience || '', 2000) : undefined,
         service: selectedRole === 'entrepreneur' ? sanitizeInput(service || '', 100) : undefined,
         portfolio: selectedRole === 'entrepreneur' ? sanitizeInput(portfolio || '', 2000) : undefined,
       };
 
-      const isGoogleCompletion = !!searchParams.get('token');
-
       if (isGoogleCompletion) {
-        // Si viene de Google, ya está logueado pero completamos perfil
+        // En GoogleCompletion, el email ya está verificado y el password no existe/no es necesario
+        // Omitimos email para evitar errores de "email ya registrado" en el backend al hacer update
         await authAPI.updateProfile(data);
       } else {
-        // Registro normal
+        // Registro normal requiere email y password
+        data.email = email.trim().toLowerCase();
+        data.password = password;
         await authAPI.register(data);
         await authAPI.login({ email: data.email, password });
       }

@@ -56,14 +56,14 @@ export const ServiceCard = ({
                         {service.profile_image && (
                             <AvatarImage src={service.profile_image} alt={service.user_name} />
                         )}
-                        <AvatarFallback className="text-xl font-heading bg-secondary text-white">
+                        <AvatarFallback className="text-xl font-heading bg-secondary text-white shrink-0">
                             {service.user_name.split(' ').map((n: string) => n[0]).join('')}
                         </AvatarFallback>
                     </Avatar>
-                    <div className="flex-1">
-                        <div className="flex justify-between items-start">
-                            <CardTitle className="text-xl mb-1">{service.user_name}</CardTitle>
-                            <div className="flex items-center gap-1.5 bg-yellow-500/10 px-2.5 py-1 rounded-full border border-yellow-500/20 shadow-sm">
+                    <div className="flex-1 min-w-0">
+                        <div className="flex justify-between items-start gap-2">
+                            <CardTitle className="text-xl mb-1 truncate">{service.user_name}</CardTitle>
+                            <div className="flex items-center gap-1.5 bg-yellow-500/10 px-2.5 py-1 rounded-full border border-yellow-500/20 shadow-sm shrink-0">
                                 <Star className="w-4 h-4 fill-yellow-500 text-yellow-500" />
                                 <span className="text-sm font-bold text-yellow-500">
                                     {service.average_rating ? Number(service.average_rating).toFixed(1) : '0.0'}
@@ -71,7 +71,7 @@ export const ServiceCard = ({
                             </div>
                         </div>
                         <div className="flex flex-wrap items-center gap-2">
-                            <Badge variant="secondary">{service.service_name}</Badge>
+                            <Badge variant="secondary" className="truncate max-w-[150px]">{service.service_name}</Badge>
                             {isSuperAdmin && (
                                 <div className="flex gap-1">
                                     <Button
@@ -97,8 +97,8 @@ export const ServiceCard = ({
                 </div>
             </CardHeader>
             <CardContent>
-                <div className="relative mb-4">
-                    <p className="text-sm text-muted-foreground line-clamp-2">{service.description}</p>
+                <div className="relative mb-4 overflow-hidden">
+                    <p className="text-sm text-muted-foreground line-clamp-2 break-words">{service.description}</p>
                     <Dialog>
                         <DialogTrigger asChild>
                             <button className="text-sm text-primary font-medium hover:underline mt-1 focus:outline-none flex items-center">
@@ -201,9 +201,9 @@ export const ServiceCard = ({
                 <div className="space-y-2 mb-4">
                     <div className="flex flex-col gap-2">
                         <div className="flex items-center justify-between text-sm">
-                            <div className="flex items-center gap-2">
-                                <MapPin size={16} className="text-secondary" />
-                                <span className="font-medium">{service.comuna}</span>
+                            <div className="flex items-center gap-2 min-w-0">
+                                <MapPin size={16} className="text-secondary shrink-0" />
+                                <span className="font-medium truncate">{service.comuna}</span>
                             </div>
                             <div className="flex items-center gap-1 text-xs text-muted-foreground bg-muted/30 px-2 py-1 rounded-md">
                                 <Star className="w-3 h-3 fill-yellow-500 text-yellow-500" />

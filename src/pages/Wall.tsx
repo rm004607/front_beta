@@ -667,9 +667,9 @@ const Wall = () => {
               <Card key={post.id} className="glass-card border-white/5 hover:border-primary/30 transition-all duration-300 hover:shadow-2xl hover:shadow-primary/5">
                 <CardHeader>
                   <div className="flex items-start justify-between">
-                    <div className="flex items-center gap-3">
+                    <div className="flex flex-col sm:flex-row sm:items-start gap-3 flex-1 min-w-0">
                       <Avatar
-                        className={`${post.type === 'Busco Servicio' && canViewProfile() ? 'cursor-pointer hover:opacity-80 transition-opacity' : post.type === 'Busco Servicio' ? 'opacity-60' : ''}`}
+                        className={`shrink-0 ${post.type === 'Busco Servicio' && canViewProfile() ? 'cursor-pointer hover:opacity-80 transition-opacity' : post.type === 'Busco Servicio' ? 'opacity-60' : ''}`}
                         onClick={() => post.type === 'Busco Servicio' && canViewProfile() && handleProfileClick(post.user_id, post.type, post)}
                         title={post.type === 'Busco Servicio' && !canViewProfile() ? 'Solo los emprendedores pueden contactar' : ''}
                       >
@@ -680,27 +680,27 @@ const Wall = () => {
                           {post.user_name.split(' ').map((n) => n[0]).join('')}
                         </AvatarFallback>
                       </Avatar>
-                      <div className="flex flex-col">
-                        <div className="flex items-center gap-1">
+                      <div className="flex flex-col min-w-0">
+                        <div className="flex items-center gap-1 min-w-0">
                           <h3
-                            className={`font-semibold ${post.type === 'Busco Servicio' && canViewProfile() ? 'cursor-pointer hover:underline' : post.type === 'Busco Servicio' ? 'opacity-60' : ''}`}
+                            className={`font-semibold truncate ${post.type === 'Busco Servicio' && canViewProfile() ? 'cursor-pointer hover:underline' : post.type === 'Busco Servicio' ? 'opacity-60' : ''}`}
                             onClick={() => post.type === 'Busco Servicio' && canViewProfile() && handleProfileClick(post.user_id, post.type, post)}
                             title={post.type === 'Busco Servicio' && !canViewProfile() ? 'Solo los emprendedores pueden contactar' : ''}
                           >
                             {post.user_name}
                           </h3>
                           {post.user_role_number === 5 && (
-                            <div title="Super Admin">
+                            <div title="Super Admin" className="shrink-0">
                               <Crown size={14} className="text-yellow-500 fill-yellow-500" />
                             </div>
                           )}
                         </div>
-                        <p className="text-sm text-muted-foreground">
+                        <p className="text-sm text-muted-foreground truncate">
                           {formatDate(post.created_at)}
                         </p>
                       </div>
                     </div>
-                    <div className="flex items-center gap-2">
+                    <div className="flex items-center gap-2 shrink-0 sm:ml-auto">
                       {post.type === 'Ofrezco' && (
                         <Button
                           size="sm"
@@ -747,7 +747,7 @@ const Wall = () => {
                   </div>
                 </CardHeader>
                 <CardContent>
-                  <p className="text-foreground mb-4 whitespace-pre-wrap text-base leading-relaxed">
+                  <p className="text-foreground mb-4 whitespace-pre-wrap text-base leading-relaxed break-words overflow-hidden">
                     {post.content}
                   </p>
                   <div className="flex items-center gap-2 text-sm text-muted-foreground mb-4">

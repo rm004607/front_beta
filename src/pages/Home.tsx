@@ -98,8 +98,8 @@ const Home = () => {
                 {t('hero.verified_community')}
               </div>
 
-              <h1 className="text-3xl sm:text-5xl md:text-6xl lg:text-7xl font-sans font-extrabold leading-[1.1] tracking-tight animate-reveal delay-100">
-                {t('hero.title_part1')} <span className="sm:hidden"><br /></span>
+              <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-sans font-extrabold leading-[1.1] tracking-tight animate-reveal delay-100 break-words">
+                {t('hero.title_part1')} <span className="inline sm:hidden"><br /></span>
                 <span className="text-primary text-glow">{t('hero.title_part2')}</span>
               </h1>
 
