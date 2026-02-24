@@ -67,9 +67,16 @@ async function request<T>(
     const errorObj = new Error(userMessage) as any;
 
     // Agregar información adicional del error (como ban_info)
-    if (errorData.ban_info) {
-      errorObj.ban_info = errorData.ban_info;
+    if (errorData && typeof errorData === 'object') {
+      if ('ban_info' in errorData) {
+        errorObj.ban_info = errorData.ban_info;
+      }
+      // Asegurar que si el server manda un mensaje específico, se mantenga
+      if ('error' in errorData && typeof errorData.error === 'string') {
+        errorObj.message = errorData.error;
+      }
     }
+
     errorObj.status = response.status;
 
     // Si es un error 401 (cookie expirada o no autenticado)
