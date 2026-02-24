@@ -636,6 +636,12 @@ const Profile = () => {
                     <Mail size={16} className="shrink-0" />
                     <span className="break-all">{user.email}</span>
                   </div>
+                  {user.rut && (
+                    <div className="flex items-center gap-2 max-w-full">
+                      <FileText size={16} className="shrink-0" />
+                      <span className="break-all">RUT: {user.rut}</span>
+                    </div>
+                  )}
                   <div className="flex items-center gap-2">
                     <Phone size={16} className="shrink-0" />
                     <span>{user.phone}</span>

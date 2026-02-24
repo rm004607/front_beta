@@ -84,6 +84,7 @@ interface User {
   name: string;
   email: string;
   phone: string;
+  rut?: string;
   comuna: string;
   profile_image?: string | null;
   is_active: boolean;
@@ -1108,7 +1109,9 @@ const Admin = () => {
                                 <CardTitle className="text-lg cursor-pointer hover:underline truncate" onClick={() => handleViewUserProfile(user.id)}>
                                   {user.name}
                                 </CardTitle>
-                                <CardDescription className="truncate">{user.email}</CardDescription>
+                                <CardDescription className="truncate">
+                                  {user.email} {user.rut ? `| RUT: ${user.rut}` : ''}
+                                </CardDescription>
                                 <CardDescription className="mt-1">
                                   {user.comuna} | {user.phone} | Rol: {user.role}
                                 </CardDescription>

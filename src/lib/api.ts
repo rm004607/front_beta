@@ -118,6 +118,7 @@ export const authAPI = {
         id: string;
         name: string;
         email: string;
+        rut?: string;
         role_number: number;
       };
     }>('/auth/login', {
@@ -138,6 +139,7 @@ export const authAPI = {
         name: string;
         email: string;
         phone: string;
+        rut?: string;
         comuna: string;
         role_number: number;
         role: string;
@@ -676,6 +678,7 @@ export const adminAPI = {
         name: string;
         email: string;
         phone: string;
+        rut?: string;
         comuna: string;
         is_active: boolean;
         is_banned: boolean;

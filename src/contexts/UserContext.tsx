@@ -9,6 +9,7 @@ export interface UserProfile {
   name: string;
   email: string;
   phone: string;
+  rut?: string;
   comuna: string;
   profile_image?: string | null;
   cv_url?: string | null;
@@ -121,6 +122,7 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
         name: dbUser.name,
         email: dbUser.email,
         phone: dbUser.phone,
+        rut: dbUser.rut || '',
         comuna: dbUser.comuna,
         profile_image: dbUser.profile_image || null,
         cv_url: dbUser.cv_url || null,
