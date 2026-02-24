@@ -6,7 +6,7 @@ import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
-import { MapPin, Search, MessageCircle, Loader2, Plus, TrendingUp, DollarSign, Star, Globe } from 'lucide-react';
+import { MapPin, Search, MessageCircle, Loader2, Plus, TrendingUp, DollarSign, Star, Globe, Wrench } from 'lucide-react';
 import { servicesAPI, flowAPI, configAPI, reviewsAPI } from '@/lib/api';
 import { toast } from 'sonner';
 import { useUser } from '@/contexts/UserContext';
@@ -40,6 +40,8 @@ const Services = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [comunaFilter, setComunaFilter] = useState('all');
   const [regionFilter, setRegionFilter] = useState(user?.region_id ? String(user.region_id) : 'all');
+  const [typeFilter, setTypeFilter] = useState(searchParams.get('type_id') || 'all');
+  const [serviceTypes, setServiceTypes] = useState<any[]>([]);
   const [services, setServices] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [pagination, setPagination] = useState({
@@ -67,7 +69,7 @@ const Services = () => {
 
   useEffect(() => {
     loadServices();
-  }, [searchTerm, comunaFilter, regionFilter, pagination.page]);
+  }, [searchTerm, comunaFilter, regionFilter, typeFilter, pagination.page]);
 
   // Cargar precio dinámico y estado de pricing
   useEffect(() => {
@@ -87,6 +89,17 @@ const Services = () => {
     loadConfig();
   }, []);
 
+  // Efecto para actualizar typeFilter si cambia la URL
+  useEffect(() => {
+    const typeId = searchParams.get('type_id');
+    if (typeId) {
+      setTypeFilter(typeId);
+      setPagination(prev => ({ ...prev, page: 1 }));
+    } else {
+      setTypeFilter('all');
+    }
+  }, [searchParams]);
+
   // Efecto para scroll al elemento resaltado
   useEffect(() => {
     if (highlightId && !loading && services.length > 0) {
@@ -99,6 +112,23 @@ const Services = () => {
     }
   }, [highlightId, loading, services]);
 
+  useEffect(() => {
+    loadServices();
+  }, [searchTerm, comunaFilter, regionFilter, typeFilter, pagination.page]);
+
+  // Cargar tipos de servicios para mostrar nombres en filtros/badge
+  useEffect(() => {
+    const loadTypes = async () => {
+      try {
+        const response = await servicesAPI.getServiceTypes();
+        setServiceTypes(response.types);
+      } catch (error) {
+        console.error('Error loading types:', error);
+      }
+    };
+    loadTypes();
+  }, []);
+
   const loadServices = async () => {
     setLoading(true);
     try {
@@ -107,6 +137,7 @@ const Services = () => {
         comuna: comunaFilter !== 'all' ? comunaFilter : undefined,
         // Si hay una comuna seleccionada, no filtramos por región para permitir ver servicios de otras regiones que cubren esa comuna
         region_id: comunaFilter === 'all' && regionFilter !== 'all' ? regionFilter : undefined,
+        service_type_id: typeFilter !== 'all' ? typeFilter : undefined,
         page: pagination.page,
         limit: pagination.limit,
       });
@@ -254,7 +285,7 @@ const Services = () => {
         {/* Filters */}
         <Card className="mb-8 glass-card border-white/5 bg-card/30">
           <CardContent className="p-4 sm:pt-6">
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
               <div className="relative">
                 <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground" size={18} />
                 <Input
@@ -310,7 +341,58 @@ const Services = () => {
                   )}
                 </SelectContent>
               </Select>
+
+              <Select value={typeFilter} onValueChange={(val) => {
+                setTypeFilter(val);
+                setPagination(prev => ({ ...prev, page: 1 }));
+              }}>
+                <SelectTrigger className="glass-card border-white/10 h-11">
+                  <div className="flex items-center gap-2">
+                    <Wrench size={16} className="text-accent" />
+                    <SelectValue placeholder="Categoría" />
+                  </div>
+                </SelectTrigger>
+                <SelectContent className="glass-card border-white/10 backdrop-blur-xl">
+                  <SelectItem value="all">Todas las categorías</SelectItem>
+                  {serviceTypes.map((type) => (
+                    <SelectItem key={type.id} value={type.id}>{type.name}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
+
+            {/* Filtros Activos (Badges) */}
+            {(typeFilter !== 'all' || searchTerm || comunaFilter !== 'all' || regionFilter !== 'all') && (
+              <div className="flex flex-wrap gap-2 mt-4 pt-4 border-t border-white/5">
+                {typeFilter !== 'all' && (
+                  <Badge variant="secondary" className="bg-accent/20 text-accent border-accent/20 px-3 py-1 flex items-center gap-2">
+                    Categoría: {serviceTypes.find(t => t.id === typeFilter)?.name || 'Cargando...'}
+                    <button onClick={() => setTypeFilter('all')} className="hover:text-primary transition-colors">x</button>
+                  </Badge>
+                )}
+                {searchTerm && (
+                  <Badge variant="secondary" className="bg-primary/20 text-primary border-primary/20 px-3 py-1 flex items-center gap-2">
+                    Búsqueda: {searchTerm}
+                    <button onClick={() => setSearchTerm('')} className="hover:text-primary transition-colors">x</button>
+                  </Badge>
+                )}
+                {(comunaFilter !== 'all' || regionFilter !== 'all') && (
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => {
+                      setComunaFilter('all');
+                      setRegionFilter('all');
+                      setSearchTerm('');
+                      setTypeFilter('all');
+                    }}
+                    className="text-xs text-muted-foreground hover:text-primary"
+                  >
+                    Limpiar todos los filtros
+                  </Button>
+                )}
+              </div>
+            )}
           </CardContent>
         </Card>
 
@@ -451,7 +533,7 @@ const Services = () => {
           </DialogContent>
         </Dialog>
       </div>
-    </div>
+    </div >
   );
 };
 

@@ -242,6 +242,7 @@ export const servicesAPI = {
     search?: string;
     comuna?: string;
     region_id?: string;
+    service_type_id?: string;
     page?: number;
     limit?: number;
   }) => {
@@ -249,6 +250,7 @@ export const servicesAPI = {
     if (filters?.search) params.append('search', filters.search);
     if (filters?.comuna) params.append('comuna', filters.comuna);
     if (filters?.region_id) params.append('region_id', filters.region_id);
+    if (filters?.service_type_id) params.append('service_type_id', filters.service_type_id);
     if (filters?.page) params.append('page', filters.page.toString());
     if (filters?.limit) params.append('limit', filters.limit.toString());
 

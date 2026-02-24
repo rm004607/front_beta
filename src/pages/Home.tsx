@@ -31,10 +31,26 @@ const Home = () => {
   const { t, i18n } = useTranslation();
   const [latestServices, setLatestServices] = useState<Service[]>([]);
   const [loadingServices, setLoadingServices] = useState(true);
+  const [serviceTypes, setServiceTypes] = useState<any[]>([]);
+  const [loadingTypes, setLoadingTypes] = useState(true);
 
   useEffect(() => {
     loadLatestServices();
+    loadServiceTypes();
   }, [isLoggedIn, user?.region_id]);
+
+  const loadServiceTypes = async () => {
+    try {
+      setLoadingTypes(true);
+      const response = await servicesAPI.getServiceTypes();
+      // Tomamos solo los primeros 8 para mantener el diseño
+      setServiceTypes(response.types.slice(0, 8));
+    } catch (error) {
+      console.error('Error loading service types:', error);
+    } finally {
+      setLoadingTypes(false);
+    }
+  };
 
   const loadLatestServices = async () => {
     try {
@@ -50,6 +66,32 @@ const Home = () => {
     } finally {
       setLoadingServices(false);
     }
+  };
+
+  const getServiceIcon = (name: string) => {
+    const n = name.toLowerCase();
+    if (n.includes('gasfiter') || n.includes('plomero')) return <Wrench />;
+    if (n.includes('electri')) return <Lightbulb />;
+    if (n.includes('cerrajer')) return <ShieldCheck />;
+    if (n.includes('limpieza') || n.includes('aseo')) return <Sparkles />;
+    if (n.includes('construc') || n.includes('albañil')) return <Building2 />;
+    if (n.includes('flete') || n.includes('mudan') || n.includes('transp')) return <Truck />;
+    if (n.includes('cuidad') || n.includes('salud') || n.includes('enfer')) return <HeartPulse />;
+    if (n.includes('mecanic')) return <Briefcase />;
+    return <Wrench />; // Default icon
+  };
+
+  const getServiceColor = (name: string) => {
+    const n = name.toLowerCase();
+    if (n.includes('gasfiter') || n.includes('plomero')) return 'bg-blue-500';
+    if (n.includes('electri')) return 'bg-amber-500';
+    if (n.includes('cerrajer')) return 'bg-slate-700';
+    if (n.includes('limpieza') || n.includes('aseo')) return 'bg-emerald-500';
+    if (n.includes('construc') || n.includes('albañil')) return 'bg-orange-600';
+    if (n.includes('flete') || n.includes('mudan') || n.includes('transp')) return 'bg-purple-500';
+    if (n.includes('cuidad') || n.includes('salud') || n.includes('enfer')) return 'bg-rose-500';
+    if (n.includes('mecanic')) return 'bg-indigo-600';
+    return 'bg-primary'; // Default color
   };
 
   const formatDate = (dateString: string) => {
@@ -182,23 +224,26 @@ const Home = () => {
         </div>
 
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-6 max-w-5xl mx-auto">
-          {[
-            { icon: <Wrench />, label: 'Gásfiter', color: 'bg-blue-500' },
-            { icon: <Lightbulb />, label: 'Electricista', color: 'bg-amber-500' },
-            { icon: <ShieldCheck />, label: 'Cerrajero', color: 'bg-slate-700' },
-            { icon: <Sparkles />, label: 'Limpieza', color: 'bg-emerald-500' },
-            { icon: <Building2 />, label: 'Construcción', color: 'bg-orange-600' },
-            { icon: <Truck />, label: 'Fletes / Mudanza', color: 'bg-purple-500' },
-            { icon: <HeartPulse />, label: 'Cuidadores', color: 'bg-rose-500' },
-            { icon: <Briefcase />, label: 'Mecánica', color: 'bg-indigo-600' },
-          ].map((cat, i) => (
-            <div key={i} className="group glass-card p-6 rounded-3xl hover:scale-105 transition-all duration-300 border-transparent hover:border-primary/30 animate-reveal" style={{ animationDelay: `${100 * (i + 1)}ms` }}>
-              <div className={`${cat.color} w-16 h-16 rounded-2xl flex items-center justify-center text-white mb-4 group-hover:scale-110 transition-transform shadow-lg`}>
-                {cat.icon}
-              </div>
-              <h3 className="font-bold text-lg">{cat.label}</h3>
-            </div>
-          ))}
+          {loadingTypes ? (
+            // Skeleton for categories
+            [1, 2, 3, 4, 5, 6, 7, 8].map((i) => (
+              <div key={i} className="h-40 rounded-3xl bg-muted animate-pulse"></div>
+            ))
+          ) : (
+            serviceTypes.map((type, i) => (
+              <Link
+                key={type.id}
+                to={`/servicios?type_id=${type.id}`}
+                className="group glass-card p-6 rounded-3xl hover:scale-105 transition-all duration-300 border-transparent hover:border-primary/30 animate-reveal"
+                style={{ animationDelay: `${100 * (i + 1)}ms` }}
+              >
+                <div className={`${getServiceColor(type.name)} w-16 h-16 rounded-2xl flex items-center justify-center text-white mb-4 group-hover:scale-110 transition-transform shadow-lg`}>
+                  {getServiceIcon(type.name)}
+                </div>
+                <h3 className="font-bold text-lg">{type.name}</h3>
+              </Link>
+            ))
+          )}
         </div>
       </section>
 
