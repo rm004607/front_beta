@@ -25,7 +25,7 @@ import {
 } from '@/components/ui/dialog';
 import { useUser } from '@/contexts/UserContext';
 import logoDameldato from '/logo nombre.png';
-import { MapPin, Phone, Mail, Edit, Wrench, Building2, MessageSquare, Trash2, Upload, X, FileText, Download, AlertCircle, Eye, Plus, Star, Users, Briefcase } from 'lucide-react';
+import { MapPin, Phone, Mail, Edit, Wrench, Building2, MessageSquare, Trash2, X, FileText, Download, AlertCircle, Eye, Plus, Star, Users, Briefcase } from 'lucide-react';
 import { postsAPI, servicesAPI, authAPI } from '@/lib/api';
 import { toast } from 'sonner';
 import {
@@ -73,9 +73,6 @@ const Profile = () => {
   const [editName, setEditName] = useState('');
   const [editPhone, setEditPhone] = useState('');
   const [editComuna, setEditComuna] = useState('');
-  const [selectedImage, setSelectedImage] = useState<File | null>(null);
-  const [imagePreview, setImagePreview] = useState<string | null>(null);
-  const [isUploading, setIsUploading] = useState(false);
   const [isUpdating, setIsUpdating] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   /* CV code removido */
@@ -290,71 +287,10 @@ const Profile = () => {
       setEditComuna(user.comuna);
       // @ts-ignore
       setEditRegion(user.region_id || '');
-      setImagePreview(user.profile_image || null);
-      setSelectedImage(null);
       setIsEditDialogOpen(true);
     }
   };
 
-  const handleImageSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      // Validar tipo de archivo
-      if (!file.type.startsWith('image/')) {
-        toast.error('Por favor selecciona un archivo de imagen');
-        return;
-      }
-      // Validar tamaño (máximo 5MB)
-      if (file.size > 5 * 1024 * 1024) {
-        toast.error('La imagen no debe superar los 5MB');
-        return;
-      }
-      setSelectedImage(file);
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setImagePreview(reader.result as string);
-      };
-      reader.readAsDataURL(file);
-    }
-  };
-
-  const handleRemoveImage = () => {
-    setSelectedImage(null);
-    setImagePreview(user?.profile_image || null);
-    if (fileInputRef.current) {
-      fileInputRef.current.value = '';
-    }
-  };
-
-  const handleUploadImage = async (): Promise<{ url: string; public_id: string } | null> => {
-    if (!selectedImage) return null;
-
-    try {
-      setIsUploading(true);
-      const formData = new FormData();
-      formData.append('image', selectedImage);
-
-      const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000';
-      const response = await fetch(`${API_BASE_URL}/api/upload`, {
-        method: 'POST',
-        credentials: 'include',
-        body: formData,
-      });
-
-      if (!response.ok) {
-        throw new Error('Error al subir la imagen');
-      }
-
-      const data = await response.json();
-      return { url: data.url, public_id: data.public_id };
-    } catch (error: any) {
-      console.error('Error uploading image:', error);
-      toast.error(error.message || 'Error al subir la imagen');
-      return null;
-    } finally {
-      setIsUploading(false);
-    }
-  };
 
   const handleUpdateProfile = async () => {
     if (!user) return;
@@ -362,29 +298,12 @@ const Profile = () => {
     try {
       setIsUpdating(true);
 
-      // Subir imagen si hay una nueva
-      let imageUrl = user.profile_image || null;
-      let imagePublicId = null;
-      if (selectedImage) {
-        const uploadResult = await handleUploadImage();
-        if (uploadResult) {
-          imageUrl = uploadResult.url;
-          imagePublicId = uploadResult.public_id;
-        } else {
-          // Si falla la subida, cancelar la actualización
-          setIsUpdating(false);
-          return;
-        }
-      }
-
       // Actualizar perfil
       const updateData: {
         name?: string;
         phone?: string;
         comuna?: string;
         region_id?: string;
-        profile_image?: string | null;
-        profile_image_public_id?: string | null;
       } = {};
 
       if (editName !== user.name) {
@@ -423,12 +342,6 @@ const Profile = () => {
         updateData.region_id = editRegion;
       }
 
-      if (imageUrl !== user.profile_image) {
-        updateData.profile_image = imageUrl;
-        if (imagePublicId) {
-          updateData.profile_image_public_id = imagePublicId;
-        }
-      }
 
       // Si no hay cambios, cerrar el diálogo
       if (Object.keys(updateData).length === 0) {
@@ -903,53 +816,11 @@ const Profile = () => {
             <DialogHeader>
               <DialogTitle>Editar Perfil</DialogTitle>
               <DialogDescription>
-                Actualiza tu información personal y foto de perfil
+                Actualiza tu información personal
               </DialogDescription>
             </DialogHeader>
 
             <div className="space-y-4 py-4">
-              {/* Avatar y subida de imagen */}
-              <div className="flex flex-col items-center gap-4">
-                <Avatar className="w-24 h-24">
-                  {imagePreview && (
-                    <AvatarImage src={imagePreview} alt="Preview" />
-                  )}
-                  <AvatarFallback className="text-3xl font-heading bg-primary text-white">
-                    {editName.split(' ').map(n => n[0]).join('')}
-                  </AvatarFallback>
-                </Avatar>
-                <div className="flex gap-2">
-                  <Button
-                    type="button"
-                    variant="outline"
-                    size="sm"
-                    onClick={() => fileInputRef.current?.click()}
-                    disabled={isUploading || isUpdating}
-                  >
-                    <Upload size={16} className="mr-2" />
-                    {selectedImage ? 'Cambiar Imagen' : 'Subir Imagen'}
-                  </Button>
-                  {imagePreview && (
-                    <Button
-                      type="button"
-                      variant="outline"
-                      size="sm"
-                      onClick={handleRemoveImage}
-                      disabled={isUploading || isUpdating}
-                    >
-                      <X size={16} className="mr-2" />
-                      Eliminar
-                    </Button>
-                  )}
-                </div>
-                <input
-                  ref={fileInputRef}
-                  type="file"
-                  accept="image/*"
-                  onChange={handleImageSelect}
-                  className="hidden"
-                />
-              </div>
 
               {/* Campos del formulario */}
               <div className="space-y-4">
@@ -959,7 +830,7 @@ const Profile = () => {
                     id="edit-name"
                     value={editName}
                     onChange={(e) => setEditName(e.target.value)}
-                    disabled={isUpdating || isUploading}
+                    disabled={isUpdating}
                   />
                 </div>
                 <div>
@@ -968,7 +839,7 @@ const Profile = () => {
                     id="edit-phone"
                     value={editPhone}
                     onChange={(e) => setEditPhone(e.target.value)}
-                    disabled={isUpdating || isUploading}
+                    disabled={isUpdating}
                   />
                 </div>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -977,7 +848,7 @@ const Profile = () => {
                     <Select value={editRegion} onValueChange={(val) => {
                       setEditRegion(val);
                       setEditComuna('');
-                    }} disabled={isUpdating || isUploading}>
+                    }} disabled={isUpdating}>
                       <SelectTrigger id="edit-region">
                         <SelectValue placeholder="Selecciona Región" />
                       </SelectTrigger>
@@ -990,7 +861,7 @@ const Profile = () => {
                   </div>
                   <div>
                     <Label htmlFor="edit-comuna">Comuna</Label>
-                    <Select value={editComuna} onValueChange={setEditComuna} disabled={!editRegion || isUpdating || isUploading}>
+                    <Select value={editComuna} onValueChange={setEditComuna} disabled={!editRegion || isUpdating}>
                       <SelectTrigger id="edit-comuna">
                         <SelectValue placeholder="Selecciona Comuna" />
                       </SelectTrigger>
@@ -1009,15 +880,15 @@ const Profile = () => {
               <Button
                 variant="outline"
                 onClick={() => setIsEditDialogOpen(false)}
-                disabled={isUpdating || isUploading}
+                disabled={isUpdating}
               >
                 Cancelar
               </Button>
               <Button
                 onClick={handleUpdateProfile}
-                disabled={isUpdating || isUploading}
+                disabled={isUpdating}
               >
-                {isUpdating || isUploading ? 'Guardando...' : 'Guardar Cambios'}
+                {isUpdating ? 'Guardando...' : 'Guardar Cambios'}
               </Button>
             </DialogFooter>
           </DialogContent>

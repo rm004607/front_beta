@@ -88,12 +88,21 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
       if (urlToken) {
         localStorage.setItem('token', urlToken);
 
-        // Limpiar parámetros de la URL para mayor seguridad y estética
+        const isGoogleLogin = urlParams.get('google_login') === 'true';
+
+        // Limpiar parámetros de la URL
         const url = new URL(window.location.href);
         url.searchParams.delete('token');
         url.searchParams.delete('google_login');
         url.searchParams.delete('status');
         window.history.replaceState({}, '', url.pathname + url.search);
+
+        // Si es un login de Google, forzamos ir a /registro para asegurar la selección de rol
+        // excepto si ya estamos en /registro
+        if (isGoogleLogin && window.location.pathname !== '/registro') {
+          window.location.href = `/registro?token=${urlToken}`;
+          return;
+        }
       }
 
       await loadUser();
