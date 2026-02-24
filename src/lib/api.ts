@@ -189,8 +189,11 @@ export const authAPI = {
     comuna?: string;
     profile_image?: string | null;
     cv_url?: string | null;
-    cv_text?: string | null;
-    cv_analysis?: any | null;
+    role_number?: number;
+    rubro?: string;
+    experience?: string;
+    service?: string;
+    portfolio?: string;
   }) => {
     return request<{
       message: string;

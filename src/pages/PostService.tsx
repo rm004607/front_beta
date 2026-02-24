@@ -36,8 +36,6 @@ const PostService = () => {
   const navigate = useNavigate();
   const [service, setService] = useState('');
   const [description, setDescription] = useState('');
-  const [minPrice, setMinPrice] = useState('');
-  const [maxPrice, setMaxPrice] = useState('');
   const [comuna, setComuna] = useState(user?.comuna || ''); // Comuna base
   const [baseRegion, setBaseRegion] = useState('');
   const [phone, setPhone] = useState(user?.phone || '');
@@ -168,14 +166,11 @@ const PostService = () => {
 
     setIsSubmitting(true);
     try {
-      const priceRangeString = minPrice && maxPrice ? `${minPrice} - ${maxPrice}` : minPrice || maxPrice || '';
-
       const response = await servicesAPI.createService({
         // @ts-ignore - Backend expects service_type_ids and custom_service_name
         service_type_ids: selectedServiceTypeIds,
         custom_service_name: customServiceName ? sanitizeInput(customServiceName, 100) : undefined,
         description: sanitizeInput(description, 2000),
-        price_range: priceRangeString ? sanitizeInput(priceRangeString, 100) : undefined,
         comuna: sanitizeInput(comuna, 50),
         phone: phone ? sanitizeInput(phone, 20) : undefined,
         region_id: baseRegion,
@@ -506,31 +501,6 @@ const PostService = () => {
                 />
               </div>
 
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <Label htmlFor="minPrice">{t('post_service.min_price')}</Label>
-                  <Input
-                    id="minPrice"
-                    type="number"
-                    value={minPrice}
-                    onChange={(e) => setMinPrice(e.target.value)}
-                    placeholder="min"
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="maxPrice">{t('post_service.max_price')}</Label>
-                  <Input
-                    id="maxPrice"
-                    type="number"
-                    value={maxPrice}
-                    onChange={(e) => setMaxPrice(e.target.value)}
-                    placeholder="max"
-                  />
-                </div>
-                <p className="col-span-2 text-xs text-muted-foreground">
-                  {t('post_service.price_desc')}
-                </p>
-              </div>
 
               <div>
                 <Label htmlFor="phone">{t('post_service.phone_label')}</Label>

@@ -80,12 +80,14 @@ const Register = () => {
   const [experience, setExperience] = useState('');
   const [service, setService] = useState('');
   const [portfolio, setPortfolio] = useState('');
-  const [minPrice, setMinPrice] = useState('');
-  const [maxPrice, setMaxPrice] = useState('');
-  const [companyRut, setCompanyRut] = useState('');
-  const [companyAddress, setCompanyAddress] = useState('');
-  const [companyRubro, setCompanyRubro] = useState('');
-  const [hrContact, setHrContact] = useState('');
+
+  // Detect Google redirect
+  useEffect(() => {
+    const urlToken = searchParams.get('token');
+    if (urlToken) {
+      setStep(2); // Go directly to role selection
+    }
+  }, [searchParams]);
 
   const selectRole = (role: UserRole) => {
     setSelectedRole(role);
@@ -106,12 +108,16 @@ const Register = () => {
 
   const handleNext = () => {
     if (step === 1) {
-      if (!name || !rut || !email || !password || !phone) {
+      if (!name || !rut || !email || !password || !phone || !comuna || !selectedRegion) {
         toast.error('Por favor completa todos los campos requeridos');
         return;
       }
 
-      // Validaciones de seguridad
+      if (!isValidEmail(email)) {
+        toast.error('Por favor ingresa un email válido y real');
+        return;
+      }
+
       if (!isValidName(name)) {
         toast.error(getValidationErrorMessage('name', containsSQLInjection(name) ? 'sql' : 'format'));
         return;
@@ -127,30 +133,20 @@ const Register = () => {
         return;
       }
 
-      if (!isValidComuna(comuna)) {
-        toast.error(getValidationErrorMessage('comuna', containsSQLInjection(comuna) ? 'sql' : 'format'));
-        return;
-      }
-
-      if (!selectedRegion) {
-        toast.error('Por favor selecciona una región');
-        return;
-      }
-
       if (!acceptTerms) {
         toast.error('Debes aceptar los Términos y Condiciones');
         return;
       }
 
-      // Guardar datos temporalmente si necesita pasar a móvil
+      // Guardar datos temporalmente
       localStorage.setItem('reg_name', name);
       localStorage.setItem('reg_rut', rut);
       localStorage.setItem('reg_email', email);
       localStorage.setItem('reg_phone', phone);
       localStorage.setItem('reg_comuna', comuna);
+
+      setStep(2); // Go to role selection
     }
-    // Si viene del paso 1, saltamos el 2 (KYC) y vamos al 4 (datos específicos)
-    setStep(4);
   };
 
   // Validar formato de email real
@@ -230,35 +226,39 @@ const Register = () => {
 
     setIsSubmitting(true);
     try {
-      const priceRangeString = minPrice && maxPrice ? `${minPrice} - ${maxPrice}` : minPrice || maxPrice || '';
-
-      // Sanitizar inputs antes de enviar (capa adicional de seguridad)
-      const sanitizedData = {
+      // Sanitizar inputs antes de enviar
+      const data = {
         name: sanitizeInput(name, 100),
         rut: sanitizeInput(rut.replace(/[^0-9kK]/g, ''), 12),
         email: email.trim().toLowerCase(),
         password,
         phone: sanitizeInput(phone, 20),
         comuna: sanitizeInput(comuna, 50),
+        region_id: selectedRegion,
         rol: roleToNumber(selectedRole),
-        // @ts-ignore - Agregando datos opcionales
-        rubro: sanitizeInput(rubro || '', 100),
-        experience: sanitizeInput(experience || '', 2000),
-        service: sanitizeInput(service || '', 100),
-        portfolio: sanitizeInput(portfolio || '', 2000),
-        priceRange: sanitizeInput(priceRangeString, 100),
+        role_number: roleToNumber(selectedRole),
+        // @ts-ignore
+        rubro: selectedRole === 'entrepreneur' ? sanitizeInput(rubro || '', 100) : undefined,
+        experience: selectedRole === 'entrepreneur' ? sanitizeInput(experience || '', 2000) : undefined,
+        service: selectedRole === 'entrepreneur' ? sanitizeInput(service || '', 100) : undefined,
+        portfolio: selectedRole === 'entrepreneur' ? sanitizeInput(portfolio || '', 2000) : undefined,
       };
 
-      // Registrar usuario directamente (sin verificación de código)
-      await authAPI.register(sanitizedData);
+      const isGoogleCompletion = !!searchParams.get('token');
 
-      // Hacer login automático después del registro
-      await authAPI.login({ email: sanitizedData.email, password });
+      if (isGoogleCompletion) {
+        // Si viene de Google, ya está logueado pero completamos perfil
+        await authAPI.updateProfile(data);
+      } else {
+        // Registro normal
+        await authAPI.register(data);
+        await authAPI.login({ email: data.email, password });
+      }
 
       // Cargar usuario
       await loadUser();
 
-      toast.success('¡Registro exitoso! Bienvenido a Dameldato');
+      toast.success('¡Registro completado exitosamente!');
       navigate('/');
     } catch (error) {
       toast.error(error instanceof Error ? error.message : 'Error al registrar usuario');
@@ -427,171 +427,138 @@ const Register = () => {
                     </div>
                   </div>
 
-                  <div className="pt-4 border-t space-y-4">
-                    <p className="text-center text-sm font-medium text-muted-foreground">Para continuar, selecciona tu perfil:</p>
-                    <div className="flex flex-col items-center gap-3 sm:gap-4">
-                      <Button
-                        type="button"
-                        onClick={() => {
-                          selectRole('job-seeker');
-                          handleNext();
-                        }}
-                        className="w-full max-w-sm h-12 sm:h-14 text-base sm:text-lg font-bold bg-primary hover:bg-primary/90 shadow-lg shadow-primary/20"
-                      >
-                        🏠 Soy Vecino
-                      </Button>
-                      <Button
-                        type="button"
-                        onClick={() => {
-                          selectRole('entrepreneur');
-                          handleNext();
-                        }}
-                        className="w-full max-w-sm h-12 sm:h-14 text-base sm:text-lg font-bold bg-secondary hover:bg-secondary/90 shadow-lg shadow-secondary/20"
-                      >
-                        🛠️ Soy Emprendedor
-                      </Button>
-                    </div>
+                  <div className="pt-6">
+                    <Button onClick={handleNext} className="w-full font-bold text-lg h-12">
+                      Siguiente
+                      <ArrowRight className="ml-2" size={18} />
+                    </Button>
+                  </div>
 
-                    <div className="relative py-4">
-                      <div className="absolute inset-0 flex items-center">
-                        <span className="w-full border-t border-white/10" />
-                      </div>
-                      <div className="relative flex justify-center text-xs uppercase">
-                        <span className="bg-background px-2 text-muted-foreground font-semibold">O regístrate con</span>
-                      </div>
+                  <div className="relative py-4">
+                    <div className="absolute inset-0 flex items-center">
+                      <span className="w-full border-t border-white/10" />
                     </div>
-
-                    <div className="flex flex-col sm:flex-row gap-3 justify-center">
-                      <Button
-                        variant="outline"
-                        type="button"
-                        className="flex-1 h-12 rounded-xl border-white/10 hover:bg-white/5 font-bold flex items-center justify-center gap-3 transition-all active:scale-[0.98]"
-                        onClick={() => authAPI.googleLogin('1')}
-                      >
-                        <svg className="h-5 w-5" viewBox="0 0 24 24">
-                          <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4" />
-                          <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-1 .67-2.28 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853" />
-                          <path d="M5.84 14.1c-.22-.66-.35-1.36-.35-2.1s.13-1.44.35-2.1V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l3.66-2.84z" fill="#FBBC05" />
-                          <path d="M12 5.38c1.62 0 3.06.56 4.21 1.66l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z" fill="#EA4335" />
-                        </svg>
-                        Google (Vecino)
-                      </Button>
-                      <Button
-                        variant="outline"
-                        type="button"
-                        className="flex-1 h-12 rounded-xl border-white/10 hover:bg-white/5 font-bold flex items-center justify-center gap-3 transition-all active:scale-[0.98]"
-                        onClick={() => authAPI.googleLogin('2')}
-                      >
-                        <svg className="h-5 w-5" viewBox="0 0 24 24">
-                          <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4" />
-                          <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-1 .67-2.28 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853" />
-                          <path d="M5.84 14.1c-.22-.66-.35-1.36-.35-2.1s.13-1.44.35-2.1V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l3.66-2.84z" fill="#FBBC05" />
-                          <path d="M12 5.38c1.62 0 3.06.56 4.21 1.66l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z" fill="#EA4335" />
-                        </svg>
-                        Google (Emprendedor)
-                      </Button>
+                    <div className="relative flex justify-center text-xs uppercase">
+                      <span className="bg-background px-2 text-muted-foreground font-semibold">O regístrate con</span>
                     </div>
                   </div>
-                </div>
 
+                  <Button
+                    variant="outline"
+                    type="button"
+                    className="w-full h-12 rounded-xl border-white/10 hover:bg-white/5 font-bold flex items-center justify-center gap-3 transition-all active:scale-[0.98]"
+                    onClick={() => authAPI.googleLogin()}
+                  >
+                    <svg className="h-5 w-5" viewBox="0 0 24 24">
+                      <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4" />
+                      <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-1 .67-2.28 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853" />
+                      <path d="M5.84 14.1c-.22-.66-.35-1.36-.35-2.1s.13-1.44.35-2.1V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l3.66-2.84z" fill="#FBBC05" />
+                      <path d="M12 5.38c1.62 0 3.06.56 4.21 1.66l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z" fill="#EA4335" />
+                    </svg>
+                    Google
+                  </Button>
+                </div>
               </div>
             )}
 
-            {/* KYC removido temporalmente */}
-            {/* step === 2 && (
-            <KYCVerification
-              email={email}
-              onComplete={() => {
-                setIsKycVerified(true);
-                localStorage.setItem('reg_kyc_done', 'true');
-                setStep(4); // Saltar el antiguo paso 3
-              }}
-              onBack={() => setStep(1)}
-            />
-          ) */}
+            {step === 2 && (
+              <div className="space-y-6 animate-in fade-in slide-in-from-right-4 duration-500">
+                <div className="text-center space-y-2">
+                  <h3 className="text-xl font-bold font-heading">¿Cómo quieres usar Dameldato?</h3>
+                  <p className="text-muted-foreground">Selecciona tu perfil principal para continuar</p>
+                </div>
 
+                <div className="flex flex-col items-center gap-4">
+                  <Button
+                    type="button"
+                    onClick={() => {
+                      setSelectedRole('job-seeker');
+                      // No pide datos, así que enviamos directo
+                      setTimeout(() => handleSubmit(), 100);
+                    }}
+                    className="w-full max-w-md h-20 text-xl font-bold bg-primary hover:bg-primary/90 shadow-lg shadow-primary/20 flex items-center justify-between px-8"
+                  >
+                    <span className="flex flex-col items-start">
+                      <span>🏠 Soy Vecino</span>
+                      <span className="text-xs font-normal opacity-80">Busco datos y servicios</span>
+                    </span>
+                    <ArrowRight size={24} />
+                  </Button>
 
-            {step === 4 && (
-              <div className="space-y-6">
-                {selectedRole === 'job-seeker' && (
-                  <div className="space-y-4 p-4 border-2 border-primary/30 rounded-xl">
-                    <h3 className="font-heading font-semibold text-lg">Datos como Vecino</h3>
-                    <div>
-                      <Label htmlFor="rubro">Rubro / Área</Label>
-                      <Input
-                        id="rubro"
-                        value={rubro}
-                        onChange={(e) => setRubro(e.target.value)}
-                        placeholder="Ej: Construcción, Ventas, Tecnología"
-                      />
-                    </div>
-                    <div>
-                      <Label htmlFor="experience">Experiencia</Label>
-                      <Textarea
-                        id="experience"
-                        value={experience}
-                        onChange={(e) => setExperience(e.target.value)}
-                        placeholder="Describe brevemente tu experiencia laboral"
-                        rows={3}
-                      />
-                    </div>
+                  <Button
+                    type="button"
+                    onClick={() => {
+                      setSelectedRole('entrepreneur');
+                      setStep(3);
+                    }}
+                    className="w-full max-w-md h-20 text-xl font-bold bg-secondary hover:bg-secondary/90 shadow-lg shadow-secondary/20 flex items-center justify-between px-8"
+                  >
+                    <span className="flex flex-col items-start">
+                      <span>🛠️ Soy Emprendedor</span>
+                      <span className="text-xs font-normal opacity-80">Ofrezco mis servicios</span>
+                    </span>
+                    <ArrowRight size={24} />
+                  </Button>
+                </div>
+
+                <Button variant="ghost" onClick={() => setStep(1)} className="w-full">
+                  <ArrowLeft className="mr-2" size={18} />
+                  Volver al formulario
+                </Button>
+              </div>
+            )}
+
+            {step === 3 && selectedRole === 'entrepreneur' && (
+              <div className="space-y-6 animate-in fade-in slide-in-from-right-4 duration-500">
+                <div className="space-y-4 p-5 border-2 border-secondary/30 rounded-2xl bg-secondary/5">
+                  <div className="flex items-center gap-2 mb-2">
+                    <div className="w-8 h-8 rounded-full bg-secondary flex items-center justify-center text-white">3</div>
+                    <h3 className="font-heading font-bold text-xl">Tu Perfil de Emprendedor</h3>
                   </div>
-                )}
 
-                {selectedRole === 'entrepreneur' && (
-                  <div className="space-y-4 p-4 border-2 border-secondary/30 rounded-xl">
-                    <h3 className="font-heading font-semibold text-lg">Datos como Emprendedor</h3>
-                    <div>
-                      <Label htmlFor="service">Servicio que Ofreces</Label>
-                      <Input
-                        id="service"
-                        value={service}
-                        onChange={(e) => setService(e.target.value)}
-                        placeholder="Ej: Gasfitería, Peluquería, Diseño Web"
-                      />
-                    </div>
-                    <div>
-                      <Label htmlFor="portfolio">Descripción / Portafolio</Label>
-                      <Textarea
-                        id="portfolio"
-                        value={portfolio}
-                        onChange={(e) => setPortfolio(e.target.value)}
-                        placeholder="Describe tu servicio y experiencia"
-                        rows={3}
-                      />
-                    </div>
-                    <div className="grid grid-cols-2 gap-4">
-                      <div>
-                        <Label htmlFor="minPrice">Precio Mínimo</Label>
-                        <Input
-                          id="minPrice"
-                          type="number"
-                          value={minPrice}
-                          onChange={(e) => setMinPrice(e.target.value)}
-                          placeholder="min"
-                        />
-                      </div>
-                      <div>
-                        <Label htmlFor="maxPrice">Precio Máximo</Label>
-                        <Input
-                          id="maxPrice"
-                          type="number"
-                          value={maxPrice}
-                          onChange={(e) => setMaxPrice(e.target.value)}
-                          placeholder="max"
-                        />
-                      </div>
-                    </div>
+                  <div>
+                    <Label htmlFor="service" className="text-sm font-semibold">¿Qué servicio ofreces? *</Label>
+                    <Input
+                      id="service"
+                      value={service}
+                      onChange={(e) => setService(e.target.value)}
+                      placeholder="Ej: Gasfitería, Peluquería, Clases Particulares"
+                      className="mt-1"
+                      required
+                    />
                   </div>
-                )}
 
-                <div className="flex gap-3 pt-6 border-t">
-                  <Button variant="outline" onClick={() => setStep(1)} className="flex-1">
+                  <div>
+                    <Label htmlFor="rubro" className="text-sm font-semibold">Rubro / Categoría</Label>
+                    <Input
+                      id="rubro"
+                      value={rubro}
+                      onChange={(e) => setRubro(e.target.value)}
+                      placeholder="Ej: Construcción, Estética, Educación"
+                      className="mt-1"
+                    />
+                  </div>
+
+                  <div>
+                    <Label htmlFor="portfolio" className="text-sm font-semibold">Descripción de tu trabajo</Label>
+                    <Textarea
+                      id="portfolio"
+                      value={portfolio}
+                      onChange={(e) => setPortfolio(e.target.value)}
+                      placeholder="Cuéntanos un poco sobre lo que haces y tu experiencia"
+                      rows={4}
+                      className="mt-1"
+                    />
+                  </div>
+                </div>
+
+                <div className="flex gap-4 pt-4">
+                  <Button variant="outline" onClick={() => setStep(2)} className="flex-1 h-12">
                     <ArrowLeft className="mr-2" size={18} />
                     Atrás
                   </Button>
-                  <Button onClick={handleSubmit} className="flex-1 font-bold text-lg h-12" disabled={isSubmitting}>
-                    {isSubmitting ? 'Registrando...' : 'Completar Registro'}
+                  <Button onClick={handleSubmit} className="flex-[2] font-bold text-lg h-12 bg-secondary hover:bg-secondary/90 shadow-lg shadow-secondary/20" disabled={isSubmitting}>
+                    {isSubmitting ? 'Registrando...' : 'Finalizar Registro'}
                   </Button>
                 </div>
               </div>
