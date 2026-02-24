@@ -26,6 +26,10 @@ import {
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { postsAPI, authAPI, flowAPI, configAPI } from '@/lib/api';
+import { chileData } from '@/lib/chile-data';
+import { ScrollArea } from '@/components/ui/scroll-area';
+import { Checkbox } from '@/components/ui/checkbox';
+import { X } from 'lucide-react';
 
 interface Post {
   id: string;
@@ -113,17 +117,23 @@ const Wall = () => {
     loadConfig();
   }, []);
 
-  // Auto-seleccionar comuna del usuario
-  useEffect(() => {
-    if (isLoggedIn && user?.comuna && !postComuna) {
-      setPostComuna(user.comuna);
-    }
-  }, [isLoggedIn, user, postComuna]);
+  // Estados para ubicación
+  const [postRegion, setPostRegion] = useState('');
+  const [postComunas, setPostComunas] = useState<string[]>([]);
+  const [isLocationDialogOpen, setIsLocationDialogOpen] = useState(false);
 
   // Cargar posts
   useEffect(() => {
     loadPosts();
   }, [filterType, filterComuna]);
+
+  // Auto-seleccionar comuna del usuario
+  useEffect(() => {
+    if (isLoggedIn && user?.comuna && postComunas.length === 0) {
+      setPostComunas([user.comuna]);
+      if (user.region_id) setPostRegion(user.region_id);
+    }
+  }, [isLoggedIn, user]);
 
   const loadPosts = async () => {
     try {
@@ -143,7 +153,8 @@ const Wall = () => {
   };
 
   const handleSubmitPost = async () => {
-    if (!postContent.trim() || !postComuna.trim()) {
+    const finalComunas = postComunas.join(', ');
+    if (!postContent.trim() || postComunas.length === 0) {
       toast.error(t('wall.fields_required'));
       return;
     }
@@ -153,11 +164,11 @@ const Wall = () => {
       await postsAPI.createPost({
         type: postType as 'Busco Servicio' | 'Ofrezco' | 'Info',
         content: postContent.trim(),
-        comuna: postComuna.trim(),
+        comuna: finalComunas,
       });
       toast.success(t('wall.post_created'));
       setPostContent('');
-      setPostComuna('');
+      // No limpiar ubicación para facilitar múltiples posts en la misma zona
       loadPosts(); // Recargar posts
     } catch (error: any) {
       console.error('Error creating post:', error);
@@ -487,14 +498,97 @@ const Wall = () => {
                     </SelectContent>
                   </Select>
                 </div>
-                <div>
-                  <Label htmlFor="comuna">{t('wall.comuna')}</Label>
-                  <Input
-                    id="comuna"
-                    value={postComuna}
-                    onChange={(e) => setPostComuna(e.target.value)}
-                    placeholder={t('wall.comuna_placeholder') || "Tu comuna"}
-                  />
+                <div className="flex flex-col gap-2">
+                  <Label>{t('wall.comuna')}</Label>
+                  <Dialog open={isLocationDialogOpen} onOpenChange={setIsLocationDialogOpen}>
+                    <DialogTrigger asChild>
+                      <Button variant="outline" className="w-full justify-start text-left font-normal h-12 rounded-xl border-primary/20 bg-muted/5">
+                        <MapPin className="mr-2 h-4 w-4 text-primary" />
+                        {postComunas.length > 0 ? (
+                          <div className="flex flex-wrap gap-1 overflow-hidden max-h-6">
+                            {postComunas.map(c => (
+                              <Badge key={c} variant="secondary" className="text-[10px] py-0">{c}</Badge>
+                            ))}
+                          </div>
+                        ) : (
+                          <span className="text-muted-foreground">{t('services.comuna_placeholder')}</span>
+                        )}
+                      </Button>
+                    </DialogTrigger>
+                    <DialogContent className="sm:max-w-[425px]">
+                      <DialogHeader>
+                        <DialogTitle>Selecciona Comunas</DialogTitle>
+                      </DialogHeader>
+                      <div className="space-y-4 py-4">
+                        <div className="space-y-2">
+                          <Label>Región</Label>
+                          <Select value={postRegion} onValueChange={(val) => {
+                            setPostRegion(val);
+                            // No limpiamos comunas para permitir selección multiregión si se desea, 
+                            // pero el scroll se actualiza solo para la región seleccionada
+                          }}>
+                            <SelectTrigger>
+                              <SelectValue placeholder="Selecciona una región..." />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {chileData.map((reg) => (
+                                <SelectItem key={reg.id} value={reg.id}>{reg.name}</SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                        </div>
+
+                        {postRegion && (
+                          <div className="space-y-2">
+                            <Label>Comunas en esta región</Label>
+                            <ScrollArea className="h-48 border rounded-md p-2 bg-background">
+                              <div className="grid grid-cols-2 gap-2">
+                                {chileData.find(r => r.id === postRegion)?.communes.map((c) => (
+                                  <div key={c} className="flex items-center space-x-2">
+                                    <Checkbox
+                                      id={`post-cov-${c}`}
+                                      checked={postComunas.includes(c)}
+                                      onCheckedChange={(checked) => {
+                                        if (checked) {
+                                          setPostComunas([...postComunas, c]);
+                                        } else {
+                                          setPostComunas(postComunas.filter(item => item !== c));
+                                        }
+                                      }}
+                                    />
+                                    <label htmlFor={`post-cov-${c}`} className="text-sm cursor-pointer truncate">{c}</label>
+                                  </div>
+                                ))}
+                              </div>
+                            </ScrollArea>
+                          </div>
+                        )}
+
+                        {postComunas.length > 0 && (
+                          <div className="pt-2">
+                            <Label className="text-xs mb-2 block">Seleccionadas ({postComunas.length}):</Label>
+                            <div className="flex flex-wrap gap-1">
+                              {postComunas.map(c => (
+                                <Badge key={c} variant="secondary" className="pl-2 pr-1 h-6 flex items-center gap-1">
+                                  {c}
+                                  <button
+                                    type="button"
+                                    onClick={() => setPostComunas(postComunas.filter(item => item !== c))}
+                                    className="bg-muted-foreground/20 rounded-full p-0.5 hover:bg-muted-foreground/40"
+                                  >
+                                    <X size={10} />
+                                  </button>
+                                </Badge>
+                              ))}
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                      <div className="flex justify-end">
+                        <Button onClick={() => setIsLocationDialogOpen(false)}>Cerrar</Button>
+                      </div>
+                    </DialogContent>
+                  </Dialog>
                 </div>
               </div>
               <div>
@@ -522,24 +616,40 @@ const Wall = () => {
         )}
 
         {/* Filtros */}
-        <div className="mb-6 flex gap-4">
-          <Select value={filterType} onValueChange={setFilterType}>
-            <SelectTrigger className="w-40">
-              <SelectValue placeholder={t('wall.filter_type')} />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">{t('wall.all')}</SelectItem>
-              <SelectItem value="Busco Servicio">{t('wall.type_busco_servicio')}</SelectItem>
-              <SelectItem value="Ofrezco">{t('wall.type_ofrezco')}</SelectItem>
-              <SelectItem value="Info">{t('wall.type_info')}</SelectItem>
-            </SelectContent>
-          </Select>
-          <Input
-            placeholder={t('wall.filter_comuna')}
-            value={filterComuna}
-            onChange={(e) => setFilterComuna(e.target.value)}
-            className="flex-1"
-          />
+        <div className="mb-6 flex flex-col md:flex-row gap-4 items-end">
+          <div className="w-full md:w-40 flex flex-col gap-1">
+            <Label className="text-xs text-muted-foreground">{t('wall.filter_type')}</Label>
+            <Select value={filterType} onValueChange={setFilterType}>
+              <SelectTrigger>
+                <SelectValue placeholder={t('wall.filter_type')} />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">{t('wall.all')}</SelectItem>
+                <SelectItem value="Busco Servicio">{t('wall.type_busco_servicio')}</SelectItem>
+                <SelectItem value="Ofrezco">{t('wall.type_ofrezco')}</SelectItem>
+                <SelectItem value="Info">{t('wall.type_info')}</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+          <div className="flex-1 w-full flex flex-col gap-1">
+            <Label className="text-xs text-muted-foreground">{t('wall.filter_comuna')}</Label>
+            <Select value={filterComuna} onValueChange={setFilterComuna}>
+              <SelectTrigger>
+                <SelectValue placeholder={t('wall.filter_comuna')} />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">{t('services.all_comunas')}</SelectItem>
+                {/* 
+                  Aquí podríamos listar todas las comunas, 
+                  pero como son muchas, vamos a permitir que el usuario mantenga 
+                  el valor si lo seleccionó en su perfil o dejarlo como "Todas"
+                */}
+                {chileData.flatMap(r => r.communes).sort().map(c => (
+                  <SelectItem key={c} value={c}>{c}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
         </div>
 
         {/* Posts Feed */}

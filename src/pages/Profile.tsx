@@ -569,32 +569,6 @@ const Profile = () => {
           </CardHeader>
         </Card>
 
-        {/* Role-specific information */}
-        {
-          user.roles.includes('job-seeker') && (
-            <Card className="mb-6 border-2">
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Briefcase className="text-primary" />
-                  Información Laboral
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-3">
-                {user.rubro && (
-                  <div>
-                    <span className="font-semibold">Rubro:</span> {user.rubro}
-                  </div>
-                )}
-                {user.experience && (
-                  <div>
-                    <span className="font-semibold">Experiencia:</span>
-                    <p className="text-muted-foreground mt-1">{user.experience}</p>
-                  </div>
-                )}
-              </CardContent>
-            </Card>
-          )
-        }
 
         {/* Sección de CV removida */}
 
