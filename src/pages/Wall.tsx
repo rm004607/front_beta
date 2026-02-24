@@ -654,17 +654,17 @@ const Wall = () => {
 
         {/* Posts Feed */}
         {loading ? (
-          <div className="text-center py-12 glass-card rounded-2xl border-white/5">
+          <div className="text-center py-12 glass-card rounded-2xl border-border/50 shadow-sm">
             <p className="text-muted-foreground animate-pulse">{t('wall.loading')}</p>
           </div>
         ) : posts.length === 0 ? (
-          <div className="text-center py-12 glass-card rounded-2xl border-white/5">
+          <div className="text-center py-12 glass-card rounded-2xl border-border/50 shadow-sm">
             <p className="text-muted-foreground">{t('wall.empty')}</p>
           </div>
         ) : (
           <div className="space-y-6">
             {posts.map((post) => (
-              <Card key={post.id} className="glass-card border-white/5 hover:border-primary/30 transition-all duration-300 hover:shadow-2xl hover:shadow-primary/5">
+              <Card key={post.id} className="glass-card border-border/50 shadow-sm hover:border-primary/30 transition-all duration-300 hover:shadow-2xl hover:shadow-primary/5">
                 <CardHeader>
                   <div className="flex items-start justify-between">
                     <div className="flex flex-col sm:flex-row sm:items-start gap-3 flex-1 min-w-0">
@@ -1027,7 +1027,7 @@ const Wall = () => {
                 <DialogTitle className="text-2xl font-bold text-gray-800">{t('services.contact_whatsapp')}</DialogTitle>
               </CardHeader>
               <CardContent className="space-y-6 p-6">
-                <div className="bg-blue-50 border border-blue-100 rounded-xl p-4 text-center">
+                <div className="bg-blue-50 border border-border shadow-md0 rounded-xl p-4 text-center">
                   <p className="text-blue-800 font-medium mb-1">{t('services.premium_service')}</p>
                   <div className="text-3xl font-black text-blue-900">
                     {new Intl.NumberFormat(i18n.language === 'en' ? 'en-US' : 'es-CL', { style: 'currency', currency: 'CLP' }).format(whatsappPrice)}

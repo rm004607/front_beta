@@ -8,12 +8,10 @@ All colors MUST be HSL.
 
 @layer base {
   :root {
-    /* ===== New Palette: Neighborhood/Community Theme ===== */
+    /* ===== Google-like Clean Theme ===== */
     /* Base */
-    --background: 210 40% 98%;
-    /* Soft blue-gray white */
-    --foreground: 224 71% 4%;
-    /* Near black */
+    --background: 0 0% 100%; /* Pure White */
+    --foreground: 224 71% 4%; /* Near black */
 
     /* Surfaces */
     --card: 0 0% 100%;
@@ -21,28 +19,25 @@ All colors MUST be HSL.
     --popover: 0 0% 100%;
     --popover-foreground: var(--foreground);
 
-    /* Brand: Indigo / Teal / Rose */
-    --primary: 239 84% 67%;
-    /* Vibrant Indigo #7C3AEDish but slightly softer */
-    --primary-foreground: 210 40% 98%;
+    /* Brand: Indigo / Teal / Rose (Cleaner versions) */
+    --primary: 231 90% 55%; /* Blueish Indigo #1a73e8 (Google Blue) */
+    --primary-foreground: 0 0% 100%;
 
-    --secondary: 173 80% 40%;
-    /* Professional Teal #14B8A6ish */
-    --secondary-foreground: 210 40% 98%;
+    --secondary: 161 100% 35%; /* Professional Teal/Green */
+    --secondary-foreground: 0 0% 100%;
 
     /* Accents & States */
     --muted: 210 40% 96%;
     --muted-foreground: 215 16% 47%;
 
     --accent: 346 84% 61%;
-    /* Rose/Watermelon #F43F5Eish for "wow" CTAs */
-    --accent-foreground: 210 40% 98%;
+    --accent-foreground: 0 0% 100%;
 
     --destructive: 0 84% 60%;
-    --destructive-foreground: 210 40% 98%;
+    --destructive-foreground: 0 0% 100%;
 
     --success: 142 71% 45%;
-    --success-foreground: 210 40% 98%;
+    --success-foreground: 0 0% 100%;
 
     /* Lines & rings */
     --border: 214 32% 91%;
@@ -50,59 +45,26 @@ All colors MUST be HSL.
     --ring: var(--primary);
 
     --radius: 0.75rem;
-    /* Smoother corners */
 
     /* Sidebar */
-    --sidebar-background: var(--background);
+    --sidebar-background: 210 40% 98%;
     --sidebar-foreground: var(--foreground);
     --sidebar-primary: var(--primary);
     --sidebar-primary-foreground: var(--primary-foreground);
-    --sidebar-accent: var(--secondary);
-    --sidebar-accent-foreground: var(--secondary-foreground);
+    --sidebar-accent: 210 40% 94%;
+    --sidebar-accent-foreground: var(--primary);
     --sidebar-border: var(--border);
     --sidebar-ring: var(--primary);
   }
 
   .dark {
-    /* ===== Dark Theme: Deep Space Community ===== */
+    /* We keep dark variables but prioritize light aesthetics */
     --background: 224 71% 4%;
     --foreground: 210 40% 98%;
-
     --card: 224 71% 6%;
-    --card-foreground: var(--foreground);
-
-    --popover: 224 71% 6%;
-    --popover-foreground: var(--foreground);
-
-    --primary: 239 84% 67%;
-    --primary-foreground: 224 71% 4%;
-
-    --secondary: 173 80% 50%;
-    --secondary-foreground: 224 71% 4%;
-
-    --muted: 224 71% 10%;
-    --muted-foreground: 215 20% 65%;
-
-    --accent: 346 84% 61%;
-    --accent-foreground: 224 71% 4%;
-
-    --destructive: 0 62% 30%;
-    --destructive-foreground: 210 40% 98%;
-    --success: 142 71% 45%;
-    --success-foreground: 210 40% 98%;
-
     --border: 217 19% 27%;
     --input: 217 19% 27%;
-    --ring: var(--primary);
-
-    --sidebar-background: 224 71% 4%;
-    --sidebar-foreground: var(--foreground);
-    --sidebar-primary: var(--primary);
-    --sidebar-primary-foreground: var(--primary-foreground);
-    --sidebar-accent: 224 71% 12%;
-    --sidebar-accent-foreground: var(--foreground);
-    --sidebar-border: 217 19% 27%;
-    --sidebar-ring: var(--primary);
+    --primary: 231 90% 65%;
   }
 }
 
@@ -201,7 +163,7 @@ All colors MUST be HSL.
   }
 
   .glass-card {
-    @apply bg-card/60 backdrop-blur-xl border border-white/10 dark:border-white/5 shadow-2xl;
+    @apply bg-white/70 backdrop-blur-xl border border-gray-200/50 shadow-xl;
   }
 
   .text-glow {

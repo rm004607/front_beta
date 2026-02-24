@@ -74,10 +74,10 @@ const Home = () => {
     <div className="min-h-screen bg-mesh">
       {/* Hero Section */}
       <section className="relative py-20 md:py-32 overflow-hidden">
-        {/* Animated Background Elements */}
+        {/* Animated Background Elements - More subtle for Light Mode */}
         <div className="absolute inset-0 overflow-hidden pointer-events-none">
-          <div className="absolute top-[-10%] left-[-10%] w-[60%] h-[60%] md:w-[40%] md:h-[40%] bg-primary/10 blur-[80px] md:blur-[120px] rounded-full animate-pulse-subtle"></div>
-          <div className="absolute bottom-[-10%] right-[-10%] w-[60%] h-[60%] md:w-[40%] md:h-[40%] bg-secondary/10 blur-[80px] md:blur-[120px] rounded-full animate-pulse-subtle" style={{ animationDelay: '1s' }}></div>
+          <div className="absolute top-[-10%] left-[-10%] w-[60%] h-[60%] md:w-[40%] md:h-[40%] bg-primary/[0.03] blur-[80px] md:blur-[120px] rounded-full animate-pulse-subtle"></div>
+          <div className="absolute bottom-[-10%] right-[-10%] w-[60%] h-[60%] md:w-[40%] md:h-[40%] bg-secondary/[0.03] blur-[80px] md:blur-[120px] rounded-full animate-pulse-subtle" style={{ animationDelay: '1s' }}></div>
         </div>
 
         <div className="container mx-auto px-4 relative z-10">
@@ -89,7 +89,7 @@ const Home = () => {
                 <img
                   src={logoFull}
                   alt="Dameldato"
-                  className="h-32 sm:h-48 lg:h-64 w-auto object-contain animate-reveal drop-shadow-2xl"
+                  className="h-32 sm:h-48 lg:h-64 w-auto object-contain animate-reveal drop-shadow-lg"
                 />
               </div>
 
@@ -134,14 +134,14 @@ const Home = () => {
             {/* Right Content - Visual */}
             <div className="flex-1 relative animate-reveal delay-500">
               <div className="relative z-10 w-full max-w-[650px] mx-auto">
-                <div className="relative aspect-square rounded-[3rem] bg-gradient-to-br from-primary/20 to-secondary/20 p-1 animate-float">
-                  <div className="absolute inset-0 bg-mesh opacity-50 rounded-[3rem]"></div>
+                <div className="relative aspect-square rounded-[3rem] bg-gradient-to-br from-primary/5 to-secondary/5 p-1 animate-float">
+                  <div className="absolute inset-0 bg-mesh opacity-20 rounded-[3rem]"></div>
                   <div className="w-full h-full glass-card rounded-[3rem] flex items-center justify-center p-8 overflow-hidden group border-none">
-                    <div className="absolute inset-0 bg-gradient-to-tr from-transparent via-white/10 to-transparent translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-1000"></div>
+                    <div className="absolute inset-0 bg-gradient-to-tr from-transparent via-white/5 to-transparent translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-1000"></div>
                     <img
                       src="https://images.unsplash.com/photo-1582213782179-e0d53f98f2ca?q=80&w=2070&auto=format&fit=crop"
                       alt="Dameldato Comunidad"
-                      className="w-full h-full object-cover drop-shadow-2xl scale-110 group-hover:scale-125 transition-transform duration-700"
+                      className="w-full h-full object-cover drop-shadow-xl scale-110 group-hover:scale-125 transition-transform duration-700"
                     />
                   </div>
                 </div>

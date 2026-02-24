@@ -91,7 +91,7 @@ const Layout = ({ children }: LayoutProps) => {
                         <Button
                           variant="outline"
                           size="icon"
-                          className="border-primary/50 text-primary hover:bg-primary/10 hover:border-primary hover:text-primary-foreground dark:border-primary/50 dark:text-primary dark:hover:bg-primary/20 dark:hover:border-primary dark:hover:text-primary-foreground transition-colors"
+                          className="border-primary/50 text-primary hover:bg-primary/5 hover:border-primary/30 transition-colors shadow-sm"
                         >
                           <Shield size={18} className="text-primary dark:text-primary" />
                         </Button>
