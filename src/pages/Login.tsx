@@ -36,10 +36,9 @@ const Login = () => {
       return;
     }
 
-    // Validar formato de email
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(email)) {
-      toast.error('Por favor ingresa un email válido');
+    // Validar formato de email o usuario (permitir 'admin', 'superadmin' etc)
+    if (email.includes(' ') || email.length < 3) {
+      toast.error('Por favor ingresa un email o usuario válido');
       return;
     }
 
@@ -117,13 +116,13 @@ const Login = () => {
 
             <form onSubmit={handleSubmit} className="space-y-6">
               <div>
-                <Label htmlFor="email">Email</Label>
+                <Label htmlFor="email">Email o Usuario</Label>
                 <Input
                   id="email"
-                  type="email"
+                  type="text"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  placeholder="tu@email.com"
+                  placeholder="tu@email.com o usuario admin"
                   required
                   disabled={isSubmitting}
                 />
