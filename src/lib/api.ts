@@ -383,7 +383,7 @@ export const servicesAPI = {
         description?: string;
         icon?: string;
       }>;
-    }>('/api/services/types', {
+    }>('/services/types', {
       method: 'GET',
     });
   },
@@ -668,27 +668,27 @@ export const adminAPI = {
         is_active: boolean;
         created_at: string;
       }>;
-    }>('/admin/services/types', {
+    }>('/admin/service-types', {
       method: 'GET',
     });
   },
 
   createServiceType: async (data: { name: string; description?: string; icon?: string }) => {
-    return request<{ message: string; type: any }>('/admin/services/types', {
+    return request<{ message: string; type: any }>('/admin/service-types', {
       method: 'POST',
       body: JSON.stringify(data),
     });
   },
 
   updateServiceType: async (id: string, data: { name?: string; description?: string; icon?: string; is_active?: boolean }) => {
-    return request<{ message: string; type: any }>(`/admin/services/types/${id}`, {
+    return request<{ message: string; type: any }>(`/admin/service-types/${id}`, {
       method: 'PUT',
       body: JSON.stringify(data),
     });
   },
 
   deleteServiceType: async (id: string) => {
-    return request<{ message: string }>(`/admin/services/types/${id}`, {
+    return request<{ message: string }>(`/admin/service-types/${id}`, {
       method: 'DELETE',
     });
   },
@@ -705,15 +705,17 @@ export const adminAPI = {
         status: 'pending' | 'approved' | 'rejected';
         created_at: string;
       }>;
-    }>('/admin/services/suggestions', {
+    }>('/admin/service-suggestions', {
       method: 'GET',
     });
   },
 
   processServiceSuggestion: async (id: string, action: 'approve' | 'reject') => {
-    return request<{ message: string }>(`/admin/services/suggestions/${id}/process`, {
-      method: 'POST',
-      body: JSON.stringify({ action }),
+    // Mapping action to status as usually implied by PUT /admin/service-suggestions/:id
+    const status = action === 'approve' ? 'approved' : 'rejected';
+    return request<{ message: string }>(`/admin/service-suggestions/${id}`, {
+      method: 'PUT',
+      body: JSON.stringify({ status }),
     });
   },
 

@@ -290,38 +290,33 @@ const PostService = () => {
                 {loadingServiceTypes ? (
                   <p className="text-sm text-muted-foreground animate-pulse">Cargando categorías...</p>
                 ) : (
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 p-4 border rounded-xl bg-muted/20">
-                    {serviceTypes.map((type) => (
-                      <div key={type.id} className="flex items-center space-x-2">
-                        <Checkbox
-                          id={`type-${type.id}`}
-                          checked={selectedServiceTypeIds.includes(type.id)}
-                          onCheckedChange={(checked) => {
-                            if (checked) {
-                              setSelectedServiceTypeIds([...selectedServiceTypeIds, type.id]);
-                            } else {
-                              setSelectedServiceTypeIds(selectedServiceTypeIds.filter(id => id !== type.id));
-                            }
-                          }}
-                        />
-                        <label htmlFor={`type-${type.id}`} className="text-sm font-medium leading-none cursor-pointer peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
-                          {type.name}
-                        </label>
-                      </div>
-                    ))}
-                    <div className="flex items-center space-x-2">
-                      <Checkbox
-                        id="type-other"
-                        checked={!!customServiceName}
-                        onCheckedChange={(checked) => {
-                          if (!checked) setCustomServiceName('');
-                          else if (!customServiceName) setCustomServiceName(' '); // Trigger show input
-                        }}
-                      />
-                      <label htmlFor="type-other" className="text-sm font-medium leading-none cursor-pointer">
-                        Otro / No está en la lista
-                      </label>
-                    </div>
+                  <div className="space-y-4">
+                    <Select
+                      onValueChange={(value) => {
+                        if (value === 'other') {
+                          setSelectedServiceTypeIds([]);
+                          setCustomServiceName(' '); // Muestra el campo de texto
+                        } else {
+                          setSelectedServiceTypeIds([value]);
+                          setCustomServiceName('');
+                        }
+                      }}
+                      value={customServiceName ? 'other' : selectedServiceTypeIds[0] || ''}
+                    >
+                      <SelectTrigger className="w-full h-12 rounded-xl border-primary/20 bg-muted/10 focus:ring-primary">
+                        <SelectValue placeholder="Selecciona el tipo de servicio..." />
+                      </SelectTrigger>
+                      <SelectContent className="rounded-xl border-2">
+                        {serviceTypes.map((type) => (
+                          <SelectItem key={type.id} value={type.id} className="rounded-lg">
+                            {type.name}
+                          </SelectItem>
+                        ))}
+                        <SelectItem value="other" className="rounded-lg font-semibold text-primary">
+                          Otro / No está en la lista
+                        </SelectItem>
+                      </SelectContent>
+                    </Select>
                   </div>
                 )}
 
