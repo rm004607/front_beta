@@ -288,6 +288,7 @@ const Profile = () => {
     if (user) {
       setEditName(user.name);
       setEditPhone(user.phone);
+      setEditRut(formatRut(user.rut || ''));
       setEditComuna(user.comuna);
       // @ts-ignore
       setEditRegion(user.region_id || '');
@@ -306,6 +307,7 @@ const Profile = () => {
       const updateData: {
         name?: string;
         phone?: string;
+        rut?: string;
         comuna?: string;
         region_id?: string;
       } = {};
@@ -344,6 +346,18 @@ const Profile = () => {
 
       if (editRegion !== (user as any).region_id) {
         updateData.region_id = editRegion;
+      }
+
+      const cleanRut = editRut.replace(/[^0-9kK]/g, '');
+      const userRutClean = (user.rut || '').replace(/[^0-9kK]/g, '');
+
+      if (cleanRut !== userRutClean) {
+        if (editRut && !isValidRut(editRut)) {
+          toast.error('RUT no válido');
+          setIsUpdating(false);
+          return;
+        }
+        updateData.rut = editRut ? sanitizeInput(cleanRut, 12) : '';
       }
 
 
