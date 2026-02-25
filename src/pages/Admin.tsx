@@ -14,25 +14,26 @@ import {
   Users,
   Briefcase,
   MessageSquare,
-  Wrench,
-  Shield,
-  FileText,
-  Ban,
-  UserCheck,
-  UserX,
-  AlertTriangle,
-  RefreshCw,
-  X,
-  HelpCircle,
-  Send,
-  CheckCircle,
-  Loader2,
-  Crown,
-  MapPin,
-  Star,
-  List,
   Plus,
   XCircle,
+  Lightbulb,
+  ShieldCheck,
+  Sparkles,
+  Building2,
+  Truck,
+  HeartPulse,
+  Paintbrush,
+  Camera,
+  Scissors,
+  Laptop,
+  Hammer,
+  ShoppingBag,
+  Music,
+  Camera as CameraIcon,
+  ChefHat,
+  Car,
+  Home as HomeIcon,
+  Phone,
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { adminAPI, authAPI, configAPI, packagesAPI } from '@/lib/api';
@@ -1598,6 +1599,46 @@ const Admin = () => {
                     placeholder="Describe los servicios que incluye esta categoría..."
                     className="rounded-xl border-2 min-h-[120px] focus-visible:ring-primary"
                   />
+                </div>
+                <div className="space-y-3">
+                  <Label className="text-sm font-bold ml-1">Icono de la Categoría</Label>
+                  <div className="grid grid-cols-5 gap-2 p-3 border-2 rounded-xl max-h-[200px] overflow-y-auto scrollbar-thin bg-muted/30">
+                    {[
+                      { name: 'Wrench', icon: <Wrench size={20} /> },
+                      { name: 'Lightbulb', icon: <Lightbulb size={20} /> },
+                      { name: 'ShieldCheck', icon: <ShieldCheck size={20} /> },
+                      { name: 'Sparkles', icon: <Sparkles size={20} /> },
+                      { name: 'Building2', icon: <Building2 size={20} /> },
+                      { name: 'Truck', icon: <Truck size={20} /> },
+                      { name: 'HeartPulse', icon: <HeartPulse size={20} /> },
+                      { name: 'Briefcase', icon: <Briefcase size={20} /> },
+                      { name: 'Paintbrush', icon: <Paintbrush size={20} /> },
+                      { name: 'Hammer', icon: <Hammer size={20} /> },
+                      { name: 'Scissors', icon: <Scissors size={20} /> },
+                      { name: 'Camera', icon: <Camera size={20} /> },
+                      { name: 'Laptop', icon: <Laptop size={20} /> },
+                      { name: 'ShoppingBag', icon: <ShoppingBag size={20} /> },
+                      { name: 'ChefHat', icon: <ChefHat size={20} /> },
+                      { name: 'Music', icon: <Music size={20} /> },
+                      { name: 'Car', icon: <Car size={20} /> },
+                      { name: 'Home', icon: <HomeIcon size={20} /> },
+                      { name: 'Phone', icon: <Phone size={20} /> },
+                      { name: 'Plus', icon: <Plus size={20} /> },
+                    ].map((item) => (
+                      <button
+                        key={item.name}
+                        onClick={() => setTypeForm({ ...typeForm, icon: item.name })}
+                        className={`flex items-center justify-center p-2 rounded-lg transition-all duration-200 ${typeForm.icon === item.name
+                            ? 'bg-primary text-primary-foreground scale-110 shadow-md ring-2 ring-primary ring-offset-2'
+                            : 'bg-white hover:bg-primary/10 text-muted-foreground'
+                          }`}
+                        title={item.name}
+                      >
+                        {item.icon}
+                      </button>
+                    ))}
+                  </div>
+                  <p className="text-[10px] text-muted-foreground text-center italic">Este icono se mostrará en la página principal</p>
                 </div>
               </div>
               <DialogFooter className="gap-2">

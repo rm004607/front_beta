@@ -5,7 +5,9 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import {
   Briefcase, Wrench, Building2, MessageSquare, ArrowRight, MapPin,
   Calendar, DollarSign, Clock, Star, Users, ShoppingBag,
-  ChefHat, Truck, HeartPulse, Lightbulb, ShieldCheck, Sparkles
+  ChefHat, Truck, HeartPulse, Lightbulb, ShieldCheck, Sparkles,
+  Paintbrush, Camera, Scissors, Laptop, Hammer, Music,
+  Car, Home as HomeIcon, Phone
 } from 'lucide-react';
 import { useUser } from '@/contexts/UserContext';
 import { useTranslation } from 'react-i18next';
@@ -68,7 +70,32 @@ const Home = () => {
     }
   };
 
-  const getServiceIcon = (name: string) => {
+  const getServiceIcon = (name: string, iconName?: string) => {
+    // Si viene un nombre de icono desde la API, intentamos usarlo
+    if (iconName) {
+      const n = iconName;
+      if (n === 'Wrench') return <Wrench />;
+      if (n === 'Lightbulb') return <Lightbulb />;
+      if (n === 'ShieldCheck') return <ShieldCheck />;
+      if (n === 'Sparkles') return <Sparkles />;
+      if (n === 'Building2') return <Building2 />;
+      if (n === 'Truck') return <Truck />;
+      if (n === 'HeartPulse') return <HeartPulse />;
+      if (n === 'Briefcase') return <Briefcase />;
+      if (n === 'Paintbrush') return <Paintbrush />;
+      if (n === 'Hammer') return <Hammer />;
+      if (n === 'Scissors') return <Scissors />;
+      if (n === 'Camera') return <Camera />;
+      if (n === 'Laptop') return <Laptop />;
+      if (n === 'ShoppingBag') return <ShoppingBag />;
+      if (n === 'ChefHat') return <ChefHat />;
+      if (n === 'Music') return <Music />;
+      if (n === 'Car') return <Car />;
+      if (n === 'Home') return <HomeIcon />;
+      if (n === 'Phone') return <Phone />;
+    }
+
+    // Fallback: Mapeo basado en nombre (como estaba antes)
     const n = name.toLowerCase();
     if (n.includes('gasfiter') || n.includes('plomero')) return <Wrench />;
     if (n.includes('electri')) return <Lightbulb />;
@@ -238,7 +265,7 @@ const Home = () => {
                 style={{ animationDelay: `${100 * (i + 1)}ms` }}
               >
                 <div className={`${getServiceColor(type.name)} w-16 h-16 rounded-2xl flex items-center justify-center text-white mb-4 group-hover:scale-110 transition-transform shadow-lg`}>
-                  {getServiceIcon(type.name)}
+                  {getServiceIcon(type.name, type.icon)}
                 </div>
                 <h3 className="font-bold text-lg">{type.name}</h3>
               </Link>
