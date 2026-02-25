@@ -325,30 +325,44 @@ const Home = () => {
           </p>
         </div>
 
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6 max-w-7xl mx-auto">
-          {loadingTypes ? (
-            // Skeleton for categories
-            [1, 2, 3, 4, 5, 6, 7, 8].map((i) => (
-              <div key={i} className="h-40 rounded-3xl bg-muted animate-pulse"></div>
-            ))
-          ) : (
-            serviceTypes.map((type, i) => (
-              <Link
-                key={type.id}
-                to={`/servicios?type_id=${type.id}`}
-                className="group glass-card p-6 rounded-3xl hover:scale-105 transition-all duration-300 border-transparent hover:border-primary/30 animate-reveal"
-                style={{ animationDelay: `${100 * (i + 1)}ms` }}
-              >
-                <div
-                  className="w-16 h-16 rounded-2xl flex items-center justify-center text-white mb-4 group-hover:scale-110 transition-transform shadow-lg"
-                  style={{ backgroundColor: type.color || getServiceColor(type.name) }}
+        <div className="relative max-w-7xl mx-auto group">
+          {/* Left/Right Fades for smooth look */}
+          <div className="absolute left-0 top-0 bottom-0 w-24 bg-gradient-to-r from-background to-transparent z-20 pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+          <div className="absolute right-0 top-0 bottom-0 w-24 bg-gradient-to-l from-background to-transparent z-20 pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+
+          <div className="flex overflow-x-auto gap-6 pb-12 px-8 premium-scrollbar snap-x scroll-smooth">
+            {loadingTypes ? (
+              // Skeleton for categories
+              [1, 2, 3, 4, 5, 6, 7, 8].map((i) => (
+                <div key={i} className="min-w-[200px] h-44 rounded-[2.5rem] bg-muted animate-pulse shrink-0"></div>
+              ))
+            ) : (
+              serviceTypes.map((type, i) => (
+                <Link
+                  key={type.id}
+                  to={`/servicios?type_id=${type.id}`}
+                  className="group/item shrink-0 min-w-[220px] glass-card p-8 rounded-[2.5rem] hover:scale-105 transition-all duration-300 border-transparent hover:border-primary/30 animate-reveal snap-start shadow-sm hover:shadow-xl"
+                  style={{ animationDelay: `${100 * (i + 1)}ms` }}
                 >
-                  {getServiceIcon(type.name, type.icon)}
-                </div>
-                <h3 className="font-bold text-lg">{type.name}</h3>
-              </Link>
-            ))
-          )}
+                  <div
+                    className="w-16 h-16 rounded-2xl flex items-center justify-center text-white mb-6 group-hover/item:scale-110 transition-transform shadow-lg group-hover/item:rotate-6"
+                    style={{ backgroundColor: type.color || getServiceColor(type.name) }}
+                  >
+                    {getServiceIcon(type.name, type.icon)}
+                  </div>
+                  <h3 className="font-bold text-xl group-hover/item:text-primary transition-colors">{type.name}</h3>
+                  <div className="mt-2 w-8 h-1 bg-primary/20 rounded-full group-hover/item:w-16 transition-all duration-500"></div>
+                </Link>
+              ))
+            )}
+          </div>
+
+          {/* Hint for more services */}
+          <div className="flex justify-center mt-4 animate-bounce opacity-50">
+            <div className="px-4 py-1.5 bg-muted rounded-full text-[10px] font-bold uppercase tracking-widest flex items-center gap-2">
+              Desliza para ver más <ArrowRight size={12} />
+            </div>
+          </div>
         </div>
       </section>
 
