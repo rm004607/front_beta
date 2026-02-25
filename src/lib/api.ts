@@ -670,6 +670,7 @@ export const adminAPI = {
         name: string;
         description?: string;
         icon?: string;
+        color?: string;
         is_active: boolean;
         created_at: string;
       }>;
@@ -678,14 +679,14 @@ export const adminAPI = {
     });
   },
 
-  createServiceType: async (data: { name: string; description?: string; icon?: string }) => {
+  createServiceType: async (data: { name: string; description?: string; icon?: string; color?: string }) => {
     return request<{ message: string; type: any }>('/admin/service-types', {
       method: 'POST',
       body: JSON.stringify(data),
     });
   },
 
-  updateServiceType: async (id: string, data: { name?: string; description?: string; icon?: string; is_active?: boolean }) => {
+  updateServiceType: async (id: string, data: { name?: string; description?: string; icon?: string; color?: string; is_active?: boolean }) => {
     return request<{ message: string; type: any }>(`/admin/service-types/${id}`, {
       method: 'PUT',
       body: JSON.stringify(data),

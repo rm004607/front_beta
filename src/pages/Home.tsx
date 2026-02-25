@@ -28,6 +28,7 @@ interface Service {
   reviews_count?: number;
   type_name?: string;
   type_icon?: string;
+  type_color?: string;
 }
 
 const Home = () => {
@@ -381,7 +382,10 @@ const Home = () => {
                         </div>
                       </div>
                       <CardTitle className="text-2xl font-extrabold mb-2 line-clamp-1 group-hover:text-primary transition-colors flex items-center gap-2">
-                        <div className="shrink-0 p-1 bg-primary/10 rounded-lg text-primary">
+                        <div
+                          className="shrink-0 p-1.5 rounded-lg text-white shadow-sm transition-transform duration-300 group-hover:scale-110"
+                          style={{ backgroundColor: service.type_color || 'hsl(var(--primary))' }}
+                        >
                           {getServiceIcon(service.service_name || service.type_name || '', service.type_icon)}
                         </div>
                         {service.service_name}

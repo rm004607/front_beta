@@ -29,6 +29,7 @@ interface Service {
     coverage_communes?: string[];
     type_name?: string;
     type_icon?: string;
+    type_color?: string;
 }
 
 interface ServiceCardProps {
@@ -171,7 +172,10 @@ export const ServiceCard = ({
                                         </div>
                                         <div className="flex items-center gap-2 mt-1">
                                             <Badge variant="secondary">{service.service_name}</Badge>
-                                            <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-primary/10 border border-primary/20 text-primary shadow-sm animate-reveal">
+                                            <div
+                                                className="flex items-center gap-1.5 px-2.5 py-1 rounded-full border border-primary/20 text-white shadow-sm animate-reveal"
+                                                style={{ backgroundColor: service.type_color || 'hsl(var(--primary))' }}
+                                            >
                                                 {getServiceIcon(service.service_name || service.type_name || '', service.type_icon)}
                                                 <span className="text-[10px] font-bold uppercase tracking-wider">{service.type_name || 'Servicio'}</span>
                                             </div>

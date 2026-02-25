@@ -230,7 +230,7 @@ const Admin = () => {
   const [loadingSuggestions, setLoadingSuggestions] = useState(false);
   const [typeDialogOpen, setTypeDialogOpen] = useState(false);
   const [selectedType, setSelectedType] = useState<any | null>(null);
-  const [typeForm, setTypeForm] = useState({ name: '', description: '', icon: '', is_active: true });
+  const [typeForm, setTypeForm] = useState({ name: '', description: '', icon: 'Wrench', is_active: true, color: '#1a73e8' });
   const [isProcessingSuggestion, setIsProcessingSuggestion] = useState<string | null>(null);
 
   // Definir funciones antes de los hooks que las usan
@@ -1515,7 +1515,7 @@ const Admin = () => {
                   </div>
                   <Button size="sm" onClick={() => {
                     setSelectedType(null);
-                    setTypeForm({ name: '', description: '', icon: 'Wrench', is_active: true });
+                    setTypeForm({ name: '', description: '', icon: 'Wrench', is_active: true, color: '#1a73e8' });
                     setTypeDialogOpen(true);
                   }}>
                     <Plus size={16} className="mr-2" />
@@ -1536,7 +1536,11 @@ const Admin = () => {
                       {catalogTypes.map((type) => (
                         <div key={type.id} className={`flex items-center justify-between p-4 border rounded-xl bg-card hover:shadow-md transition-all duration-200 group ${!type.is_active ? 'opacity-60 grayscale-[0.5]' : ''}`}>
                           <div className="flex items-center gap-4 flex-1 min-w-0">
-                            <div key={`${type.id}-${type.icon}`} className="w-12 h-12 rounded-xl bg-primary/5 flex items-center justify-center text-primary group-hover:bg-primary/10 transition-colors">
+                            <div
+                              key={`${type.id}-${type.icon}`}
+                              className="w-12 h-12 rounded-xl flex items-center justify-center text-white transition-all duration-300"
+                              style={{ backgroundColor: type.color || '#1a73e8' }}
+                            >
                               <IconRenderer name={type.icon || 'Wrench'} size={24} />
                             </div>
                             <div className="flex-1 min-w-0 mr-4">
@@ -1550,7 +1554,13 @@ const Admin = () => {
                           <div className="flex gap-1 shrink-0">
                             <Button variant="ghost" size="icon" className="h-10 w-10 hover:bg-primary/10 hover:text-primary rounded-full transition-all group-hover:scale-110" title="Editar Categoría" onClick={() => {
                               setSelectedType(type);
-                              setTypeForm({ name: type.name, description: type.description || '', icon: type.icon || 'Wrench', is_active: type.is_active });
+                              setTypeForm({
+                                name: type.name,
+                                description: type.description || '',
+                                icon: type.icon || 'Wrench',
+                                is_active: type.is_active,
+                                color: type.color || '#1a73e8'
+                              });
                               setTypeDialogOpen(true);
                             }}>
                               <Edit size={18} />
@@ -1625,107 +1635,150 @@ const Admin = () => {
 
           {/* Dialog para Editar/Crear Tipo de Servicio */}
           <Dialog open={typeDialogOpen} onOpenChange={setTypeDialogOpen}>
-            <DialogContent className="sm:max-w-[425px] rounded-3xl border-2">
-              <DialogHeader>
-                <DialogTitle className="text-2xl font-black">{selectedType ? 'Editar Categoría' : 'Nueva Categoría'}</DialogTitle>
-                <DialogDescription className="text-base">Configura un tipo de servicio oficial para el catálogo</DialogDescription>
-              </DialogHeader>
-              <div className="space-y-6 py-6">
-                <div className="space-y-2">
-                  <Label htmlFor="type-name" className="text-sm font-bold ml-1">Nombre de la Categoría</Label>
-                  <Input
-                    id="type-name"
-                    value={typeForm.name}
-                    onChange={(e) => setTypeForm({ ...typeForm, name: e.target.value })}
-                    placeholder="Ej: Gasfitería, Electricista, Mudanzas..."
-                    className="h-12 text-lg rounded-xl border-2 focus-visible:ring-primary"
-                    autoFocus
-                  />
-                </div>
-                <div className="flex items-center justify-between p-4 bg-muted/30 rounded-2xl border-2 border-dashed border-secondary/20">
-                  <div className="space-y-0.5">
-                    <Label className="text-sm font-bold">Estado de la Categoría</Label>
-                    <p className="text-[10px] text-muted-foreground uppercase tracking-widest font-semibold">
-                      {typeForm.is_active ? '✅ Activa' : '❌ Inactiva'}
-                    </p>
+            <DialogContent className="sm:max-w-[800px] rounded-3xl border-2 p-0 overflow-hidden">
+              <div className="grid grid-cols-1 md:grid-cols-2">
+                {/* Lateral Izquierdo: Información */}
+                <div className="p-8 space-y-6 bg-muted/10 border-r border-border">
+                  <DialogHeader className="mb-2">
+                    <DialogTitle className="text-3xl font-black">{selectedType ? 'Editar Categoría' : 'Nueva'}</DialogTitle>
+                    <DialogDescription className="text-base">Datos principales y estado</DialogDescription>
+                  </DialogHeader>
+
+                  <div className="space-y-5">
+                    <div className="space-y-2">
+                      <Label htmlFor="type-name" className="text-sm font-bold ml-1">Nombre</Label>
+                      <Input
+                        id="type-name"
+                        value={typeForm.name}
+                        onChange={(e) => setTypeForm({ ...typeForm, name: e.target.value })}
+                        placeholder="Ej: Carpintería..."
+                        className="h-12 text-lg rounded-xl border-2 focus-visible:ring-primary"
+                      />
+                    </div>
+
+                    <div className="flex items-center justify-between p-4 bg-muted/30 rounded-2xl border-2 border-dashed border-secondary/20">
+                      <div className="space-y-0.5">
+                        <Label className="text-sm font-bold">Estado</Label>
+                        <p className="text-[10px] text-muted-foreground uppercase tracking-widest font-semibold">
+                          {typeForm.is_active ? '✅ Activa' : '❌ Inactiva'}
+                        </p>
+                      </div>
+                      <Switch
+                        checked={typeForm.is_active}
+                        onCheckedChange={(checked) => setTypeForm({ ...typeForm, is_active: checked })}
+                      />
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label htmlFor="type-color" className="text-sm font-bold ml-1">Color de la Categoría</Label>
+                      <div className="flex flex-wrap gap-2 p-3 bg-white border-2 rounded-xl">
+                        {[
+                          '#1a73e8', '#ea4335', '#fbbc04', '#34a853',
+                          '#8ab4f8', '#f28b82', '#fdd663', '#81c995',
+                          '#7b1fa2', '#c2185b', '#0097a7', '#5d4037',
+                          '#455a64', '#111827'
+                        ].map((c) => (
+                          <button
+                            key={c}
+                            onClick={() => setTypeForm({ ...typeForm, color: c })}
+                            className={`w-8 h-8 rounded-full border-2 transition-all ${typeForm.color === c ? 'scale-110 border-foreground ring-2 ring-primary/20' : 'border-transparent'}`}
+                            style={{ backgroundColor: c }}
+                          />
+                        ))}
+                        <input
+                          type="color"
+                          value={typeForm.color}
+                          onChange={(e) => setTypeForm({ ...typeForm, color: e.target.value })}
+                          className="w-8 h-8 rounded-full border-2 border-transparent p-0 overflow-hidden cursor-pointer"
+                        />
+                      </div>
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label htmlFor="type-desc" className="text-sm font-bold ml-1 text-muted-foreground">Descripción</Label>
+                      <Textarea
+                        id="type-desc"
+                        value={typeForm.description}
+                        onChange={(e) => setTypeForm({ ...typeForm, description: e.target.value })}
+                        placeholder="Descripción opcional..."
+                        className="rounded-xl border-2 min-h-[100px] text-sm focus-visible:ring-primary"
+                      />
+                    </div>
                   </div>
-                  <Switch
-                    checked={typeForm.is_active}
-                    onCheckedChange={(checked) => setTypeForm({ ...typeForm, is_active: checked })}
-                  />
                 </div>
-                <div className="space-y-2">
-                  <Label htmlFor="type-desc" className="text-sm font-bold ml-1">Descripción (Opcional)</Label>
-                  <Textarea
-                    id="type-desc"
-                    value={typeForm.description}
-                    onChange={(e) => setTypeForm({ ...typeForm, description: e.target.value })}
-                    placeholder="Describe los servicios que incluye esta categoría..."
-                    className="rounded-xl border-2 min-h-[120px] focus-visible:ring-primary"
-                  />
-                </div>
-                <div className="space-y-4">
+
+                {/* Lateral Derecho: Icono */}
+                <div className="p-8 space-y-6 flex flex-col h-full bg-white">
                   <div className="flex items-center justify-between">
-                    <Label className="text-sm font-bold ml-1">Icono de la Categoría</Label>
-                    <div className="flex items-center gap-2 px-3 py-1 bg-primary/5 rounded-full border border-primary/10 animate-fade-in">
+                    <Label className="text-lg font-black italic text-primary underline underline-offset-4">Selección de Icono</Label>
+                    <div className="px-3 py-1 bg-primary/5 rounded-full border border-primary/10 animate-fade-in flex items-center gap-2">
                       <span className="text-[10px] font-bold text-primary uppercase tracking-wider">Preview:</span>
                       <IconRenderer name={typeForm.icon || 'Wrench'} size={16} className="text-primary" />
                     </div>
                   </div>
 
-                  <div className="p-4 border-2 rounded-2xl bg-muted/20">
-                    <div className="flex justify-center mb-6">
-                      <div className="w-24 h-24 rounded-3xl bg-white shadow-inner flex items-center justify-center text-primary border-2 border-primary/20 group hover:border-primary/40 transition-all duration-300 transform hover:scale-105">
-                        <IconRenderer name={typeForm.icon || 'Wrench'} size={48} className="drop-shadow-sm" />
+                  <div className="flex-1 space-y-6 flex flex-col justify-center">
+                    <div className="flex justify-center">
+                      <div
+                        className="w-32 h-32 rounded-[2.5rem] shadow-2xl flex items-center justify-center text-white border-4 border-white transition-all duration-500 transform hover:rotate-12"
+                        style={{ backgroundColor: typeForm.color || '#1a73e8' }}
+                      >
+                        <IconRenderer name={typeForm.icon || 'Wrench'} size={64} className="drop-shadow-lg" />
                       </div>
                     </div>
 
-                    <div className="grid grid-cols-5 gap-2 max-h-[220px] overflow-y-auto pr-1 scrollbar-thin">
-                      {[
-                        { name: 'Wrench', icon: <Wrench size={20} /> },
-                        { name: 'Lightbulb', icon: <Lightbulb size={20} /> },
-                        { name: 'ShieldCheck', icon: <ShieldCheck size={20} /> },
-                        { name: 'Sparkles', icon: <Sparkles size={20} /> },
-                        { name: 'Building2', icon: <Building2 size={20} /> },
-                        { name: 'Truck', icon: <Truck size={20} /> },
-                        { name: 'HeartPulse', icon: <HeartPulse size={20} /> },
-                        { name: 'Briefcase', icon: <Briefcase size={20} /> },
-                        { name: 'Paintbrush', icon: <Paintbrush size={20} /> },
-                        { name: 'Hammer', icon: <Hammer size={20} /> },
-                        { name: 'Scissors', icon: <Scissors size={20} /> },
-                        { name: 'Camera', icon: <Camera size={20} /> },
-                        { name: 'Laptop', icon: <Laptop size={20} /> },
-                        { name: 'ShoppingBag', icon: <ShoppingBag size={20} /> },
-                        { name: 'ChefHat', icon: <ChefHat size={20} /> },
-                        { name: 'Music', icon: <Music size={20} /> },
-                        { name: 'Car', icon: <Car size={20} /> },
-                        { name: 'Home', icon: <HomeIcon size={20} /> },
-                        { name: 'Phone', icon: <Phone size={20} /> },
-                        { name: 'Plus', icon: <Plus size={20} /> },
-                      ].map((item) => (
-                        <button
-                          key={item.name}
-                          onClick={() => setTypeForm({ ...typeForm, icon: item.name })}
-                          className={`flex items-center justify-center p-3 rounded-xl transition-all duration-300 transform active:scale-95 ${typeForm.icon === item.name
-                            ? 'bg-primary text-primary-foreground scale-110 shadow-lg ring-2 ring-primary ring-offset-2 z-10'
-                            : 'bg-white hover:bg-primary/5 text-muted-foreground hover:text-primary border border-transparent hover:border-primary/20'
-                            }`}
-                          title={item.name}
-                        >
-                          {item.icon}
-                        </button>
-                      ))}
+                    <div className="p-1 border-2 rounded-3xl bg-muted/20 flex-1 overflow-hidden flex flex-col">
+                      <div className="grid grid-cols-5 gap-2 overflow-y-auto p-4 max-h-[280px] scrollbar-thin">
+                        {[
+                          { name: 'Wrench', icon: <Wrench size={24} /> },
+                          { name: 'Lightbulb', icon: <Lightbulb size={24} /> },
+                          { name: 'ShieldCheck', icon: <ShieldCheck size={24} /> },
+                          { name: 'Sparkles', icon: <Sparkles size={24} /> },
+                          { name: 'Building2', icon: <Building2 size={24} /> },
+                          { name: 'Truck', icon: <Truck size={24} /> },
+                          { name: 'HeartPulse', icon: <HeartPulse size={24} /> },
+                          { name: 'Briefcase', icon: <Briefcase size={24} /> },
+                          { name: 'Paintbrush', icon: <Paintbrush size={24} /> },
+                          { name: 'Hammer', icon: <Hammer size={24} /> },
+                          { name: 'Scissors', icon: <Scissors size={24} /> },
+                          { name: 'Camera', icon: <Camera size={24} /> },
+                          { name: 'Laptop', icon: <Laptop size={24} /> },
+                          { name: 'ShoppingBag', icon: <ShoppingBag size={24} /> },
+                          { name: 'ChefHat', icon: <ChefHat size={24} /> },
+                          { name: 'Music', icon: <Music size={24} /> },
+                          { name: 'Car', icon: <Car size={24} /> },
+                          { name: 'Home', icon: <HomeIcon size={24} /> },
+                          { name: 'Phone', icon: <Phone size={24} /> },
+                          { name: 'Plus', icon: <Plus size={24} /> },
+                        ].map((item) => (
+                          <button
+                            key={item.name}
+                            onClick={() => setTypeForm({ ...typeForm, icon: item.name })}
+                            className={`flex items-center justify-center p-4 rounded-2xl transition-all duration-300 transform active:scale-90 ${typeForm.icon === item.name
+                              ? 'bg-primary text-primary-foreground scale-110 shadow-xl ring-2 ring-primary ring-offset-4 z-10'
+                              : 'bg-white hover:bg-primary/5 text-muted-foreground hover:text-primary border-2 border-transparent hover:border-primary/20'
+                              }`}
+                            title={item.name}
+                          >
+                            {item.icon}
+                          </button>
+                        ))}
+                      </div>
                     </div>
                   </div>
-                  <p className="text-[11px] text-muted-foreground text-center animate-pulse">Selecciona un icono de la biblioteca para esta categoría</p>
+
+                  <div className="flex justify-end gap-3 pt-4 border-t">
+                    <Button variant="ghost" className="rounded-xl h-11" onClick={() => setTypeDialogOpen(false)}>Cancelar</Button>
+                    <Button
+                      className="rounded-xl h-11 px-8 font-black shadow-lg shadow-primary/25 hover:shadow-primary/40 transition-all duration-300 transform active:scale-95"
+                      onClick={handleSaveServiceType}
+                      disabled={!typeForm.name.trim()}
+                    >
+                      {selectedType ? 'Guardar Cambios' : 'Crear'}
+                    </Button>
+                  </div>
                 </div>
               </div>
-              <DialogFooter className="gap-2">
-                <Button variant="ghost" className="rounded-xl h-11" onClick={() => setTypeDialogOpen(false)}>Cancelar</Button>
-                <Button className="rounded-xl h-11 px-8 font-bold" onClick={handleSaveServiceType} disabled={!typeForm.name.trim()}>
-                  {selectedType ? 'Guardar Cambios' : 'Crear Categoría'}
-                </Button>
-              </DialogFooter>
             </DialogContent>
           </Dialog>
 
