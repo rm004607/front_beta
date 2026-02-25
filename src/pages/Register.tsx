@@ -39,6 +39,7 @@ const Register = () => {
   });
   const [isKycVerified, setIsKycVerified] = useState(true);
   const [isGoogleVerified, setIsGoogleVerified] = useState(false);
+  const hasPrefilled = useRef(false);
 
 
   // Step 1: Basic data
@@ -59,32 +60,42 @@ const Register = () => {
   // Persistir datos si viene de QR o Google
   useEffect(() => {
     // Si ya hay un usuario cargado (ej. por token de Google), pre-poblar campos
-    if (user) {
-      if (user.name && !name) setName(user.name);
-      if (user.email && !email) setEmail(user.email);
-      if (user.phone && !phone) setPhone(user.phone);
-      if (user.rut && !rut) setRut(formatRut(user.rut));
-      if (user.comuna && !comuna) setComuna(user.comuna);
-      if (user.region_id && !selectedRegion) setSelectedRegion(user.region_id);
+    // Solo lo hacemos una vez para permitir al usuario borrar los campos si lo desea
+    if (user && !hasPrefilled.current) {
+      if (user.name) setName(user.name);
+      if (user.email) setEmail(user.email);
+      if (user.phone) setPhone(user.phone);
+      if (user.rut) setRut(formatRut(user.rut));
+      if (user.comuna) setComuna(user.comuna);
+      if (user.region_id) setSelectedRegion(user.region_id);
+      hasPrefilled.current = true;
     }
 
     const emailParam = searchParams.get('email');
-    if (emailParam) {
+    if (emailParam && !email) {
       setEmail(emailParam);
       localStorage.setItem('reg_email', emailParam);
     }
 
-    const savedName = localStorage.getItem('reg_name');
-    if (savedName && !name) setName(savedName);
-    const savedRut = localStorage.getItem('reg_rut');
-    if (savedRut && !rut) setRut(savedRut);
-    const savedEmail = localStorage.getItem('reg_email');
-    if (savedEmail && !email) setEmail(savedEmail);
-    const savedPhone = localStorage.getItem('reg_phone');
-    if (savedPhone && !phone) setPhone(savedPhone);
-    const savedComuna = localStorage.getItem('reg_comuna');
-    if (savedComuna && !comuna) setComuna(savedComuna);
-  }, [searchParams, name, rut, email, phone, comuna]);
+    // Del mismo modo para localStorage, solo si están vacíos al inicio
+    if (!hasPrefilled.current) {
+      const savedName = localStorage.getItem('reg_name');
+      if (savedName && !name) setName(savedName);
+      const savedRut = localStorage.getItem('reg_rut');
+      if (savedRut && !rut) setRut(savedRut);
+      const savedEmail = localStorage.getItem('reg_email');
+      if (savedEmail && !email) setEmail(savedEmail);
+      const savedPhone = localStorage.getItem('reg_phone');
+      if (savedPhone && !phone) setPhone(savedPhone);
+      const savedComuna = localStorage.getItem('reg_comuna');
+      if (savedComuna && !comuna) setComuna(savedComuna);
+
+      // Si cargamos algo de localStorage, también marcamos como prefilled
+      if (savedName || savedRut || savedEmail || savedPhone || savedComuna) {
+        hasPrefilled.current = true;
+      }
+    }
+  }, [user, searchParams]); // Reducimos dependencias para evitar bucles de reset
 
   // Step 3: Role-specific data
   const [rubro, setRubro] = useState('');
