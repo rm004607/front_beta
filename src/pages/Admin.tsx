@@ -874,7 +874,12 @@ const Admin = () => {
     try {
       setLoadingConfig(true);
       const response = await configAPI.getAdminConfig();
-      setAdminConfig(response.config);
+      // Standarize keys to uppercase for frontend logic
+      const standardizedConfig = response.config.map((c: any) => ({
+        ...c,
+        key: c.key.toUpperCase()
+      }));
+      setAdminConfig(standardizedConfig);
     } catch (error: any) {
       console.error('Error loading config:', error);
       toast.error('Error al cargar configuración');
@@ -1979,38 +1984,47 @@ const Admin = () => {
                       <div className="text-center py-4">Cargando configuración...</div>
                     ) : (
                       <div className="space-y-4">
-                        {adminConfig.map((config) => (
-                          <div key={config.key} className="flex flex-col sm:flex-row items-center justify-between p-5 glass-card border-white/5 bg-white/5 hover:bg-white/10 transition-all duration-300 gap-4">
-                            <div>
-                              <p className={`font-black text-xl transition-all duration-300 ${config.key === 'PRICING_ENABLED' && config.value !== 'true' ? 'text-primary animate-pulse' : 'text-white'}`}>
-                                {config.key === 'PRICING_ENABLED' ? 'MODO TODO GRATUITO' : config.description}
-                              </p>
+                        {adminConfig
+                          .filter(config => ['WHATSAPP_CONTACT_PRICE', 'PRICING_ENABLED'].includes(config.key))
+                          .map((config) => (
+                            <div key={config.key} className="flex flex-col sm:flex-row items-center justify-between p-6 border rounded-2xl bg-white shadow-sm border-gray-100 hover:shadow-md transition-all duration-300 gap-4 mb-4">
+                              <div className="flex-1">
+                                <p className={`font-black text-xl transition-all duration-300 ${config.key === 'PRICING_ENABLED' && config.value !== 'true' ? 'text-primary animate-pulse' : 'text-slate-900'}`}>
+                                  {config.key === 'PRICING_ENABLED'
+                                    ? 'MODO TODO GRATUITO'
+                                    : (config.key === 'WHATSAPP_CONTACT_PRICE' ? 'Precio Mensaje WhatsApp' : config.description || config.key)}
+                                </p>
+                                <p className="text-xs text-muted-foreground mt-1">
+                                  {config.key === 'PRICING_ENABLED'
+                                    ? 'Activa para desactivar todos los pagos en el sistema.'
+                                    : 'Costo por cada contacto directo a través del muro o servicios.'}
+                                </p>
+                              </div>
+                              <div className="flex items-center gap-6">
+                                {config.key === 'PRICING_ENABLED' ? (
+                                  <div className="flex items-center gap-3">
+                                    <span className={`text-sm font-medium ${config.value === 'true' ? 'text-primary' : 'text-slate-500'}`}>
+                                      {config.key === 'PRICING_ENABLED' ? (config.value === 'true' ? 'MODO PAGO ACTIVADO' : 'MODO TODO GRATUITO ACTIVADO') : 'Activado'}
+                                    </span>
+                                    <Switch
+                                      checked={config.value === 'true'}
+                                      onCheckedChange={handleTogglePricing}
+                                    />
+                                  </div>
+                                ) : (
+                                  <>
+                                    <span className="text-2xl font-black text-primary drop-shadow-sm">
+                                      {parseInt(config.value) ? new Intl.NumberFormat('es-CL', { style: 'currency', currency: 'CLP' }).format(parseInt(config.value)) : config.value}
+                                    </span>
+                                    <Button variant="outline" size="sm" onClick={() => openEditConfig(config)} className="glass-card hover:border-primary/50 transition-colors">
+                                      <Wrench size={14} className="mr-2" />
+                                      Editar
+                                    </Button>
+                                  </>
+                                )}
+                              </div>
                             </div>
-                            <div className="flex items-center gap-6">
-                              {config.key === 'PRICING_ENABLED' ? (
-                                <div className="flex items-center gap-3">
-                                  <span className={`text-sm font-medium ${config.value === 'true' ? 'text-primary' : 'text-muted-foreground'}`}>
-                                    {config.key === 'PRICING_ENABLED' ? (config.value === 'true' ? 'Activado' : 'MODO TODO GRATUITO ACTIVADO') : 'Activado'}
-                                  </span>
-                                  <Switch
-                                    checked={config.value === 'true'}
-                                    onCheckedChange={handleTogglePricing}
-                                  />
-                                </div>
-                              ) : (
-                                <>
-                                  <span className="text-2xl font-black text-primary text-glow drop-shadow-[0_0_10px_rgba(var(--primary),0.3)]">
-                                    {parseInt(config.value) ? new Intl.NumberFormat('es-CL', { style: 'currency', currency: 'CLP' }).format(parseInt(config.value)) : config.value}
-                                  </span>
-                                  <Button variant="outline" size="sm" onClick={() => openEditConfig(config)} className="glass-card hover:border-primary/50 transition-colors">
-                                    <Wrench size={14} className="mr-2" />
-                                    Editar
-                                  </Button>
-                                </>
-                              )}
-                            </div>
-                          </div>
-                        ))}
+                          ))}
                       </div>
                     )}
                   </CardContent>
