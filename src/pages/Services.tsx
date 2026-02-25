@@ -165,8 +165,8 @@ const Services = () => {
       return;
     }
 
-    // Si pricing está desactivado, contactar gratis
-    if (!pricingEnabled) {
+    // Si pricing está desactivado o el precio es 0, contactar gratis
+    if (!pricingEnabled || whatsappPrice === 0) {
       const cleanPhone = service.phone.replace(/\D/g, '');
       const message = `Hola, te contacto por tu servicio "${service.service_name}" en Dameldato.`;
       window.open(`https://wa.me/${cleanPhone}?text=${encodeURIComponent(message)}`, '_blank');

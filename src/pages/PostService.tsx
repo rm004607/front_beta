@@ -117,9 +117,18 @@ const PostService = () => {
         // Si pricing está desactivado, siempre permitir publicar gratis
         setCanPublish(true);
       } else if (limits.services.requires_payment) {
-        // Si requiere pago, mostrar modal y no permitir publicar
-        setCanPublish(false);
-        setPackagesModalOpen(true);
+        // Verificar si hay paquetes gratuitos disponibles
+        const pkgResponse = await packagesAPI.getServicePackages();
+        const hasFreePackage = pkgResponse.packages.some((p: any) => p.price === 0);
+
+        if (hasFreePackage) {
+          // Si hay paquetes gratis, permitir publicar (simula infinito)
+          setCanPublish(true);
+        } else {
+          // Si requiere pago y no hay paquetes gratis, mostrar modal
+          setCanPublish(false);
+          setPackagesModalOpen(true);
+        }
       } else {
         // Si tiene publicaciones gratis disponibles, permitir publicar
         setCanPublish(true);

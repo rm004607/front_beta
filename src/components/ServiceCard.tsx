@@ -185,12 +185,14 @@ export const ServiceCard = ({
                             <div className="flex items-center gap-1.5 bg-yellow-500/10 px-2.5 py-1 rounded-full border border-yellow-500/20 shadow-sm shrink-0">
                                 <Star className="w-4 h-4 fill-yellow-500 text-yellow-500" />
                                 <span className="text-sm font-bold text-yellow-500">
-                                    {service.average_rating ? Number(service.average_rating).toFixed(1) : '0.0'}
+                                    {(service.average_rating && Number(service.average_rating) > 0) ? Number(service.average_rating).toFixed(1) : '5.0'}
                                 </span>
                             </div>
                         </div>
                         <div className="flex flex-wrap items-center gap-2">
-                            <Badge variant="secondary" className="truncate max-w-[150px]">{service.service_name}</Badge>
+                            {service.service_name && service.service_name.trim() !== '' && service.service_name.trim() !== '.' && (
+                                <Badge variant="secondary" className="truncate max-w-[150px]">{service.service_name}</Badge>
+                            )}
                             {isSuperAdmin && (
                                 <div className="flex gap-1">
                                     <Button
@@ -217,7 +219,9 @@ export const ServiceCard = ({
             </CardHeader>
             <CardContent>
                 <div className="relative mb-4 overflow-hidden">
-                    <p className="text-sm text-muted-foreground line-clamp-2 break-words">{service.description}</p>
+                    <p className="text-sm text-muted-foreground line-clamp-2 break-words italic">
+                        {(!service.description || service.description.trim() === '' || service.description.trim() === '.') ? 'Sin descripción disponible.' : service.description}
+                    </p>
                     <Dialog>
                         <DialogTrigger asChild>
                             <button className="text-sm text-primary font-medium hover:underline mt-1 focus:outline-none flex items-center">
@@ -241,18 +245,20 @@ export const ServiceCard = ({
                                             <div className="flex items-center gap-1.5 bg-yellow-500/10 px-2.5 py-1 rounded-full border border-yellow-500/20 shadow-sm">
                                                 <Star className="w-4 h-4 fill-yellow-500 text-yellow-500" />
                                                 <span className="text-sm font-bold text-yellow-500">
-                                                    {service.average_rating ? Number(service.average_rating).toFixed(1) : '0.0'}
+                                                    {(service.average_rating && Number(service.average_rating) > 0) ? Number(service.average_rating).toFixed(1) : '5.0'}
                                                 </span>
                                             </div>
                                         </div>
                                         <div className="flex items-center gap-2 mt-1">
-                                            <Badge variant="secondary">{service.service_name}</Badge>
+                                            {service.service_name && service.service_name.trim() !== '' && service.service_name.trim() !== '.' && (
+                                                <Badge variant="secondary">{service.service_name}</Badge>
+                                            )}
                                             <div
                                                 className="flex items-center gap-1.5 px-2.5 py-1 rounded-full border border-primary/20 text-white shadow-sm animate-reveal"
                                                 style={{ backgroundColor: service.type_color || getServiceColor(service.type_name || '') }}
                                             >
                                                 {getServiceIcon(service.service_name || service.type_name || '', service.type_icon)}
-                                                <span className="text-[10px] font-bold uppercase tracking-wider">{service.type_name || 'Servicio'}</span>
+                                                <span className="text-[10px] font-bold uppercase tracking-wider">{service.type_name?.trim() ? service.type_name : 'Servicio'}</span>
                                             </div>
                                         </div>
                                     </div>
@@ -261,7 +267,9 @@ export const ServiceCard = ({
                             <div className="space-y-5">
                                 <div>
                                     <h4 className="font-semibold mb-1.5 text-sm uppercase tracking-wider text-muted-foreground">Descripción del servicio</h4>
-                                    <p className="text-sm text-foreground whitespace-pre-wrap leading-relaxed">{service.description}</p>
+                                    <p className="text-sm text-foreground whitespace-pre-wrap leading-relaxed">
+                                        {(!service.description || service.description.trim() === '' || service.description.trim() === '.') ? 'Este prestador no ha proporcionado una descripción detallada aún.' : service.description}
+                                    </p>
                                 </div>
                                 <div className="space-y-4">
                                     <div className="flex items-center gap-3 bg-muted/30 p-3 rounded-lg">
@@ -274,8 +282,8 @@ export const ServiceCard = ({
                                     <div className="space-y-2">
                                         <Label className="text-[10px] uppercase tracking-wider text-muted-foreground font-bold">Lugares disponibles / Desplazamiento:</Label>
                                         <div className="flex flex-wrap gap-2">
-                                            {service.coverage_communes && service.coverage_communes.length > 0 ? (
-                                                service.coverage_communes.map((c) => (
+                                            {service.coverage_communes && service.coverage_communes.filter(c => c && c.trim()).length > 0 ? (
+                                                service.coverage_communes.filter(c => c && c.trim()).map((c) => (
                                                     <Badge key={c} variant="outline" className="text-xs py-0.5 px-3 border-primary/20 text-primary bg-primary/5">
                                                         {c}
                                                     </Badge>
@@ -336,7 +344,7 @@ export const ServiceCard = ({
                             <div className="flex items-center gap-1 text-xs text-muted-foreground bg-muted/30 px-2 py-1 rounded-md">
                                 <Star className="w-3 h-3 fill-yellow-500 text-yellow-500" />
                                 <span className="font-bold text-yellow-500">
-                                    {service.average_rating ? Number(service.average_rating).toFixed(1) : '0.0'}
+                                    {(service.average_rating && Number(service.average_rating) > 0) ? Number(service.average_rating).toFixed(1) : '5.0'}
                                 </span>
                                 <span className="text-[10px]">({service.reviews_count || 0} reseñas)</span>
                             </div>

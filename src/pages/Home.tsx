@@ -477,7 +477,7 @@ const Home = () => {
                           <p className="font-bold text-lg line-clamp-1">{service.user_name}</p>
                           <div className="flex items-center gap-1 text-sm text-muted-foreground">
                             <MapPin size={14} className="text-primary" />
-                            <span>{service.comuna}</span>
+                            <span>{(!service.comuna || service.comuna.trim() === '' || service.comuna.trim() === '.') ? 'Ubicación no especificada' : service.comuna}</span>
                           </div>
                         </div>
                       </div>
@@ -488,19 +488,19 @@ const Home = () => {
                         >
                           {getServiceIcon(service.service_name || service.type_name || '', service.type_icon)}
                         </div>
-                        {service.service_name}
+                        {(!service.service_name || service.service_name.trim() === '' || service.service_name.trim() === '.') ? 'Servicio Destacado' : service.service_name}
                       </CardTitle>
                     </CardHeader>
                     <CardContent className="p-8 pt-0 flex-1 flex flex-col">
-                      <p className="text-muted-foreground text-lg line-clamp-2 mb-6 flex-1">
-                        {service.description}
+                      <p className="text-muted-foreground text-lg line-clamp-2 mb-6 flex-1 italic">
+                        {(!service.description || service.description.trim() === '' || service.description.trim() === '.') ? 'Sin descripción disponible.' : service.description}
                       </p>
 
                       <div className="grid grid-cols-2 gap-4 pt-6 border-t border-primary/10">
                         <div className="flex items-center gap-2">
                           <Star size={18} className="fill-accent text-accent" />
                           <span className="font-bold text-lg">
-                            {service.average_rating ? Number(service.average_rating).toFixed(1) : '5.0'}
+                            {(service.average_rating && Number(service.average_rating) > 0) ? Number(service.average_rating).toFixed(1) : '5.0'}
                           </span>
                         </div>
                         <div className="flex items-center justify-end gap-1 text-xs text-muted-foreground">
