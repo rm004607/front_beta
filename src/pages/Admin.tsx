@@ -491,6 +491,32 @@ const Admin = () => {
     }
   };
 
+  const IconRenderer = ({ name, size = 16, className = "" }: { name: string, size?: number, className?: string }) => {
+    switch (name) {
+      case 'Wrench': return <Wrench size={size} className={className} />;
+      case 'Lightbulb': return <Lightbulb size={size} className={className} />;
+      case 'ShieldCheck': return <ShieldCheck size={size} className={className} />;
+      case 'Sparkles': return <Sparkles size={size} className={className} />;
+      case 'Building2': return <Building2 size={size} className={className} />;
+      case 'Truck': return <Truck size={size} className={className} />;
+      case 'HeartPulse': return <HeartPulse size={size} className={className} />;
+      case 'Briefcase': return <Briefcase size={size} className={className} />;
+      case 'Paintbrush': return <Paintbrush size={size} className={className} />;
+      case 'Hammer': return <Hammer size={size} className={className} />;
+      case 'Scissors': return <Scissors size={size} className={className} />;
+      case 'Camera': return <Camera size={size} className={className} />;
+      case 'Laptop': return <Laptop size={size} className={className} />;
+      case 'ShoppingBag': return <ShoppingBag size={size} className={className} />;
+      case 'ChefHat': return <ChefHat size={size} className={className} />;
+      case 'Music': return <Music size={size} className={className} />;
+      case 'Car': return <Car size={size} className={className} />;
+      case 'Home': return <HomeIcon size={size} className={className} />;
+      case 'Phone': return <Phone size={size} className={className} />;
+      case 'Plus': return <Plus size={size} className={className} />;
+      default: return <HelpCircle size={size} className={className} />;
+    }
+  };
+
   const handleBanUser = async () => {
     if (!selectedUser) return;
 
@@ -1490,21 +1516,33 @@ const Admin = () => {
                   ) : (
                     <div className="space-y-3 max-h-[600px] overflow-y-auto pr-2 scrollbar-thin">
                       {catalogTypes.map((type) => (
-                        <div key={type.id} className="flex items-center justify-between p-4 border rounded-xl bg-card hover:shadow-md transition-all duration-200">
-                          <div className="flex-1 min-w-0 mr-4">
-                            <p className="font-bold text-lg">{type.name}</p>
-                            {type.description && <p className="text-sm text-muted-foreground line-clamp-1">{type.description}</p>}
+                        <div key={type.id} className="flex items-center justify-between p-4 border rounded-xl bg-card hover:shadow-md transition-all duration-200 group">
+                          <div className="flex items-center gap-4 flex-1 min-w-0">
+                            <div className="w-12 h-12 rounded-xl bg-primary/5 flex items-center justify-center text-primary group-hover:bg-primary/10 transition-colors">
+                              <IconRenderer name={type.icon || 'Wrench'} size={24} />
+                            </div>
+                            <div className="flex-1 min-w-0 mr-4">
+                              <p className="font-bold text-lg">{type.name}</p>
+                              {type.description && <p className="text-sm text-muted-foreground line-clamp-1">{type.description}</p>}
+                            </div>
                           </div>
                           <div className="flex gap-1 shrink-0">
-                            <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => {
+                            <Button variant="ghost" size="icon" className="h-10 w-10 hover:bg-primary/10 hover:text-primary rounded-full transition-all group-hover:scale-110" title="Cambiar Icono" onClick={() => {
                               setSelectedType(type);
                               setTypeForm({ name: type.name, description: type.description || '', icon: type.icon || '' });
                               setTypeDialogOpen(true);
                             }}>
-                              <Wrench size={16} />
+                              <IconRenderer name={type.icon || 'Wrench'} size={18} />
                             </Button>
-                            <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive hover:text-destructive hover:bg-destructive/10" onClick={() => handleDeleteServiceType(type.id)}>
-                              <Trash2 size={16} />
+                            <Button variant="ghost" size="icon" className="h-10 w-10 hover:bg-primary/10 hover:text-primary rounded-full transition-all" onClick={() => {
+                              setSelectedType(type);
+                              setTypeForm({ name: type.name, description: type.description || '', icon: type.icon || '' });
+                              setTypeDialogOpen(true);
+                            }}>
+                              <Wrench size={18} />
+                            </Button>
+                            <Button variant="ghost" size="icon" className="h-10 w-10 text-destructive hover:text-destructive hover:bg-destructive/10 rounded-full transition-all" onClick={() => handleDeleteServiceType(type.id)}>
+                              <Trash2 size={18} />
                             </Button>
                           </div>
                         </div>
@@ -1600,45 +1638,60 @@ const Admin = () => {
                     className="rounded-xl border-2 min-h-[120px] focus-visible:ring-primary"
                   />
                 </div>
-                <div className="space-y-3">
-                  <Label className="text-sm font-bold ml-1">Icono de la Categoría</Label>
-                  <div className="grid grid-cols-5 gap-2 p-3 border-2 rounded-xl max-h-[200px] overflow-y-auto scrollbar-thin bg-muted/30">
-                    {[
-                      { name: 'Wrench', icon: <Wrench size={20} /> },
-                      { name: 'Lightbulb', icon: <Lightbulb size={20} /> },
-                      { name: 'ShieldCheck', icon: <ShieldCheck size={20} /> },
-                      { name: 'Sparkles', icon: <Sparkles size={20} /> },
-                      { name: 'Building2', icon: <Building2 size={20} /> },
-                      { name: 'Truck', icon: <Truck size={20} /> },
-                      { name: 'HeartPulse', icon: <HeartPulse size={20} /> },
-                      { name: 'Briefcase', icon: <Briefcase size={20} /> },
-                      { name: 'Paintbrush', icon: <Paintbrush size={20} /> },
-                      { name: 'Hammer', icon: <Hammer size={20} /> },
-                      { name: 'Scissors', icon: <Scissors size={20} /> },
-                      { name: 'Camera', icon: <Camera size={20} /> },
-                      { name: 'Laptop', icon: <Laptop size={20} /> },
-                      { name: 'ShoppingBag', icon: <ShoppingBag size={20} /> },
-                      { name: 'ChefHat', icon: <ChefHat size={20} /> },
-                      { name: 'Music', icon: <Music size={20} /> },
-                      { name: 'Car', icon: <Car size={20} /> },
-                      { name: 'Home', icon: <HomeIcon size={20} /> },
-                      { name: 'Phone', icon: <Phone size={20} /> },
-                      { name: 'Plus', icon: <Plus size={20} /> },
-                    ].map((item) => (
-                      <button
-                        key={item.name}
-                        onClick={() => setTypeForm({ ...typeForm, icon: item.name })}
-                        className={`flex items-center justify-center p-2 rounded-lg transition-all duration-200 ${typeForm.icon === item.name
-                            ? 'bg-primary text-primary-foreground scale-110 shadow-md ring-2 ring-primary ring-offset-2'
-                            : 'bg-white hover:bg-primary/10 text-muted-foreground'
-                          }`}
-                        title={item.name}
-                      >
-                        {item.icon}
-                      </button>
-                    ))}
+                <div className="space-y-4">
+                  <div className="flex items-center justify-between">
+                    <Label className="text-sm font-bold ml-1">Icono de la Categoría</Label>
+                    <div className="flex items-center gap-2 px-3 py-1 bg-primary/5 rounded-full border border-primary/10 animate-fade-in">
+                      <span className="text-[10px] font-bold text-primary uppercase tracking-wider">Preview:</span>
+                      <IconRenderer name={typeForm.icon || 'Wrench'} size={16} className="text-primary" />
+                    </div>
                   </div>
-                  <p className="text-[10px] text-muted-foreground text-center italic">Este icono se mostrará en la página principal</p>
+
+                  <div className="p-4 border-2 rounded-2xl bg-muted/20">
+                    <div className="flex justify-center mb-6">
+                      <div className="w-24 h-24 rounded-3xl bg-white shadow-inner flex items-center justify-center text-primary border-2 border-primary/20 group hover:border-primary/40 transition-all duration-300 transform hover:scale-105">
+                        <IconRenderer name={typeForm.icon || 'Wrench'} size={48} className="drop-shadow-sm" />
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-5 gap-2 max-h-[220px] overflow-y-auto pr-1 scrollbar-thin">
+                      {[
+                        { name: 'Wrench', icon: <Wrench size={20} /> },
+                        { name: 'Lightbulb', icon: <Lightbulb size={20} /> },
+                        { name: 'ShieldCheck', icon: <ShieldCheck size={20} /> },
+                        { name: 'Sparkles', icon: <Sparkles size={20} /> },
+                        { name: 'Building2', icon: <Building2 size={20} /> },
+                        { name: 'Truck', icon: <Truck size={20} /> },
+                        { name: 'HeartPulse', icon: <HeartPulse size={20} /> },
+                        { name: 'Briefcase', icon: <Briefcase size={20} /> },
+                        { name: 'Paintbrush', icon: <Paintbrush size={20} /> },
+                        { name: 'Hammer', icon: <Hammer size={20} /> },
+                        { name: 'Scissors', icon: <Scissors size={20} /> },
+                        { name: 'Camera', icon: <Camera size={20} /> },
+                        { name: 'Laptop', icon: <Laptop size={20} /> },
+                        { name: 'ShoppingBag', icon: <ShoppingBag size={20} /> },
+                        { name: 'ChefHat', icon: <ChefHat size={20} /> },
+                        { name: 'Music', icon: <Music size={20} /> },
+                        { name: 'Car', icon: <Car size={20} /> },
+                        { name: 'Home', icon: <HomeIcon size={20} /> },
+                        { name: 'Phone', icon: <Phone size={20} /> },
+                        { name: 'Plus', icon: <Plus size={20} /> },
+                      ].map((item) => (
+                        <button
+                          key={item.name}
+                          onClick={() => setTypeForm({ ...typeForm, icon: item.name })}
+                          className={`flex items-center justify-center p-3 rounded-xl transition-all duration-300 transform active:scale-95 ${typeForm.icon === item.name
+                            ? 'bg-primary text-primary-foreground scale-110 shadow-lg ring-2 ring-primary ring-offset-2 z-10'
+                            : 'bg-white hover:bg-primary/5 text-muted-foreground hover:text-primary border border-transparent hover:border-primary/20'
+                            }`}
+                          title={item.name}
+                        >
+                          {item.icon}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                  <p className="text-[11px] text-muted-foreground text-center animate-pulse">Selecciona un icono de la biblioteca para esta categoría</p>
                 </div>
               </div>
               <DialogFooter className="gap-2">
@@ -2425,7 +2478,7 @@ const Admin = () => {
           </DialogContent>
         </Dialog>
       </div>
-    </div>
+    </div >
   );
 };
 
