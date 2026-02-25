@@ -161,6 +161,22 @@ export const ServiceCard = ({
         return 'var(--primary)'; // Default color
     };
 
+    const isLightColor = (color?: string) => {
+        if (!color) return false;
+        if (color.startsWith('var')) return false;
+        try {
+            const hex = color.replace('#', '');
+            if (hex.length !== 6) return false;
+            const r = parseInt(hex.substring(0, 2), 16);
+            const g = parseInt(hex.substring(2, 4), 16);
+            const b = parseInt(hex.substring(4, 6), 16);
+            const brightness = (r * 299 + g * 587 + b * 114) / 1000;
+            return brightness > 180;
+        } catch (e) {
+            return false;
+        }
+    };
+
     return (
         <Card
             id={`service-${service.id}`}
@@ -254,7 +270,7 @@ export const ServiceCard = ({
                                                 <Badge variant="secondary">{service.service_name}</Badge>
                                             )}
                                             <div
-                                                className="flex items-center gap-1.5 px-2.5 py-1 rounded-full border border-primary/20 text-white shadow-sm animate-reveal"
+                                                className={`flex items-center gap-1.5 px-2.5 py-1 rounded-full border border-primary/20 shadow-sm animate-reveal ${isLightColor(service.type_color || getServiceColor(service.type_name || '')) ? 'text-slate-900' : 'text-white'}`}
                                                 style={{ backgroundColor: service.type_color || getServiceColor(service.type_name || '') }}
                                             >
                                                 {getServiceIcon(service.service_name || service.type_name || '', service.type_icon)}

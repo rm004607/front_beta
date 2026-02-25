@@ -73,8 +73,8 @@ const PostService = () => {
     const loadPricingConfig = async () => {
       try {
         const response = await configAPI.getPublicPrices();
-        if (response.pricing_enabled !== undefined) {
-          setPricingEnabled(response.pricing_enabled);
+        if (response.PRICING_ENABLED !== undefined) {
+          setPricingEnabled(!!response.PRICING_ENABLED);
         }
       } catch (error) {
         console.error('Error loading pricing config:', error);

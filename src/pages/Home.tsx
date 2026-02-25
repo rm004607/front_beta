@@ -196,6 +196,22 @@ const Home = () => {
     return 'var(--primary)'; // Default color
   };
 
+  const isLightColor = (color?: string) => {
+    if (!color) return false;
+    if (color && color.startsWith('var')) return false;
+    try {
+      const hex = color.replace('#', '');
+      if (hex.length !== 6) return false;
+      const r = parseInt(hex.substring(0, 2), 16);
+      const g = parseInt(hex.substring(2, 4), 16);
+      const b = parseInt(hex.substring(4, 6), 16);
+      const brightness = (r * 299 + g * 587 + b * 114) / 1000;
+      return brightness > 180;
+    } catch (e) {
+      return false;
+    }
+  };
+
   const formatDate = (dateString: string) => {
     try {
       const date = new Date(dateString);
@@ -363,7 +379,7 @@ const Home = () => {
                           className="group/item shrink-0 inline-flex flex-col items-center justify-center min-w-[200px] h-[180px] glass-card p-6 rounded-[2.5rem] hover:scale-105 transition-all duration-300 border-transparent hover:border-primary/30 shadow-sm hover:shadow-xl bg-white/40"
                         >
                           <div
-                            className="w-14 h-14 rounded-2xl flex items-center justify-center text-white mb-4 group-hover/item:scale-110 transition-transform shadow-md group-hover/item:rotate-6"
+                            className={`w-14 h-14 rounded-2xl flex items-center justify-center mb-4 group-hover/item:scale-110 transition-transform shadow-md group-hover/item:rotate-6 ${isLightColor(type.color || getServiceColor(type.name)) ? 'text-slate-900' : 'text-white'}`}
                             style={{ backgroundColor: type.color || getServiceColor(type.name) }}
                           >
                             {getServiceIcon(type.name, type.icon)}
@@ -483,7 +499,7 @@ const Home = () => {
                       </div>
                       <CardTitle className="text-2xl font-extrabold mb-2 line-clamp-1 group-hover:text-primary transition-colors flex items-center gap-2">
                         <div
-                          className="shrink-0 p-1.5 rounded-lg text-white shadow-sm transition-transform duration-300 group-hover:scale-110"
+                          className={`shrink-0 p-1.5 rounded-lg shadow-sm transition-transform duration-300 group-hover:scale-110 ${isLightColor(service.type_color || getServiceColor(service.type_name || '')) ? 'text-slate-900' : 'text-white'}`}
                           style={{ backgroundColor: service.type_color || getServiceColor(service.type_name || '') }}
                         >
                           {getServiceIcon(service.service_name || service.type_name || '', service.type_icon)}

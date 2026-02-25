@@ -453,6 +453,22 @@ const Admin = () => {
     }
   };
 
+  const isLightColor = (color?: string) => {
+    if (!color) return false;
+    if (color && color.startsWith('var')) return false;
+    try {
+      const hex = color.replace('#', '');
+      if (hex.length !== 6) return false;
+      const r = parseInt(hex.substring(0, 2), 16);
+      const g = parseInt(hex.substring(2, 4), 16);
+      const b = parseInt(hex.substring(4, 6), 16);
+      const brightness = (r * 299 + g * 587 + b * 114) / 1000;
+      return brightness > 180;
+    } catch (e) {
+      return false;
+    }
+  };
+
   const handleDeleteServiceType = async (id: string) => {
     if (!confirm('¿Estás seguro de eliminar este tipo de servicio?')) return;
     try {
@@ -1653,7 +1669,7 @@ const Admin = () => {
                           <div className="flex items-center gap-4 flex-1 min-w-0">
                             <div
                               key={`${type.id}-${type.icon}`}
-                              className="w-12 h-12 rounded-xl flex items-center justify-center text-white transition-all duration-300"
+                              className={`w-12 h-12 rounded-xl flex items-center justify-center transition-all duration-300 ${isLightColor(type.color || '#1a73e8') ? 'text-slate-900' : 'text-white'}`}
                               style={{ backgroundColor: type.color || '#1a73e8' }}
                             >
                               <IconRenderer name={type.icon || 'Wrench'} size={24} />
@@ -1966,14 +1982,15 @@ const Admin = () => {
                         {adminConfig.map((config) => (
                           <div key={config.key} className="flex flex-col sm:flex-row items-center justify-between p-5 glass-card border-white/5 bg-white/5 hover:bg-white/10 transition-all duration-300 gap-4">
                             <div>
-                              <p className="font-semibold text-lg text-white group-hover:text-primary transition-colors">{config.description}</p>
-                              <code className="text-[10px] text-primary/60 bg-primary/5 px-2 py-0.5 rounded uppercase tracking-wider">{config.key}</code>
+                              <p className={`font-black text-xl transition-all duration-300 ${config.key === 'PRICING_ENABLED' && config.value !== 'true' ? 'text-primary animate-pulse' : 'text-white'}`}>
+                                {config.key === 'PRICING_ENABLED' ? 'MODO TODO GRATUITO' : config.description}
+                              </p>
                             </div>
                             <div className="flex items-center gap-6">
                               {config.key === 'PRICING_ENABLED' ? (
                                 <div className="flex items-center gap-3">
                                   <span className={`text-sm font-medium ${config.value === 'true' ? 'text-primary' : 'text-muted-foreground'}`}>
-                                    {config.value === 'true' ? 'Activado' : 'Desactivado (Gratis)'}
+                                    {config.key === 'PRICING_ENABLED' ? (config.value === 'true' ? 'Activado' : 'MODO TODO GRATUITO ACTIVADO') : 'Activado'}
                                   </span>
                                   <Switch
                                     checked={config.value === 'true'}

@@ -76,11 +76,11 @@ const Services = () => {
     const loadConfig = async () => {
       try {
         const response = await configAPI.getPublicPrices();
-        if (response.whatsapp_contact_price) {
-          setWhatsappPrice(response.whatsapp_contact_price);
+        if (response.WHATSAPP_CONTACT_PRICE) {
+          setWhatsappPrice(Number(response.WHATSAPP_CONTACT_PRICE));
         }
-        if (response.pricing_enabled !== undefined) {
-          setPricingEnabled(response.pricing_enabled);
+        if (response.PRICING_ENABLED !== undefined) {
+          setPricingEnabled(!!response.PRICING_ENABLED);
         }
       } catch (error) {
         console.error('Error loading config:', error);
@@ -165,8 +165,8 @@ const Services = () => {
       return;
     }
 
-    // Si pricing está desactivado o el precio es 0, contactar gratis
-    if (!pricingEnabled || whatsappPrice === 0) {
+    // Si pricing está desactivado, contactar gratis (Modo Todo Gratuito)
+    if (!pricingEnabled) {
       const cleanPhone = service.phone.replace(/\D/g, '');
       const message = `Hola, te contacto por tu servicio "${service.service_name}" en Dameldato.`;
       window.open(`https://wa.me/${cleanPhone}?text=${encodeURIComponent(message)}`, '_blank');

@@ -1272,8 +1272,8 @@ export const configAPI = {
   // Precios públicos (ej. WhatsApp)
   getPublicPrices: async () => {
     return request<{
-      whatsapp_contact_price: number;
-      pricing_enabled?: boolean;
+      WHATSAPP_CONTACT_PRICE: number;
+      PRICING_ENABLED?: boolean;
     }>('/api/prices', {
       method: 'GET',
     });
