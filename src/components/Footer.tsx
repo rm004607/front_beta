@@ -23,7 +23,7 @@ const Footer = () => {
                 <img src={logoDameldato} alt="Dameldato" className="h-14 sm:h-16 w-auto object-contain" />
               </div>
             </Link>
-            <p className="text-muted-foreground leading-relaxed max-w-sm">
+            <p className="text-muted-foreground font-medium leading-relaxed max-w-sm">
               {t('footer.desc')}
             </p>
             <div className="flex gap-4">
@@ -124,7 +124,7 @@ const Footer = () => {
 
         {/* Bottom Bar */}
         <div className="pt-8 border-t border-border flex flex-col md:flex-row justify-between items-center gap-4">
-          <p className="text-muted-foreground text-xs">
+          <p className="text-muted-foreground font-medium text-xs">
             © {new Date().getFullYear()} Dameldato. {t('footer.rights')}
           </p>
           <div className="flex gap-6">

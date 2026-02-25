@@ -10,8 +10,10 @@ All colors MUST be HSL.
   :root {
     /* ===== Google-like Clean Theme ===== */
     /* Base */
-    --background: 0 0% 100%; /* Pure White */
-    --foreground: 224 71% 4%; /* Near black */
+    --background: 0 0% 100%;
+    /* Pure White */
+    --foreground: 224 71% 4%;
+    /* Near black */
 
     /* Surfaces */
     --card: 0 0% 100%;
@@ -20,15 +22,17 @@ All colors MUST be HSL.
     --popover-foreground: var(--foreground);
 
     /* Brand: Indigo / Teal / Rose (Cleaner versions) */
-    --primary: 231 90% 55%; /* Blueish Indigo #1a73e8 (Google Blue) */
+    --primary: 231 90% 55%;
+    /* Blueish Indigo #1a73e8 (Google Blue) */
     --primary-foreground: 0 0% 100%;
 
-    --secondary: 161 100% 35%; /* Professional Teal/Green */
+    --secondary: 161 100% 35%;
+    /* Professional Teal/Green */
     --secondary-foreground: 0 0% 100%;
 
     /* Accents & States */
     --muted: 210 40% 96%;
-    --muted-foreground: 215 16% 47%;
+    --muted-foreground: 215 16% 38%;
 
     --accent: 346 84% 61%;
     --accent-foreground: 0 0% 100%;

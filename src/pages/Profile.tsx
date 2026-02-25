@@ -471,7 +471,7 @@ const Profile = () => {
 
       <div className="container mx-auto px-4 py-8 max-w-4xl relative z-10">
         <div className="flex flex-col sm:flex-row justify-between items-center mb-8 p-4 sm:p-6 glass-card rounded-2xl sm:rounded-3xl border-primary/10 gap-4">
-          <h1 className="text-3xl sm:text-4xl font-heading font-bold bg-clip-text text-transparent bg-gradient-to-r from-primary to-secondary">Mi Perfil</h1>
+          <h1 className="text-3xl sm:text-4xl font-heading font-bold bg-clip-text text-transparent bg-gradient-to-r from-primary to-secondary text-center">Mi Perfil</h1>
           <Button
             variant="outline"
             onClick={handleOpenEditDialog}
@@ -500,7 +500,7 @@ const Profile = () => {
                   <h3 className="text-2xl font-heading font-bold mb-2">
                     ¡Completa tu perfil!
                   </h3>
-                  <p className="text-muted-foreground mb-4">
+                  <p className="text-muted-foreground font-medium mb-4">
                     Completa tu información personal (teléfono y comuna) para que otros usuarios puedan contactarte.
                   </p>
                   <Button
@@ -544,23 +544,23 @@ const Profile = () => {
                     </Badge>
                   ))}
                 </div>
-                <div className="space-y-2 text-muted-foreground flex flex-col items-center md:items-start">
+                <div className="space-y-2 text-foreground/80 font-medium flex flex-col items-center md:items-start text-sm sm:text-base">
                   <div className="flex items-center gap-2 max-w-full">
-                    <Mail size={16} className="shrink-0" />
+                    <Mail size={16} className="shrink-0 text-primary" />
                     <span className="break-all">{user.email}</span>
                   </div>
                   {user.rut && (
                     <div className="flex items-center gap-2 max-w-full">
-                      <FileText size={16} className="shrink-0" />
+                      <FileText size={16} className="shrink-0 text-primary" />
                       <span className="break-all">RUT: {user.rut}</span>
                     </div>
                   )}
                   <div className="flex items-center gap-2">
-                    <Phone size={16} className="shrink-0" />
+                    <Phone size={16} className="shrink-0 text-primary" />
                     <span>{user.phone}</span>
                   </div>
                   <div className="flex items-center gap-2">
-                    <MapPin size={16} className="shrink-0" />
+                    <MapPin size={16} className="shrink-0 text-primary" />
                     <span>{user.comuna}</span>
                   </div>
                 </div>

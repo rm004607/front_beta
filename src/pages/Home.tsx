@@ -172,7 +172,7 @@ const Home = () => {
                 <span className="text-primary text-glow">{t('hero.title_part2')}</span>
               </h1>
 
-              <p className="text-muted-foreground text-lg md:text-xl animate-reveal delay-200 leading-relaxed">
+              <p className="text-muted-foreground font-medium text-lg md:text-xl animate-reveal delay-200 leading-relaxed">
                 {t('hero.description')}
               </p>
 
@@ -245,7 +245,7 @@ const Home = () => {
       <section className="py-20 container mx-auto px-4">
         <div className="text-center mb-16 space-y-4">
           <h2 className="text-4xl font-heading font-extrabold animate-reveal">{t('home.categories_title')}</h2>
-          <p className="text-muted-foreground text-lg max-w-2xl mx-auto animate-reveal delay-100">
+          <p className="text-muted-foreground font-medium text-lg max-w-2xl mx-auto animate-reveal delay-100">
             {t('home.categories_desc')}
           </p>
         </div>
@@ -403,7 +403,7 @@ const Home = () => {
         <div className="container mx-auto px-4">
           <div className="text-center mb-16 space-y-4">
             <h2 className="text-4xl font-heading font-extrabold animate-reveal">{t('home.how_it_works')}</h2>
-            <p className="text-muted-foreground text-lg max-w-2xl mx-auto animate-reveal delay-100">
+            <p className="text-muted-foreground font-medium text-lg max-w-2xl mx-auto animate-reveal delay-100">
               {t('home.how_it_works_desc')}
             </p>
           </div>

@@ -266,8 +266,8 @@ const Services = () => {
         <div className="mb-8 p-6 glass-card rounded-3xl border-primary/10">
           <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
             <div className="space-y-1 text-center md:text-left">
-              <h1 className="text-3xl sm:text-4xl font-heading font-bold bg-clip-text text-transparent bg-gradient-to-r from-primary to-secondary">{t('services.title')}</h1>
-              <p className="text-sm sm:text-base text-muted-foreground italic">{t('services.subtitle')}</p>
+              <h1 className="text-3xl sm:text-4xl font-heading font-bold bg-clip-text text-transparent bg-gradient-to-r from-primary to-secondary text-center md:text-left">{t('services.title')}</h1>
+              <p className="text-sm sm:text-base text-muted-foreground font-medium italic">{t('services.subtitle')}</p>
             </div>
             <div className="flex flex-wrap gap-2 w-full md:w-auto justify-center md:justify-end">
               {(user?.roles.includes('entrepreneur') || user?.role_number === 5) && (

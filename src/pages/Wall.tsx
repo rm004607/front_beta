@@ -472,9 +472,9 @@ const Wall = () => {
 
       <div className="container mx-auto px-4 py-8 max-w-4xl relative z-10">
         {/* Header */}
-        <div className="mb-8 p-6 glass-card rounded-3xl border-primary/10">
+        <div className="mb-8 p-6 glass-card rounded-3xl border-primary/10 text-center sm:text-left">
           <h1 className="text-4xl font-heading font-bold mb-2 bg-clip-text text-transparent bg-gradient-to-r from-primary to-secondary">{t('wall.title')}</h1>
-          <p className="text-muted-foreground italic">{t('wall.subtitle')}</p>
+          <p className="text-muted-foreground font-medium italic">{t('wall.subtitle')}</p>
         </div>
 
         {/* Formulario de publicación estilo blog */}
@@ -666,8 +666,8 @@ const Wall = () => {
             {posts.map((post) => (
               <Card key={post.id} className="glass-card border-border/50 shadow-sm hover:border-primary/30 transition-all duration-300 hover:shadow-2xl hover:shadow-primary/5">
                 <CardHeader>
-                  <div className="flex items-start justify-between">
-                    <div className="flex flex-col sm:flex-row sm:items-start gap-3 flex-1 min-w-0">
+                  <div className="flex flex-col sm:flex-row items-center sm:items-start justify-between gap-4">
+                    <div className="flex flex-col sm:flex-row items-center sm:items-start gap-3 flex-1 min-w-0 text-center sm:text-left">
                       <Avatar
                         className={`shrink-0 ${post.type === 'Busco Servicio' && canViewProfile() ? 'cursor-pointer hover:opacity-80 transition-opacity' : post.type === 'Busco Servicio' ? 'opacity-60' : ''}`}
                         onClick={() => post.type === 'Busco Servicio' && canViewProfile() && handleProfileClick(post.user_id, post.type, post)}
@@ -680,7 +680,7 @@ const Wall = () => {
                           {post.user_name.split(' ').map((n) => n[0]).join('')}
                         </AvatarFallback>
                       </Avatar>
-                      <div className="flex flex-col min-w-0">
+                      <div className="flex flex-col items-center sm:items-start min-w-0">
                         <div className="flex items-center gap-1 min-w-0">
                           <h3
                             className={`font-semibold truncate ${post.type === 'Busco Servicio' && canViewProfile() ? 'cursor-pointer hover:underline' : post.type === 'Busco Servicio' ? 'opacity-60' : ''}`}
@@ -695,12 +695,12 @@ const Wall = () => {
                             </div>
                           )}
                         </div>
-                        <p className="text-sm text-muted-foreground truncate">
+                        <p className="text-sm text-foreground/70 font-medium truncate">
                           {formatDate(post.created_at)}
                         </p>
                       </div>
                     </div>
-                    <div className="flex items-center gap-2 shrink-0 sm:ml-auto">
+                    <div className="flex flex-wrap items-center justify-center sm:justify-end gap-2 shrink-0 sm:ml-auto w-full sm:w-auto">
                       {post.type === 'Ofrezco' && (
                         <Button
                           size="sm"
