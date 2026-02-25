@@ -107,6 +107,16 @@ const Home = () => {
     if (n.includes('flete') || n.includes('mudan') || n.includes('transp')) return <Truck />;
     if (n.includes('cuidad') || n.includes('salud') || n.includes('enfer')) return <HeartPulse />;
     if (n.includes('mecanic')) return <Briefcase />;
+    if (n.includes('pintor') || n.includes('pintura')) return <Paintbrush />;
+    if (n.includes('carpin') || n.includes('mueble')) return <Hammer />;
+    if (n.includes('peluqu') || n.includes('esteti')) return <Scissors />;
+    if (n.includes('foto') || n.includes('video')) return <Camera />;
+    if (n.includes('compu') || n.includes('tech') || n.includes('soporte')) return <Laptop />;
+    if (n.includes('comida') || n.includes('cocina')) return <ChefHat />;
+    if (n.includes('evento') || n.includes('musica') || n.includes('show')) return <Music />;
+    if (n.includes('lavado') || n.includes('auto')) return <Car />;
+    if (n.includes('hogar') || n.includes('casa')) return <HomeIcon />;
+    if (n.includes('telef') || n.includes('contacto')) return <Phone />;
     return <Wrench />; // Default icon
   };
 

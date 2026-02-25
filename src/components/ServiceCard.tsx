@@ -1,4 +1,10 @@
-import { Star, MapPin, MessageCircle, Edit, Trash2, ChevronRight } from 'lucide-react';
+import {
+    Star, MapPin, MessageCircle, Edit, Trash2, ChevronRight,
+    Wrench, Lightbulb, ShieldCheck, Sparkles, Building2, Truck,
+    HeartPulse, Briefcase, Paintbrush, Hammer, Scissors, Camera,
+    Laptop, ShoppingBag, ChefHat, Music, Car, Home as HomeIcon, Phone,
+    HelpCircle
+} from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -21,6 +27,8 @@ interface Service {
     average_rating?: number;
     reviews_count?: number;
     coverage_communes?: string[];
+    type_name?: string;
+    type_icon?: string;
 }
 
 interface ServiceCardProps {
@@ -42,6 +50,41 @@ export const ServiceCard = ({
     onEdit,
     onDelete
 }: ServiceCardProps) => {
+    const getServiceIcon = (name: string, iconName?: string) => {
+        if (iconName) {
+            const n = iconName;
+            if (n === 'Wrench') return <Wrench size={20} />;
+            if (n === 'Lightbulb') return <Lightbulb size={20} />;
+            if (n === 'ShieldCheck') return <ShieldCheck size={20} />;
+            if (n === 'Sparkles') return <Sparkles size={20} />;
+            if (n === 'Building2') return <Building2 size={20} />;
+            if (n === 'Truck') return <Truck size={20} />;
+            if (n === 'HeartPulse') return <HeartPulse size={20} />;
+            if (n === 'Briefcase') return <Briefcase size={20} />;
+            if (n === 'Paintbrush') return <Paintbrush size={20} />;
+            if (n === 'Hammer') return <Hammer size={20} />;
+            if (n === 'Scissors') return <Scissors size={20} />;
+            if (n === 'Camera') return <Camera size={20} />;
+            if (n === 'Laptop') return <Laptop size={20} />;
+            if (n === 'ShoppingBag') return <ShoppingBag size={20} />;
+            if (n === 'ChefHat') return <ChefHat size={20} />;
+            if (n === 'Music') return <Music size={20} />;
+            if (n === 'Car') return <Car size={20} />;
+            if (n === 'Home') return <HomeIcon size={20} />;
+            if (n === 'Phone') return <Phone size={20} />;
+        }
+        const n = name.toLowerCase();
+        if (n.includes('gasfiter') || n.includes('plomero')) return <Wrench size={20} />;
+        if (n.includes('electri')) return <Lightbulb size={20} />;
+        if (n.includes('cerrajer')) return <ShieldCheck size={20} />;
+        if (n.includes('limpieza') || n.includes('aseo')) return <Sparkles size={20} />;
+        if (n.includes('construc') || n.includes('albañil')) return <Building2 size={20} />;
+        if (n.includes('flete') || n.includes('mudan') || n.includes('transp')) return <Truck size={20} />;
+        if (n.includes('cuidad') || n.includes('salud') || n.includes('enfer')) return <HeartPulse size={20} />;
+        if (n.includes('mecanic')) return <Briefcase size={20} />;
+        return <Wrench size={20} />;
+    };
+
     return (
         <Card
             id={`service-${service.id}`}
@@ -126,7 +169,13 @@ export const ServiceCard = ({
                                                 </span>
                                             </div>
                                         </div>
-                                        <Badge variant="secondary" className="mt-1">{service.service_name}</Badge>
+                                        <div className="flex items-center gap-2 mt-1">
+                                            <Badge variant="secondary">{service.service_name}</Badge>
+                                            <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-primary/10 border border-primary/20 text-primary shadow-sm animate-reveal">
+                                                {getServiceIcon(service.service_name || service.type_name || '', service.type_icon)}
+                                                <span className="text-[10px] font-bold uppercase tracking-wider">{service.type_name || 'Servicio'}</span>
+                                            </div>
+                                        </div>
                                     </div>
                                 </div>
                             </DialogHeader>
@@ -160,9 +209,9 @@ export const ServiceCard = ({
                                         </div>
                                     </div>
                                     <div className="space-y-2 pt-2 border-t mt-4">
-                                        <div className="flex items-center gap-2 p-3 bg-secondary/5 rounded-lg border border-secondary/10">
-                                            <div className="w-2 h-2 rounded-full bg-secondary animate-pulse" />
-                                            <p className="text-sm font-bold text-secondary-foreground italic">
+                                        <div className="flex items-center gap-2 p-3 bg-secondary/10 rounded-lg border-2 border-secondary/30">
+                                            <div className="w-2.5 h-2.5 rounded-full bg-secondary animate-pulse shadow-[0_0_8px_rgba(var(--secondary),0.5)]" />
+                                            <p className="text-sm font-black text-foreground italic leading-tight">
                                                 El precio se coordina por interno con el que ofrezca el servicio
                                             </p>
                                         </div>

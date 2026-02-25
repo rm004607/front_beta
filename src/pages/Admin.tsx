@@ -50,7 +50,9 @@ import {
   Car,
   Home as HomeIcon,
   Phone,
+  Edit,
 } from 'lucide-react';
+import { Switch } from '@/components/ui/switch';
 import { toast } from 'sonner';
 import { adminAPI, authAPI, configAPI, packagesAPI } from '@/lib/api';
 import {
@@ -228,7 +230,7 @@ const Admin = () => {
   const [loadingSuggestions, setLoadingSuggestions] = useState(false);
   const [typeDialogOpen, setTypeDialogOpen] = useState(false);
   const [selectedType, setSelectedType] = useState<any | null>(null);
-  const [typeForm, setTypeForm] = useState({ name: '', description: '', icon: '' });
+  const [typeForm, setTypeForm] = useState({ name: '', description: '', icon: '', is_active: true });
   const [isProcessingSuggestion, setIsProcessingSuggestion] = useState<string | null>(null);
 
   // Definir funciones antes de los hooks que las usan
@@ -1513,7 +1515,7 @@ const Admin = () => {
                   </div>
                   <Button size="sm" onClick={() => {
                     setSelectedType(null);
-                    setTypeForm({ name: '', description: '', icon: '' });
+                    setTypeForm({ name: '', description: '', icon: 'Wrench', is_active: true });
                     setTypeDialogOpen(true);
                   }}>
                     <Plus size={16} className="mr-2" />
@@ -1546,19 +1548,12 @@ const Admin = () => {
                             </div>
                           </div>
                           <div className="flex gap-1 shrink-0">
-                            <Button variant="ghost" size="icon" className="h-10 w-10 hover:bg-primary/10 hover:text-primary rounded-full transition-all group-hover:scale-110" title="Cambiar Icono" onClick={() => {
+                            <Button variant="ghost" size="icon" className="h-10 w-10 hover:bg-primary/10 hover:text-primary rounded-full transition-all group-hover:scale-110" title="Editar Categoría" onClick={() => {
                               setSelectedType(type);
-                              setTypeForm({ name: type.name, description: type.description || '', icon: type.icon || '' });
+                              setTypeForm({ name: type.name, description: type.description || '', icon: type.icon || 'Wrench', is_active: type.is_active });
                               setTypeDialogOpen(true);
                             }}>
-                              <IconRenderer name={type.icon || 'Wrench'} size={18} />
-                            </Button>
-                            <Button variant="ghost" size="icon" className="h-10 w-10 hover:bg-primary/10 hover:text-primary rounded-full transition-all" onClick={() => {
-                              setSelectedType(type);
-                              setTypeForm({ name: type.name, description: type.description || '', icon: type.icon || '' });
-                              setTypeDialogOpen(true);
-                            }}>
-                              <Wrench size={18} />
+                              <Edit size={18} />
                             </Button>
                             <Button variant="ghost" size="icon" className="h-10 w-10 text-destructive hover:text-destructive hover:bg-destructive/10 rounded-full transition-all" onClick={() => handleDeleteServiceType(type.id)}>
                               <Trash2 size={18} />
@@ -1645,6 +1640,18 @@ const Admin = () => {
                     placeholder="Ej: Gasfitería, Electricista, Mudanzas..."
                     className="h-12 text-lg rounded-xl border-2 focus-visible:ring-primary"
                     autoFocus
+                  />
+                </div>
+                <div className="flex items-center justify-between p-4 bg-muted/30 rounded-2xl border-2 border-dashed border-secondary/20">
+                  <div className="space-y-0.5">
+                    <Label className="text-sm font-bold">Estado de la Categoría</Label>
+                    <p className="text-[10px] text-muted-foreground uppercase tracking-widest font-semibold">
+                      {typeForm.is_active ? '✅ Activa' : '❌ Inactiva'}
+                    </p>
+                  </div>
+                  <Switch
+                    checked={typeForm.is_active}
+                    onCheckedChange={(checked) => setTypeForm({ ...typeForm, is_active: checked })}
                   />
                 </div>
                 <div className="space-y-2">
