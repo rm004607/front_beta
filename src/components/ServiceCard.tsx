@@ -89,6 +89,21 @@ export const ServiceCard = ({
         return <Wrench size={20} />;
     };
 
+    const getServiceColor = (name: string) => {
+        const n = name.toLowerCase();
+        if (n.includes('gasfiter') || n.includes('plomero') || n.includes('fontaner')) return '#3b82f6'; // blue-500
+        if (n.includes('electri')) return '#f59e0b'; // amber-500
+        if (n.includes('cerrajer')) return '#334155'; // slate-700
+        if (n.includes('limpieza') || n.includes('aseo')) return '#10b981'; // emerald-500
+        if (n.includes('construc') || n.includes('albañil')) return '#ea580c'; // orange-600
+        if (n.includes('flete') || n.includes('mudan') || n.includes('transp')) return '#a855f7'; // purple-500
+        if (n.includes('cuidad') || n.includes('salud') || n.includes('enfer')) return '#f43f5e'; // rose-500
+        if (n.includes('mecanic')) return '#4f46e5'; // indigo-600
+        if (n.includes('jardin')) return '#22c55e'; // green-500
+        if (n.includes('gastro') || n.includes('comida') || n.includes('chef')) return '#ef4444'; // red-500
+        return 'var(--primary)'; // Default color
+    };
+
     return (
         <Card
             id={`service-${service.id}`}
@@ -177,7 +192,7 @@ export const ServiceCard = ({
                                             <Badge variant="secondary">{service.service_name}</Badge>
                                             <div
                                                 className="flex items-center gap-1.5 px-2.5 py-1 rounded-full border border-primary/20 text-white shadow-sm animate-reveal"
-                                                style={{ backgroundColor: service.type_color || 'hsl(var(--primary))' }}
+                                                style={{ backgroundColor: service.type_color || getServiceColor(service.type_name || '') }}
                                             >
                                                 {getServiceIcon(service.service_name || service.type_name || '', service.type_icon)}
                                                 <span className="text-[10px] font-bold uppercase tracking-wider">{service.type_name || 'Servicio'}</span>

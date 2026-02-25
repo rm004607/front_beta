@@ -269,6 +269,9 @@ export const servicesAPI = {
         user_name: string;
         average_rating?: number;
         reviews_count?: number;
+        type_name?: string;
+        type_icon?: string;
+        type_color?: string;
       }>;
       pagination: {
         page: number;
@@ -387,6 +390,7 @@ export const servicesAPI = {
         name: string;
         description?: string;
         icon?: string;
+        color?: string;
       }>;
     }>('/services/types', {
       method: 'GET',

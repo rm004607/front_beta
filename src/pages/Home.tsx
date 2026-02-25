@@ -126,15 +126,17 @@ const Home = () => {
 
   const getServiceColor = (name: string) => {
     const n = name.toLowerCase();
-    if (n.includes('gasfiter') || n.includes('plomero')) return 'bg-blue-500';
-    if (n.includes('electri')) return 'bg-amber-500';
-    if (n.includes('cerrajer')) return 'bg-slate-700';
-    if (n.includes('limpieza') || n.includes('aseo')) return 'bg-emerald-500';
-    if (n.includes('construc') || n.includes('albañil')) return 'bg-orange-600';
-    if (n.includes('flete') || n.includes('mudan') || n.includes('transp')) return 'bg-purple-500';
-    if (n.includes('cuidad') || n.includes('salud') || n.includes('enfer')) return 'bg-rose-500';
-    if (n.includes('mecanic')) return 'bg-indigo-600';
-    return 'bg-primary'; // Default color
+    if (n.includes('gasfiter') || n.includes('plomero') || n.includes('fontaner')) return '#3b82f6'; // blue-500
+    if (n.includes('electri')) return '#f59e0b'; // amber-500
+    if (n.includes('cerrajer')) return '#334155'; // slate-700
+    if (n.includes('limpieza') || n.includes('aseo')) return '#10b981'; // emerald-500
+    if (n.includes('construc') || n.includes('albañil')) return '#ea580c'; // orange-600
+    if (n.includes('flete') || n.includes('mudan') || n.includes('transp')) return '#a855f7'; // purple-500
+    if (n.includes('cuidad') || n.includes('salud') || n.includes('enfer')) return '#f43f5e'; // rose-500
+    if (n.includes('mecanic')) return '#4f46e5'; // indigo-600
+    if (n.includes('jardin')) return '#22c55e'; // green-500
+    if (n.includes('gastro') || n.includes('comida') || n.includes('chef')) return '#ef4444'; // red-500
+    return 'var(--primary)'; // Default color
   };
 
   const formatDate = (dateString: string) => {
@@ -280,7 +282,10 @@ const Home = () => {
                 className="group glass-card p-6 rounded-3xl hover:scale-105 transition-all duration-300 border-transparent hover:border-primary/30 animate-reveal"
                 style={{ animationDelay: `${100 * (i + 1)}ms` }}
               >
-                <div className={`${getServiceColor(type.name)} w-16 h-16 rounded-2xl flex items-center justify-center text-white mb-4 group-hover:scale-110 transition-transform shadow-lg`}>
+                <div
+                  className="w-16 h-16 rounded-2xl flex items-center justify-center text-white mb-4 group-hover:scale-110 transition-transform shadow-lg"
+                  style={{ backgroundColor: type.color || getServiceColor(type.name) }}
+                >
                   {getServiceIcon(type.name, type.icon)}
                 </div>
                 <h3 className="font-bold text-lg">{type.name}</h3>
@@ -387,7 +392,7 @@ const Home = () => {
                       <CardTitle className="text-2xl font-extrabold mb-2 line-clamp-1 group-hover:text-primary transition-colors flex items-center gap-2">
                         <div
                           className="shrink-0 p-1.5 rounded-lg text-white shadow-sm transition-transform duration-300 group-hover:scale-110"
-                          style={{ backgroundColor: service.type_color || 'hsl(var(--primary))' }}
+                          style={{ backgroundColor: service.type_color || getServiceColor(service.type_name || '') }}
                         >
                           {getServiceIcon(service.service_name || service.type_name || '', service.type_icon)}
                         </div>
