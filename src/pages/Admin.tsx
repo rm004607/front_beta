@@ -1532,13 +1532,16 @@ const Admin = () => {
                   ) : (
                     <div className="space-y-3 max-h-[600px] overflow-y-auto pr-2 scrollbar-thin">
                       {catalogTypes.map((type) => (
-                        <div key={type.id} className="flex items-center justify-between p-4 border rounded-xl bg-card hover:shadow-md transition-all duration-200 group">
+                        <div key={type.id} className={`flex items-center justify-between p-4 border rounded-xl bg-card hover:shadow-md transition-all duration-200 group ${!type.is_active ? 'opacity-60 grayscale-[0.5]' : ''}`}>
                           <div className="flex items-center gap-4 flex-1 min-w-0">
-                            <div className="w-12 h-12 rounded-xl bg-primary/5 flex items-center justify-center text-primary group-hover:bg-primary/10 transition-colors">
+                            <div key={`${type.id}-${type.icon}`} className="w-12 h-12 rounded-xl bg-primary/5 flex items-center justify-center text-primary group-hover:bg-primary/10 transition-colors">
                               <IconRenderer name={type.icon || 'Wrench'} size={24} />
                             </div>
                             <div className="flex-1 min-w-0 mr-4">
-                              <p className="font-bold text-lg">{type.name}</p>
+                              <div className="flex items-center gap-2">
+                                <p className="font-bold text-lg">{type.name}</p>
+                                {!type.is_active && <Badge variant="outline" className="text-[10px] h-4 px-1 bg-muted">Inactivo</Badge>}
+                              </div>
                               {type.description && <p className="text-sm text-muted-foreground line-clamp-1">{type.description}</p>}
                             </div>
                           </div>

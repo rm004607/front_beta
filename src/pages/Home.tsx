@@ -26,6 +26,8 @@ interface Service {
   profile_image?: string;
   average_rating?: number;
   reviews_count?: number;
+  type_name?: string;
+  type_icon?: string;
 }
 
 const Home = () => {
@@ -368,7 +370,10 @@ const Home = () => {
                           </div>
                         </div>
                       </div>
-                      <CardTitle className="text-2xl font-extrabold mb-2 line-clamp-1 group-hover:text-primary transition-colors">
+                      <CardTitle className="text-2xl font-extrabold mb-2 line-clamp-1 group-hover:text-primary transition-colors flex items-center gap-2">
+                        <div className="shrink-0 p-1 bg-primary/10 rounded-lg text-primary">
+                          {getServiceIcon(service.service_name || service.type_name || '', service.type_icon)}
+                        </div>
                         {service.service_name}
                       </CardTitle>
                     </CardHeader>
@@ -449,9 +454,9 @@ const Home = () => {
               {t('home.final_cta_desc')}
             </p>
             <div className="flex flex-col sm:flex-row gap-6 justify-center">
-              <Link to="/registro">
+              <Link to={isLoggedIn ? "/servicios" : "/registro"}>
                 <Button size="lg" className="bg-primary hover:bg-primary/90 text-primary-foreground font-bold px-10 py-8 text-xl rounded-2xl shadow-2xl shadow-primary/20 transition-all hover:scale-105 w-full sm:w-auto">
-                  {t('home.final_cta_btn')}
+                  {isLoggedIn ? t('hero.explore_services') : t('home.final_cta_btn')}
                 </Button>
               </Link>
               <Link to="/muro">

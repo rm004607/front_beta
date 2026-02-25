@@ -162,7 +162,7 @@ export const ServiceCard = ({
                                     <div className="space-y-2 pt-2 border-t mt-4">
                                         <div className="flex items-center gap-2 p-3 bg-secondary/5 rounded-lg border border-secondary/10">
                                             <div className="w-2 h-2 rounded-full bg-secondary animate-pulse" />
-                                            <p className="text-sm font-medium text-secondary-foreground/80 italic">
+                                            <p className="text-sm font-bold text-secondary-foreground italic">
                                                 El precio se coordina por interno con el que ofrezca el servicio
                                             </p>
                                         </div>
