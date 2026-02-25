@@ -325,42 +325,63 @@ const Home = () => {
           </p>
         </div>
 
-        <div className="relative max-w-7xl mx-auto group">
-          {/* Left/Right Fades for smooth look */}
-          <div className="absolute left-0 top-0 bottom-0 w-24 bg-gradient-to-r from-background to-transparent z-20 pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
-          <div className="absolute right-0 top-0 bottom-0 w-24 bg-gradient-to-l from-background to-transparent z-20 pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+        <div className="relative overflow-hidden group pause-on-hover">
+          {/* Glassy Fades on edges for depth */}
+          <div className="absolute left-0 top-0 bottom-0 w-32 bg-gradient-to-r from-background via-background/80 to-transparent z-20 pointer-events-none"></div>
+          <div className="absolute right-0 top-0 bottom-0 w-32 bg-gradient-to-l from-background via-background/80 to-transparent z-20 pointer-events-none"></div>
 
-          <div className="flex overflow-x-auto gap-6 pb-12 px-8 premium-scrollbar snap-x scroll-smooth">
+          <div className="space-y-8 py-4">
             {loadingTypes ? (
-              // Skeleton for categories
-              [1, 2, 3, 4, 5, 6, 7, 8].map((i) => (
-                <div key={i} className="min-w-[200px] h-44 rounded-[2.5rem] bg-muted animate-pulse shrink-0"></div>
-              ))
+              // Loading state
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-6 px-4">
+                {[1, 2, 3, 4].map((i) => (
+                  <div key={i} className="h-40 rounded-3xl bg-muted animate-pulse"></div>
+                ))}
+              </div>
             ) : (
-              serviceTypes.map((type, i) => (
-                <Link
-                  key={type.id}
-                  to={`/servicios?type_id=${type.id}`}
-                  className="group/item shrink-0 min-w-[220px] glass-card p-8 rounded-[2.5rem] hover:scale-105 transition-all duration-300 border-transparent hover:border-primary/30 animate-reveal snap-start shadow-sm hover:shadow-xl"
-                  style={{ animationDelay: `${100 * (i + 1)}ms` }}
-                >
-                  <div
-                    className="w-16 h-16 rounded-2xl flex items-center justify-center text-white mb-6 group-hover/item:scale-110 transition-transform shadow-lg group-hover/item:rotate-6"
-                    style={{ backgroundColor: type.color || getServiceColor(type.name) }}
-                  >
-                    {getServiceIcon(type.name, type.icon)}
+              // Render 3 rows with different directions
+              [0, 1, 2].map((rowIndex) => {
+                // Determine animation and speed based on row
+                const animationClass = rowIndex % 2 === 0 ? "animate-marquee-reverse" : "animate-marquee";
+
+                // Distribute types balanced across rows
+                const rowItems = serviceTypes.filter((_, idx) => idx % 3 === rowIndex);
+
+                // If the row is empty, don't render it
+                if (rowItems.length === 0) return null;
+
+                // Duplicate items (3 times) to ensure enough width for infinite effect
+                const displayItems = [...rowItems, ...rowItems, ...rowItems];
+
+                return (
+                  <div key={rowIndex} className="flex gap-6 whitespace-nowrap">
+                    <div className={`flex gap-6 ${animationClass}`} style={{ animationDuration: rowIndex === 1 ? '40s' : '35s' }}>
+                      {displayItems.map((type, i) => (
+                        <Link
+                          key={`${rowIndex}-${type.id}-${i}`}
+                          to={`/servicios?type_id=${type.id}`}
+                          className="group/item shrink-0 inline-flex flex-col items-center justify-center min-w-[200px] h-[180px] glass-card p-6 rounded-[2.5rem] hover:scale-105 transition-all duration-300 border-transparent hover:border-primary/30 shadow-sm hover:shadow-xl bg-white/40"
+                        >
+                          <div
+                            className="w-14 h-14 rounded-2xl flex items-center justify-center text-white mb-4 group-hover/item:scale-110 transition-transform shadow-md group-hover/item:rotate-6"
+                            style={{ backgroundColor: type.color || getServiceColor(type.name) }}
+                          >
+                            {getServiceIcon(type.name, type.icon)}
+                          </div>
+                          <h3 className="font-bold text-base group-hover/item:text-primary transition-colors text-center">{type.name}</h3>
+                        </Link>
+                      ))}
+                    </div>
                   </div>
-                  <h3 className="font-bold text-xl group-hover/item:text-primary transition-colors">{type.name}</h3>
-                  <div className="mt-2 w-8 h-1 bg-primary/20 rounded-full group-hover/item:w-16 transition-all duration-500"></div>
-                </Link>
-              ))
+                );
+              })
             )}
           </div>
 
-          {/* Hint for more services */}
-          <div className="flex justify-center mt-4 animate-bounce opacity-50">
-            <div className="px-4 py-1.5 bg-muted rounded-full text-[10px] font-bold uppercase tracking-widest flex items-center gap-2">
-              Desliza para ver más <ArrowRight size={12} />
+          {/* Subtle decoration for interaction */}
+          <div className="flex justify-center mt-8">
+            <div className="px-5 py-2 glass-card rounded-full text-[9px] font-black uppercase tracking-[0.2em] text-primary/60 border-primary/10 shadow-sm">
+              Catálogo Interactivo • Explora por categorías
             </div>
           </div>
         </div>
