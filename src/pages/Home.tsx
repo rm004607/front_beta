@@ -48,8 +48,7 @@ const Home = () => {
     try {
       setLoadingTypes(true);
       const response = await servicesAPI.getServiceTypes();
-      // Tomamos solo los primeros 8 para mantener el diseño
-      setServiceTypes(response.types.slice(0, 8));
+      setServiceTypes(response.types);
     } catch (error) {
       console.error('Error loading service types:', error);
     } finally {
@@ -268,7 +267,7 @@ const Home = () => {
           </p>
         </div>
 
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-6 max-w-5xl mx-auto">
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6 max-w-7xl mx-auto">
           {loadingTypes ? (
             // Skeleton for categories
             [1, 2, 3, 4, 5, 6, 7, 8].map((i) => (
