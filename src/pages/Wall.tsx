@@ -108,7 +108,7 @@ const Wall = () => {
           setWhatsappPrice(Number(response.WHATSAPP_CONTACT_PRICE));
         }
         if (response.PRICING_ENABLED !== undefined) {
-          setPricingEnabled(!!response.PRICING_ENABLED);
+          setPricingEnabled(Boolean(response.PRICING_ENABLED));
         }
       } catch (error) {
         console.error('Error loading config:', error);

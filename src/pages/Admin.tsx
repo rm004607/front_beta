@@ -877,7 +877,7 @@ const Admin = () => {
       // Standarize keys to uppercase for frontend logic
       const standardizedConfig = response.config.map((c: any) => ({
         ...c,
-        key: c.key.toUpperCase()
+        key: c.key.trim().toUpperCase()
       }));
       setAdminConfig(standardizedConfig);
     } catch (error: any) {
@@ -1674,7 +1674,7 @@ const Admin = () => {
                           <div className="flex items-center gap-4 flex-1 min-w-0">
                             <div
                               key={`${type.id}-${type.icon}`}
-                              className={`w-12 h-12 rounded-xl flex items-center justify-center transition-all duration-300 ${isLightColor(type.color || '#1a73e8') ? 'text-slate-900' : 'text-white'}`}
+                              className={`w-12 h-12 rounded-xl flex items-center justify-center transition-all duration-300 ${isLightColor(type.color || '#1a73e8') ? 'text-black' : 'text-white'}`}
                               style={{ backgroundColor: type.color || '#1a73e8' }}
                             >
                               <IconRenderer name={type.icon || 'Wrench'} size={24} />
@@ -1985,29 +1985,29 @@ const Admin = () => {
                     ) : (
                       <div className="space-y-4">
                         {adminConfig
-                          .filter(config => ['WHATSAPP_CONTACT_PRICE', 'PRICING_ENABLED'].includes(config.key))
+                          .filter(config => ['WHATSAPP_CONTACT_PRICE', 'PRICING_ENABLED'].includes(config.key.trim().toUpperCase()))
                           .map((config) => (
                             <div key={config.key} className="flex flex-col sm:flex-row items-center justify-between p-6 border rounded-2xl bg-white shadow-sm border-gray-100 hover:shadow-md transition-all duration-300 gap-4 mb-4">
                               <div className="flex-1">
-                                <p className={`font-black text-xl transition-all duration-300 ${config.key === 'PRICING_ENABLED' && config.value !== 'true' ? 'text-primary animate-pulse' : 'text-slate-900'}`}>
-                                  {config.key === 'PRICING_ENABLED'
+                                <p className={`font-black text-xl transition-all duration-300 ${config.key.trim().toUpperCase() === 'PRICING_ENABLED' && config.value !== 'true' ? 'text-primary animate-pulse' : 'text-black'}`}>
+                                  {config.key.trim().toUpperCase() === 'PRICING_ENABLED'
                                     ? 'MODO TODO GRATUITO'
-                                    : (config.key === 'WHATSAPP_CONTACT_PRICE' ? 'Precio Mensaje WhatsApp' : config.description || config.key)}
+                                    : (config.key.trim().toUpperCase() === 'WHATSAPP_CONTACT_PRICE' ? 'Precio Mensaje WhatsApp' : config.description || config.key)}
                                 </p>
                                 <p className="text-xs text-muted-foreground mt-1">
-                                  {config.key === 'PRICING_ENABLED'
+                                  {config.key.trim().toUpperCase() === 'PRICING_ENABLED'
                                     ? 'Activa para desactivar todos los pagos en el sistema.'
                                     : 'Costo por cada contacto directo a través del muro o servicios.'}
                                 </p>
                               </div>
                               <div className="flex items-center gap-6">
-                                {config.key === 'PRICING_ENABLED' ? (
+                                {config.key.trim().toUpperCase() === 'PRICING_ENABLED' ? (
                                   <div className="flex items-center gap-3">
                                     <span className={`text-sm font-medium ${config.value === 'true' ? 'text-primary' : 'text-slate-500'}`}>
-                                      {config.key === 'PRICING_ENABLED' ? (config.value === 'true' ? 'MODO PAGO ACTIVADO' : 'MODO TODO GRATUITO ACTIVADO') : 'Activado'}
+                                      {config.key.trim().toUpperCase() === 'PRICING_ENABLED' ? (config.value === 'true' ? 'MODO PAGO ACTIVADO' : 'MODO TODO GRATUITO ACTIVADO') : 'Activado'}
                                     </span>
                                     <Switch
-                                      checked={config.value === 'true'}
+                                      checked={config.value === 'true' || config.value === '1' || config.value === 1}
                                       onCheckedChange={handleTogglePricing}
                                     />
                                   </div>
