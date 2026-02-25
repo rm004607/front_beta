@@ -51,6 +51,62 @@ import {
   Home as HomeIcon,
   Phone,
   Edit,
+  Plug,
+  PaintRoller,
+  Flame,
+  Utensils,
+  Dumbbell,
+  GraduationCap,
+  Baby,
+  Stethoscope,
+  Globe,
+  Database,
+  Smartphone,
+  Plane,
+  Gift,
+  Trophy,
+  Coffee,
+  Wallet,
+  Trees,
+  PawPrint,
+  Flower2,
+  Sun,
+  Moon,
+  Bike,
+  Cpu,
+  Mouse,
+  Monitor,
+  Cloud,
+  Code,
+  Languages,
+  Book,
+  School,
+  HardHat,
+  Construction,
+  Drill,
+  PlugZap,
+  Waves,
+  Zap,
+  Ticket,
+  Video,
+  Mic,
+  Smile,
+  Gamepad2,
+  Brush,
+  Wind,
+  Pill,
+  Activity,
+  Apple,
+  Bone,
+  Gem,
+  Key,
+  Gamepad,
+  Search,
+  Settings,
+  Bell,
+  Navigation,
+  Anchor,
+  Wind as WindIcon,
 } from 'lucide-react';
 import { Switch } from '@/components/ui/switch';
 import { toast } from 'sonner';
@@ -536,6 +592,60 @@ const Admin = () => {
       case 'Home': return <HomeIcon size={size} className={className} />;
       case 'Phone': return <Phone size={size} className={className} />;
       case 'Plus': return <Plus size={size} className={className} />;
+      case 'Plug': return <Plug size={size} className={className} />;
+      case 'PaintRoller': return <PaintRoller size={size} className={className} />;
+      case 'Flame': return <Flame size={size} className={className} />;
+      case 'Utensils': return <Utensils size={size} className={className} />;
+      case 'Dumbbell': return <Dumbbell size={size} className={className} />;
+      case 'GraduationCap': return <GraduationCap size={size} className={className} />;
+      case 'Baby': return <Baby size={size} className={className} />;
+      case 'Stethoscope': return <Stethoscope size={size} className={className} />;
+      case 'Globe': return <Globe size={size} className={className} />;
+      case 'Database': return <Database size={size} className={className} />;
+      case 'Smartphone': return <Smartphone size={size} className={className} />;
+      case 'Plane': return <Plane size={size} className={className} />;
+      case 'Gift': return <Gift size={size} className={className} />;
+      case 'Trophy': return <Trophy size={size} className={className} />;
+      case 'Coffee': return <Coffee size={size} className={className} />;
+      case 'Wallet': return <Wallet size={size} className={className} />;
+      case 'Trees': return <Trees size={size} className={className} />;
+      case 'PawPrint': return <PawPrint size={size} className={className} />;
+      case 'Flower2': return <Flower2 size={size} className={className} />;
+      case 'Sun': return <Sun size={size} className={className} />;
+      case 'Moon': return <Moon size={size} className={className} />;
+      case 'Bike': return <Bike size={size} className={className} />;
+      case 'Cpu': return <Cpu size={size} className={className} />;
+      case 'Mouse': return <Mouse size={size} className={className} />;
+      case 'Monitor': return <Monitor size={size} className={className} />;
+      case 'Cloud': return <Cloud size={size} className={className} />;
+      case 'Code': return <Code size={size} className={className} />;
+      case 'Languages': return <Languages size={size} className={className} />;
+      case 'Book': return <Book size={size} className={className} />;
+      case 'School': return <School size={size} className={className} />;
+      case 'HardHat': return <HardHat size={size} className={className} />;
+      case 'Construction': return <Construction size={size} className={className} />;
+      case 'Drill': return <Drill size={size} className={className} />;
+      case 'PlugZap': return <PlugZap size={size} className={className} />;
+      case 'Waves': return <Waves size={size} className={className} />;
+      case 'Zap': return <Zap size={size} className={className} />;
+      case 'Ticket': return <Ticket size={size} className={className} />;
+      case 'Video': return <Video size={size} className={className} />;
+      case 'Mic': return <Mic size={size} className={className} />;
+      case 'Smile': return <Smile size={size} className={className} />;
+      case 'Gamepad2': return <Gamepad2 size={size} className={className} />;
+      case 'Brush': return <Brush size={size} className={className} />;
+      case 'Wind': return <Wind size={size} className={className} />;
+      case 'Pill': return <Pill size={size} className={className} />;
+      case 'Activity': return <Activity size={size} className={className} />;
+      case 'Apple': return <Apple size={size} className={className} />;
+      case 'Bone': return <Bone size={size} className={className} />;
+      case 'Gem': return <Gem size={size} className={className} />;
+      case 'Key': return <Key size={size} className={className} />;
+      case 'Search': return <Search size={size} className={className} />;
+      case 'Settings': return <Settings size={size} className={className} />;
+      case 'Bell': return <Bell size={size} className={className} />;
+      case 'Navigation': return <Navigation size={size} className={className} />;
+      case 'Anchor': return <Anchor size={size} className={className} />;
       default: return <HelpCircle size={size} className={className} />;
     }
   };
@@ -1736,24 +1846,75 @@ const Admin = () => {
                       <div className="grid grid-cols-5 gap-2 overflow-y-auto p-4 max-h-[280px] scrollbar-thin">
                         {[
                           { name: 'Wrench', icon: <Wrench size={24} /> },
-                          { name: 'Lightbulb', icon: <Lightbulb size={24} /> },
+                          { name: 'Hammer', icon: <Hammer size={24} /> },
+                          { name: 'Drill', icon: <Drill size={24} /> },
+                          { name: 'Paintbrush', icon: <Paintbrush size={24} /> },
+                          { name: 'PaintRoller', icon: <PaintRoller size={24} /> },
+                          { name: 'Construction', icon: <Construction size={24} /> },
+                          { name: 'HardHat', icon: <HardHat size={24} /> },
+                          { name: 'PlugZap', icon: <PlugZap size={24} /> },
+                          { name: 'Plug', icon: <Plug size={24} /> },
+                          { name: 'Zap', icon: <Zap size={24} /> },
+                          { name: 'Flame', icon: <Flame size={24} /> },
+                          { name: 'Wind', icon: <Wind size={24} /> },
+                          { name: 'Waves', icon: <Waves size={24} /> },
+                          { name: 'Truck', icon: <Truck size={24} /> },
+                          { name: 'Car', icon: <Car size={24} /> },
+                          { name: 'Bike', icon: <Bike size={24} /> },
+                          { name: 'Plane', icon: <Plane size={24} /> },
+                          { name: 'Ship', icon: <Anchor size={24} /> },
+                          { name: 'Home', icon: <HomeIcon size={24} /> },
+                          { name: 'Building2', icon: <Building2 size={24} /> },
+                          { name: 'Briefcase', icon: <Briefcase size={24} /> },
+                          { name: 'ShoppingBag', icon: <ShoppingBag size={24} /> },
+                          { name: 'Store', icon: <ShoppingBag size={24} /> },
+                          { name: 'Smartphone', icon: <Smartphone size={24} /> },
+                          { name: 'Laptop', icon: <Laptop size={24} /> },
+                          { name: 'Monitor', icon: <Monitor size={24} /> },
+                          { name: 'Cpu', icon: <Cpu size={24} /> },
+                          { name: 'Mouse', icon: <Mouse size={24} /> },
+                          { name: 'Database', icon: <Database size={24} /> },
+                          { name: 'Cloud', icon: <Cloud size={24} /> },
+                          { name: 'Code', icon: <Code size={24} /> },
+                          { name: 'ChefHat', icon: <ChefHat size={24} /> },
+                          { name: 'Utensils', icon: <Utensils size={24} /> },
+                          { name: 'Coffee', icon: <Coffee size={24} /> },
+                          { name: 'Apple', icon: <Apple size={24} /> },
+                          { name: 'Stethoscope', icon: <Stethoscope size={24} /> },
+                          { name: 'HeartPulse', icon: <HeartPulse size={24} /> },
+                          { name: 'Activity', icon: <Activity size={24} /> },
+                          { name: 'Pill', icon: <Pill size={24} /> },
                           { name: 'ShieldCheck', icon: <ShieldCheck size={24} /> },
                           { name: 'Sparkles', icon: <Sparkles size={24} /> },
-                          { name: 'Building2', icon: <Building2 size={24} /> },
-                          { name: 'Truck', icon: <Truck size={24} /> },
-                          { name: 'HeartPulse', icon: <HeartPulse size={24} /> },
-                          { name: 'Briefcase', icon: <Briefcase size={24} /> },
-                          { name: 'Paintbrush', icon: <Paintbrush size={24} /> },
-                          { name: 'Hammer', icon: <Hammer size={24} /> },
-                          { name: 'Scissors', icon: <Scissors size={24} /> },
-                          { name: 'Camera', icon: <Camera size={24} /> },
-                          { name: 'Laptop', icon: <Laptop size={24} /> },
-                          { name: 'ShoppingBag', icon: <ShoppingBag size={24} /> },
-                          { name: 'ChefHat', icon: <ChefHat size={24} /> },
+                          { name: 'Lightbulb', icon: <Lightbulb size={24} /> },
+                          { name: 'GraduationCap', icon: <GraduationCap size={24} /> },
+                          { name: 'Book', icon: <Book size={24} /> },
+                          { name: 'School', icon: <School size={24} /> },
+                          { name: 'Globe', icon: <Globe size={24} /> },
+                          { name: 'Languages', icon: <Languages size={24} /> },
                           { name: 'Music', icon: <Music size={24} /> },
-                          { name: 'Car', icon: <Car size={24} /> },
-                          { name: 'Home', icon: <HomeIcon size={24} /> },
+                          { name: 'Mic', icon: <Mic size={24} /> },
+                          { name: 'Camera', icon: <Camera size={24} /> },
+                          { name: 'Video', icon: <Video size={24} /> },
+                          { name: 'Ticket', icon: <Ticket size={24} /> },
+                          { name: 'Gift', icon: <Gift size={24} /> },
+                          { name: 'Trophy', icon: <Trophy size={24} /> },
+                          { name: 'Scissors', icon: <Scissors size={24} /> },
+                          { name: 'Brush', icon: <Brush size={24} /> },
+                          { name: 'Dumbbell', icon: <Dumbbell size={24} /> },
+                          { name: 'Baby', icon: <Baby size={24} /> },
+                          { name: 'PawPrint', icon: <PawPrint size={24} /> },
+                          { name: 'Bone', icon: <Bone size={24} /> },
+                          { name: 'Trees', icon: <Trees size={24} /> },
+                          { name: 'Flower2', icon: <Flower2 size={24} /> },
+                          { name: 'Sun', icon: <Sun size={24} /> },
+                          { name: 'Moon', icon: <Moon size={24} /> },
+                          { name: 'Gem', icon: <Gem size={24} /> },
+                          { name: 'Key', icon: <Key size={24} /> },
+                          { name: 'Wallet', icon: <Wallet size={24} /> },
                           { name: 'Phone', icon: <Phone size={24} /> },
+                          { name: 'Smile', icon: <Smile size={24} /> },
+                          { name: 'Gamepad2', icon: <Gamepad2 size={24} /> },
                           { name: 'Plus', icon: <Plus size={24} /> },
                         ].map((item) => (
                           <button

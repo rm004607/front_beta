@@ -3,7 +3,14 @@ import {
     Wrench, Lightbulb, ShieldCheck, Sparkles, Building2, Truck,
     HeartPulse, Briefcase, Paintbrush, Hammer, Scissors, Camera,
     Laptop, ShoppingBag, ChefHat, Music, Car, Home as HomeIcon, Phone,
-    HelpCircle
+    HelpCircle, Plug, PaintRoller, Flame, Utensils, Dumbbell, GraduationCap,
+    Baby, Stethoscope, Globe, Database, Smartphone, Plane,
+    Gift, Trophy, Coffee, Wallet, Trees, PawPrint, Flower2,
+    Sun, Moon, Bike, Cpu, Mouse, Monitor, Cloud, Code,
+    Languages, Book, School, HardHat, Construction, Drill,
+    PlugZap, Waves, Zap, Ticket, Video, Mic, Smile, Gamepad2,
+    Brush, Wind, Pill, Activity, Apple, Bone, Gem, Key,
+    Anchor
 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -67,12 +74,62 @@ export const ServiceCard = ({
             if (n === 'Scissors') return <Scissors size={20} />;
             if (n === 'Camera') return <Camera size={20} />;
             if (n === 'Laptop') return <Laptop size={20} />;
-            if (n === 'ShoppingBag') return <ShoppingBag size={20} />;
+            if (n === 'ShoppingBag' || n === 'Store') return <ShoppingBag size={20} />;
             if (n === 'ChefHat') return <ChefHat size={20} />;
             if (n === 'Music') return <Music size={20} />;
             if (n === 'Car') return <Car size={20} />;
             if (n === 'Home') return <HomeIcon size={20} />;
             if (n === 'Phone') return <Phone size={20} />;
+            if (n === 'Plug') return <Plug size={20} />;
+            if (n === 'PaintRoller') return <PaintRoller size={20} />;
+            if (n === 'Flame') return <Flame size={20} />;
+            if (n === 'Utensils') return <Utensils size={20} />;
+            if (n === 'Dumbbell') return <Dumbbell size={20} />;
+            if (n === 'GraduationCap') return <GraduationCap size={20} />;
+            if (n === 'Baby') return <Baby size={20} />;
+            if (n === 'Stethoscope') return <Stethoscope size={20} />;
+            if (n === 'Globe') return <Globe size={20} />;
+            if (n === 'Database') return <Database size={20} />;
+            if (n === 'Smartphone') return <Smartphone size={20} />;
+            if (n === 'Plane') return <Plane size={20} />;
+            if (n === 'Gift') return <Gift size={20} />;
+            if (n === 'Trophy') return <Trophy size={20} />;
+            if (n === 'Coffee') return <Coffee size={20} />;
+            if (n === 'Wallet') return <Wallet size={20} />;
+            if (n === 'Trees') return <Trees size={20} />;
+            if (n === 'PawPrint') return <PawPrint size={20} />;
+            if (n === 'Flower2') return <Flower2 size={20} />;
+            if (n === 'Sun') return <Sun size={20} />;
+            if (n === 'Moon') return <Moon size={20} />;
+            if (n === 'Bike') return <Bike size={20} />;
+            if (n === 'Cpu') return <Cpu size={20} />;
+            if (n === 'Mouse') return <Mouse size={20} />;
+            if (n === 'Monitor') return <Monitor size={20} />;
+            if (n === 'Cloud') return <Cloud size={20} />;
+            if (n === 'Code') return <Code size={20} />;
+            if (n === 'Languages') return <Languages size={20} />;
+            if (n === 'Book') return <Book size={20} />;
+            if (n === 'School') return <School size={20} />;
+            if (n === 'HardHat') return <HardHat size={20} />;
+            if (n === 'Construction') return <Construction size={20} />;
+            if (n === 'Drill') return <Drill size={20} />;
+            if (n === 'PlugZap') return <PlugZap size={20} />;
+            if (n === 'Waves') return <Waves size={20} />;
+            if (n === 'Zap') return <Zap size={20} />;
+            if (n === 'Ticket') return <Ticket size={20} />;
+            if (n === 'Video') return <Video size={20} />;
+            if (n === 'Mic') return <Mic size={20} />;
+            if (n === 'Smile') return <Smile size={20} />;
+            if (n === 'Gamepad2') return <Gamepad2 size={20} />;
+            if (n === 'Brush') return <Brush size={20} />;
+            if (n === 'Wind') return <Wind size={20} />;
+            if (n === 'Pill') return <Pill size={20} />;
+            if (n === 'Activity') return <Activity size={20} />;
+            if (n === 'Apple') return <Apple size={20} />;
+            if (n === 'Bone') return <Bone size={20} />;
+            if (n === 'Gem') return <Gem size={20} />;
+            if (n === 'Key') return <Key size={20} />;
+            if (n === 'Anchor') return <Anchor size={20} />;
         }
         const n = name.toLowerCase();
         if (n.includes('gasfiter') || n.includes('plomero')) return <Wrench size={20} />;

@@ -7,7 +7,15 @@ import {
   Calendar, DollarSign, Clock, Star, Users, ShoppingBag,
   ChefHat, Truck, HeartPulse, Lightbulb, ShieldCheck, Sparkles,
   Paintbrush, Camera, Scissors, Laptop, Hammer, Music,
-  Car, Home as HomeIcon, Phone
+  Car, Home as HomeIcon, Phone,
+  Plug, PaintRoller, Flame, Utensils, Dumbbell, GraduationCap,
+  Baby, Stethoscope, Globe, Database, Smartphone, Plane,
+  Gift, Trophy, Coffee, Wallet, Trees, PawPrint, Flower2,
+  Sun, Moon, Bike, Cpu, Mouse, Monitor, Cloud, Code,
+  Languages, Book, School, HardHat, Construction, Drill,
+  PlugZap, Waves, Zap, Ticket, Video, Mic, Smile, Gamepad2,
+  Brush, Wind, Pill, Activity, Apple, Bone, Gem, Key,
+  Anchor, Search, Settings, Bell, Navigation
 } from 'lucide-react';
 import { useUser } from '@/contexts/UserContext';
 import { useTranslation } from 'react-i18next';
@@ -89,12 +97,62 @@ const Home = () => {
       if (n === 'Scissors') return <Scissors />;
       if (n === 'Camera') return <Camera />;
       if (n === 'Laptop') return <Laptop />;
-      if (n === 'ShoppingBag') return <ShoppingBag />;
+      if (n === 'ShoppingBag' || n === 'Store') return <ShoppingBag />;
       if (n === 'ChefHat') return <ChefHat />;
       if (n === 'Music') return <Music />;
       if (n === 'Car') return <Car />;
       if (n === 'Home') return <HomeIcon />;
       if (n === 'Phone') return <Phone />;
+      if (n === 'Plug') return <Plug />;
+      if (n === 'PaintRoller') return <PaintRoller />;
+      if (n === 'Flame') return <Flame />;
+      if (n === 'Utensils') return <Utensils />;
+      if (n === 'Dumbbell') return <Dumbbell />;
+      if (n === 'GraduationCap') return <GraduationCap />;
+      if (n === 'Baby') return <Baby />;
+      if (n === 'Stethoscope') return <Stethoscope />;
+      if (n === 'Globe') return <Globe />;
+      if (n === 'Database') return <Database />;
+      if (n === 'Smartphone') return <Smartphone />;
+      if (n === 'Plane') return <Plane />;
+      if (n === 'Gift') return <Gift />;
+      if (n === 'Trophy') return <Trophy />;
+      if (n === 'Coffee') return <Coffee />;
+      if (n === 'Wallet') return <Wallet />;
+      if (n === 'Trees') return <Trees />;
+      if (n === 'PawPrint') return <PawPrint />;
+      if (n === 'Flower2') return <Flower2 />;
+      if (n === 'Sun') return <Sun />;
+      if (n === 'Moon') return <Moon />;
+      if (n === 'Bike') return <Bike />;
+      if (n === 'Cpu') return <Cpu />;
+      if (n === 'Mouse') return <Mouse />;
+      if (n === 'Monitor') return <Monitor />;
+      if (n === 'Cloud') return <Cloud />;
+      if (n === 'Code') return <Code />;
+      if (n === 'Languages') return <Languages />;
+      if (n === 'Book') return <Book />;
+      if (n === 'School') return <School />;
+      if (n === 'HardHat') return <HardHat />;
+      if (n === 'Construction') return <Construction />;
+      if (n === 'Drill') return <Drill />;
+      if (n === 'PlugZap') return <PlugZap />;
+      if (n === 'Waves') return <Waves />;
+      if (n === 'Zap') return <Zap />;
+      if (n === 'Ticket') return <Ticket />;
+      if (n === 'Video') return <Video />;
+      if (n === 'Mic') return <Mic />;
+      if (n === 'Smile') return <Smile />;
+      if (n === 'Gamepad2') return <Gamepad2 />;
+      if (n === 'Brush') return <Brush />;
+      if (n === 'Wind') return <Wind />;
+      if (n === 'Pill') return <Pill />;
+      if (n === 'Activity') return <Activity />;
+      if (n === 'Apple') return <Apple />;
+      if (n === 'Bone') return <Bone />;
+      if (n === 'Gem') return <Gem />;
+      if (n === 'Key') return <Key />;
+      if (n === 'Anchor') return <Anchor />;
     }
 
     // Fallback: Mapeo basado en nombre (como estaba antes)
