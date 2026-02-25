@@ -32,6 +32,8 @@ import {
   isValidName,
   isValidPhone,
   isValidComuna,
+  isValidRut,
+  formatRut,
   isValidTextField,
   sanitizeInput
 } from '@/lib/input-validator';
@@ -72,6 +74,7 @@ const Profile = () => {
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [editName, setEditName] = useState('');
   const [editPhone, setEditPhone] = useState('');
+  const [editRut, setEditRut] = useState('');
   const [editComuna, setEditComuna] = useState('');
   const [isUpdating, setIsUpdating] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -81,6 +84,7 @@ const Profile = () => {
   // Estados para completar perfil
   const [showCompleteProfileDialog, setShowCompleteProfileDialog] = useState(false);
   const [completePhone, setCompletePhone] = useState('');
+  const [completeRut, setCompleteRut] = useState('');
   const [completeComuna, setCompleteComuna] = useState('');
   const [isCompletingProfile, setIsCompletingProfile] = useState(false);
   const [editingService, setEditingService] = useState<Service | null>(null);
@@ -353,12 +357,15 @@ const Profile = () => {
 
       // Actualizar el contexto del usuario
       await loadUser();
-
-      toast.success('Perfil actualizado exitosamente');
       setIsEditDialogOpen(false);
+      toast.success('Perfil actualizado correctamente');
     } catch (error: any) {
       console.error('Error updating profile:', error);
-      toast.error(error.message || 'Error al actualizar el perfil');
+      if (error?.status === 400 && error?.message?.toLowerCase().includes('rut')) {
+        toast.error('El RUT ya se encuentra registrado con otra cuenta');
+      } else {
+        toast.error(error.message || 'Error al actualizar perfil');
+      }
     } finally {
       setIsUpdating(false);
     }
@@ -371,8 +378,13 @@ const Profile = () => {
 
 
   const handleCompleteProfile = async () => {
-    if (!completePhone.trim() || !completeComuna.trim()) {
+    if (!completePhone || !completeComuna || !completeRegion || !completeRut) {
       toast.error('Por favor completa todos los campos requeridos');
+      return;
+    }
+
+    if (!isValidRut(completeRut)) {
+      toast.error('Por favor ingresa un RUT válido');
       return;
     }
 
@@ -388,19 +400,25 @@ const Profile = () => {
 
     try {
       setIsCompletingProfile(true);
-      await authAPI.updateProfile({
+      const updateData = {
         phone: sanitizeInput(completePhone, 20),
+        rut: sanitizeInput(completeRut.replace(/[^0-9kK]/g, ''), 12),
         comuna: sanitizeInput(completeComuna, 50),
-        // @ts-ignore
         region_id: completeRegion,
-      });
+      };
+
+      await authAPI.updateProfile(updateData);
 
       await loadUser();
-      toast.success('Perfil completado exitosamente');
       setShowCompleteProfileDialog(false);
+      toast.success('¡Perfil completado exitosamente!');
     } catch (error: any) {
       console.error('Error completing profile:', error);
-      toast.error(error.message || 'Error al completar el perfil');
+      if (error?.status === 400 && error?.message?.toLowerCase().includes('rut')) {
+        toast.error('El RUT ya se encuentra registrado con otra cuenta');
+      } else {
+        toast.error(error.message || 'Error al completar perfil');
+      }
     } finally {
       setIsCompletingProfile(false);
     }
@@ -816,6 +834,20 @@ const Profile = () => {
                     disabled={isUpdating}
                   />
                 </div>
+                <div>
+                  <Label htmlFor="edit-rut">RUT</Label>
+                  <Input
+                    id="edit-rut"
+                    value={editRut}
+                    onChange={(e) => {
+                      const value = e.target.value;
+                      // Formatear RUT si existe la función importada
+                      setEditRut(value);
+                    }}
+                    placeholder="12.345.678-9"
+                    disabled={isUpdating}
+                  />
+                </div>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div>
                     <Label htmlFor="edit-region">Región</Label>
@@ -1009,15 +1041,28 @@ const Profile = () => {
             </DialogHeader>
 
             <div className="space-y-4 py-4">
-              <div>
-                <Label htmlFor="complete-phone">Teléfono *</Label>
-                <Input
-                  id="complete-phone"
-                  value={completePhone}
-                  onChange={(e) => setCompletePhone(e.target.value)}
-                  placeholder="+56 9 1234 5678"
-                  disabled={isCompletingProfile}
-                />
+              <div className="space-y-4">
+                <div>
+                  <Label htmlFor="complete-rut">RUT <span className="text-destructive">*</span></Label>
+                  <Input
+                    id="complete-rut"
+                    value={completeRut}
+                    onChange={(e) => setCompleteRut(formatRut(e.target.value))}
+                    placeholder="12.345.678-9"
+                    className={completeRut && !isValidRut(completeRut) ? 'border-red-500' : ''}
+                    disabled={isCompletingProfile}
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="complete-phone">Teléfono <span className="text-destructive">*</span></Label>
+                  <Input
+                    id="complete-phone"
+                    value={completePhone}
+                    onChange={(e) => setCompletePhone(e.target.value)}
+                    placeholder="+56 9 1234 5678"
+                    disabled={isCompletingProfile}
+                  />
+                </div>
               </div>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>

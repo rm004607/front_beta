@@ -46,6 +46,7 @@ const PostService = () => {
   const [editBaseLocation, setEditBaseLocation] = useState(false);
   const [userLimits, setUserLimits] = useState<{
     services: {
+      limit: number;
       free_limit: number;
       used: number;
       remaining: number;
@@ -269,20 +270,19 @@ const PostService = () => {
               </AlertDescription>
             </Alert>
 
-            {/* Información de límites */}
             {userLimits && user?.role_number !== 5 && (
-              <Alert className="mb-6">
-                <AlertCircle className="h-4 w-4" />
-                <AlertDescription>
-                  <div className="flex justify-between items-center">
-                    <span>
-                      {t('post_service.free_posts')}: {userLimits.services.used} / {userLimits.services.free_limit}
+              <Alert className="mb-6 bg-primary/5 border-primary/20">
+                <AlertCircle className="h-4 w-4 text-primary" />
+                <AlertDescription className="font-medium">
+                  {t('post_service.free_posts')}: {userLimits.services.used} / {userLimits.services.limit}
+                  {userLimits.services.remaining > 0 ? (
+                    <span className="ml-2 text-primary">
+                      ({t('post_service.remaining_posts', { count: userLimits.services.remaining })})
                     </span>
-                  </div>
-                  {userLimits.services.remaining > 0 && (
-                    <p className="text-sm mt-1">
-                      {t('post_service.remaining_posts', { count: userLimits.services.remaining })}
-                    </p>
+                  ) : (
+                    <span className="ml-2 text-destructive">
+                      (Límite alcanzado)
+                    </span>
                   )}
                 </AlertDescription>
               </Alert>

@@ -225,26 +225,41 @@ const Register = () => {
       return;
     }
 
-    // Validaciones de seguridad finales (solo si hay contenido o no es Google completion)
-    // Para Google completion permitimos campos vacíos ya que se completarán después
-    if (name && !isValidName(name)) {
-      toast.error(getValidationErrorMessage('name', containsSQLInjection(name) ? 'sql' : 'format'));
-      return;
-    }
+    // Validaciones de seguridad y campos obligatorios
+    if (isGoogleCompletion) {
+      if (!rut || !isValidRut(rut)) {
+        toast.error('Por favor ingresa un RUT válido');
+        return;
+      }
+      if (!phone || !isValidPhone(phone)) {
+        toast.error('Por favor ingresa un teléfono válido');
+        return;
+      }
+      if (!comuna || !selectedRegion) {
+        toast.error('Por favor selecciona tu región y comuna');
+        return;
+      }
+    } else {
+      // Registro normal
+      if (name && !isValidName(name)) {
+        toast.error(getValidationErrorMessage('name', containsSQLInjection(name) ? 'sql' : 'format'));
+        return;
+      }
 
-    if (rut && !isValidRut(rut)) {
-      toast.error(getValidationErrorMessage('rut', containsSQLInjection(rut) ? 'sql' : 'format'));
-      return;
-    }
+      if (rut && !isValidRut(rut)) {
+        toast.error(getValidationErrorMessage('rut', containsSQLInjection(rut) ? 'sql' : 'format'));
+        return;
+      }
 
-    if (phone && !isValidPhone(phone)) {
-      toast.error(getValidationErrorMessage('phone', containsSQLInjection(phone) ? 'sql' : 'format'));
-      return;
-    }
+      if (phone && !isValidPhone(phone)) {
+        toast.error(getValidationErrorMessage('phone', containsSQLInjection(phone) ? 'sql' : 'format'));
+        return;
+      }
 
-    if (comuna && !isValidComuna(comuna)) {
-      toast.error(getValidationErrorMessage('comuna', containsSQLInjection(comuna) ? 'sql' : 'format'));
-      return;
+      if (comuna && !isValidComuna(comuna)) {
+        toast.error(getValidationErrorMessage('comuna', containsSQLInjection(comuna) ? 'sql' : 'format'));
+        return;
+      }
     }
 
     setIsSubmitting(true);
@@ -283,8 +298,13 @@ const Register = () => {
 
       toast.success('¡Registro completado exitosamente!');
       navigate('/');
-    } catch (error) {
-      toast.error(error instanceof Error ? error.message : 'Error al registrar usuario');
+    } catch (error: any) {
+      console.error('Error in registration/completion:', error);
+      if (error?.status === 400 && error?.message?.toLowerCase().includes('rut')) {
+        toast.error('El RUT ya se encuentra registrado con otra cuenta');
+      } else {
+        toast.error(error instanceof Error ? error.message : 'Error al procesar solicitud');
+      }
     } finally {
       setIsSubmitting(false);
     }
@@ -488,8 +508,75 @@ const Register = () => {
               <div className="space-y-6 animate-in fade-in slide-in-from-right-4 duration-500">
                 <div className="text-center space-y-2">
                   <h3 className="text-xl font-bold font-heading">¿Cómo quieres usar Dameldato?</h3>
-                  <p className="text-muted-foreground">Selecciona tu perfil principal para continuar</p>
+                  <p className="text-muted-foreground">Completa tus datos y selecciona tu perfil para continuar</p>
                 </div>
+
+                {/* Campos requeridos para Google Completion */}
+                {(searchParams.get('token') || (isGoogleVerified && user)) && (
+                  <div className="space-y-4 p-4 border rounded-xl bg-white/50 backdrop-blur-sm border-white/20 shadow-inner">
+                    <p className="text-sm font-semibold text-primary mb-2 flex items-center gap-2">
+                      <span className="flex h-5 w-5 items-center justify-center rounded-full bg-primary text-[10px] text-white">i</span>
+                      Información Requerida
+                    </p>
+
+                    <div>
+                      <Label htmlFor="rut_step2">RUT <span className="text-destructive">*</span></Label>
+                      <Input
+                        id="rut_step2"
+                        value={rut}
+                        onChange={(e) => setRut(formatRut(e.target.value))}
+                        placeholder="12.345.678-9"
+                        className={rut && !isValidRut(rut) ? 'border-red-500' : ''}
+                        maxLength={12}
+                        required
+                      />
+                    </div>
+
+                    <div>
+                      <Label htmlFor="phone_step2">Teléfono <span className="text-destructive">*</span></Label>
+                      <Input
+                        id="phone_step2"
+                        value={phone}
+                        onChange={(e) => setPhone(e.target.value)}
+                        placeholder="+56 9 1234 5678"
+                        className={phone && !isValidPhone(phone) ? 'border-red-500' : ''}
+                        required
+                      />
+                    </div>
+
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                      <div>
+                        <Label htmlFor="region_step2">Región <span className="text-destructive">*</span></Label>
+                        <Select value={selectedRegion} onValueChange={(val) => {
+                          setSelectedRegion(val);
+                          setComuna('');
+                        }}>
+                          <SelectTrigger id="region_step2">
+                            <SelectValue placeholder="Región" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {chileData.map((reg) => (
+                              <SelectItem key={reg.id} value={reg.id}>{reg.name}</SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
+                      <div>
+                        <Label htmlFor="comuna_step2">Comuna <span className="text-destructive">*</span></Label>
+                        <Select value={comuna} onValueChange={setComuna} disabled={!selectedRegion}>
+                          <SelectTrigger id="comuna_step2">
+                            <SelectValue placeholder="Comuna" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {selectedRegion && chileData.find(r => String(r.id) === String(selectedRegion))?.communes.map((c) => (
+                              <SelectItem key={c} value={c}>{c}</SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
+                    </div>
+                  </div>
+                )}
 
                 <div className="flex flex-col items-center gap-4">
                   <Button

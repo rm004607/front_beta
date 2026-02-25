@@ -186,10 +186,10 @@ export const authAPI = {
   updateProfile: async (data: {
     name?: string;
     phone?: string;
+    rut?: string;
     comuna?: string;
+    region_id?: string | number;
     profile_image?: string | null;
-    cv_url?: string | null;
-    role_number?: number;
     rubro?: string;
     experience?: string;
     service?: string;
@@ -1064,13 +1064,15 @@ export const packagesAPI = {
   getUserLimits: async () => {
     return request<{
       services: {
-        free_limit: number;
+        limit: number;
+        free_limit: number; // For compatibility
         used: number;
         remaining: number;
         requires_payment: boolean;
       };
       jobs: {
-        free_limit: number;
+        limit: number;
+        free_limit: number; // For compatibility
         used: number;
         remaining: number;
         requires_payment: boolean;
