@@ -118,6 +118,9 @@ const Home = () => {
     if (n.includes('lavado') || n.includes('auto')) return <Car />;
     if (n.includes('hogar') || n.includes('casa')) return <HomeIcon />;
     if (n.includes('telef') || n.includes('contacto')) return <Phone />;
+    if (n.includes('fontaner') || n.includes('gasfiter')) return <Wrench />;
+    if (n.includes('jardin')) return <Scissors />;
+    if (n.includes('gastro') || n.includes('comida') || n.includes('chef')) return <ChefHat />;
     return <Wrench />; // Default icon
   };
 

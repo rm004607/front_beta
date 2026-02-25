@@ -83,6 +83,9 @@ export const ServiceCard = ({
         if (n.includes('flete') || n.includes('mudan') || n.includes('transp')) return <Truck size={20} />;
         if (n.includes('cuidad') || n.includes('salud') || n.includes('enfer')) return <HeartPulse size={20} />;
         if (n.includes('mecanic')) return <Briefcase size={20} />;
+        if (n.includes('fontaner') || n.includes('gasfiter')) return <Wrench size={20} />;
+        if (n.includes('jardin')) return <Scissors size={20} />;
+        if (n.includes('gastro') || n.includes('comida') || n.includes('chef')) return <ChefHat size={20} />;
         return <Wrench size={20} />;
     };
 

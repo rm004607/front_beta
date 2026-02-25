@@ -379,13 +379,18 @@ const Admin = () => {
     try {
       if (selectedType) {
         await adminAPI.updateServiceType(selectedType.id, typeForm);
+        setCatalogTypes(prev => prev.map(t => t.id === selectedType.id ? { ...t, ...typeForm } : t));
         toast.success('Tipo de servicio actualizado');
       } else {
-        await adminAPI.createServiceType(typeForm);
+        const response = await adminAPI.createServiceType(typeForm);
+        if (response.type) {
+          setCatalogTypes(prev => [...prev, response.type]);
+        }
         toast.success('Tipo de servicio creado');
       }
       setTypeDialogOpen(false);
-      loadAdminServiceTypes();
+      // Recargar para sincronizar con el ID real y otros campos del backend
+      setTimeout(() => loadAdminServiceTypes(), 500);
     } catch (error: any) {
       console.error('Error saving service type:', error);
       toast.error(error.message || 'Error al guardar tipo de servicio');
