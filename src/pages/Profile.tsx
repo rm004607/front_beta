@@ -191,20 +191,7 @@ const Profile = () => {
     setEditServiceName(service.service_name);
     setEditServiceDescription(service.description);
 
-    // Intentar parsear el rango de precio existente (ej: "1000 - 5000")
-    if (service.price_range) {
-      const parts = service.price_range.split('-');
-      if (parts.length === 2) {
-        setEditServiceMinPrice(parts[0].trim().replace(/[^0-9]/g, ''));
-        setEditServiceMaxPrice(parts[1].trim().replace(/[^0-9]/g, ''));
-      } else {
-        setEditServiceMinPrice(service.price_range.trim().replace(/[^0-9]/g, ''));
-        setEditServiceMaxPrice('');
-      }
-    } else {
-      setEditServiceMinPrice('');
-      setEditServiceMaxPrice('');
-    }
+    // Price range logic removed as requested
 
     setEditServiceComuna(service.comuna);
   };
@@ -229,14 +216,9 @@ const Profile = () => {
     }
 
     try {
-      const priceRangeString = editServiceMinPrice && editServiceMaxPrice
-        ? `${editServiceMinPrice} - ${editServiceMaxPrice}`
-        : editServiceMinPrice || editServiceMaxPrice || '';
-
       await servicesAPI.updateService(editingService.id, {
         service_name: sanitizeInput(editServiceName, 100),
         description: sanitizeInput(editServiceDescription, 2000),
-        price_range: priceRangeString ? sanitizeInput(priceRangeString, 100) : undefined,
         comuna: sanitizeInput(editServiceComuna, 50),
       });
       toast.success('Servicio actualizado exitosamente');
@@ -980,28 +962,7 @@ const Profile = () => {
                   rows={4}
                 />
               </div>
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <Label htmlFor="edit-service-min-price">Precio Mínimo</Label>
-                  <Input
-                    id="edit-service-min-price"
-                    type="number"
-                    value={editServiceMinPrice}
-                    onChange={(e) => setEditServiceMinPrice(e.target.value)}
-                    placeholder="min"
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="edit-service-max-price">Precio Máximo</Label>
-                  <Input
-                    id="edit-service-max-price"
-                    type="number"
-                    value={editServiceMaxPrice}
-                    onChange={(e) => setEditServiceMaxPrice(e.target.value)}
-                    placeholder="max"
-                  />
-                </div>
-              </div>
+              {/* Price fields removed as requested */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
                   <Label htmlFor="edit-service-region">Región</Label>
