@@ -60,8 +60,35 @@ const Register = () => {
   const [selectedRegion, setSelectedRegion] = useState('');
 
   // Persistir datos si viene de QR o Google
+  // Función para decodificar JWT sin librerías externas
+  const decodeToken = (token: string) => {
+    try {
+      const base64Url = token.split('.')[1];
+      const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+      const jsonPayload = decodeURIComponent(atob(base64).split('').map(function (c) {
+        return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
+      }).join(''));
+      return JSON.parse(jsonPayload);
+    } catch (e) {
+      return null;
+    }
+  };
+
   useEffect(() => {
-    // Si ya hay un usuario cargado (ej. por token de Google), pre-poblar campos
+    const urlToken = searchParams.get('token');
+    const isRegistrationPending = searchParams.get('google_registration_pending') === 'true';
+
+    // Si el registro de Google está pendiente, tratar de pre-poblar desde el token
+    if (isRegistrationPending && urlToken && !hasPrefilled.current) {
+      const decoded = decodeToken(urlToken);
+      if (decoded) {
+        if (decoded.google_name) setName(decoded.google_name);
+        if (decoded.google_email) setEmail(decoded.google_email);
+        hasPrefilled.current = true;
+      }
+    }
+
+    // Si ya hay un usuario cargado (ej. por token de Google ya registrado), pre-poblar campos
     // Solo lo hacemos una vez para permitir al usuario borrar los campos si lo desea
     if (user && !hasPrefilled.current) {
       if (user.name) setName(user.name);
@@ -273,8 +300,11 @@ const Register = () => {
     }
 
     setIsSubmitting(true);
+    setErrorMessage('');
     try {
-      const isGoogleCompletion = !!searchParams.get('token') || isGoogleVerified || !!localStorage.getItem('token');
+      const urlToken = searchParams.get('token');
+      const isRegistrationPending = searchParams.get('google_registration_pending') === 'true';
+      const isGoogleCompletion = !!urlToken || isGoogleVerified || !!localStorage.getItem('token');
 
       // Sanitizar inputs antes de enviar
       const data: any = {
@@ -284,16 +314,21 @@ const Register = () => {
         comuna: sanitizeInput(comuna, 50),
         region_id: selectedRegion,
         rol: roleToNumber(finalRole),
-        role_number: roleToNumber(finalRole),
+        // Campos adicionales para emprendedores
         rubro: finalRole === 'entrepreneur' ? sanitizeInput(rubro || '', 100) : undefined,
         experience: finalRole === 'entrepreneur' ? sanitizeInput(experience || '', 2000) : undefined,
         service: finalRole === 'entrepreneur' ? sanitizeInput(service || '', 100) : undefined,
         portfolio: finalRole === 'entrepreneur' ? sanitizeInput(portfolio || '', 2000) : undefined,
       };
 
-      if (isGoogleCompletion) {
-        // En GoogleCompletion, el email ya está verificado y el password no existe/no es necesario
-        // Omitimos email para evitar errores de "email ya registrado" en el backend al hacer update
+      if (isRegistrationPending && urlToken) {
+        // Nuevo flujo: Registro con Google aún no creado en BD
+        data.token = urlToken;
+        const response = await authAPI.googleRegister(data);
+        // Guardar nuevo token de sesión
+        localStorage.setItem('token', response.token);
+      } else if (isGoogleCompletion) {
+        // Flujo antiguo o actualización de cuenta Google existente
         await authAPI.updateProfile(data);
       } else {
         // Registro normal requiere email y password

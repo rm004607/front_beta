@@ -219,6 +219,33 @@ export const authAPI = {
     window.location.href = `${API_BASE_URL}/auth/google${role ? `?role=${role}` : ''}`;
   },
 
+  googleRegister: async (data: {
+    token: string;
+    rut: string;
+    phone: string;
+    comuna: string;
+    region_id?: string | number;
+    rol: number;
+    rubro?: string;
+    experience?: string;
+    service?: string;
+    portfolio?: string;
+  }) => {
+    return request<{
+      message: string;
+      token: string;
+      user: {
+        id: string;
+        name: string;
+        email: string;
+        rut: string;
+      };
+    }>('/auth/google-register', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    });
+  },
+
   verifyEmail: async (data: { email: string; code: string }) => {
     return request<{ message: string; user: { id: string; name: string; email: string } }>('/auth/verify-email', {
       method: 'POST',

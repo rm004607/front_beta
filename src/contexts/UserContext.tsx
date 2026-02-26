@@ -89,18 +89,26 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
         localStorage.setItem('token', urlToken);
 
         const isGoogleLogin = urlParams.get('google_login') === 'true';
+        const isRegistrationPending = urlParams.get('google_registration_pending') === 'true';
 
         // Limpiar parámetros de la URL
         const url = new URL(window.location.href);
         url.searchParams.delete('token');
         url.searchParams.delete('google_login');
+        url.searchParams.delete('google_registration_pending');
         url.searchParams.delete('status');
         window.history.replaceState({}, '', url.pathname + url.search);
 
         // Si es un login de Google, forzamos ir a /registro para asegurar la selección de rol
         // excepto si ya estamos en /registro
         if (isGoogleLogin && window.location.pathname !== '/registro') {
-          window.location.href = `/registro?token=${urlToken}`;
+          window.location.href = `/registro?token=${urlToken}${isRegistrationPending ? '&google_registration_pending=true' : ''}`;
+          return;
+        }
+
+        // Si el registro está pendiente, no intentamos cargar el usuario (daría 401)
+        if (isRegistrationPending) {
+          setIsLoading(false);
           return;
         }
       }
