@@ -270,7 +270,7 @@ const PostService = () => {
               </AlertDescription>
             </Alert>
 
-            {userLimits && user?.role_number !== 5 && pricingEnabled && (
+            {userLimits && user?.role_number !== 5 && pricingEnabled && !userLimits.services.is_infinite && (
               <Alert className="mb-6 bg-primary/5 border-primary/20">
                 <AlertCircle className="h-4 w-4 text-primary" />
                 <AlertDescription className="font-medium">
