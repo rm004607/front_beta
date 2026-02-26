@@ -61,6 +61,10 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
       // Limpiar estado local
       localStorage.removeItem('token');
       setUser(null);
+
+      // Redirigir al login
+      window.location.href = '/login';
+
       // Intentar cerrar sesión en el backend (puede fallar si la cookie ya expiró)
       try {
         await authAPI.logout();

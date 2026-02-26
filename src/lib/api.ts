@@ -81,10 +81,7 @@ async function request<T>(
 
     // Si es un error 401 (cookie expirada o no autenticado)
     if (response.status === 401 && !options.skipAuth) {
-      // Si no es /auth/me (que es normal cuando no hay sesión), significa que la cookie expiró
-      // y el usuario estaba logueado, así que cerramos sesión automáticamente
       if (endpoint !== '/auth/me' && onUnauthorizedCallback) {
-        // La cookie expiró mientras el usuario estaba usando la app
         onUnauthorizedCallback();
       }
     }
