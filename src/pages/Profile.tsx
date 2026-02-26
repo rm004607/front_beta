@@ -633,7 +633,7 @@ const Profile = () => {
             {(user.roles.includes('entrepreneur') || user.roles.includes('admin') || user.role_number === 5) && (
               <TabsTrigger value="services" className="flex items-center gap-2">
                 <Wrench size={16} />
-                Servicios ({services.length})
+                Servicios ({services.filter(s => s.status?.toLowerCase().trim() !== 'inactive').length})
               </TabsTrigger>
             )}
           </TabsList>
@@ -731,7 +731,7 @@ const Profile = () => {
                     </div>
                   ) : (
                     <div className="space-y-4">
-                      {services.map((service) => (
+                      {services.filter(s => s.status?.toLowerCase().trim() !== 'inactive').map((service) => (
                         <Card key={service.id} className="border">
                           <CardHeader>
                             <div className="flex justify-between items-start">
