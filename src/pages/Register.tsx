@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -6,6 +6,7 @@ import { Label } from '@/components/ui/label';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Alert, AlertTitle, AlertDescription } from '@/components/ui/alert';
 import { UserRole, useUser } from '@/contexts/UserContext';
 import { ArrowRight, ArrowLeft } from 'lucide-react';
 import { toast } from 'sonner';
@@ -30,6 +31,7 @@ import {
 } from "@/components/ui/select";
 
 const Register = () => {
+  const [errorMessage, setErrorMessage] = useState('');
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const { user, setUser, loadUser } = useUser();
@@ -311,11 +313,11 @@ const Register = () => {
       navigate('/');
     } catch (error: any) {
       console.error('Error in registration/completion:', error);
-      if (error?.status === 400 && error?.message?.toLowerCase().includes('rut')) {
-        toast.error('El RUT ya se encuentra registrado con otra cuenta');
-      } else {
-        toast.error(error instanceof Error ? error.message : 'Error al procesar solicitud');
-      }
+      const msg = error?.status === 400 && error?.message?.toLowerCase().includes('rut')
+        ? 'El RUT ya se encuentra registrado con otra cuenta'
+        : (error instanceof Error ? error.message : 'Error al procesar solicitud');
+      setErrorMessage(msg);
+      toast.error(msg);
     } finally {
       setIsSubmitting(false);
     }
@@ -338,6 +340,12 @@ const Register = () => {
             <CardDescription className="text-base sm:text-lg">Paso {step === 4 ? 2 : 1} de 2</CardDescription>
           </CardHeader>
           <CardContent className="p-4 sm:p-6">
+            {errorMessage && (
+              <Alert variant="destructive" className="mb-6">
+                <AlertTitle>Error</AlertTitle>
+                <AlertDescription>{errorMessage}</AlertDescription>
+              </Alert>
+            )}
             {step === 1 && (
               <div className="space-y-6">
                 <div>
