@@ -66,8 +66,7 @@ const Register = () => {
     if (user && !hasPrefilled.current) {
       if (user.name) setName(user.name);
       if (user.email) setEmail(user.email);
-      if (user.phone) setPhone(user.phone);
-      if (user.rut) setRut(formatRut(user.rut));
+      // No auto-poblar RUT ni teléfono por privacidad
       if (user.comuna) setComuna(user.comuna);
       if (user.region_id) setSelectedRegion(user.region_id);
       hasPrefilled.current = true;
@@ -83,17 +82,15 @@ const Register = () => {
     if (!hasPrefilled.current) {
       const savedName = localStorage.getItem('reg_name');
       if (savedName && !name) setName(savedName);
-      const savedRut = localStorage.getItem('reg_rut');
-      if (savedRut && !rut) setRut(savedRut);
+
       const savedEmail = localStorage.getItem('reg_email');
       if (savedEmail && !email) setEmail(savedEmail);
-      const savedPhone = localStorage.getItem('reg_phone');
-      if (savedPhone && !phone) setPhone(savedPhone);
+
       const savedComuna = localStorage.getItem('reg_comuna');
       if (savedComuna && !comuna) setComuna(savedComuna);
 
       // Si cargamos algo de localStorage, también marcamos como prefilled
-      if (savedName || savedRut || savedEmail || savedPhone || savedComuna) {
+      if (savedName || savedEmail || savedComuna) {
         hasPrefilled.current = true;
       }
     }
