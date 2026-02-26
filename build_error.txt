@@ -1,0 +1,24 @@
+
+> vite_react_shadcn_ts@0.0.0 build
+> vite build
+
+vite v7.2.4 building client environment for production...
+[baseline-browser-mapping] The data in this module is over two months old.  To ensure accurate Baseline data, please update: `npm i baseline-browser-mapping@latest -D`
+transforming...
+✓ 5 modules transformed.
+✗ Build failed in 1.18s
+error during build:
+[vite]: Rollup failed to resolve import "react-i18next" from "/Users/macbook/Documents/GitHub/front_beta/src/i18n.ts".
+This is most likely unintended because it can break your application at runtime.
+If you do want to externalize this module explicitly add it to
+`build.rollupOptions.external`
+    at viteLog (file:///Users/macbook/Documents/GitHub/front_beta/node_modules/vite/dist/node/chunks/config.js:34283:57)
+    at file:///Users/macbook/Documents/GitHub/front_beta/node_modules/vite/dist/node/chunks/config.js:34317:73
+    at onwarn (file:///Users/macbook/Documents/GitHub/front_beta/node_modules/@vitejs/plugin-react-swc/index.js:90:7)
+    at file:///Users/macbook/Documents/GitHub/front_beta/node_modules/vite/dist/node/chunks/config.js:34317:28
+    at onRollupLog (file:///Users/macbook/Documents/GitHub/front_beta/node_modules/vite/dist/node/chunks/config.js:34312:63)
+    at onLog (file:///Users/macbook/Documents/GitHub/front_beta/node_modules/vite/dist/node/chunks/config.js:34115:4)
+    at file:///Users/macbook/Documents/GitHub/front_beta/node_modules/rollup/dist/es/shared/node-entry.js:20947:32
+    at Object.logger [as onLog] (file:///Users/macbook/Documents/GitHub/front_beta/node_modules/rollup/dist/es/shared/node-entry.js:22834:9)
+    at ModuleLoader.handleInvalidResolvedId (file:///Users/macbook/Documents/GitHub/front_beta/node_modules/rollup/dist/es/shared/node-entry.js:21578:26)
+    at file:///Users/macbook/Documents/GitHub/front_beta/node_modules/rollup/dist/es/shared/node-entry.js:21536:26
