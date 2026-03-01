@@ -55,7 +55,7 @@ const Home = () => {
   const loadServiceTypes = async () => {
     try {
       setLoadingTypes(true);
-      const response = await servicesAPI.getServiceTypes();
+      const response = await servicesAPI.getServiceTypes({ onlyActive: true });
       setServiceTypes(response.types);
     } catch (error) {
       console.error('Error loading service types:', error);
@@ -212,6 +212,21 @@ const Home = () => {
     }
   };
 
+  const CategoryCard = ({ type, rowIndex }: { type: any, rowIndex?: number }) => (
+    <Link
+      to={`/servicios?type_id=${type.id}`}
+      className="group/item shrink-0 inline-flex flex-col items-center justify-center min-w-[200px] h-[180px] glass-card p-6 rounded-[2.5rem] hover:scale-105 transition-all duration-300 border-transparent hover:border-primary/30 shadow-sm hover:shadow-xl bg-white/40"
+    >
+      <div
+        className={`w-14 h-14 rounded-2xl flex items-center justify-center mb-4 group-hover/item:scale-110 transition-transform shadow-md group-hover/item:rotate-6 ${isLightColor(type.color || getServiceColor(type.name)) ? 'text-slate-900' : 'text-white'}`}
+        style={{ backgroundColor: type.color || getServiceColor(type.name) }}
+      >
+        {getServiceIcon(type.name, type.icon)}
+      </div>
+      <h3 className="font-bold text-base group-hover/item:text-primary transition-colors text-center whitespace-normal max-w-[160px]">{type.name}</h3>
+    </Link>
+  );
+
   const formatDate = (dateString: string) => {
     try {
       const date = new Date(dateString);
@@ -333,20 +348,16 @@ const Home = () => {
       </section>
 
       {/* Categories Grid */}
-      <section className="py-20 container mx-auto px-4">
-        <div className="text-center mb-16 space-y-4">
-          <h2 className="text-4xl font-heading font-extrabold animate-reveal">{t('home.categories_title')}</h2>
-          <p className="text-muted-foreground font-medium text-lg max-w-2xl mx-auto animate-reveal delay-100">
-            {t('home.categories_desc')}
-          </p>
-        </div>
+      {serviceTypes.length > 0 || loadingTypes ? (
+        <section className="py-20 container mx-auto px-4">
+          <div className="text-center mb-16 space-y-4">
+            <h2 className="text-4xl font-heading font-extrabold animate-reveal">{t('home.categories_title')}</h2>
+            <p className="text-muted-foreground font-medium text-lg max-w-2xl mx-auto animate-reveal delay-100">
+              {t('home.categories_desc')}
+            </p>
+          </div>
 
-        <div className="relative overflow-hidden group pause-on-hover">
-          {/* Glassy Fades on edges for depth */}
-          <div className="absolute left-0 top-0 bottom-0 w-32 bg-gradient-to-r from-background via-background/80 to-transparent z-20 pointer-events-none"></div>
-          <div className="absolute right-0 top-0 bottom-0 w-32 bg-gradient-to-l from-background via-background/80 to-transparent z-20 pointer-events-none"></div>
-
-          <div className="space-y-8 py-4">
+          <div className="relative overflow-hidden group">
             {loadingTypes ? (
               // Loading state
               <div className="grid grid-cols-2 md:grid-cols-4 gap-6 px-4">
@@ -354,54 +365,50 @@ const Home = () => {
                   <div key={i} className="h-40 rounded-3xl bg-muted animate-pulse"></div>
                 ))}
               </div>
+            ) : serviceTypes.length >= 6 ? (
+              // Render Marquee for 6 or more categories
+              <div className="relative overflow-hidden group pause-on-hover">
+                {/* Glassy Fades on edges for depth */}
+                <div className="absolute left-0 top-0 bottom-0 w-32 bg-gradient-to-r from-background via-background/80 to-transparent z-20 pointer-events-none"></div>
+                <div className="absolute right-0 top-0 bottom-0 w-32 bg-gradient-to-l from-background via-background/80 to-transparent z-20 pointer-events-none"></div>
+
+                <div className="space-y-8 py-4">
+                  {[0, 1, 2].map((rowIndex) => {
+                    const animationClass = rowIndex % 2 === 0 ? "animate-marquee-reverse" : "animate-marquee";
+                    const rowItems = serviceTypes.filter((_, idx) => idx % 3 === rowIndex);
+                    if (rowItems.length === 0) return null;
+                    const displayItems = [...rowItems, ...rowItems, ...rowItems];
+
+                    return (
+                      <div key={rowIndex} className="flex gap-6 whitespace-nowrap">
+                        <div className={`flex gap-6 ${animationClass}`} style={{ animationDuration: rowIndex === 1 ? '40s' : '35s' }}>
+                          {displayItems.map((type, i) => (
+                            <CategoryCard key={`${rowIndex}-${type.id}-${i}`} type={type} rowIndex={rowIndex} />
+                          ))}
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
             ) : (
-              // Render 3 rows with different directions
-              [0, 1, 2].map((rowIndex) => {
-                // Determine animation and speed based on row
-                const animationClass = rowIndex % 2 === 0 ? "animate-marquee-reverse" : "animate-marquee";
-
-                // Distribute types balanced across rows
-                const rowItems = serviceTypes.filter((_, idx) => idx % 3 === rowIndex);
-
-                // If the row is empty, don't render it
-                if (rowItems.length === 0) return null;
-
-                // Duplicate items (3 times) to ensure enough width for infinite effect
-                const displayItems = [...rowItems, ...rowItems, ...rowItems];
-
-                return (
-                  <div key={rowIndex} className="flex gap-6 whitespace-nowrap">
-                    <div className={`flex gap-6 ${animationClass}`} style={{ animationDuration: rowIndex === 1 ? '40s' : '35s' }}>
-                      {displayItems.map((type, i) => (
-                        <Link
-                          key={`${rowIndex}-${type.id}-${i}`}
-                          to={`/servicios?type_id=${type.id}`}
-                          className="group/item shrink-0 inline-flex flex-col items-center justify-center min-w-[200px] h-[180px] glass-card p-6 rounded-[2.5rem] hover:scale-105 transition-all duration-300 border-transparent hover:border-primary/30 shadow-sm hover:shadow-xl bg-white/40"
-                        >
-                          <div
-                            className={`w-14 h-14 rounded-2xl flex items-center justify-center mb-4 group-hover/item:scale-110 transition-transform shadow-md group-hover/item:rotate-6 ${isLightColor(type.color || getServiceColor(type.name)) ? 'text-slate-900' : 'text-white'}`}
-                            style={{ backgroundColor: type.color || getServiceColor(type.name) }}
-                          >
-                            {getServiceIcon(type.name, type.icon)}
-                          </div>
-                          <h3 className="font-bold text-base group-hover/item:text-primary transition-colors text-center">{type.name}</h3>
-                        </Link>
-                      ))}
-                    </div>
-                  </div>
-                );
-              })
+              // Render Static Grid for 1-5 categories
+              <div className="flex flex-wrap justify-center gap-6 px-4 py-4 animate-reveal">
+                {serviceTypes.map((type) => (
+                  <CategoryCard key={type.id} type={type} />
+                ))}
+              </div>
             )}
-          </div>
 
-          {/* Subtle decoration for interaction */}
-          <div className="flex justify-center mt-8">
-            <div className="px-5 py-2 glass-card rounded-full text-[9px] font-black uppercase tracking-[0.2em] text-primary/60 border-primary/10 shadow-sm">
-              Catálogo Interactivo • Explora por categorías
+            {/* Subtle decoration for interaction */}
+            <div className="flex justify-center mt-8">
+              <div className="px-5 py-2 glass-card rounded-full text-[9px] font-black uppercase tracking-[0.2em] text-primary/60 border-primary/10 shadow-sm">
+                Catálogo Interactivo • Explora por categorías
+              </div>
             </div>
           </div>
-        </div>
-      </section>
+        </section>
+      ) : null}
 
       {/* Main Actions - Re-styled as Feature Highlights */}
       <section className="py-20 bg-primary/5">

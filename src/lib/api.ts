@@ -407,7 +407,11 @@ export const servicesAPI = {
   },
 
   // Obtener tipos de servicios (catálogo estructurado)
-  getServiceTypes: async () => {
+  getServiceTypes: async (filters?: { onlyActive?: boolean }) => {
+    const params = new URLSearchParams();
+    if (filters?.onlyActive) params.append('onlyActive', 'true');
+    const queryString = params.toString();
+
     return request<{
       types: Array<{
         id: string;
@@ -416,7 +420,7 @@ export const servicesAPI = {
         icon?: string;
         color?: string;
       }>;
-    }>('/services/types', {
+    }>(`/services/types${queryString ? `?${queryString}` : ''}`, {
       method: 'GET',
     });
   },
