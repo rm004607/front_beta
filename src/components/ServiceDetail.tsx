@@ -89,7 +89,7 @@ export const ServiceDetail = ({
                     <div className="text-center sm:text-left">
                         <p className="text-xs uppercase tracking-widest text-yellow-500 font-bold mb-1">Calificación Promedio</p>
                         <div className="flex items-center justify-center sm:justify-start gap-3">
-                            <span className="text-4xl font-black text-yellow-400 text-glow">{(stats.average_rating && Number(stats.average_rating) > 0) ? Number(stats.average_rating).toFixed(1) : '5.0'}</span>
+                            <span className="text-4xl font-black text-yellow-400 text-glow">{(stats.average_rating && Number(stats.average_rating) > 0) ? Number(stats.average_rating).toFixed(1) : '0.0'}</span>
                             <div className="flex gap-0.5">
                                 {[1, 2, 3, 4, 5].map((s) => (
                                     <Star

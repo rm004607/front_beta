@@ -201,7 +201,7 @@ export const ServiceCard = ({
                             <div className="flex items-center gap-1.5 bg-yellow-500/10 px-2.5 py-1 rounded-full border border-yellow-500/20 shadow-sm shrink-0">
                                 <Star className="w-4 h-4 fill-yellow-500 text-yellow-500" />
                                 <span className="text-sm font-bold text-yellow-500">
-                                    {(service.average_rating && Number(service.average_rating) > 0) ? Number(service.average_rating).toFixed(1) : '5.0'}
+                                    {(service.average_rating && Number(service.average_rating) > 0) ? Number(service.average_rating).toFixed(1) : '0.0'}
                                 </span>
                             </div>
                         </div>
@@ -261,7 +261,7 @@ export const ServiceCard = ({
                                             <div className="flex items-center gap-1.5 bg-yellow-500/10 px-2.5 py-1 rounded-full border border-yellow-500/20 shadow-sm">
                                                 <Star className="w-4 h-4 fill-yellow-500 text-yellow-500" />
                                                 <span className="text-sm font-bold text-yellow-500">
-                                                    {(service.average_rating && Number(service.average_rating) > 0) ? Number(service.average_rating).toFixed(1) : '5.0'}
+                                                    {(service.average_rating && Number(service.average_rating) > 0) ? Number(service.average_rating).toFixed(1) : '0.0'}
                                                 </span>
                                             </div>
                                         </div>
@@ -360,7 +360,7 @@ export const ServiceCard = ({
                             <div className="flex items-center gap-1 text-xs text-muted-foreground bg-muted/30 px-2 py-1 rounded-md">
                                 <Star className="w-3 h-3 fill-yellow-500 text-yellow-500" />
                                 <span className="font-bold text-yellow-500">
-                                    {(service.average_rating && Number(service.average_rating) > 0) ? Number(service.average_rating).toFixed(1) : '5.0'}
+                                    {(service.average_rating && Number(service.average_rating) > 0) ? Number(service.average_rating).toFixed(1) : '0.0'}
                                 </span>
                                 <span className="text-[10px]">({service.reviews_count || 0} reseñas)</span>
                             </div>

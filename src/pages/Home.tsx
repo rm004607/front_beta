@@ -523,7 +523,7 @@ const Home = () => {
                         <div className="flex items-center gap-2">
                           <Star size={18} className="fill-accent text-accent" />
                           <span className="font-bold text-lg">
-                            {(service.average_rating && Number(service.average_rating) > 0) ? Number(service.average_rating).toFixed(1) : '5.0'}
+                            {(service.average_rating && Number(service.average_rating) > 0) ? Number(service.average_rating).toFixed(1) : '0.0'}
                           </span>
                         </div>
                         <div className="flex items-center justify-end gap-1 text-xs text-muted-foreground">
