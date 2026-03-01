@@ -13,6 +13,7 @@ import { toast } from 'sonner';
 import { authAPI } from '@/lib/api';
 import {
   isValidName,
+  validatePhone,
   isValidPhone,
   isValidComuna,
   isValidRut,
@@ -184,7 +185,8 @@ const Register = () => {
       }
 
       if (!isValidPhone(phone)) {
-        toast.error(getValidationErrorMessage('phone', containsSQLInjection(phone) ? 'sql' : 'format'));
+        const phoneError = validatePhone(phone);
+        toast.error(getValidationErrorMessage('phone', phoneError === 'format' ? 'format' : 'length'));
         return;
       }
 
@@ -269,7 +271,8 @@ const Register = () => {
         return;
       }
       if (!phone || !isValidPhone(phone)) {
-        toast.error('Por favor ingresa un teléfono válido');
+        const phoneError = validatePhone(phone || '');
+        toast.error(getValidationErrorMessage('phone', phoneError === 'format' ? 'format' : 'length'));
         return;
       }
       if (!comuna || !selectedRegion) {
@@ -289,7 +292,8 @@ const Register = () => {
       }
 
       if (phone && !isValidPhone(phone)) {
-        toast.error(getValidationErrorMessage('phone', containsSQLInjection(phone) ? 'sql' : 'format'));
+        const phoneError = validatePhone(phone);
+        toast.error(getValidationErrorMessage('phone', phoneError === 'format' ? 'format' : 'length'));
         return;
       }
 
@@ -444,11 +448,11 @@ const Register = () => {
                     value={phone}
                     onChange={(e) => setPhone(e.target.value)}
                     placeholder="+56 9 1234 5678"
-                    className={phone && !isValidPhone(phone) ? 'border-red-500' : ''}
+                    className={phone && validatePhone(phone) === 'format' ? 'border-red-500' : ''}
                   />
-                  {phone && !isValidPhone(phone) && (
+                  {phone && validatePhone(phone) === 'format' && (
                     <p className="text-sm text-red-500 mt-1">
-                      {getValidationErrorMessage('phone', containsSQLInjection(phone) ? 'sql' : 'format')}
+                      {getValidationErrorMessage('phone', 'format')}
                     </p>
                   )}
                 </div>
@@ -589,7 +593,7 @@ const Register = () => {
                         value={phone}
                         onChange={(e) => setPhone(e.target.value)}
                         placeholder="+56 9 1234 5678"
-                        className={phone && !isValidPhone(phone) ? 'border-red-500' : ''}
+                        className={phone && validatePhone(phone) === 'format' ? 'border-red-500' : ''}
                         required
                       />
                     </div>

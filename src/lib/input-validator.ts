@@ -28,21 +28,36 @@ export const containsSQLInjection = (input: string): boolean => {
 };
 
 /**
- * Valida que un teléfono solo contenga números y caracteres permitidos
+ * Valida un teléfono y retorna el tipo de error si lo hay
  */
-export const isValidPhone = (phone: string): boolean => {
+export type PhoneValidationError = 'valid' | 'format' | 'length';
+
+export const validatePhone = (phone: string): PhoneValidationError => {
+    if (!phone) return 'valid'; // Dejar que la validación de requeridos lo maneje
+
     // Permitir solo números, espacios, guiones, paréntesis y el símbolo +
     const phoneRegex = /^[\d\s\-\+\(\)]+$/;
 
     if (!phoneRegex.test(phone)) {
-        return false;
+        return 'format';
     }
 
     // Extraer solo los dígitos
     const digitsOnly = phone.replace(/\D/g, '');
 
     // Debe tener entre 8 y 15 dígitos (formato internacional)
-    return digitsOnly.length >= 8 && digitsOnly.length <= 15;
+    if (digitsOnly.length > 0 && (digitsOnly.length < 8 || digitsOnly.length > 15)) {
+        return 'length';
+    }
+
+    return 'valid';
+};
+
+/**
+ * Valida que un teléfono solo contenga números y caracteres permitidos
+ */
+export const isValidPhone = (phone: string): boolean => {
+    return validatePhone(phone) === 'valid';
 };
 
 /**

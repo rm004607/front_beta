@@ -30,12 +30,14 @@ import { postsAPI, servicesAPI, authAPI } from '@/lib/api';
 import { toast } from 'sonner';
 import {
   isValidName,
+  validatePhone,
   isValidPhone,
   isValidComuna,
   isValidRut,
   formatRut,
   isValidTextField,
-  sanitizeInput
+  sanitizeInput,
+  getValidationErrorMessage
 } from '@/lib/input-validator';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { chileData } from '@/lib/chile-data';
@@ -310,7 +312,8 @@ const Profile = () => {
           return;
         }
         if (!isValidPhone(editPhone)) {
-          toast.error('Teléfono no válido');
+          const phoneError = validatePhone(editPhone);
+          toast.error(getValidationErrorMessage('phone', phoneError === 'format' ? 'format' : 'length'));
           setIsUpdating(false);
           return;
         }
@@ -385,7 +388,8 @@ const Profile = () => {
     }
 
     if (!isValidPhone(completePhone)) {
-      toast.error('Teléfono no válido');
+      const phoneError = validatePhone(completePhone);
+      toast.error(getValidationErrorMessage('phone', phoneError === 'format' ? 'format' : 'length'));
       return;
     }
 
@@ -828,7 +832,13 @@ const Profile = () => {
                     value={editPhone}
                     onChange={(e) => setEditPhone(e.target.value)}
                     disabled={isUpdating}
+                    className={editPhone && validatePhone(editPhone) === 'format' ? 'border-red-500' : ''}
                   />
+                  {editPhone && validatePhone(editPhone) === 'format' && (
+                    <p className="text-[10px] text-red-500 mt-1">
+                      {getValidationErrorMessage('phone', 'format')}
+                    </p>
+                  )}
                 </div>
                 <div>
                   <Label htmlFor="edit-rut">RUT</Label>
@@ -1036,7 +1046,13 @@ const Profile = () => {
                     onChange={(e) => setCompletePhone(e.target.value)}
                     placeholder="+56 9 1234 5678"
                     disabled={isCompletingProfile}
+                    className={completePhone && validatePhone(completePhone) === 'format' ? 'border-red-500' : ''}
                   />
+                  {completePhone && validatePhone(completePhone) === 'format' && (
+                    <p className="text-[10px] text-red-500 mt-1">
+                      {getValidationErrorMessage('phone', 'format')}
+                    </p>
+                  )}
                 </div>
               </div>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">

@@ -14,8 +14,10 @@ import { toast } from 'sonner';
 import { servicesAPI, packagesAPI, configAPI } from '@/lib/api';
 import {
   isValidTextField,
+  validatePhone,
   isValidPhone,
-  sanitizeInput
+  sanitizeInput,
+  getValidationErrorMessage
 } from '@/lib/input-validator';
 import PackagesModal from '@/components/PackagesModal';
 import { chileData } from '@/lib/chile-data';
@@ -170,7 +172,8 @@ const PostService = () => {
       return;
     }
     if (phone && !isValidPhone(phone)) {
-      toast.error(t('post_service.invalid_phone'));
+      const phoneError = validatePhone(phone);
+      toast.error(getValidationErrorMessage('phone', phoneError === 'format' ? 'format' : 'length'));
       return;
     }
 
@@ -522,7 +525,13 @@ const PostService = () => {
                   value={phone}
                   onChange={(e) => setPhone(e.target.value)}
                   placeholder={user?.phone || t('post_service.phone_placeholder')}
+                  className={phone && validatePhone(phone) === 'format' ? 'border-red-500' : ''}
                 />
+                {phone && validatePhone(phone) === 'format' && (
+                  <p className="text-[10px] text-red-500 mt-1">
+                    {getValidationErrorMessage('phone', 'format')}
+                  </p>
+                )}
                 <p className="text-xs text-muted-foreground mt-1">
                   {t('post_service.phone_desc')}
                 </p>
