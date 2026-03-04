@@ -180,232 +180,245 @@ export const ServiceCard = ({
     return (
         <Card
             id={`service-${service.id}`}
-            className={`hover:shadow-lg transition-all duration-500 border-2 ${String(service.id) === highlightId
-                ? 'border-destructive shadow-xl ring-4 ring-destructive/15 scale-[1.02]'
-                : 'border-border'
+            className={`group hover:shadow-2xl transition-all duration-500 border-2 rounded-2xl overflow-hidden ${String(service.id) === highlightId
+                ? 'border-primary shadow-xl ring-4 ring-primary/15 scale-[1.02]'
+                : 'border-border hover:border-primary/30'
                 }`}
         >
-            <CardHeader>
+            <CardHeader className="pb-3 px-5 pt-5">
                 <div className="flex items-start gap-4">
-                    <Avatar className="w-16 h-16">
-                        {service.profile_image && (
-                            <AvatarImage src={service.profile_image} alt={service.user_name} />
+                    <div className="relative shrink-0">
+                        <Avatar className="w-14 h-14 border-2 border-white shadow-md">
+                            {service.profile_image && (
+                                <AvatarImage src={service.profile_image} alt={service.user_name} />
+                            )}
+                            <AvatarFallback className="text-lg font-bold bg-gradient-to-br from-secondary to-secondary/80 text-white">
+                                {service.user_name.split(' ').map((n: string) => n[0]).slice(0, 3).join('')}
+                            </AvatarFallback>
+                        </Avatar>
+                        {service.reviews_count && service.reviews_count > 10 && (
+                            <div className="absolute -bottom-1 -right-1 bg-primary text-white p-1 rounded-full shadow-lg border border-white">
+                                <Sparkles size={10} className="fill-white" />
+                            </div>
                         )}
-                        <AvatarFallback className="text-xl font-heading bg-secondary text-white shrink-0">
-                            {service.user_name.split(' ').map((n: string) => n[0]).join('')}
-                        </AvatarFallback>
-                    </Avatar>
+                    </div>
                     <div className="flex-1 min-w-0">
                         <div className="flex justify-between items-start gap-2">
-                            <CardTitle className="text-xl mb-1 truncate">{service.user_name}</CardTitle>
-                            <div className="flex items-center gap-1.5 bg-yellow-500/10 px-2.5 py-1 rounded-full border border-yellow-500/20 shadow-sm shrink-0">
-                                <Star className="w-4 h-4 fill-yellow-500 text-yellow-500" />
-                                <span className="text-sm font-bold text-yellow-500">
+                            <CardTitle className="text-lg font-bold truncate text-foreground group-hover:text-primary transition-colors">
+                                {service.user_name}
+                            </CardTitle>
+                            <div className="flex items-center gap-1 bg-yellow-500/10 px-2 py-0.5 rounded-full border border-yellow-500/20 shadow-sm shrink-0">
+                                <Star className="w-3.5 h-3.5 fill-yellow-500 text-yellow-500" />
+                                <span className="text-xs font-bold text-yellow-600">
                                     {(service.average_rating && Number(service.average_rating) > 0) ? Number(service.average_rating).toFixed(1) : '0.0'}
                                 </span>
                             </div>
                         </div>
-                        <div className="flex flex-wrap items-center gap-2">
+                        <div className="flex flex-wrap items-center gap-1.5 mt-1">
                             {service.service_name && service.service_name.trim() !== '' && service.service_name.trim() !== '.' && (
-                                <Badge variant="secondary" className="truncate max-w-[150px]">{service.service_name}</Badge>
+                                <Badge variant="secondary" className="text-[10px] bg-muted/50 text-muted-foreground border-none font-medium">
+                                    {service.service_name}
+                                </Badge>
                             )}
-                            {isSuperAdmin && (
-                                <div className="flex gap-1">
-                                    <Button
-                                        variant="ghost"
-                                        size="sm"
-                                        className="h-7 w-7 p-0"
-                                        onClick={() => onEdit?.(service)}
-                                    >
-                                        <Edit size={14} />
-                                    </Button>
-                                    <Button
-                                        variant="ghost"
-                                        size="sm"
-                                        className="h-7 w-7 p-0 text-destructive hover:bg-destructive/10"
-                                        onClick={() => onDelete?.(service)}
-                                    >
-                                        <Trash2 size={14} />
-                                    </Button>
-                                </div>
-                            )}
+                            <div
+                                className={`flex items-center gap-1 px-2 py-0.5 rounded-full border shadow-sm ${isLightColor(service.type_color || getServiceColor(service.type_name || '')) ? 'text-slate-900 border-black/5' : 'text-white border-white/10'}`}
+                                style={{ backgroundColor: service.type_color || getServiceColor(service.type_name || '') }}
+                            >
+                                <span className="scale-75 origin-center -ml-0.5">
+                                    {getServiceIcon(service.service_name || service.type_name || '', service.type_icon)}
+                                </span>
+                                <span className="text-[9px] font-bold uppercase tracking-tight">{service.type_name?.trim() ? service.type_name : 'Servicio'}</span>
+                            </div>
                         </div>
                     </div>
                 </div>
             </CardHeader>
-            <CardContent>
-                <div className="relative mb-4 overflow-hidden">
-                    <p className="text-sm text-muted-foreground line-clamp-2 break-words italic">
+            <CardContent className="px-5 pb-5">
+                <div className="relative mb-4">
+                    <p className="text-sm text-muted-foreground line-clamp-2 italic leading-relaxed min-h-[2.5rem]">
                         {(!service.description || service.description.trim() === '' || service.description.trim() === '.') ? 'Sin descripción disponible.' : service.description}
                     </p>
                     <Dialog>
                         <DialogTrigger asChild>
-                            <button className="text-sm text-primary font-medium hover:underline mt-1 focus:outline-none flex items-center">
-                                Ver más <ChevronRight className="w-4 h-4 ml-0.5" />
+                            <button className="text-xs text-primary font-bold hover:underline mt-2 focus:outline-none flex items-center transition-all bg-primary/5 px-2 py-1 rounded-md">
+                                Ver detalles completos <ChevronRight className="w-3 h-3 ml-0.5" />
                             </button>
                         </DialogTrigger>
-                        <DialogContent className="max-w-[450px] w-full max-h-[90vh] overflow-y-auto">
-                            <DialogHeader className="mb-4">
-                                <div className="flex items-start gap-4">
-                                    <Avatar className="w-16 h-16">
+                        <DialogContent className="max-w-[450px] w-[95%] rounded-3xl overflow-hidden border-none p-0 bg-transparent shadow-none">
+                            <div className="bg-white rounded-[2rem] overflow-hidden shadow-2xl relative">
+                                {/* Background decoration */}
+                                <div
+                                    className="h-24 w-full absolute top-0 left-0"
+                                    style={{ backgroundColor: service.type_color || getServiceColor(service.type_name || '') }}
+                                >
+                                    <div className="absolute inset-0 opacity-10 bg-[radial-gradient(circle_at_center,_white_1px,_transparent_1px)] bg-[length:20px_20px]" />
+                                </div>
+
+                                <div className="pt-12 px-6 pb-8 text-center relative z-10">
+                                    <Avatar className="w-24 h-24 mx-auto border-4 border-white shadow-xl -mt-0 mb-4">
                                         {service.profile_image && (
                                             <AvatarImage src={service.profile_image} alt={service.user_name} />
                                         )}
-                                        <AvatarFallback className="text-xl font-heading bg-secondary text-white">
-                                            {service.user_name.split(' ').map((n: string) => n[0]).join('')}
+                                        <AvatarFallback className="text-3xl font-bold bg-secondary text-white">
+                                            {service.user_name.split(' ').map((n: string) => n[0]).slice(0, 3).join('')}
                                         </AvatarFallback>
                                     </Avatar>
-                                    <div className="flex-1 text-left">
-                                        <div className="flex justify-between items-start">
-                                            <DialogTitle className="text-xl mb-1">{service.user_name}</DialogTitle>
-                                            <div className="flex items-center gap-1.5 bg-yellow-500/10 px-2.5 py-1 rounded-full border border-yellow-500/20 shadow-sm">
-                                                <Star className="w-4 h-4 fill-yellow-500 text-yellow-500" />
-                                                <span className="text-sm font-bold text-yellow-500">
-                                                    {(service.average_rating && Number(service.average_rating) > 0) ? Number(service.average_rating).toFixed(1) : '0.0'}
-                                                </span>
-                                            </div>
+
+                                    <DialogTitle className="text-2xl font-black mb-1">{service.user_name}</DialogTitle>
+
+                                    <div className="flex items-center justify-center gap-2 mb-6">
+                                        <div className="flex items-center gap-1.5 bg-yellow-500/10 px-3 py-1 rounded-full border border-yellow-500/20">
+                                            <Star className="w-4 h-4 fill-yellow-500 text-yellow-500" />
+                                            <span className="text-sm font-black text-yellow-600">
+                                                {(service.average_rating && Number(service.average_rating) > 0) ? Number(service.average_rating).toFixed(1) : '0.0'}
+                                            </span>
                                         </div>
-                                        <div className="flex items-center gap-2 mt-1">
-                                            {service.service_name && service.service_name.trim() !== '' && service.service_name.trim() !== '.' && (
-                                                <Badge variant="secondary">{service.service_name}</Badge>
-                                            )}
-                                            <div
-                                                className={`flex items-center gap-1.5 px-2.5 py-1 rounded-full border border-primary/20 shadow-sm animate-reveal ${isLightColor(service.type_color || getServiceColor(service.type_name || '')) ? 'text-slate-900' : 'text-white'}`}
-                                                style={{ backgroundColor: service.type_color || getServiceColor(service.type_name || '') }}
-                                            >
+                                        <div
+                                            className={`flex items-center gap-1.5 px-3 py-1 rounded-full shadow-sm ${isLightColor(service.type_color || getServiceColor(service.type_name || '')) ? 'text-slate-900' : 'text-white'}`}
+                                            style={{ backgroundColor: service.type_color || getServiceColor(service.type_name || '') }}
+                                        >
+                                            <span className="scale-75">
                                                 {getServiceIcon(service.service_name || service.type_name || '', service.type_icon)}
-                                                <span className="text-[10px] font-bold uppercase tracking-wider">{service.type_name?.trim() ? service.type_name : 'Servicio'}</span>
+                                            </span>
+                                            <span className="text-[10px] font-bold uppercase tracking-wider">{service.type_name?.trim() ? service.type_name : 'Servicio'}</span>
+                                        </div>
+                                    </div>
+
+                                    <div className="space-y-6 text-left">
+                                        <div className="bg-muted/30 p-4 rounded-2xl">
+                                            <h4 className="text-[10px] font-black uppercase tracking-widest text-muted-foreground mb-2 px-1">Acerca de este servicio</h4>
+                                            <p className="text-sm text-foreground whitespace-pre-wrap leading-relaxed">
+                                                {(!service.description || service.description.trim() === '' || service.description.trim() === '.') ? 'Este prestador no ha proporcionado una descripción detallada aún.' : service.description}
+                                            </p>
+                                        </div>
+
+                                        <div className="grid grid-cols-2 gap-3">
+                                            <div className="flex flex-col gap-1 bg-secondary/5 p-3 rounded-xl border border-secondary/10">
+                                                <div className="flex items-center gap-2 text-secondary">
+                                                    <MapPin size={16} />
+                                                    <span className="text-[10px] font-black uppercase tracking-widest">Base</span>
+                                                </div>
+                                                <span className="font-bold text-sm ml-6">{service.comuna}</span>
+                                            </div>
+                                            <div className="flex flex-col gap-1 bg-primary/5 p-3 rounded-xl border border-primary/10">
+                                                <div className="flex items-center gap-2 text-primary">
+                                                    <Sparkles size={16} />
+                                                    <span className="text-[10px] font-black uppercase tracking-widest">Reseñas</span>
+                                                </div>
+                                                <span className="font-bold text-sm ml-6">{service.reviews_count || 0} recibidas</span>
                                             </div>
                                         </div>
-                                    </div>
-                                </div>
-                            </DialogHeader>
-                            <div className="space-y-5">
-                                <div>
-                                    <h4 className="font-semibold mb-1.5 text-sm uppercase tracking-wider text-muted-foreground">Descripción del servicio</h4>
-                                    <p className="text-sm text-foreground whitespace-pre-wrap leading-relaxed">
-                                        {(!service.description || service.description.trim() === '' || service.description.trim() === '.') ? 'Este prestador no ha proporcionado una descripción detallada aún.' : service.description}
-                                    </p>
-                                </div>
-                                <div className="space-y-4">
-                                    <div className="flex items-center gap-3 bg-muted/30 p-3 rounded-lg">
-                                        <MapPin size={20} className="text-secondary flex-shrink-0" />
-                                        <div>
-                                            <p className="text-[10px] uppercase tracking-wider text-muted-foreground font-bold mb-0.5">Ubicación</p>
-                                            <span className="font-medium text-sm">{service.comuna}</span>
-                                        </div>
-                                    </div>
-                                    <div className="space-y-2">
-                                        <Label className="text-[10px] uppercase tracking-wider text-muted-foreground font-bold">Lugares disponibles / Desplazamiento:</Label>
-                                        <div className="flex flex-wrap gap-2">
-                                            {service.coverage_communes && service.coverage_communes.filter(c => c && c.trim()).length > 0 ? (
-                                                service.coverage_communes.filter(c => c && c.trim()).map((c) => (
-                                                    <Badge key={c} variant="outline" className="text-xs py-0.5 px-3 border-primary/20 text-primary bg-primary/5">
-                                                        {c}
+
+                                        <div className="space-y-2">
+                                            <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground block px-1">Lugares disponibles / Desplazamiento</Label>
+                                            <div className="flex flex-wrap gap-1.5">
+                                                {service.coverage_communes && service.coverage_communes.filter(c => c && c.trim()).length > 0 ? (
+                                                    service.coverage_communes.filter(c => c && c.trim()).map((c) => (
+                                                        <Badge key={c} variant="outline" className="text-[10px] py-0.5 px-3 border-primary/20 text-primary bg-primary/5 rounded-lg">
+                                                            {c}
+                                                        </Badge>
+                                                    ))
+                                                ) : (
+                                                    <Badge variant="outline" className="text-[10px] py-0.5 px-3 border-muted text-muted-foreground italic rounded-lg">
+                                                        Solo {service.comuna}
                                                     </Badge>
-                                                ))
-                                            ) : (
-                                                <Badge variant="outline" className="text-xs py-0.5 px-3 border-muted text-muted-foreground italic">
-                                                    Solo {service.comuna}
-                                                </Badge>
-                                            )}
+                                                )}
+                                            </div>
                                         </div>
-                                    </div>
-                                    <div className="space-y-2 pt-2 border-t mt-4">
-                                        <div className="flex items-center gap-2 p-3 bg-secondary/10 rounded-lg border-2 border-secondary/30">
-                                            <div className="w-2.5 h-2.5 rounded-full bg-secondary animate-pulse shadow-[0_0_8px_rgba(var(--secondary),0.5)]" />
-                                            <p className="text-sm font-black text-foreground italic leading-tight">
-                                                El precio se coordina por interno con el que ofrezca el servicio
+
+                                        <div className="p-4 bg-secondary/5 rounded-2xl border-2 border-dashed border-secondary/20">
+                                            <p className="text-xs font-bold text-secondary text-center italic">
+                                                * El precio se coordina por interno con el profesional
                                             </p>
                                         </div>
                                     </div>
-                                </div>
-                                <div className="flex flex-col sm:grid sm:grid-cols-2 gap-3 pt-4 border-t">
-                                    <Button
-                                        variant="outline"
-                                        className="w-full border-yellow-400 text-yellow-700 hover:bg-yellow-50 transition-all duration-300 h-11"
-                                        onClick={() => {
-                                            const closeBtn = document.querySelector('[role="dialog"] button[aria-label="Close"]') as HTMLButtonElement | null;
-                                            if (closeBtn) closeBtn.click();
-                                            onOpenReviews(service);
-                                        }}
-                                    >
-                                        <Star size={16} className="mr-2 fill-yellow-400 text-yellow-400" />
-                                        Reseñas ({service.reviews_count || 0})
-                                    </Button>
-                                    <Button
-                                        className="w-full bg-primary hover:bg-primary/90 text-primary-foreground hover-gold-glow transition-all duration-300 h-11 shadow-md shadow-primary/20"
-                                        onClick={() => {
-                                            const closeBtn = document.querySelector('[role="dialog"] button[aria-label="Close"]') as HTMLButtonElement | null;
-                                            if (closeBtn) closeBtn.click();
-                                            onWhatsApp(service);
-                                        }}
-                                        disabled={!service.phone}
-                                    >
-                                        <MessageCircle size={18} className="mr-2" />
-                                        WhatsApp
-                                    </Button>
+
+                                    <div className="grid grid-cols-2 gap-4 mt-8">
+                                        <Button
+                                            variant="outline"
+                                            className="w-full rounded-2xl border-yellow-400 text-yellow-700 hover:bg-yellow-50 transition-all duration-300 h-14 font-bold text-sm"
+                                            onClick={() => {
+                                                const closeBtn = document.querySelector('[role="dialog"] button[aria-label="Close"]') as HTMLButtonElement | null;
+                                                if (closeBtn) closeBtn.click();
+                                                onOpenReviews(service);
+                                            }}
+                                        >
+                                            <Star size={18} className="mr-2 fill-yellow-400 text-yellow-400" />
+                                            Ver Reseñas
+                                        </Button>
+                                        <Button
+                                            className="w-full rounded-2xl bg-[#25D366] hover:bg-[#20ba59] text-white transition-all duration-300 h-14 font-extrabold text-sm shadow-lg shadow-green-500/20"
+                                            onClick={() => {
+                                                const closeBtn = document.querySelector('[role="dialog"] button[aria-label="Close"]') as HTMLButtonElement | null;
+                                                if (closeBtn) closeBtn.click();
+                                                onWhatsApp(service);
+                                            }}
+                                            disabled={!service.phone}
+                                        >
+                                            <MessageCircle size={20} className="mr-2" />
+                                            WhatsApp
+                                        </Button>
+                                    </div>
                                 </div>
                             </div>
                         </DialogContent>
                     </Dialog>
                 </div>
-                <div className="space-y-2 mb-4">
-                    <div className="flex flex-col gap-2">
-                        <div className="flex items-center justify-between text-sm">
-                            <div className="flex items-center gap-2 min-w-0">
-                                <MapPin size={16} className="text-secondary shrink-0" />
-                                <span className="font-medium truncate">{service.comuna}</span>
+                <div className="space-y-4 pt-1">
+                    <div className="flex flex-col gap-3">
+                        <div className="flex items-center justify-between">
+                            <div className="flex items-center gap-2 bg-secondary/5 px-3 py-1.5 rounded-xl border border-secondary/10 max-w-[50%]">
+                                <MapPin size={14} className="text-secondary shrink-0" />
+                                <span className="text-xs font-bold truncate">{service.comuna}</span>
                             </div>
-                            <div className="flex items-center gap-1 text-xs text-muted-foreground bg-muted/30 px-2 py-1 rounded-md">
-                                <Star className="w-3 h-3 fill-yellow-500 text-yellow-500" />
-                                <span className="font-bold text-yellow-500">
+                            <div className="flex items-center gap-1.5 px-3 py-1.5 bg-yellow-400/10 rounded-xl border border-yellow-400/20 shadow-sm">
+                                <Star className="w-3.5 h-3.5 fill-yellow-500 text-yellow-500" />
+                                <span className="text-xs font-black text-yellow-700">
                                     {(service.average_rating && Number(service.average_rating) > 0) ? Number(service.average_rating).toFixed(1) : '0.0'}
                                 </span>
-                                <span className="text-[10px]">({service.reviews_count || 0} reseñas)</span>
+                                <span className="text-[10px] text-yellow-600 font-bold opacity-70">({service.reviews_count || 0})</span>
                             </div>
                         </div>
 
                         {/* Lugares Disponibles / Cobertura */}
-                        <div className="space-y-1.5 pt-1">
-                            <Label className="text-[10px] uppercase tracking-wider text-muted-foreground font-bold">Lugares disponibles / Desplazamiento:</Label>
-                            <div className="flex flex-wrap gap-1.5">
-                                {service.coverage_communes && service.coverage_communes.length > 0 ? (
-                                    service.coverage_communes.map((c) => (
-                                        <Badge key={c} variant="outline" className="text-[10px] py-0 px-2 border-primary/20 text-primary bg-primary/5">
+                        <div className="space-y-1.5">
+                            <span className="text-[9px] font-black uppercase tracking-widest text-muted-foreground px-1">Zonas de servicio</span>
+                            <div className="flex flex-wrap gap-1">
+                                {service.coverage_communes && service.coverage_communes.filter(c => c && c.trim()).length > 0 ? (
+                                    service.coverage_communes.filter(c => c && c.trim()).slice(0, 3).map((c) => (
+                                        <Badge key={c} variant="outline" className="text-[9px] py-0 px-2 border-primary/20 text-primary bg-primary/5 rounded-md">
                                             {c}
                                         </Badge>
                                     ))
                                 ) : (
-                                    <Badge variant="outline" className="text-[10px] py-0 px-2 border-muted text-muted-foreground italic">
+                                    <Badge variant="outline" className="text-[9px] py-0 px-2 border-muted text-muted-foreground italic rounded-md">
                                         Solo {service.comuna}
                                     </Badge>
+                                )}
+                                {service.coverage_communes && service.coverage_communes.filter(c => c && c.trim()).length > 3 && (
+                                    <span className="text-[9px] text-muted-foreground font-bold ml-1">
+                                        +{service.coverage_communes.filter(c => c && c.trim()).length - 3} más
+                                    </span>
                                 )}
                             </div>
                         </div>
                     </div>
-                    {/* Nota de coordinación de precio */}
-                    <div className="mt-1">
-                        <p className="text-[10px] font-medium text-secondary italic">
-                            * Precio a coordinar por interno
-                        </p>
-                    </div>
                 </div>
-                <div className="flex flex-col sm:grid sm:grid-cols-2 gap-2">
+                <div className="flex flex-col sm:grid sm:grid-cols-2 gap-2 mt-5">
                     <Button
                         variant="outline"
-                        className="w-full border-yellow-400 text-yellow-700 hover:bg-yellow-50 transition-all duration-300 h-10 sm:h-11"
+                        className="w-full border-yellow-400 text-yellow-700 hover:bg-yellow-50 transition-all duration-300 h-10 rounded-xl font-bold text-xs"
                         onClick={() => onOpenReviews(service)}
                     >
-                        <Star size={16} className="mr-2 fill-yellow-400 text-yellow-400" />
+                        <Star size={14} className="mr-1.5 fill-yellow-400 text-yellow-400" />
                         Reseñas ({service.reviews_count || 0})
                     </Button>
                     <Button
-                        className="w-full bg-primary hover:bg-primary/90 text-primary-foreground hover-gold-glow transition-all duration-300 h-10 sm:h-11"
+                        className="w-full bg-[#25D366] hover:bg-[#20ba59] text-white h-10 rounded-xl font-black text-xs shadow-md shadow-green-500/10 transition-all active:scale-[0.98]"
                         onClick={() => onWhatsApp(service)}
                         disabled={!service.phone}
                     >
-                        <MessageCircle size={16} className="mr-2" />
+                        <MessageCircle size={16} className="mr-1.5" />
                         WhatsApp
                     </Button>
                 </div>
