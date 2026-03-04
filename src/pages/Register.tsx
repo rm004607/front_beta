@@ -52,7 +52,7 @@ const Register = () => {
   const [rut, setRut] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [phone, setPhone] = useState('');
+  const [phone, setPhone] = useState('+56 ');
   const [comuna, setComuna] = useState('');
 
   // Step 2: Roles (solo un rol según backend)
@@ -238,6 +238,23 @@ const Register = () => {
       toast.error(error.message || 'No se pudo verificar el RUT. Por favor intenta de nuevo.');
     } finally {
       setIsVerifyingRut(false);
+    }
+  };
+
+  const handlePhoneChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    let value = e.target.value;
+
+    // Si el usuario intenta borrar el +56, forzarlo
+    if (!value.startsWith('+56 ')) {
+      // Si el valor es solo +56 o menor, dejarlo como +56 
+      if (value.length < 4 || !value.startsWith('+56')) {
+        setPhone('+56 ');
+      } else {
+        // Si tiene caracteres pero no empieza con espacio después de 56
+        setPhone('+56 ' + value.replace(/^\+56\s*/, ''));
+      }
+    } else {
+      setPhone(value);
     }
   };
 
@@ -519,12 +536,12 @@ const Register = () => {
                   <Input
                     id="phone"
                     value={phone}
-                    onChange={(e) => setPhone(e.target.value)}
+                    onChange={handlePhoneChange}
                     placeholder="+56 9 1234 5678"
-                    className={phone && validatePhone(phone) === 'format' ? 'border-red-500' : ''}
+                    className={phone && phone !== '+56 ' && validatePhone(phone) === 'format' ? 'border-red-500' : ''}
                     autoComplete="off"
                   />
-                  {phone && validatePhone(phone) === 'format' && (
+                  {phone && phone !== '+56 ' && validatePhone(phone) === 'format' && (
                     <p className="text-sm text-red-500 mt-1">
                       {getValidationErrorMessage('phone', 'format')}
                     </p>
