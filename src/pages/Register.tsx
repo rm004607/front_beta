@@ -219,7 +219,8 @@ const Register = () => {
   const handleVerifyRut = async () => {
     setIsVerifyingRut(true);
     try {
-      const cleanRut = rut.replace(/[^0-9kK]/g, '');
+      // Limpiar puntos pero mantener guión para ser consistentes con el prototipo que funciona
+      const cleanRut = rut.replace(/\./g, '').trim();
       const response = await validationAPI.verifyRut(cleanRut);
 
       if (response && response.data) {
