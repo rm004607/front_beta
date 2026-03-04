@@ -246,3 +246,30 @@ export const getValidationErrorMessage = (field: string, type: 'sql' | 'format' 
 
     return messages[type][field as keyof typeof messages[typeof type]] || messages[type].default;
 };
+
+/**
+ * Algoritmo de similitud basado en coincidencia de palabras.
+ * Retorna un puntaje entre 0 y 100.
+ */
+export const calculateNameSimilarity = (str1: string, str2: string): number => {
+    if (!str1 || !str2) return 0;
+
+    const normalize = (s: string) => s.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").trim().split(/\s+/);
+
+    const words1 = normalize(str1);
+    const words2 = normalize(str2);
+
+    if (words1.length === 0 || words2.length === 0) return 0;
+
+    let matches = 0;
+    const totalWords = Math.max(words1.length, words2.length);
+
+    words1.forEach(w1 => {
+        if (words2.some(w2 => w2.includes(w1) || w1.includes(w2))) {
+            matches++;
+        }
+    });
+
+    return (matches / totalWords) * 100;
+};
+

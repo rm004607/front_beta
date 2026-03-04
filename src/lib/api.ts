@@ -258,6 +258,22 @@ export const authAPI = {
   },
 };
 
+// API de validación de identidad
+export const validationAPI = {
+  verifyRut: async (rut: string) => {
+    return request<{
+      status: string;
+      data: {
+        rut: string;
+        name: string;
+      }
+    }>(`/validation/verify/${rut}`, {
+      method: 'GET',
+    });
+  },
+};
+
+
 
 // API de servicios
 export const servicesAPI = {
