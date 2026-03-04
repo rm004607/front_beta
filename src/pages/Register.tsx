@@ -127,11 +127,17 @@ const Register = () => {
   // Detect Google redirect
   useEffect(() => {
     const urlToken = searchParams.get('token');
+    const isRegistrationPending = searchParams.get('google_registration_pending') === 'true';
+
     if (urlToken) {
       localStorage.setItem('token', urlToken);
       setStep(2); // Go directly to role selection
       setIsGoogleVerified(true);
-      loadUser(); // Asegurar que cargamos los datos del usuario logueado con ese token
+
+      // Solo cargar usuario si NO es un registro pendiente (si es login normal)
+      if (!isRegistrationPending) {
+        loadUser();
+      }
     } else if (localStorage.getItem('token')) {
       // Si no hay token en URL pero hay uno en localStorage, y estamos en /registro,
       // podría ser una continuación de flujo de Google (especialmente si no hay sesión normal)
