@@ -125,6 +125,7 @@ const Login = () => {
                   placeholder="tu@email.com o usuario admin"
                   required
                   disabled={isSubmitting}
+                  autoComplete="off"
                 />
               </div>
               <div>
@@ -137,6 +138,7 @@ const Login = () => {
                   placeholder="Tu contraseña"
                   required
                   disabled={isSubmitting}
+                  autoComplete="off"
                 />
               </div>
               <Button type="submit" className="w-full" disabled={isSubmitting}>

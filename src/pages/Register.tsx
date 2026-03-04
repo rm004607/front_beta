@@ -113,21 +113,8 @@ const Register = () => {
     }
 
     // Del mismo modo para localStorage, solo si están vacíos al inicio
-    if (!hasPrefilled.current) {
-      const savedName = localStorage.getItem('reg_name');
-      if (savedName && !name) setName(savedName);
+    // Se ha eliminado la pre-población de localStorage para asegurar un formulario limpio
 
-      const savedEmail = localStorage.getItem('reg_email');
-      if (savedEmail && !email) setEmail(savedEmail);
-
-      const savedComuna = localStorage.getItem('reg_comuna');
-      if (savedComuna && !comuna) setComuna(savedComuna);
-
-      // Si cargamos algo de localStorage, también marcamos como prefilled
-      if (savedName || savedEmail || savedComuna) {
-        hasPrefilled.current = true;
-      }
-    }
   }, [user, searchParams]); // Reducimos dependencias para evitar bucles de reset
 
   // Step 3: Role-specific data
@@ -440,6 +427,7 @@ const Register = () => {
                     onChange={(e) => setName(e.target.value)}
                     placeholder="Tu nombre completo"
                     className={name && !isValidName(name) ? 'border-red-500' : ''}
+                    autoComplete="off"
                   />
                   {name && !isValidName(name) && (
                     <p className="text-sm text-red-500 mt-1">
@@ -456,6 +444,7 @@ const Register = () => {
                     placeholder="12.345.678-9"
                     className={rut && !isValidRut(rut) ? 'border-red-500' : ''}
                     maxLength={12}
+                    autoComplete="off"
                   />
                   {rut && !isValidRut(rut) && (
                     <p className="text-sm text-red-500 mt-1">
@@ -506,6 +495,7 @@ const Register = () => {
                     onChange={(e) => setEmail(e.target.value)}
                     placeholder="tu@email.com"
                     className={email && !isValidEmail(email) ? 'border-red-500' : ''}
+                    autoComplete="off"
                   />
                   {email && !isValidEmail(email) && (
                     <p className="text-sm text-red-500 mt-1">
@@ -521,6 +511,7 @@ const Register = () => {
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     placeholder="Mínimo 6 caracteres"
+                    autoComplete="off"
                   />
                 </div>
                 <div>
@@ -531,6 +522,7 @@ const Register = () => {
                     onChange={(e) => setPhone(e.target.value)}
                     placeholder="+56 9 1234 5678"
                     className={phone && validatePhone(phone) === 'format' ? 'border-red-500' : ''}
+                    autoComplete="off"
                   />
                   {phone && validatePhone(phone) === 'format' && (
                     <p className="text-sm text-red-500 mt-1">
