@@ -318,6 +318,10 @@ const Register = () => {
 
     // Validaciones de seguridad y campos obligatorios
     if (isGoogleCompletion) {
+      if (!name || !isValidName(name)) {
+        toast.error('Por favor ingresa tu nombre completo');
+        return;
+      }
       if (!rut || !isValidRut(rut)) {
         toast.error('Por favor ingresa un RUT válido');
         return;
@@ -663,10 +667,30 @@ const Register = () => {
                 {/* Campos requeridos para Google Completion */}
                 {(searchParams.get('token') || (isGoogleVerified && user)) && (
                   <div className="space-y-4 p-4 border rounded-xl bg-white/50 backdrop-blur-sm border-white/20 shadow-inner">
-                    <p className="text-sm font-semibold text-primary mb-2 flex items-center gap-2">
+                    <p className="text-sm font-semibold text-primary mb-1 flex items-center gap-2">
                       <span className="flex h-5 w-5 items-center justify-center rounded-full bg-primary text-[10px] text-white">i</span>
                       Información Requerida
                     </p>
+                    <p className="text-xs text-muted-foreground mb-4 italic">
+                      Con estos datos verificaremos si realmente eres quien dices y aplicaremos el sistema de validación.
+                    </p>
+
+                    <div>
+                      <Label htmlFor="name_step2">Nombre Completo <span className="text-destructive">*</span></Label>
+                      <Input
+                        id="name_step2"
+                        value={name}
+                        onChange={(e) => setName(e.target.value)}
+                        placeholder="Tu nombre completo"
+                        className={name && !isValidName(name) ? 'border-red-500' : ''}
+                        required
+                      />
+                      {name && !isValidName(name) && (
+                        <p className="text-sm text-red-500 mt-1">
+                          {getValidationErrorMessage('name', containsSQLInjection(name) ? 'sql' : 'format')}
+                        </p>
+                      )}
+                    </div>
 
                     <div>
                       <Label htmlFor="rut_step2">RUT <span className="text-destructive">*</span></Label>
@@ -825,7 +849,7 @@ const Register = () => {
           </CardContent>
         </Card>
       </div>
-    </div>
+    </div >
   );
 };
 
