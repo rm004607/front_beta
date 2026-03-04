@@ -89,7 +89,8 @@ const Register = () => {
     if (isRegistrationPending && urlToken && !hasPrefilled.current) {
       const decoded = decodeToken(urlToken);
       if (decoded) {
-        if (decoded.google_name) setName(decoded.google_name);
+        // No pre-poblar nombre por solicitud del usuario
+        // if (decoded.google_name) setName(decoded.google_name);
         if (decoded.google_email) setEmail(decoded.google_email);
         hasPrefilled.current = true;
       }
