@@ -131,12 +131,16 @@ const Register = () => {
 
     if (urlToken) {
       localStorage.setItem('token', urlToken);
-      setStep(2); // Go directly to role selection
-      setIsGoogleVerified(true);
 
-      // Solo cargar usuario si NO es un registro pendiente (si es login normal)
-      if (!isRegistrationPending) {
-        loadUser();
+      if (isRegistrationPending) {
+        setStep(2); // Go directly to role selection
+        setIsGoogleVerified(true);
+      } else {
+        // Si no es un registro pendiente, es un login.
+        // Cargamos el usuario y lo mandamos al inicio.
+        loadUser().then(() => {
+          navigate('/');
+        });
       }
     } else if (localStorage.getItem('token')) {
       // Si no hay token en URL pero hay uno en localStorage, y estamos en /registro,
