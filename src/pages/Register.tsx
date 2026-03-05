@@ -20,10 +20,9 @@ import {
   formatRut,
   containsSQLInjection,
   sanitizeInput,
-  getValidationErrorMessage,
-  calculateNameSimilarity
+  getValidationErrorMessage
 } from '@/lib/input-validator';
-import { validationAPI } from '@/lib/api';
+
 import { chileData } from '@/lib/chile-data';
 import {
   Select,
@@ -61,10 +60,7 @@ const Register = () => {
   const [showTerms, setShowTerms] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [selectedRegion, setSelectedRegion] = useState('');
-  const [isVerifyingRut, setIsVerifyingRut] = useState(false);
-  const [rutVerified, setRutVerified] = useState(false);
-  const [nameMatchScore, setNameMatchScore] = useState<number | null>(null);
-  const [apiName, setApiName] = useState('');
+
 
   // Persistir datos si viene de QR o Google
   // Función para decodificar JWT sin librerías externas
@@ -89,8 +85,7 @@ const Register = () => {
     if (isRegistrationPending && urlToken && !hasPrefilled.current) {
       const decoded = decodeToken(urlToken);
       if (decoded) {
-        // No pre-poblar nombre por solicitud del usuario
-        // if (decoded.google_name) setName(decoded.google_name);
+        if (decoded.google_name) setName(decoded.google_name);
         if (decoded.google_email) setEmail(decoded.google_email);
         hasPrefilled.current = true;
       }
@@ -199,12 +194,6 @@ const Register = () => {
         return;
       }
 
-      // Proceso de verificación de RUT
-      if (!rutVerified) {
-        handleVerifyRut();
-        return;
-      }
-
       // Guardar datos temporalmente
       localStorage.setItem('reg_name', name);
       localStorage.setItem('reg_rut', rut);
@@ -216,42 +205,6 @@ const Register = () => {
     }
   };
 
-  const handleVerifyRut = async () => {
-    setIsVerifyingRut(true);
-    try {
-      // Limpiar puntos pero mantener guión para ser consistentes con el prototipo que funciona
-      const cleanRut = rut.replace(/\./g, '').trim();
-      const response = await validationAPI.verifyRut(cleanRut);
-
-      if (response && response.data) {
-        const nameFromApi = response.data.name;
-        setApiName(nameFromApi);
-        const score = calculateNameSimilarity(name, nameFromApi);
-        setNameMatchScore(score);
-
-        if (score >= 70) {
-          setRutVerified(true);
-          toast.success('Identidad verificada exitosamente');
-
-          // Auto-avanzar si la coincidencia es alta
-          localStorage.setItem('reg_name', name);
-          localStorage.setItem('reg_rut', rut);
-          localStorage.setItem('reg_email', email);
-          localStorage.setItem('reg_phone', phone);
-          localStorage.setItem('reg_comuna', comuna);
-          setStep(2);
-        } else {
-          toast.warning('El nombre ingresado no coincide completamente con el RUT');
-          // No bloqueamos, pero pedimos confirmación o mostramos el error
-        }
-      }
-    } catch (error: any) {
-      console.error('Error verifying RUT:', error);
-      toast.error(error.message || 'No se pudo verificar el RUT. Por favor intenta de nuevo.');
-    } finally {
-      setIsVerifyingRut(false);
-    }
-  };
 
   const handlePhoneChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     let value = e.target.value;
@@ -486,38 +439,6 @@ const Register = () => {
                   )}
                 </div>
 
-                {nameMatchScore !== null && nameMatchScore < 70 && !isVerifyingRut && (
-                  <Alert className="mt-2 bg-yellow-50 border-yellow-200">
-                    <AlertTitle className="text-yellow-800 font-bold">Verificación de Identidad</AlertTitle>
-                    <AlertDescription className="text-yellow-700">
-                      El nombre ingresado no coincide con el registrado para este RUT.<br />
-                      <strong>Registrado:</strong> {apiName}<br />
-                      <div className="flex flex-wrap gap-2 mt-2">
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          type="button"
-                          className="border-yellow-300 hover:bg-yellow-100"
-                          onClick={() => {
-                            setName(apiName);
-                            setRutVerified(true);
-                            setNameMatchScore(100);
-                          }}
-                        >
-                          Usar nombre registrado
-                        </Button>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          type="button"
-                          onClick={() => setRutVerified(true)}
-                        >
-                          Continuar de todos modos
-                        </Button>
-                      </div>
-                    </AlertDescription>
-                  </Alert>
-                )}
 
                 <div>
                   <Label htmlFor="email">Email</Label>
@@ -635,10 +556,9 @@ const Register = () => {
                     <Button
                       onClick={handleNext}
                       className="w-full font-bold text-lg h-12"
-                      disabled={isVerifyingRut}
                     >
-                      {isVerifyingRut ? 'Verificando...' : 'Siguiente'}
-                      {!isVerifyingRut && <ArrowRight className="ml-2" size={18} />}
+                      Siguiente
+                      <ArrowRight className="ml-2" size={18} />
                     </Button>
                   </div>
 
@@ -683,27 +603,6 @@ const Register = () => {
                       <span className="flex h-5 w-5 items-center justify-center rounded-full bg-primary text-[10px] text-white">i</span>
                       Información Requerida
                     </p>
-                    <p className="text-xs text-muted-foreground mb-4 italic">
-                      Con estos datos verificaremos si realmente eres quien dices y aplicaremos el sistema de validación.
-                    </p>
-
-                    <div>
-                      <Label htmlFor="name_step2">Nombre Completo <span className="text-destructive">*</span></Label>
-                      <Input
-                        id="name_step2"
-                        value={name}
-                        onChange={(e) => setName(e.target.value)}
-                        placeholder="Tu nombre completo"
-                        className={name && !isValidName(name) ? 'border-red-500' : ''}
-                        required
-                      />
-                      {name && !isValidName(name) && (
-                        <p className="text-sm text-red-500 mt-1">
-                          {getValidationErrorMessage('name', containsSQLInjection(name) ? 'sql' : 'format')}
-                        </p>
-                      )}
-                    </div>
-
                     <div>
                       <Label htmlFor="rut_step2">RUT <span className="text-destructive">*</span></Label>
                       <Input
