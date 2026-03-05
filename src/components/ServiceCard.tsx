@@ -244,7 +244,7 @@ export const ServiceCard = ({
                                 Ver detalles completos <ChevronRight className="w-3 h-3 ml-0.5" />
                             </button>
                         </DialogTrigger>
-                        <DialogContent className="max-w-[450px] w-[95%] rounded-3xl overflow-hidden border-none p-0 bg-transparent shadow-none">
+                        <DialogContent className="max-w-[450px] w-[95%] max-h-[90vh] overflow-y-auto rounded-3xl border-none p-0 bg-transparent shadow-none">
                             <div className="bg-white rounded-[2rem] overflow-hidden shadow-2xl relative">
                                 {/* Background decoration */}
                                 <div
