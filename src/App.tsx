@@ -18,6 +18,8 @@ import Admin from "./pages/Admin";
 import Support from "./pages/Support";
 import FlowCallback from "./pages/FlowCallback";
 import NotFound from "./pages/NotFound";
+import Terms from "./pages/Terms";
+import Privacy from "./pages/Privacy";
 import ScrollToTop from "./components/ScrollToTop";
 
 
@@ -46,6 +48,8 @@ const App = () => {
                     <Route path="/admin" element={<Admin />} />
                     <Route path="/ayuda" element={<Support />} />
                     <Route path="/flow/callback" element={<FlowCallback />} />
+                    <Route path="/terminos" element={<Terms />} />
+                    <Route path="/privacidad" element={<Privacy />} />
                     <Route path="*" element={<NotFound />} />
                   </Routes>
                 </Layout>
