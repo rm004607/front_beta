@@ -60,6 +60,7 @@ const Register = () => {
   const [showTerms, setShowTerms] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [selectedRegion, setSelectedRegion] = useState('');
+  const [isVerifyingIdentity, setIsVerifyingIdentity] = useState(false);
 
 
   // Persistir datos si viene de QR o Google
@@ -161,7 +162,7 @@ const Register = () => {
     return map[role];
   };
 
-  const handleNext = () => {
+  const handleNext = async () => {
     if (step === 1) {
       if (!name || !rut || !email || !password || !phone || !comuna || !selectedRegion) {
         toast.error('Por favor completa todos los campos requeridos');
@@ -194,6 +195,25 @@ const Register = () => {
         return;
       }
 
+      // Verificación de identidad (RUT + nombre) antes de avanzar
+      setIsVerifyingIdentity(true);
+      try {
+        const cleanRutForApi = rut.replace(/\./g, '').toUpperCase();
+        const verification = await validationAPI.verifyRut(cleanRutForApi);
+        const apiName = verification?.data?.name || '';
+
+        if (!areNamesSimilar(name, apiName)) {
+          toast.error('El nombre ingresado no coincide con el nombre asociado al RUT. Por favor verifica tus datos.');
+          setIsVerifyingIdentity(false);
+          return;
+        }
+      } catch (verificationError: any) {
+        console.error('Error verifying RUT on next step:', verificationError);
+        toast.error(verificationError?.message || 'No se pudo verificar tu identidad en este momento. Intenta nuevamente más tarde.');
+        setIsVerifyingIdentity(false);
+        return;
+      }
+
       // Guardar datos temporalmente
       localStorage.setItem('reg_name', name);
       localStorage.setItem('reg_rut', rut);
@@ -201,6 +221,7 @@ const Register = () => {
       localStorage.setItem('reg_phone', phone);
       localStorage.setItem('reg_comuna', comuna);
 
+      setIsVerifyingIdentity(false);
       setStep(2); // Go to role selection
     }
   };
@@ -600,10 +621,11 @@ const Register = () => {
                   <div className="pt-6">
                     <Button
                       onClick={handleNext}
+                      disabled={isVerifyingIdentity}
                       className="w-full font-bold text-lg h-12"
                     >
-                      Siguiente
-                      <ArrowRight className="ml-2" size={18} />
+                      {isVerifyingIdentity ? 'Validando identidad...' : 'Siguiente'}
+                      {!isVerifyingIdentity && <ArrowRight className="ml-2" size={18} />}
                     </Button>
                   </div>
 
