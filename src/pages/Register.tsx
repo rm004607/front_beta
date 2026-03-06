@@ -301,16 +301,22 @@ const Register = () => {
     const normApi = normalizeName(apiName);
     if (!normInput || !normApi) return false;
 
+    if (normInput === normApi) return true;
+
     const inputParts = normInput.split(' ');
     const apiParts = normApi.split(' ');
     const apiSet = new Set(apiParts);
 
     const matches = inputParts.filter((p) => p && apiSet.has(p)).length;
-    const minLength = Math.min(inputParts.length, apiParts.length);
 
-    if (minLength === 0) return false;
+    // Reject inputs with only a single word (e.g., just "Juan") if the API has multiple words
+    if (inputParts.length < 2 && apiParts.length >= 2) return false;
 
-    return matches / minLength >= 0.6;
+    // For similarity, we want a strict match where almost all input words are present in the api name
+    // e.g., input "Juan Perez", api "Juan Antonio Perez Gomez" => inputParts=2, matches=2 => 2/2 = 1.0 (100% match)
+    const matchRatio = matches / inputParts.length;
+
+    return matchRatio >= 0.8;
   };
 
   const handleSubmit = async (roleOverride?: UserRole) => {
