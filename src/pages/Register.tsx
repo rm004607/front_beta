@@ -10,7 +10,7 @@ import { Alert, AlertTitle, AlertDescription } from '@/components/ui/alert';
 import { UserRole, useUser } from '@/contexts/UserContext';
 import { ArrowRight, ArrowLeft } from 'lucide-react';
 import { toast } from 'sonner';
-import { authAPI } from '@/lib/api';
+import { authAPI, validationAPI } from '@/lib/api';
 import {
   isValidName,
   validatePhone,
@@ -265,6 +265,33 @@ const Register = () => {
     return true;
   };
 
+  const normalizeName = (value: string): string => {
+    return value
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '')
+      .toUpperCase()
+      .replace(/[^A-Z\s]/g, ' ')
+      .replace(/\s+/g, ' ')
+      .trim();
+  };
+
+  const areNamesSimilar = (inputName: string, apiName: string): boolean => {
+    const normInput = normalizeName(inputName);
+    const normApi = normalizeName(apiName);
+    if (!normInput || !normApi) return false;
+
+    const inputParts = normInput.split(' ');
+    const apiParts = normApi.split(' ');
+    const apiSet = new Set(apiParts);
+
+    const matches = inputParts.filter((p) => p && apiSet.has(p)).length;
+    const minLength = Math.min(inputParts.length, apiParts.length);
+
+    if (minLength === 0) return false;
+
+    return matches / minLength >= 0.6;
+  };
+
   const handleSubmit = async (roleOverride?: UserRole) => {
     const finalRole = roleOverride || selectedRole;
 
@@ -327,6 +354,24 @@ const Register = () => {
     setIsSubmitting(true);
     setErrorMessage('');
     try {
+      // Verificación de identidad mediante RUT y nombre
+      const cleanRutForApi = rut.replace(/\./g, '').toUpperCase();
+      try {
+        const verification = await validationAPI.verifyRut(cleanRutForApi);
+        const apiName = verification?.data?.name || '';
+
+        if (!areNamesSimilar(name, apiName)) {
+          setIsSubmitting(false);
+          toast.error('El nombre ingresado no coincide con el nombre asociado al RUT. Por favor verifica tus datos.');
+          return;
+        }
+      } catch (verificationError: any) {
+        console.error('Error verifying RUT:', verificationError);
+        setIsSubmitting(false);
+        toast.error(verificationError?.message || 'No se pudo verificar el RUT en este momento. Intenta nuevamente más tarde.');
+        return;
+      }
+
       const urlToken = searchParams.get('token');
       const isRegistrationPending = searchParams.get('google_registration_pending') === 'true';
       const isGoogleCompletion = !!urlToken || isGoogleVerified || !!localStorage.getItem('token');
