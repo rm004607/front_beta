@@ -165,54 +165,22 @@ export const formatChileanPhone = (phone: string): string => {
     return phone;
 };
 
+import { validate, format } from 'rut.js';
+
 /**
- * Valida un RUT chileno (con o sin puntos/guión)
+ * Valida un RUT chileno usando rut.js
  */
 export const isValidRut = (rut: string): boolean => {
     if (!rut || typeof rut !== 'string') return false;
-
-    // Limpiar RUT de puntos y guiones
-    const valor = rut.replace(/\./g, '').replace(/\-/g, '').toUpperCase();
-
-    // Validar longitud mínima
-    if (valor.length < 8) return false;
-
-    // Extraer cuerpo y dígito verificador
-    const cuerpo = valor.slice(0, -1);
-    const dv = valor.slice(-1);
-
-    // Validar que el cuerpo sea numérico
-    if (!/^\d+$/.test(cuerpo)) return false;
-
-    // Calcular dígito verificador y comparar
-    let suma = 0;
-    let multiplo = 2;
-    for (let i = 1; i <= cuerpo.length; i++) {
-        const index = multiplo * Math.floor(cuerpo.length - i);
-        suma = suma + parseInt(cuerpo.charAt(cuerpo.length - i)) * multiplo;
-        if (multiplo < 7) {
-            multiplo = multiplo + 1;
-        } else {
-            multiplo = 2;
-        }
-    }
-    const dvEsperado = 11 - (suma % 11);
-    const dvCalculado = dvEsperado === 11 ? '0' : dvEsperado === 10 ? 'K' : dvEsperado.toString();
-
-    return dvCalculado === dv;
+    return validate(rut);
 };
 
 /**
- * Formatea un RUT a XX.XXX.XXX-X
+ * Formatea un RUT a XX.XXX.XXX-X usando rut.js
  */
-export const formatRut = (rut: string): string => {
-    const cleanRut = rut.replace(/[^0-9kK]/g, '').toUpperCase();
-    if (cleanRut.length < 2) return cleanRut;
-
-    const body = cleanRut.slice(0, -1);
-    const dv = cleanRut.slice(-1);
-
-    return body.replace(/\B(?=(\d{3})+(?!\d))/g, '.') + '-' + dv;
+export const formatRut = (rutStr: string): string => {
+    if (!rutStr) return '';
+    return format(rutStr);
 };
 
 /**
