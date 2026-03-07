@@ -195,21 +195,15 @@ const Register = () => {
         return;
       }
 
-      // Verificación de identidad (RUT + nombre) antes de avanzar
+      // Verificación de identidad (solo RUT matemáticamente) antes de avanzar
       setIsVerifyingIdentity(true);
       try {
         const cleanRutForApi = rut.replace(/\./g, '').toUpperCase();
-        const verification = await validationAPI.verifyRut(cleanRutForApi);
-        const apiName = verification?.data?.name || '';
-
-        if (!areNamesSimilar(name, apiName)) {
-          toast.error('El nombre ingresado no coincide con el nombre asociado al RUT. Por favor verifica tus datos.');
-          setIsVerifyingIdentity(false);
-          return;
-        }
+        await validationAPI.verifyRut(cleanRutForApi);
+        // Si no lanza error, el RUT es válido matemáticamente y avanzamos.
       } catch (verificationError: any) {
         console.error('Error verifying RUT on next step:', verificationError);
-        toast.error(verificationError?.message || 'No se pudo verificar tu identidad en este momento. Intenta nuevamente más tarde.');
+        toast.error(verificationError?.message || 'No se pudo verificar tu RUT en este momento. Verifica que sea válido.');
         setIsVerifyingIdentity(false);
         return;
       }
@@ -381,21 +375,15 @@ const Register = () => {
     setIsSubmitting(true);
     setErrorMessage('');
     try {
-      // Verificación de identidad mediante RUT y nombre
+      // Verificación matemática del RUT
       const cleanRutForApi = rut.replace(/\./g, '').toUpperCase();
       try {
-        const verification = await validationAPI.verifyRut(cleanRutForApi);
-        const apiName = verification?.data?.name || '';
-
-        if (!areNamesSimilar(name, apiName)) {
-          setIsSubmitting(false);
-          toast.error('El nombre ingresado no coincide con el nombre asociado al RUT. Por favor verifica tus datos.');
-          return;
-        }
+        await validationAPI.verifyRut(cleanRutForApi);
+        // Si no lanza error, el RUT es válido matemáticamente. Continuamos.
       } catch (verificationError: any) {
         console.error('Error verifying RUT:', verificationError);
         setIsSubmitting(false);
-        toast.error(verificationError?.message || 'No se pudo verificar el RUT en este momento. Intenta nuevamente más tarde.');
+        toast.error(verificationError?.message || 'No se pudo verificar el RUT en este momento. Verifica que sea válido.');
         return;
       }
 
