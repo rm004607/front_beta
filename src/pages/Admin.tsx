@@ -968,7 +968,7 @@ const Admin = () => {
       setIsInitialLoading(false);
     };
     initAdmin();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+     
   }, []);
 
   // Recargar datos al cambiar de pestaña

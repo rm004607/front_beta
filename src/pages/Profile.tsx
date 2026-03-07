@@ -459,7 +459,7 @@ const Profile = () => {
         loadServices();
       }
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+     
   }, [user, isLoggedIn]); // loadPosts, loadServices, loadJobs son estables y no necesitan estar en deps
 
   /* Notificación de CV removida */

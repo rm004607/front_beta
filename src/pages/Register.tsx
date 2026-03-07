@@ -195,24 +195,17 @@ const Register = () => {
         return;
       }
 
-      // Verificación de identidad (RUT + nombre) antes de avanzar
       setIsVerifyingIdentity(true);
       try {
         const cleanRutForApi = rut.replace(/\./g, '').toUpperCase();
-        const verification = await validationAPI.verifyRut(cleanRutForApi);
-        const apiName = verification?.data?.name || '';
-
-        if (apiName !== 'BYPASS_LIMIT' && apiName !== 'Validado Correctamente' && !areNamesSimilar(name, apiName)) {
-          toast.error('El nombre ingresado no coincide con el nombre asociado al RUT. Por favor verifica tus datos.');
-          setIsVerifyingIdentity(false);
-          return;
-        }
+        await validationAPI.verifyRut(cleanRutForApi);
       } catch (verificationError: any) {
-        console.error('Error verifying RUT on next step:', verificationError);
-        toast.error(verificationError?.message || 'No se pudo verificar tu identidad en este momento. Intenta nuevamente más tarde.');
+        console.error('Error verifying RUT on backend:', verificationError);
+        toast.error(verificationError?.message || 'No se pudo verificar tu RUT en este momento. Intenta nuevamente más tarde.');
         setIsVerifyingIdentity(false);
         return;
       }
+      setIsVerifyingIdentity(false);
 
       // Guardar datos temporalmente
       localStorage.setItem('reg_name', name);
@@ -221,14 +214,13 @@ const Register = () => {
       localStorage.setItem('reg_phone', phone);
       localStorage.setItem('reg_comuna', comuna);
 
-      setIsVerifyingIdentity(false);
       setStep(2); // Go to role selection
     }
   };
 
 
   const handlePhoneChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    let value = e.target.value;
+    const value = e.target.value;
 
     // Si el usuario intenta borrar el +56, forzarlo
     if (!value.startsWith('+56 ')) {
@@ -381,24 +373,6 @@ const Register = () => {
     setIsSubmitting(true);
     setErrorMessage('');
     try {
-      // Verificación de identidad mediante RUT y nombre
-      const cleanRutForApi = rut.replace(/\./g, '').toUpperCase();
-      try {
-        const verification = await validationAPI.verifyRut(cleanRutForApi);
-        const apiName = verification?.data?.name || '';
-
-        if (apiName !== 'BYPASS_LIMIT' && apiName !== 'Validado Correctamente' && !areNamesSimilar(name, apiName)) {
-          setIsSubmitting(false);
-          toast.error('El nombre ingresado no coincide con el nombre asociado al RUT. Por favor verifica tus datos.');
-          return;
-        }
-      } catch (verificationError: any) {
-        console.error('Error verifying RUT:', verificationError);
-        setIsSubmitting(false);
-        toast.error(verificationError?.message || 'No se pudo verificar el RUT en este momento. Intenta nuevamente más tarde.');
-        return;
-      }
-
       const urlToken = searchParams.get('token');
       const isRegistrationPending = searchParams.get('google_registration_pending') === 'true';
       const isGoogleCompletion = !!urlToken || isGoogleVerified || !!localStorage.getItem('token');

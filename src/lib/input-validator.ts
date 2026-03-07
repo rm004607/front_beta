@@ -172,14 +172,14 @@ export const isValidRut = (rut: string): boolean => {
     if (!rut || typeof rut !== 'string') return false;
 
     // Limpiar RUT de puntos y guiones
-    let valor = rut.replace(/\./g, '').replace(/\-/g, '').toUpperCase();
+    const valor = rut.replace(/\./g, '').replace(/\-/g, '').toUpperCase();
 
     // Validar longitud mínima
     if (valor.length < 8) return false;
 
     // Extraer cuerpo y dígito verificador
-    let cuerpo = valor.slice(0, -1);
-    let dv = valor.slice(-1);
+    const cuerpo = valor.slice(0, -1);
+    const dv = valor.slice(-1);
 
     // Validar que el cuerpo sea numérico
     if (!/^\d+$/.test(cuerpo)) return false;
@@ -188,7 +188,7 @@ export const isValidRut = (rut: string): boolean => {
     let suma = 0;
     let multiplo = 2;
     for (let i = 1; i <= cuerpo.length; i++) {
-        let index = multiplo * Math.floor(cuerpo.length - i);
+        const index = multiplo * Math.floor(cuerpo.length - i);
         suma = suma + parseInt(cuerpo.charAt(cuerpo.length - i)) * multiplo;
         if (multiplo < 7) {
             multiplo = multiplo + 1;
@@ -196,8 +196,8 @@ export const isValidRut = (rut: string): boolean => {
             multiplo = 2;
         }
     }
-    let dvEsperado = 11 - (suma % 11);
-    let dvCalculado = dvEsperado === 11 ? '0' : dvEsperado === 10 ? 'K' : dvEsperado.toString();
+    const dvEsperado = 11 - (suma % 11);
+    const dvCalculado = dvEsperado === 11 ? '0' : dvEsperado === 10 ? 'K' : dvEsperado.toString();
 
     return dvCalculado === dv;
 };
@@ -232,7 +232,7 @@ export const getValidationErrorMessage = (field: string, type: 'sql' | 'format' 
             phone: 'El teléfono solo puede contener números y los caracteres + - ( )',
             comuna: 'La comuna solo puede contener letras, espacios y guiones',
             email: 'Por favor ingresa un email válido',
-            rut: 'El RUT ingresado no es válido',
+            rut: 'RUT inválido',
             default: 'El formato de este campo no es válido'
         },
         length: {
