@@ -195,15 +195,21 @@ const Register = () => {
         return;
       }
 
-      // Verificación de identidad (solo RUT matemáticamente) antes de avanzar
+      // Verificación de identidad (RUT + nombre) antes de avanzar
       setIsVerifyingIdentity(true);
       try {
         const cleanRutForApi = rut.replace(/\./g, '').toUpperCase();
-        await validationAPI.verifyRut(cleanRutForApi);
-        // Si no lanza error, el RUT es válido matemáticamente y avanzamos.
+        const verification = await validationAPI.verifyRut(cleanRutForApi);
+        const apiName = verification?.data?.name || '';
+
+        if (apiName !== 'BYPASS_LIMIT' && !areNamesSimilar(name, apiName)) {
+          toast.error('El nombre ingresado no coincide con el nombre asociado al RUT. Por favor verifica tus datos.');
+          setIsVerifyingIdentity(false);
+          return;
+        }
       } catch (verificationError: any) {
         console.error('Error verifying RUT on next step:', verificationError);
-        toast.error(verificationError?.message || 'No se pudo verificar tu RUT en este momento. Verifica que sea válido.');
+        toast.error(verificationError?.message || 'No se pudo verificar tu identidad en este momento. Intenta nuevamente más tarde.');
         setIsVerifyingIdentity(false);
         return;
       }
@@ -375,15 +381,21 @@ const Register = () => {
     setIsSubmitting(true);
     setErrorMessage('');
     try {
-      // Verificación matemática del RUT
+      // Verificación de identidad mediante RUT y nombre
       const cleanRutForApi = rut.replace(/\./g, '').toUpperCase();
       try {
-        await validationAPI.verifyRut(cleanRutForApi);
-        // Si no lanza error, el RUT es válido matemáticamente. Continuamos.
+        const verification = await validationAPI.verifyRut(cleanRutForApi);
+        const apiName = verification?.data?.name || '';
+
+        if (apiName !== 'BYPASS_LIMIT' && !areNamesSimilar(name, apiName)) {
+          setIsSubmitting(false);
+          toast.error('El nombre ingresado no coincide con el nombre asociado al RUT. Por favor verifica tus datos.');
+          return;
+        }
       } catch (verificationError: any) {
         console.error('Error verifying RUT:', verificationError);
         setIsSubmitting(false);
-        toast.error(verificationError?.message || 'No se pudo verificar el RUT en este momento. Verifica que sea válido.');
+        toast.error(verificationError?.message || 'No se pudo verificar el RUT en este momento. Intenta nuevamente más tarde.');
         return;
       }
 
