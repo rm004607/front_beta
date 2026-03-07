@@ -202,7 +202,7 @@ const Register = () => {
         const verification = await validationAPI.verifyRut(cleanRutForApi);
         const apiName = verification?.data?.name || '';
 
-        if (apiName !== 'BYPASS_LIMIT' && !areNamesSimilar(name, apiName)) {
+        if (apiName !== 'BYPASS_LIMIT' && apiName !== 'Validado Correctamente' && !areNamesSimilar(name, apiName)) {
           toast.error('El nombre ingresado no coincide con el nombre asociado al RUT. Por favor verifica tus datos.');
           setIsVerifyingIdentity(false);
           return;
@@ -387,7 +387,7 @@ const Register = () => {
         const verification = await validationAPI.verifyRut(cleanRutForApi);
         const apiName = verification?.data?.name || '';
 
-        if (apiName !== 'BYPASS_LIMIT' && !areNamesSimilar(name, apiName)) {
+        if (apiName !== 'BYPASS_LIMIT' && apiName !== 'Validado Correctamente' && !areNamesSimilar(name, apiName)) {
           setIsSubmitting(false);
           toast.error('El nombre ingresado no coincide con el nombre asociado al RUT. Por favor verifica tus datos.');
           return;
