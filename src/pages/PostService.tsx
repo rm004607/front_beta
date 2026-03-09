@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+﻿import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -9,9 +9,9 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Badge } from '@/components/ui/badge';
 import { useUser } from '@/contexts/UserContext';
 import { useTranslation } from 'react-i18next';
-import { Wrench, AlertCircle, MapPin, Edit } from 'lucide-react';
+import { Wrench, AlertCircle, MapPin, Edit, Sparkles } from 'lucide-react';
 import { toast } from 'sonner';
-import { servicesAPI, packagesAPI, configAPI } from '@/lib/api';
+import { servicesAPI, packagesAPI, configAPI, aiAPI } from '@/lib/api';
 import {
   isValidTextField,
   validatePhone,
@@ -62,6 +62,9 @@ const PostService = () => {
   const [selectedServiceTypeIds, setSelectedServiceTypeIds] = useState<string[]>([]);
   const [customServiceName, setCustomServiceName] = useState('');
   const [loadingServiceTypes, setLoadingServiceTypes] = useState(false);
+  const [improvingDescription, setImprovingDescription] = useState(false);
+  const [suggestedDescription, setSuggestedDescription] = useState('');
+  const [showDescriptionSuggestion, setShowDescriptionSuggestion] = useState(false);
 
   if (!isLoggedIn) {
     navigate('/registro');
@@ -99,7 +102,7 @@ const PostService = () => {
     }
   };
 
-  // Pre-llenado de ubicación desde el perfil
+  // Pre-llenado de ubicaciÃ³n desde el perfil
   useEffect(() => {
     if (user) {
       if (user.comuna) setComuna(user.comuna);
@@ -117,7 +120,7 @@ const PostService = () => {
       if (user?.role_number === 5) {
         setCanPublish(true);
       } else if (!pricingEnabled) {
-        // Si pricing está desactivado, siempre permitir publicar gratis
+        // Si pricing estÃ¡ desactivado, siempre permitir publicar gratis
         setCanPublish(true);
       } else if (limits.services.requires_payment) {
         // Verificar si hay paquetes gratuitos disponibles
@@ -144,12 +147,45 @@ const PostService = () => {
     }
   };
 
-  // Verificar que el usuario sea emprendedor o super-admin (opcional, el backend también lo valida)
+  // Verificar que el usuario sea emprendedor o super-admin (opcional, el backend tambiÃ©n lo valida)
   if (!user?.roles.includes('entrepreneur') && user?.role_number !== 5) {
     toast.error(t('post_service.entrepreneur_only'));
     navigate('/servicios');
     return null;
   }
+
+  const handleImproveDescription = async () => {
+    const baseText = description.trim();
+
+    if (baseText.length < 20) {
+      toast.error('Escribe una descripción de al menos 20 caracteres');
+      return;
+    }
+
+    try {
+      setImprovingDescription(true);
+      const response = await aiAPI.rewriteServiceDescription(baseText);
+      const suggestion = response?.suggestion?.trim();
+
+      if (!suggestion) {
+        toast.error('No se pudo generar una sugerencia');
+        return;
+      }
+
+      if (!response.changed) {
+        setShowDescriptionSuggestion(false);
+        toast.success('Tu descripción ya está bien redactada');
+        return;
+      }
+
+      setSuggestedDescription(suggestion);
+      setShowDescriptionSuggestion(true);
+    } catch (error: any) {
+      toast.error(error?.message || 'Error al generar la sugerencia');
+    } finally {
+      setImprovingDescription(false);
+    }
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -191,7 +227,7 @@ const PostService = () => {
       });
 
       toast.success(t('post_service.service_submitted'));
-      await loadUserLimits(); // Actualizar límites
+      await loadUserLimits(); // Actualizar lÃ­mites
       navigate('/perfil');
     } catch (error: any) {
       const errorMessage = error instanceof Error ? error.message : t('post_service.publish_error');
@@ -200,7 +236,7 @@ const PostService = () => {
       if ((error.requires_payment || error.status === 403) && pricingEnabled) {
         setPackagesModalOpen(true);
       } else if (!pricingEnabled) {
-        // Si pricing está desactivado, ignorar errores de pago
+        // Si pricing estÃ¡ desactivado, ignorar errores de pago
         toast.error(errorMessage);
       } else {
         toast.error(errorMessage);
@@ -210,7 +246,7 @@ const PostService = () => {
     }
   };
 
-  // Si está cargando límites, mostrar loading
+  // Si estÃ¡ cargando lÃ­mites, mostrar loading
   if (loadingLimits) {
     return (
       <div className="container mx-auto px-4 py-8 max-w-3xl">
@@ -240,8 +276,8 @@ const PostService = () => {
           onPackageSelect={(packageId) => {
             // Log removed for production security
 
-            // Aquí se integraría con el sistema de pago
-            // Después del pago, se actualizarían los límites y se podría publicar
+            // AquÃ­ se integrarÃ­a con el sistema de pago
+            // DespuÃ©s del pago, se actualizarÃ­an los lÃ­mites y se podrÃ­a publicar
           }}
         />
       </>
@@ -265,7 +301,7 @@ const PostService = () => {
             <CardDescription className="text-muted-foreground text-lg">{t('post_service.subtitle')}</CardDescription>
           </CardHeader>
           <CardContent>
-            {/* Aviso de moderación */}
+            {/* Aviso de moderaciÃ³n */}
             <Alert className="mb-6 border-blue-200 bg-blue-50 text-blue-800">
               <AlertCircle className="h-4 w-4 text-blue-600" />
               <AlertDescription className="text-blue-700">
@@ -284,7 +320,7 @@ const PostService = () => {
                     </span>
                   ) : (
                     <span className="ml-2 text-destructive">
-                      (Límite alcanzado)
+                      (LÃ­mite alcanzado)
                     </span>
                   )}
                 </AlertDescription>
@@ -295,7 +331,7 @@ const PostService = () => {
               <div className="space-y-4">
                 <Label>{t('post_service.service_label')}</Label>
                 {loadingServiceTypes ? (
-                  <p className="text-sm text-muted-foreground animate-pulse">Cargando categorías...</p>
+                  <p className="text-sm text-muted-foreground animate-pulse">Cargando categorÃ­as...</p>
                 ) : (
                   <div className="space-y-4">
                     <Select
@@ -320,7 +356,7 @@ const PostService = () => {
                           </SelectItem>
                         ))}
                         <SelectItem value="other" className="rounded-lg font-semibold text-primary">
-                          Otro / No está en la lista
+                          Otro / No estÃ¡ en la lista
                         </SelectItem>
                       </SelectContent>
                     </Select>
@@ -336,7 +372,7 @@ const PostService = () => {
                       id="customService"
                       value={customServiceName === ' ' ? '' : customServiceName}
                       onChange={(e) => setCustomServiceName(e.target.value)}
-                      placeholder="Ej: Gasfitería de urgencia, Paseo de mascotas exóticas..."
+                      placeholder="Ej: GasfiterÃ­a de urgencia, Paseo de mascotas exÃ³ticas..."
                       className="border-primary/30"
                       required
                     />
@@ -376,7 +412,7 @@ const PostService = () => {
                 ) : (
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2">
                     <div>
-                      <Label htmlFor="baseRegion" className="text-xs">Región *</Label>
+                      <Label htmlFor="baseRegion" className="text-xs">RegiÃ³n *</Label>
                       <Select value={baseRegion} onValueChange={(val) => {
                         setBaseRegion(val);
                         setComuna('');
@@ -506,11 +542,54 @@ const PostService = () => {
                 <Textarea
                   id="description"
                   value={description}
-                  onChange={(e) => setDescription(e.target.value)}
+                  onChange={(e) => {
+                    setDescription(e.target.value);
+                    if (showDescriptionSuggestion) {
+                      setShowDescriptionSuggestion(false);
+                    }
+                  }}
                   placeholder={t('post_service.description_placeholder')}
                   rows={5}
                   required
                 />
+                <Button
+                  type="button"
+                  variant="outline"
+                  className="mt-3"
+                  onClick={handleImproveDescription}
+                  disabled={improvingDescription || description.trim().length < 20}
+                >
+                  <Sparkles className="h-4 w-4 mr-2" />
+                  {improvingDescription ? 'Mejorando redacción...' : 'Mejorar redacción con IA'}
+                </Button>
+
+                {showDescriptionSuggestion && suggestedDescription && (
+                  <div className="mt-3 p-3 rounded-md border border-primary/30 bg-primary/5 space-y-3">
+                    <p className="text-sm font-semibold text-primary">Sugerencia de redacción</p>
+                    <p className="text-sm whitespace-pre-wrap">{suggestedDescription}</p>
+                    <div className="flex gap-2">
+                      <Button
+                        type="button"
+                        size="sm"
+                        onClick={() => {
+                          setDescription(suggestedDescription);
+                          setShowDescriptionSuggestion(false);
+                          toast.success('Descripción actualizada con la sugerencia');
+                        }}
+                      >
+                        Usar sugerencia
+                      </Button>
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        onClick={() => setShowDescriptionSuggestion(false)}
+                      >
+                        Mantener mi texto
+                      </Button>
+                    </div>
+                  </div>
+                )}
                 <p className="text-[10px] text-secondary font-medium italic mt-1.5 flex items-center gap-1.5">
                   <span className="w-1.5 h-1.5 rounded-full bg-secondary animate-pulse" />
                   Nota: El precio de tu servicio se coordina por interno con los interesados.
@@ -561,7 +640,7 @@ const PostService = () => {
           onPackageSelect={(packageId) => {
             // Log removed for production security
 
-            // Aquí se integraría con el sistema de pago
+            // AquÃ­ se integrarÃ­a con el sistema de pago
           }}
         />
       </div>

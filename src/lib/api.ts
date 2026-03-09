@@ -1439,5 +1439,16 @@ export const aiAPI = {
       body: JSON.stringify({ message }),
     });
   },
-};
 
+  rewriteServiceDescription: async (description: string) => {
+    return request<{
+      message: string;
+      original: string;
+      suggestion: string;
+      changed: boolean;
+    }>('/api/ai/rewrite-description', {
+      method: 'POST',
+      body: JSON.stringify({ description }),
+    });
+  },
+};
