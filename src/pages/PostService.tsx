@@ -554,8 +554,8 @@ const PostService = () => {
                 />
                 <Button
                   type="button"
-                  variant="outline"
-                  className="mt-3"
+                  variant="default"
+                  className="mt-3 border-0 bg-gradient-to-r from-cyan-500 via-sky-500 to-indigo-500 text-white shadow-md shadow-sky-500/30 hover:from-cyan-400 hover:via-sky-400 hover:to-indigo-400 focus-visible:ring-2 focus-visible:ring-sky-400/60"
                   onClick={handleImproveDescription}
                   disabled={improvingDescription || description.trim().length < 20}
                 >
