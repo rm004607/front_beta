@@ -437,7 +437,7 @@ const Home = () => {
                   <Search className="text-white w-8 h-8 sm:w-9 sm:h-9" strokeWidth={1.5} />
                 </div>
                 <h3 className="text-2xl sm:text-3xl font-heading font-extrabold mb-4 relative z-10">{t('home.already_offer_services')}</h3>
-                <p className="text-muted-foreground text-base sm:text-lg relative z-10 mb-6">{t('home.entrepreneur_choice_desc')}</p>
+                <p className="text-muted-foreground text-base sm:text-lg relative z-10 mb-6">{t('home.already_part_description')}</p>
                 <div className="text-primary font-bold p-0 text-lg group-hover:translate-x-2 transition-transform flex items-center mt-auto">
                   {t('home.login_panel_cta')} <ArrowRight className="ml-2" />
                 </div>
@@ -616,7 +616,7 @@ const Home = () => {
                       <Search size={32} />
                     </div>
                     <h3 className="text-xl font-bold mb-2">{t('home.already_offer_services')}</h3>
-                    <p className="text-sm text-muted-foreground mb-6 text-center">Encuentra los mejores profesionales y servicios disponibles en Dameldato.</p>
+                    <p className="text-sm text-muted-foreground mb-6 text-center">{t('home.already_part_description')}</p>
                     <Button className="w-full bg-[#25D366] hover:bg-[#20ba59] text-white mt-auto font-black border-none h-12 rounded-xl shadow-lg shadow-green-500/20 uppercase tracking-wider text-xs">{t('home.login_panel_cta')}</Button>
                   </div>
                 </Link>
@@ -626,38 +626,6 @@ const Home = () => {
         </section>
       )}
 
-      {/* Final CTA */}
-      <section className="py-24 relative overflow-hidden bg-white dark:bg-transparent">
-        <div className="absolute inset-0 bg-primary opacity-[0.03]"></div>
-        <div className="container mx-auto px-4 relative z-10 text-center">
-          <div className="glass-card max-w-4xl mx-auto p-12 md:p-20 rounded-[4rem] border-primary/10 shadow-primary/10">
-            <h2 className="text-4xl md:text-6xl font-extrabold mb-8">{t('home.final_cta_title')}</h2>
-            <p className="text-xl text-muted-foreground mb-12 max-w-2xl mx-auto">
-              {t('home.final_cta_desc')}
-            </p>
-            <div className="flex flex-col sm:flex-row gap-6 justify-center">
-              <Button 
-                onClick={() => {
-                  if (isLoggedIn) {
-                    window.location.href = "/servicios/publicar";
-                  } else {
-                    document.getElementById('entrepreneur-section')?.scrollIntoView({ behavior: 'smooth' });
-                  }
-                }}
-                size="lg" 
-                className="bg-primary hover:bg-primary/90 text-primary-foreground font-bold px-10 py-8 text-xl rounded-2xl shadow-2xl shadow-primary/20 transition-all hover:scale-105 w-full sm:w-auto"
-              >
-                {t('home.final_cta_btn')}
-              </Button>
-              <Link to="/servicios">
-                <Button variant="outline" size="lg" className="border-2 border-primary/20 bg-background/50 hover:bg-primary/5 hover:border-primary/40 font-bold px-10 py-8 text-xl rounded-2xl w-full sm:w-auto h-auto transition-all">
-                  {t('hero.explore_services')}
-                </Button>
-              </Link>
-            </div>
-          </div>
-        </div>
-      </section>
     </div>
   );
 };

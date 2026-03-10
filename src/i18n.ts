@@ -50,6 +50,7 @@ const resources = {
                 "already_offer_services": "Ya soy parte de Dameldato",
                 "want_to_offer_services": "Quiero ofrecer mi servicio en Dameldato",
                 "login_panel_cta": "Ya soy parte de Dameldato",
+                "already_part_description": "Sigue ofreciendo tus servicios",
                 "register_talent_cta": "Crear mi cuenta de talento"
             },
             "services": {
@@ -206,6 +207,7 @@ const resources = {
                 "already_offer_services": "I am already part of Dameldato",
                 "want_to_offer_services": "I want to offer my service on Dameldato",
                 "login_panel_cta": "I am already part of Dameldato",
+                "already_part_description": "Keep offering your services",
                 "register_talent_cta": "Create my talent account"
             },
             "services": {
