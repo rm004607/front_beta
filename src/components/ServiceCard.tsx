@@ -290,7 +290,6 @@ export const ServiceCard = ({
                                                 <div className="scale-100 [&>svg]:w-5 [&>svg]:h-5">
                                                     {getServiceIcon(service.service_name || service.type_name || '', service.type_icon)}
                                                 </div>
-                                                <span className="text-xs font-black uppercase tracking-widest">{service.type_name?.trim() ? service.type_name : 'Servicio'}</span>
                                             </div>
                                         </div>
 
