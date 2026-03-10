@@ -22,6 +22,7 @@ import { useTranslation } from 'react-i18next';
 import { servicesAPI } from '@/lib/api';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import logoFull from '/logo_nombre.webp';
+import { getServiceIcon, getServiceColor, isLightColor } from '@/lib/serviceUtils';
 
 interface Service {
   id: string;
@@ -140,78 +141,9 @@ const Home = () => {
       if (n === 'Waves') return <Waves />;
       if (n === 'Zap') return <Zap />;
       if (n === 'Ticket') return <Ticket />;
-      if (n === 'Video') return <Video />;
-      if (n === 'Mic') return <Mic />;
-      if (n === 'Smile') return <Smile />;
-      if (n === 'Gamepad2') return <Gamepad2 />;
-      if (n === 'Brush') return <Brush />;
-      if (n === 'Wind') return <Wind />;
-      if (n === 'Pill') return <Pill />;
-      if (n === 'Activity') return <Activity />;
-      if (n === 'Apple') return <Apple />;
-      if (n === 'Bone') return <Bone />;
-      if (n === 'Gem') return <Gem />;
-      if (n === 'Key') return <Key />;
-      if (n === 'Anchor') return <Anchor />;
     }
-
-    // Fallback: Mapeo basado en nombre (como estaba antes)
-    const n = name.toLowerCase();
-    if (n.includes('gasfiter') || n.includes('plomero')) return <Wrench />;
-    if (n.includes('electri')) return <Lightbulb />;
-    if (n.includes('cerrajer')) return <ShieldCheck />;
-    if (n.includes('limpieza') || n.includes('aseo')) return <Sparkles />;
-    if (n.includes('construc') || n.includes('albañil')) return <Building2 />;
-    if (n.includes('flete') || n.includes('mudan') || n.includes('transp')) return <Truck />;
-    if (n.includes('cuidad') || n.includes('salud') || n.includes('enfer')) return <HeartPulse />;
-    if (n.includes('mecanic')) return <Briefcase />;
-    if (n.includes('pintor') || n.includes('pintura')) return <Paintbrush />;
-    if (n.includes('carpin') || n.includes('mueble')) return <Hammer />;
-    if (n.includes('peluqu') || n.includes('esteti')) return <Scissors />;
-    if (n.includes('foto') || n.includes('video')) return <Camera />;
-    if (n.includes('compu') || n.includes('tech') || n.includes('soporte')) return <Laptop />;
-    if (n.includes('comida') || n.includes('cocina')) return <ChefHat />;
-    if (n.includes('evento') || n.includes('musica') || n.includes('show')) return <Music />;
-    if (n.includes('lavado') || n.includes('auto')) return <Car />;
-    if (n.includes('hogar') || n.includes('casa')) return <HomeIcon />;
-    if (n.includes('telef') || n.includes('contacto')) return <Phone />;
-    if (n.includes('fontaner') || n.includes('gasfiter')) return <Wrench />;
-    if (n.includes('jardin')) return <Scissors />;
-    if (n.includes('gastro') || n.includes('comida') || n.includes('chef')) return <ChefHat />;
-    return <Wrench />; // Default icon
+    return <Wrench />;
   };
-
-  const getServiceColor = (name: string) => {
-    const n = name.toLowerCase();
-    if (n.includes('gasfiter') || n.includes('plomero') || n.includes('fontaner')) return '#3b82f6'; // blue-500
-    if (n.includes('electri')) return '#f59e0b'; // amber-500
-    if (n.includes('cerrajer')) return '#334155'; // slate-700
-    if (n.includes('limpieza') || n.includes('aseo')) return '#10b981'; // emerald-500
-    if (n.includes('construc') || n.includes('albañil')) return '#ea580c'; // orange-600
-    if (n.includes('flete') || n.includes('mudan') || n.includes('transp')) return '#a855f7'; // purple-500
-    if (n.includes('cuidad') || n.includes('salud') || n.includes('enfer')) return '#f43f5e'; // rose-500
-    if (n.includes('mecanic')) return '#4f46e5'; // indigo-600
-    if (n.includes('jardin')) return '#22c55e'; // green-500
-    if (n.includes('gastro') || n.includes('comida') || n.includes('chef')) return '#ef4444'; // red-500
-    return 'var(--primary)'; // Default color
-  };
-
-  const isLightColor = (color?: string) => {
-    if (!color) return false;
-    if (color && color.startsWith('var')) return false;
-    try {
-      const hex = color.replace('#', '');
-      if (hex.length !== 6) return false;
-      const r = parseInt(hex.substring(0, 2), 16);
-      const g = parseInt(hex.substring(2, 4), 16);
-      const b = parseInt(hex.substring(4, 6), 16);
-      const brightness = (r * 299 + g * 587 + b * 114) / 1000;
-      return brightness > 180;
-    } catch (e) {
-      return false;
-    }
-  };
-
   const CategoryCard = ({ type, rowIndex }: { type: any, rowIndex?: number }) => (
     <Link
       to={`/servicios?type_id=${type.id}`}

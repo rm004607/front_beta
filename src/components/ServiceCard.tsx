@@ -14,6 +14,9 @@ import {
 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
+import { servicesAPI, configAPI } from '@/lib/api';
+import { toast } from 'sonner';
+import { getServiceIcon, getServiceColor, isLightColor } from '@/lib/serviceUtils';
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import { Label } from '@/components/ui/label';
@@ -59,127 +62,6 @@ export const ServiceCard = ({
     onEdit,
     onDelete
 }: ServiceCardProps) => {
-    const getServiceIcon = (name: string, iconName?: string) => {
-        if (iconName) {
-            const n = iconName;
-            // Common icons
-            if (n === 'Wrench') return <Wrench />;
-            if (n === 'Lightbulb') return <Lightbulb />;
-            if (n === 'ShieldCheck') return <ShieldCheck />;
-            if (n === 'Sparkles') return <Sparkles />;
-            if (n === 'Building2') return <Building2 />;
-            if (n === 'Truck') return <Truck />;
-            if (n === 'HeartPulse') return <HeartPulse />;
-            if (n === 'Briefcase') return <Briefcase />;
-            if (n === 'Paintbrush') return <Paintbrush />;
-            if (n === 'Hammer') return <Hammer />;
-            if (n === 'Scissors') return <Scissors />;
-            if (n === 'Camera') return <Camera />;
-            if (n === 'Laptop') return <Laptop />;
-            if (n === 'ShoppingBag' || n === 'Store') return <ShoppingBag />;
-            if (n === 'ChefHat') return <ChefHat />;
-            if (n === 'Music') return <Music />;
-            if (n === 'Car') return <Car />;
-            if (n === 'Home') return <HomeIcon />;
-            if (n === 'Phone') return <Phone />;
-            if (n === 'Plug') return <Plug />;
-            if (n === 'PaintRoller') return <PaintRoller />;
-            if (n === 'Flame') return <Flame />;
-            if (n === 'Utensils') return <Utensils />;
-            if (n === 'Dumbbell') return <Dumbbell />;
-            if (n === 'GraduationCap') return <GraduationCap />;
-            if (n === 'Baby') return <Baby />;
-            if (n === 'Stethoscope') return <Stethoscope />;
-            if (n === 'Globe') return <Globe />;
-            if (n === 'Database') return <Database />;
-            if (n === 'Smartphone') return <Smartphone />;
-            if (n === 'Plane') return <Plane />;
-            if (n === 'Gift') return <Gift />;
-            if (n === 'Trophy') return <Trophy />;
-            if (n === 'Coffee') return <Coffee />;
-            if (n === 'Wallet') return <Wallet />;
-            if (n === 'Trees') return <Trees />;
-            if (n === 'PawPrint') return <PawPrint />;
-            if (n === 'Flower2') return <Flower2 />;
-            if (n === 'Sun') return <Sun />;
-            if (n === 'Moon') return <Moon />;
-            if (n === 'Bike') return <Bike />;
-            if (n === 'Cpu') return <Cpu />;
-            if (n === 'Mouse') return <Mouse />;
-            if (n === 'Monitor') return <Monitor />;
-            if (n === 'Cloud') return <Cloud />;
-            if (n === 'Code') return <Code />;
-            if (n === 'Languages') return <Languages />;
-            if (n === 'Book') return <Book />;
-            if (n === 'School') return <School />;
-            if (n === 'HardHat') return <HardHat />;
-            if (n === 'Construction') return <Construction />;
-            if (n === 'Drill') return <Drill />;
-            if (n === 'PlugZap') return <PlugZap />;
-            if (n === 'Waves') return <Waves />;
-            if (n === 'Zap') return <Zap />;
-            if (n === 'Ticket') return <Ticket />;
-            if (n === 'Video') return <Video />;
-            if (n === 'Mic') return <Mic />;
-            if (n === 'Smile') return <Smile />;
-            if (n === 'Gamepad2') return <Gamepad2 />;
-            if (n === 'Brush') return <Brush />;
-            if (n === 'Wind') return <Wind />;
-            if (n === 'Pill') return <Pill />;
-            if (n === 'Activity') return <Activity />;
-            if (n === 'Apple') return <Apple />;
-            if (n === 'Bone') return <Bone />;
-            if (n === 'Gem') return <Gem />;
-            if (n === 'Key') return <Key />;
-            if (n === 'Anchor') return <Anchor />;
-        }
-        const n = name.toLowerCase();
-        if (n.includes('gasfiter') || n.includes('plomero')) return <Wrench />;
-        if (n.includes('electri')) return <Lightbulb />;
-        if (n.includes('cerrajer')) return <ShieldCheck />;
-        if (n.includes('limpieza') || n.includes('aseo')) return <Sparkles />;
-        if (n.includes('construc') || n.includes('albañil')) return <Building2 />;
-        if (n.includes('flete') || n.includes('mudan') || n.includes('transp')) return <Truck />;
-        if (n.includes('cuidad') || n.includes('salud') || n.includes('enfer')) return <HeartPulse />;
-        if (n.includes('mecanic')) return <Briefcase />;
-        if (n.includes('peluquer') || n.includes('estetica') || n.includes('belleza') || n.includes('manicure') || n.includes('barber')) return <Scissors />;
-        if (n.includes('jardin')) return <Trees />;
-        if (n.includes('gastro') || n.includes('comida') || n.includes('chef') || n.includes('banquete')) return <ChefHat />;
-        if (n.includes('masaje') || n.includes('relax') || n.includes('terapia')) return <Sparkles />;
-        return <Wrench />;
-    };
-
-    const getServiceColor = (name: string) => {
-        const n = name.toLowerCase();
-        if (n.includes('gasfiter') || n.includes('plomero') || n.includes('fontaner')) return '#3b82f6'; // blue-500
-        if (n.includes('electri')) return '#f59e0b'; // amber-500
-        if (n.includes('cerrajer')) return '#334155'; // slate-700
-        if (n.includes('limpieza') || n.includes('aseo')) return '#10b981'; // emerald-500
-        if (n.includes('construc') || n.includes('albañil')) return '#ea580c'; // orange-600
-        if (n.includes('flete') || n.includes('mudan') || n.includes('transp')) return '#a855f7'; // purple-500
-        if (n.includes('cuidad') || n.includes('salud') || n.includes('enfer')) return '#f43f5e'; // rose-500
-        if (n.includes('mecanic')) return '#4f46e5'; // indigo-600
-        if (n.includes('jardin')) return '#22c55e'; // green-500
-        if (n.includes('peluquer') || n.includes('estetica') || n.includes('belleza') || n.includes('manicure') || n.includes('barber')) return '#ec4899'; // pink-500
-        if (n.includes('gastro') || n.includes('comida') || n.includes('chef')) return '#ef4444'; // red-500
-        return 'var(--primary)'; // Default color
-    };
-
-    const isLightColor = (color?: string) => {
-        if (!color) return false;
-        if (color.startsWith('var')) return false;
-        try {
-            const hex = color.replace('#', '');
-            if (hex.length !== 6) return false;
-            const r = parseInt(hex.substring(0, 2), 16);
-            const g = parseInt(hex.substring(2, 4), 16);
-            const b = parseInt(hex.substring(4, 6), 16);
-            const brightness = (r * 299 + g * 587 + b * 114) / 1000;
-            return brightness > 180;
-        } catch (e) {
-            return false;
-        }
-    };
 
     return (
         <Card
