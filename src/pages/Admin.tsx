@@ -492,6 +492,7 @@ const Admin = () => {
       setTicketResponse('');
       setSelectedTicket(null);
       loadTickets();
+      loadDatos();
     } catch (error: any) {
       console.error('Error responding to ticket:', error);
       toast.error(error.message || 'Error al responder al ticket');
@@ -516,6 +517,7 @@ const Admin = () => {
       await adminAPI.updateTicketStatus(ticketId, status);
       toast.success('Estado del ticket actualizado');
       loadTickets();
+      loadDatos();
     } catch (error: any) {
       console.error('Error updating ticket status:', error);
       toast.error(error.message || 'Error al actualizar el estado');
