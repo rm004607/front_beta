@@ -205,12 +205,12 @@ const Layout = ({ children }: LayoutProps) => {
                         <p className="text-[10px] text-muted-foreground font-black uppercase tracking-[0.2em] mb-3 ml-1">Para Emprendedores</p>
                         <div className="space-y-2">
                           <Link to="/registro">
-                            <Button className="w-full justify-start h-12 rounded-xl bg-primary hover:bg-primary/90 shadow-lg shadow-primary/20 mb-2">
+                            <Button className="w-full justify-start h-auto py-3.5 px-4 rounded-xl bg-primary hover:bg-primary/90 shadow-lg shadow-primary/20 mb-2 whitespace-normal text-left leading-tight">
                               {t('home.want_to_offer_services')}
                             </Button>
                           </Link>
                           <Link to="/login">
-                            <Button variant="outline" className="w-full justify-start h-12 rounded-xl border-secondary/30 text-secondary hover:bg-secondary/5">
+                            <Button variant="outline" className="w-full justify-start h-auto py-3.5 px-4 rounded-xl border-secondary/30 text-secondary hover:bg-secondary/5 whitespace-normal text-left leading-tight">
                               {t('home.already_offer_services')}
                             </Button>
                           </Link>
