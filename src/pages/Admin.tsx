@@ -194,10 +194,9 @@ const Admin = () => {
   const navigate = useNavigate();
   const isSuperAdmin = user?.role_number === 5;
 
-  // Estados para posts
-  const [posts, setPosts] = useState<Post[]>([]);
-  const [loadingPosts, setLoadingPosts] = useState(false);
-  const [postFilters, setPostFilters] = useState({ type: 'all', comuna: '' });
+  // Estados para datos (recomendaciones)
+  const [datos, setDatos] = useState<any[]>([]);
+  const [loadingDatos, setLoadingDatos] = useState(false);
 
 
   // Estados para services
@@ -218,7 +217,7 @@ const Admin = () => {
   const [loadingLogs, setLoadingLogs] = useState(false);
   const [logLevel, setLogLevel] = useState('all');
   const [logsAutoRefresh, setLogsAutoRefresh] = useState(false);
-  const [activeTab, setActiveTab] = useState('wall');
+  const [activeTab, setActiveTab] = useState('services');
   const [isInitialLoading, setIsInitialLoading] = useState(true);
 
   // Estados para tickets
@@ -302,20 +301,19 @@ const Admin = () => {
     }
   };
 
-  const loadPosts = async () => {
+  const loadDatos = async () => {
     try {
-      setLoadingPosts(true);
-      const response = await adminAPI.getAllPosts({
-        type: postFilters.type !== 'all' ? postFilters.type : undefined,
-        comuna: postFilters.comuna || undefined,
+      setLoadingDatos(true);
+      const response = await adminAPI.getAllTickets({
+        category: 'recommendation',
         limit: 50,
       });
-      setPosts(response.posts);
+      setDatos(response.tickets);
     } catch (error: any) {
-      console.error('Error loading posts:', error);
-      toast.error(error.message || 'Error al cargar publicaciones');
+      console.error('Error loading datos:', error);
+      toast.error(error.message || 'Error al cargar datos');
     } finally {
-      setLoadingPosts(false);
+      setLoadingDatos(false);
     }
   };
 
@@ -524,21 +522,6 @@ const Admin = () => {
     }
   };
 
-  const handleDeletePost = async (id: string) => {
-    if (!confirm('¿Estás seguro de que quieres eliminar esta publicación?')) {
-      return;
-    }
-
-    try {
-      await adminAPI.deletePost(id);
-      toast.success('Publicación eliminada');
-      loadPosts();
-      loadStats();
-    } catch (error: any) {
-      console.error('Error deleting post:', error);
-      toast.error(error.message || 'Error al eliminar publicación');
-    }
-  };
 
 
   const handleDeleteService = async (id: string) => {
@@ -973,7 +956,7 @@ const Admin = () => {
   // Recargar datos al cambiar de pestaña
   useEffect(() => {
     switch (activeTab) {
-      case 'wall': loadPosts(); break;
+      case 'datos': loadDatos(); break;
       case 'services': loadServices(); break;
       case 'users': loadUsers(); break;
       case 'tickets': loadTickets(); break;
@@ -1040,10 +1023,10 @@ const Admin = () => {
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
             <Card className="bg-card/40 backdrop-blur-md border-primary/10 group hover:border-primary/30 transition-all duration-300">
               <CardHeader className="pb-2">
-                <CardTitle className="text-sm font-medium text-muted-foreground group-hover:text-primary transition-colors">Publicaciones</CardTitle>
+                <CardTitle className="text-sm font-medium text-muted-foreground group-hover:text-primary transition-colors">Servicios Totales</CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="text-3xl font-bold">{stats.total_posts || 0}</div>
+                <div className="text-3xl font-bold">{stats.total_services || 0}</div>
               </CardContent>
             </Card>
             <Card className="bg-card/40 backdrop-blur-md border-secondary/10 group hover:border-secondary/30 transition-all duration-300">
@@ -1073,13 +1056,13 @@ const Admin = () => {
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
           <div className="w-full overflow-x-auto pb-2 scrollbar-hide">
             <TabsList className={`flex w-max min-w-full h-auto mb-2 p-1 gap-1 glass-card border-white/5`}>
-              <TabsTrigger value="wall" onClick={loadPosts} className="flex items-center gap-2">
-                <MessageSquare size={16} />
-                Muro
-              </TabsTrigger>
               <TabsTrigger value="services" onClick={loadServices} className="flex items-center gap-2">
                 <Wrench size={16} />
                 Servicios
+              </TabsTrigger>
+              <TabsTrigger value="datos" onClick={loadDatos} className="flex items-center gap-2">
+                <Lightbulb size={16} />
+                Datos
               </TabsTrigger>
               <TabsTrigger value="users" onClick={loadUsers} className="flex items-center gap-2">
                 <Users size={16} />
@@ -1108,73 +1091,55 @@ const Admin = () => {
             </TabsList>
           </div>
 
-          {/* Tab de Muro */}
-          <TabsContent value="wall">
+          {/* Tab de Datos */}
+          <TabsContent value="datos">
             <Card className="border-2">
               <CardHeader>
-                <CardTitle>Publicaciones del Muro</CardTitle>
-                <CardDescription>Gestiona todas las publicaciones del muro</CardDescription>
+                <CardTitle>Recomendaciones de la Comunidad (Datos)</CardTitle>
+                <CardDescription>Visualiza los datos enviados por los vecinos a través del formulario de la página principal.</CardDescription>
               </CardHeader>
               <CardContent>
-                <div className="mb-6 flex flex-col sm:flex-row gap-4">
-                  <Select value={postFilters.type} onValueChange={(value) => setPostFilters({ ...postFilters, type: value })}>
-                    <SelectTrigger className="w-full sm:w-44 glass-card border-white/10 text-glow">
-                      <SelectValue placeholder="Tipo" />
-                    </SelectTrigger>
-                    <SelectContent className="glass-card border-white/10 backdrop-blur-xl">
-                      <SelectItem value="all">🌐 Todos</SelectItem>
-                      <SelectItem value="Busco Servicio">🔍 Busco Servicio</SelectItem>
-                      <SelectItem value="Ofrezco">💼 Ofrezco</SelectItem>
-                      <SelectItem value="Info">ℹ️ Info</SelectItem>
-                    </SelectContent>
-                  </Select>
-                  <div className="relative flex-1">
-                    <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 text-primary/50" size={16} />
-                    <Input
-                      placeholder="Filtrar por comuna..."
-                      value={postFilters.comuna}
-                      onChange={(e) => setPostFilters({ ...postFilters, comuna: e.target.value })}
-                      className="pl-10 glass-card border-white/10"
-                    />
-                  </div>
-                  <Button onClick={loadPosts} className="bg-primary hover:bg-primary/90 font-bold px-6">Buscar</Button>
-                </div>
-
-                {loadingPosts ? (
+                {loadingDatos ? (
                   <div className="text-center py-8">
-                    <p className="text-muted-foreground">Cargando publicaciones...</p>
+                    <p className="text-muted-foreground">Cargando datos...</p>
                   </div>
-                ) : posts.length === 0 ? (
+                ) : datos.length === 0 ? (
                   <div className="text-center py-8">
-                    <p className="text-muted-foreground">No hay publicaciones</p>
+                    <p className="text-muted-foreground">No hay recomendaciones enviadas aún.</p>
                   </div>
                 ) : (
                   <div className="space-y-4">
-                    {posts.map((post) => (
-                      <Card key={post.id} className="border">
-                        <CardHeader>
+                    {datos.map((dato) => (
+                      <Card key={dato.id} className="border hover:shadow-md transition-shadow">
+                        <CardHeader className="pb-3">
                           <div className="flex justify-between items-start">
                             <div className="flex-1">
-                              <CardTitle className="text-lg">{post.type}</CardTitle>
+                              <CardTitle className="text-lg text-primary">{dato.subject.replace('Nuevo Dato: ', '')}</CardTitle>
                               <CardDescription>
-                                Por: {post.user_name} ({post.user_email}) - {post.comuna}
+                                Enviado por: {dato.user_name} ({dato.user_email})
                               </CardDescription>
                               <CardDescription className="mt-1">
-                                {formatDate(post.created_at)} | 👍 {post.likes_count} | 💬 {post.comments_count}
+                                {formatDate(dato.created_at)}
                               </CardDescription>
                             </div>
-                            <Button
-                              variant="destructive"
-                              size="sm"
-                              onClick={() => handleDeletePost(post.id)}
-                            >
-                              <Trash2 size={16} className="mr-2" />
-                              Eliminar
-                            </Button>
+                            <div className="flex flex-col items-end gap-2">
+                               <Badge variant={dato.status === 'open' ? 'default' : 'secondary'}>
+                                 {dato.status === 'open' ? 'Pendiente' : 'Gestionado'}
+                               </Badge>
+                               <Button
+                                  variant="outline"
+                                  size="sm"
+                                  onClick={() => handleUpdateTicketStatus(dato.id, dato.status === 'open' ? 'closed' : 'open')}
+                                >
+                                  {dato.status === 'open' ? 'Marcar como gestionado' : 'Reabrir'}
+                                </Button>
+                            </div>
                           </div>
                         </CardHeader>
                         <CardContent>
-                          <p className="whitespace-pre-wrap">{post.content}</p>
+                          <div className="bg-slate-50 dark:bg-slate-900/50 p-4 rounded-xl border border-slate-100 dark:border-slate-800">
+                             <p className="whitespace-pre-wrap text-sm leading-relaxed">{dato.message}</p>
+                          </div>
                         </CardContent>
                       </Card>
                     ))}
@@ -1515,6 +1480,7 @@ const Admin = () => {
                       <SelectItem value="account">Cuenta</SelectItem>
                       <SelectItem value="payment">Pago</SelectItem>
                       <SelectItem value="report">Reporte</SelectItem>
+                      <SelectItem value="recommendation">Recomendación (Dato)</SelectItem>
                       <SelectItem value="other">Otro</SelectItem>
                     </SelectContent>
                   </Select>

@@ -19,7 +19,7 @@ import {
 } from 'lucide-react';
 import { useUser } from '@/contexts/UserContext';
 import { useTranslation } from 'react-i18next';
-import { servicesAPI } from '@/lib/api';
+import { servicesAPI, supportAPI } from '@/lib/api';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import logoFull from '/logo_nombre.webp';
 import { getServiceIcon, getServiceColor, isLightColor } from '@/lib/serviceUtils';
@@ -97,12 +97,23 @@ const Home = () => {
 
     try {
       setIsSubmittingTip(true);
-      // Simulación de envío al backend (integración con el prompt de backend preparado)
-      await new Promise(resolve => setTimeout(resolve, 1500));
+      
+      const message = `
+        Servicio: ${tipForm.title}
+        Descripción: ${tipForm.description || 'Sin descripción'}
+        Contacto: ${tipForm.phone}
+      `.trim();
+
+      await supportAPI.createTicket({
+        subject: `Nuevo Dato: ${tipForm.title}`,
+        message: message,
+        category: 'recommendation'
+      });
       
       toast.success('¡Gracias por tu dato! Lo revisaremos pronto.');
       setTipForm({ title: '', description: '', phone: '' });
     } catch (error) {
+      console.error('Error submitting tip:', error);
       toast.error('Hubo un error al enviar el dato. Intenta más tarde.');
     } finally {
       setIsSubmittingTip(false);
