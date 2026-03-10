@@ -2,7 +2,7 @@ import { Link } from 'react-router-dom';
 import { Facebook, Twitter, Instagram, Linkedin, Mail, Phone, MapPin, HelpCircle } from 'lucide-react';
 import { useUser } from '@/contexts/UserContext';
 import { useTranslation } from 'react-i18next';
-import logoDameldato from '/logo nombre.png';
+import logoDameldato from '/logo_nombre.webp';
 
 const Footer = () => {
   const { user, isLoggedIn } = useUser();

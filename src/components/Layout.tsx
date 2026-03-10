@@ -7,8 +7,8 @@ import { useUser } from '@/contexts/UserContext';
 import { useTranslation } from 'react-i18next';
 import Footer from '@/components/Footer';
 import ErrorBoundary from '@/components/ErrorBoundary';
-import logoDameldato from '/logo nombre.png';
-import faviconDameldato from '/logoico.png';
+import logoDameldato from '/logo_nombre.webp';
+import faviconDameldato from '/logoico.webp';
 import {
   DropdownMenu,
   DropdownMenuContent,

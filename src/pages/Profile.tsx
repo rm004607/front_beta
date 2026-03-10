@@ -24,7 +24,7 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog';
 import { useUser } from '@/contexts/UserContext';
-import logoDameldato from '/logo nombre.png';
+import logoDameldato from '/logo_nombre.webp';
 import { MapPin, Phone, Mail, Edit, Wrench, Building2, MessageSquare, Trash2, X, FileText, Download, AlertCircle, Eye, Plus, Star, Users, Briefcase } from 'lucide-react';
 import { postsAPI, servicesAPI, authAPI } from '@/lib/api';
 import { toast } from 'sonner';

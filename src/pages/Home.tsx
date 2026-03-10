@@ -21,7 +21,7 @@ import { useUser } from '@/contexts/UserContext';
 import { useTranslation } from 'react-i18next';
 import { servicesAPI } from '@/lib/api';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
-import logoFull from '/logo nombre.png';
+import logoFull from '/logo_nombre.webp';
 
 interface Service {
   id: string;
