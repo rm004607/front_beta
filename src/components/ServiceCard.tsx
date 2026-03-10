@@ -17,7 +17,8 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import { Label } from '@/components/ui/label';
-import { Dialog, DialogContent, DialogTrigger, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogTrigger, DialogHeader, DialogTitle, DialogClose } from '@/components/ui/dialog';
+import { X as CloseIcon } from 'lucide-react';
 
 interface Service {
     id: string;
@@ -188,13 +189,16 @@ export const ServiceCard = ({
             <CardHeader className="pb-3 px-6 pt-6">
                 <div className="flex items-start gap-4">
                     <div className="relative shrink-0 mt-1">
-                        <Avatar className="w-14 h-14 border-2 border-white shadow-md ring-4 ring-primary/5">
-                            {service.profile_image && (
-                                <AvatarImage src={service.profile_image} alt={service.user_name} />
+                        <Avatar className="w-14 h-14 border-2 border-white shadow-md ring-4 ring-primary/5 transition-transform duration-300 group-hover:scale-105">
+                            {service.profile_image ? (
+                                <AvatarImage src={service.profile_image} alt={service.user_name} className="object-cover" />
+                            ) : (
+                                <AvatarFallback className="bg-gradient-to-br from-primary to-primary/80 text-white flex items-center justify-center">
+                                    <div className="scale-110 opacity-90">
+                                        {getServiceIcon(service.service_name || service.type_name || '', service.type_icon)}
+                                    </div>
+                                </AvatarFallback>
                             )}
-                            <AvatarFallback className="text-lg font-bold bg-gradient-to-br from-primary to-primary/80 text-white">
-                                {service.user_name.split(' ').map((n: string) => n[0]).slice(0, 2).join('')}
-                            </AvatarFallback>
                         </Avatar>
                         {service.reviews_count && service.reviews_count > 5 && (
                             <div className="absolute -bottom-1 -right-1 bg-yellow-500 text-white p-1 rounded-full shadow-lg border border-white">
@@ -249,36 +253,44 @@ export const ServiceCard = ({
                                         style={{ backgroundColor: service.type_color || getServiceColor(service.type_name || '') }}
                                     >
                                         <div className="absolute inset-0 opacity-10 bg-[radial-gradient(circle_at_center,_white_1px,_transparent_1px)] bg-[length:24px_24px]" />
+                                        
+                                        {/* Custom Close Button to ensure it works */}
+                                        <DialogClose className="absolute top-4 right-4 z-[60] bg-black/20 hover:bg-black/40 text-white p-2 rounded-full backdrop-blur-md transition-all active:scale-95">
+                                            <CloseIcon size={20} />
+                                        </DialogClose>
                                     </div>
 
                                     <div className="pt-16 px-8 pb-10 text-center relative z-10">
-                                        <Avatar className="w-28 h-28 mx-auto border-[6px] border-white shadow-2xl mb-4 ring-1 ring-black/5">
-                                            {service.profile_image && (
-                                                <AvatarImage src={service.profile_image} alt={service.user_name} />
+                                        <Avatar className="w-28 h-28 mx-auto border-[6px] border-white shadow-2xl mb-4 ring-1 ring-black/5 relative group-hover:scale-105 transition-transform duration-500">
+                                            {service.profile_image ? (
+                                                <AvatarImage src={service.profile_image} alt={service.user_name} className="object-cover" />
+                                            ) : (
+                                                <AvatarFallback className="bg-gradient-to-br from-primary to-primary/80 text-white flex flex-col items-center justify-center">
+                                                    <div className="scale-[2.5] opacity-90 mb-1">
+                                                        {getServiceIcon(service.service_name || service.type_name || '', service.type_icon)}
+                                                    </div>
+                                                </AvatarFallback>
                                             )}
-                                            <AvatarFallback className="text-4xl font-black bg-gradient-to-br from-primary to-primary/80 text-white">
-                                                {service.user_name.split(' ').map((n: string) => n[0]).slice(0, 2).join('')}
-                                            </AvatarFallback>
                                         </Avatar>
 
                                         <DialogTitle className="text-3xl font-black mb-1 text-slate-900">{service.user_name}</DialogTitle>
                                         <p className="text-sm font-bold text-primary mb-6">{service.service_name}</p>
 
                                         <div className="flex items-center justify-center gap-3 mb-8">
-                                            <div className="flex items-center gap-2 bg-yellow-500/10 px-4 py-2 rounded-2xl border border-yellow-500/20">
+                                            <div className="flex items-center gap-2 bg-yellow-400/15 px-5 py-2.5 rounded-2xl border border-yellow-400/20 shadow-sm">
                                                 <Star className="w-5 h-5 fill-yellow-500 text-yellow-500" />
-                                                <span className="text-lg font-black text-yellow-600">
+                                                <span className="text-lg font-black text-slate-800">
                                                     {(service.average_rating && Number(service.average_rating) > 0) ? Number(service.average_rating).toFixed(1) : '0.0'}
                                                 </span>
                                             </div>
                                             <div
-                                                className={`flex items-center gap-2 px-4 py-2 rounded-2xl shadow-md ${isLightColor(service.type_color || getServiceColor(service.type_name || '')) ? 'text-slate-900 border-black/5' : 'text-white border-white/10'}`}
+                                                className={`flex items-center gap-2 px-5 py-2.5 rounded-2xl shadow-md border-2 ${isLightColor(service.type_color || getServiceColor(service.type_name || '')) ? 'text-slate-900 border-black/10' : 'text-white border-white/20'}`}
                                                 style={{ backgroundColor: service.type_color || getServiceColor(service.type_name || '') }}
                                             >
-                                                <div className="scale-90 [&>svg]:w-5 [&>svg]:h-5">
+                                                <div className="scale-100 [&>svg]:w-5 [&>svg]:h-5">
                                                     {getServiceIcon(service.service_name || service.type_name || '', service.type_icon)}
                                                 </div>
-                                                <span className="text-[11px] font-black uppercase tracking-widest">{service.type_name?.trim() ? service.type_name : 'Servicio'}</span>
+                                                <span className="text-xs font-black uppercase tracking-widest">{service.type_name?.trim() ? service.type_name : 'Servicio'}</span>
                                             </div>
                                         </div>
 
@@ -319,8 +331,6 @@ export const ServiceCard = ({
                                                 variant="outline"
                                                 className="w-full rounded-[1.5rem] border-2 border-yellow-400 text-yellow-700 hover:bg-yellow-50 transition-all duration-300 h-16 font-black text-sm shadow-sm"
                                                 onClick={() => {
-                                                    const closeBtn = document.querySelector('[role="dialog"] button[aria-label="Close"]') as HTMLButtonElement | null;
-                                                    if (closeBtn) closeBtn.click();
                                                     onOpenReviews(service);
                                                 }}
                                             >
@@ -330,8 +340,6 @@ export const ServiceCard = ({
                                             <Button
                                                 className="w-full rounded-[1.5rem] bg-[#25D366] hover:bg-[#20ba59] text-white transition-all duration-300 h-16 font-black text-sm shadow-xl shadow-green-500/20"
                                                 onClick={() => {
-                                                    const closeBtn = document.querySelector('[role="dialog"] button[aria-label="Close"]') as HTMLButtonElement | null;
-                                                    if (closeBtn) closeBtn.click();
                                                     onWhatsApp(service);
                                                 }}
                                                 disabled={!service.phone}

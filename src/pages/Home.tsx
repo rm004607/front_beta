@@ -489,12 +489,15 @@ const Home = () => {
                     <CardHeader className="p-8 pb-5">
                       <div className="flex items-start gap-4 mb-6">
                         <Avatar className="w-14 h-14 border-2 border-white shadow-md ring-4 ring-primary/5 shrink-0 mt-1">
-                          {service.profile_image && (
+                          {service.profile_image ? (
                             <AvatarImage src={service.profile_image} alt={service.user_name} />
+                          ) : (
+                            <AvatarFallback className="bg-primary text-white flex items-center justify-center">
+                              <div className="scale-110 opacity-90">
+                                {getServiceIcon(service.service_name || service.type_name || '', service.type_icon)}
+                              </div>
+                            </AvatarFallback>
                           )}
-                          <AvatarFallback className="bg-primary text-white font-bold text-xl">
-                            {service.user_name.split(' ').map((n: string) => n[0]).join('').substring(0, 2)}
-                          </AvatarFallback>
                         </Avatar>
                         <div className="flex-1 min-w-0">
                           <CardTitle className="text-2xl font-black mb-1 line-clamp-1 group-hover:text-primary transition-colors leading-tight">
@@ -607,14 +610,14 @@ const Home = () => {
                   </div>
                 </Link>
                 
-                <Link to="/login">
-                  <div className="group bg-white dark:bg-card p-8 rounded-3xl border-2 border-transparent hover:border-secondary/30 hover:shadow-xl transition-all cursor-pointer h-full flex flex-col items-center">
-                    <div className="w-16 h-16 bg-secondary/10 rounded-2xl flex items-center justify-center text-secondary mb-4 group-hover:scale-110 transition-transform">
-                      <Star size={32} />
+                <Link to="/servicios">
+                  <div className="group bg-white dark:bg-card p-8 rounded-3xl border-2 border-transparent hover:border-green-500/30 hover:shadow-xl transition-all cursor-pointer h-full flex flex-col items-center">
+                    <div className="w-16 h-16 bg-green-500/10 rounded-2xl flex items-center justify-center text-green-600 mb-4 group-hover:scale-110 transition-transform">
+                      <Search size={32} />
                     </div>
                     <h3 className="text-xl font-bold mb-2">{t('home.already_offer_services')}</h3>
-                    <p className="text-sm text-muted-foreground mb-6">Inicia sesión para gestionar tus publicaciones en Dameldato.</p>
-                    <Button variant="outline" className="w-full border-secondary text-secondary hover:bg-secondary/5 mt-auto">{t('home.login_panel_cta')}</Button>
+                    <p className="text-sm text-muted-foreground mb-6 text-center">Encuentra los mejores profesionales y servicios disponibles en Dameldato.</p>
+                    <Button className="w-full bg-[#25D366] hover:bg-[#20ba59] text-white mt-auto font-black border-none h-12 rounded-xl shadow-lg shadow-green-500/20 uppercase tracking-wider text-xs">{t('home.login_panel_cta')}</Button>
                   </div>
                 </Link>
               </div>
