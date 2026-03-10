@@ -108,10 +108,16 @@ export const ServiceDetail = ({
             )}
 
             {/* Formulario para dejar reseña */}
-            {(isLoggedIn && (user?.id !== service.user_id || user?.role_number === 5)) ? (
+            {(!isLoggedIn || (user?.id !== service.user_id || user?.role_number === 5)) ? (
                 JSON.parse(localStorage.getItem('contacted_services') || '[]').includes(service.id) ? (
                     <div className="border rounded-xl p-4 mb-8 bg-muted/30">
                         <h4 className="font-bold mb-3">Deja tu reseña</h4>
+                        {!isLoggedIn && (
+                            <div className="mb-4 p-3 bg-secondary/5 rounded-lg border border-secondary/10">
+                                <p className="text-xs text-secondary font-bold">Reseña como invitado</p>
+                                <p className="text-[10px] text-muted-foreground">Tu opinión es valiosa. ¡Gracias por compartirla!</p>
+                            </div>
+                        )}
                         <div className="flex gap-2 mb-4">
                             {[1, 2, 3, 4, 5].map((s) => (
                                 <button
@@ -125,6 +131,23 @@ export const ServiceDetail = ({
                                 </button>
                             ))}
                         </div>
+                        {!isLoggedIn && (
+                            <>
+                                <Label htmlFor="guest-name" className="mb-2 block">Tu Nombre</Label>
+                                <Input
+                                    id="guest-name"
+                                    placeholder="Ingresa tu nombre para la reseña..."
+                                    className="mb-4"
+                                    onChange={(e) => {
+                                        // Usamos una técnica simple para pasar el nombre si el componente padre lo permite
+                                        // O simplemente lo inyectamos en el comentario si no queremos cambiar props aún
+                                        // Pero lo ideal es que el componente padre maneje el estado.
+                                        // Como no tenemos un 'guestName' prop, vamos a sugerir añadirlo.
+                                        (window as any).tempGuestName = e.target.value;
+                                    }}
+                                />
+                            </>
+                        )}
                         <Label htmlFor="review-comment" className="mb-2 block">Tu comentario</Label>
                         <Input
                             id="review-comment"
@@ -151,11 +174,7 @@ export const ServiceDetail = ({
                 )
             ) : (
                 <div className="border border-dashed rounded-xl p-6 mb-8 bg-muted/10 text-center">
-                    {!isLoggedIn ? (
-                        <p className="text-sm text-muted-foreground">
-                            Debes <span className="font-bold text-primary">iniciar sesión</span> para dejar una reseña.
-                        </p>
-                    ) : user?.id === service.user_id ? (
+                    {user?.id === service.user_id ? (
                         <p className="text-sm text-yellow-700 font-medium">
                             No puedes calificar tu propio servicio.
                         </p>

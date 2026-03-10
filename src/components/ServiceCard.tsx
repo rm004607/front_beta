@@ -204,8 +204,8 @@ export const ServiceCard = ({
                     </div>
                     <div className="flex-1 min-w-0">
                         <div className="flex justify-between items-start gap-2">
-                            <CardTitle className="text-lg font-bold truncate text-foreground group-hover:text-primary transition-colors">
-                                {service.user_name}
+                            <CardTitle className="text-lg font-black truncate text-primary group-hover:text-primary transition-colors">
+                                {(!service.service_name || service.service_name.trim() === '' || service.service_name.trim() === '.') ? 'Servicio Destacado' : service.service_name}
                             </CardTitle>
                             <div className="flex items-center gap-1 bg-yellow-500/10 px-2 py-0.5 rounded-full border border-yellow-500/20 shadow-sm shrink-0">
                                 <Star className="w-3.5 h-3.5 fill-yellow-500 text-yellow-500" />
@@ -214,6 +214,7 @@ export const ServiceCard = ({
                                 </span>
                             </div>
                         </div>
+                        <p className="text-xs text-muted-foreground font-bold truncate mt-0.5">Por {service.user_name}</p>
                         <div className="flex flex-wrap items-center gap-1.5 mt-1">
                             {service.service_name && service.service_name.trim() !== '' && service.service_name.trim() !== '.' && (
                                 <Badge variant="secondary" className="text-[10px] bg-muted/50 text-muted-foreground border-none font-medium">

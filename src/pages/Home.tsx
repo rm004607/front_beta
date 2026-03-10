@@ -55,7 +55,7 @@ const Home = () => {
   const loadServiceTypes = async () => {
     try {
       setLoadingTypes(true);
-      const response = await servicesAPI.getServiceTypes({ onlyActive: true });
+      const response = await servicesAPI.getServiceTypes();
       setServiceTypes(response.types);
     } catch (error) {
       console.error('Error loading service types:', error);
@@ -482,10 +482,12 @@ const Home = () => {
                           </AvatarFallback>
                         </Avatar>
                         <div>
-                          <p className="font-bold text-lg line-clamp-1">{service.user_name}</p>
+                          <p className="font-bold text-lg line-clamp-1 text-primary">{(!service.service_name || service.service_name.trim() === '' || service.service_name.trim() === '.') ? 'Servicio Destacado' : service.service_name}</p>
                           <div className="flex items-center gap-1 text-sm text-muted-foreground">
-                            <MapPin size={14} className="text-primary" />
-                            <span>{(!service.comuna || service.comuna.trim() === '' || service.comuna.trim() === '.') ? 'Ubicación no especificada' : service.comuna}</span>
+                            <span className="font-medium">{service.user_name}</span>
+                            <span className="mx-1 opacity-30">•</span>
+                            <MapPin size={14} className="text-muted-foreground/50" />
+                            <span>{(!service.comuna || service.comuna.trim() === '' || service.comuna.trim() === '.') ? 'Ubicación' : service.comuna}</span>
                           </div>
                         </div>
                       </div>
@@ -498,6 +500,7 @@ const Home = () => {
                         </div>
                         {(!service.service_name || service.service_name.trim() === '' || service.service_name.trim() === '.') ? 'Servicio Destacado' : service.service_name}
                       </CardTitle>
+                      <p className="text-xs text-muted-foreground font-bold mt-1 px-1">Por {service.user_name}</p>
                     </CardHeader>
                     <CardContent className="p-8 pt-0 flex-1 flex flex-col">
                       <p className="text-muted-foreground text-lg line-clamp-2 mb-6 flex-1 italic">

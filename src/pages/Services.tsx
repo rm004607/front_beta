@@ -220,11 +220,6 @@ const Services = () => {
       return;
     }
 
-    if (!isLoggedIn) {
-      toast.error(t('services.login_to_review_msg'));
-      return;
-    }
-
     if (selectedServiceForReviews?.user_id === user?.id && user?.role_number !== 5) {
       toast.error(t('services.own_service_review_msg'));
       return;
@@ -232,13 +227,18 @@ const Services = () => {
 
     try {
       setIsSubmittingReview(true);
+      const guestName = (window as any).tempGuestName;
+      
       await reviewsAPI.createServiceReview(selectedServiceForReviews.id, {
         rating: userRating,
         comment: userComment,
+        guest_name: !isLoggedIn ? (guestName || 'Invitado') : undefined
       });
+      
       toast.success(t('services.review_success'));
       setUserRating(0);
       setUserComment('');
+      if (!isLoggedIn) (window as any).tempGuestName = '';
       // Recargar reseñas
       fetchReviews(selectedServiceForReviews.id);
       // Recargar servicios para actualizar el promedio en la lista principal

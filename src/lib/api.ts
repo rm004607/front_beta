@@ -1373,13 +1373,14 @@ export const reviewsAPI = {
   },
 
   // Crear una reseña
-  createServiceReview: async (serviceId: string, data: { rating: number; comment: string }) => {
+  createServiceReview: async (serviceId: string, data: { rating: number; comment: string; guest_name?: string }) => {
     return request<{
       message: string;
       review: {
         id: string;
         rating: number;
         comment: string;
+        guest_name?: string;
       };
     }>(`/services/${serviceId}/reviews`, {
       method: 'POST',
