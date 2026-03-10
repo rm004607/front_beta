@@ -23,6 +23,8 @@ import { servicesAPI } from '@/lib/api';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import logoFull from '/logo_nombre.webp';
 import { getServiceIcon, getServiceColor, isLightColor } from '@/lib/serviceUtils';
+import { toast } from 'sonner';
+import { Mail, Send } from 'lucide-react';
 
 interface Service {
   id: string;
@@ -81,10 +83,36 @@ const Home = () => {
     }
   };
 
-  const getServiceIcon = (name: string, iconName?: string) => {
+  // Estado para el formulario "Tienes un dato"
+  const [tipForm, setTipForm] = useState({ title: '', description: '', phone: '' });
+  const [isSubmittingTip, setIsSubmittingTip] = useState(false);
+
+  const handleTipSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!tipForm.title || !tipForm.phone) {
+      toast.error('Por favor completa los campos obligatorios (Título y Teléfono)');
+      return;
+    }
+
+    try {
+      setIsSubmittingTip(true);
+      // Simulación de envío al backend (integración con el prompt de backend preparado)
+      await new Promise(resolve => setTimeout(resolve, 1500));
+      
+      toast.success('¡Gracias por tu dato! Lo revisaremos pronto.');
+      setTipForm({ title: '', description: '', phone: '' });
+    } catch (error) {
+      toast.error('Hubo un error al enviar el dato. Intenta más tarde.');
+    } finally {
+      setIsSubmittingTip(false);
+    }
+  };
+
+  const getServiceIcon = (name: string, iconName?: string, idicon?: string) => {
     // Si viene un nombre de icono desde la API, intentamos usarlo
-    if (iconName) {
-      const n = iconName;
+    const finalIconId = idicon || iconName;
+    if (finalIconId) {
+      const n = finalIconId;
       if (n === 'Wrench') return <Wrench />;
       if (n === 'Lightbulb') return <Lightbulb />;
       if (n === 'ShieldCheck') return <ShieldCheck />;
@@ -557,6 +585,91 @@ const Home = () => {
           </div>
         </section>
       )}
+
+      {/* "¿Tienes un buen dato?" Form Section */}
+      <section className="py-24 relative overflow-hidden bg-white">
+        <div className="absolute top-0 right-0 w-1/3 h-full bg-primary/5 -skew-x-12 translate-x-1/2"></div>
+        <div className="container mx-auto px-4 relative z-10">
+          <div className="max-w-5xl mx-auto flex flex-col lg:flex-row items-center gap-16">
+            <div className="lg:w-1/2 space-y-6">
+              <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-indigo-500/10 text-indigo-600 font-bold text-sm uppercase tracking-wider">
+                <Sparkles size={16} />
+                Comunidad Dameldato
+              </div>
+              <h2 className="text-4xl md:text-5xl font-black leading-tight text-slate-900">
+                ¿Tienes un <span className="text-indigo-600 italic">buen dato</span> que quieras compartir?
+              </h2>
+              <p className="text-xl text-muted-foreground leading-relaxed">
+                Si conoces a un gasfiter, costurera o electricista que sea excelente, envíanos su contacto para invitarlo a la plataforma.
+              </p>
+              <div className="flex items-center gap-4 text-slate-500 font-medium">
+                <div className="w-12 h-12 rounded-full bg-white shadow-md flex items-center justify-center border border-slate-100">
+                  <Mail className="text-indigo-500" />
+                </div>
+                <span>Ayúdanos a crecer nuestra red de talentos locales.</span>
+              </div>
+            </div>
+
+            <div className="lg:w-1/2 w-full">
+              <div className="bg-white dark:bg-card/80 backdrop-blur-xl p-8 sm:p-10 rounded-[3rem] shadow-2xl shadow-indigo-500/10 border-2 border-indigo-500/10 relative">
+                <div className="absolute -top-6 -right-6 w-20 h-20 bg-indigo-500/10 rounded-full blur-2xl"></div>
+                <form onSubmit={handleTipSubmit} className="space-y-5">
+                  <div className="space-y-2">
+                    <label className="text-sm font-bold text-slate-700 ml-1">¿Qué servicio ofrece? *</label>
+                    <input 
+                      type="text" 
+                      placeholder="Ej: Sra. Carmen Costuras" 
+                      className="w-full h-14 px-6 rounded-2xl bg-slate-50 border-2 border-transparent focus:border-indigo-500/30 focus:bg-white outline-none transition-all font-medium"
+                      value={tipForm.title}
+                      onChange={(e) => setTipForm({...tipForm, title: e.target.value})}
+                      required
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <label className="text-sm font-bold text-slate-700 ml-1">Cuéntanos más (Opcional)</label>
+                    <textarea 
+                      placeholder="Ej: Es muy puntual y cobra justo..." 
+                      className="w-full h-32 p-6 rounded-2xl bg-slate-50 border-2 border-transparent focus:border-indigo-500/30 focus:bg-white outline-none transition-all font-medium resize-none"
+                      value={tipForm.description}
+                      onChange={(e) => setTipForm({...tipForm, description: e.target.value})}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <label className="text-sm font-bold text-slate-700 ml-1">Teléfono o contacto *</label>
+                    <input 
+                      type="tel" 
+                      placeholder="+56 9 1234 5678" 
+                      className="w-full h-14 px-6 rounded-2xl bg-slate-50 border-2 border-transparent focus:border-indigo-500/30 focus:bg-white outline-none transition-all font-medium"
+                      value={tipForm.phone}
+                      onChange={(e) => setTipForm({...tipForm, phone: e.target.value})}
+                      required
+                    />
+                  </div>
+                  <Button 
+                    type="submit" 
+                    disabled={isSubmittingTip}
+                    className="w-full h-16 bg-indigo-600 hover:bg-indigo-700 text-white rounded-2xl font-black text-lg shadow-xl shadow-indigo-500/20 transition-all hover:scale-[1.02] active:scale-[0.98] group"
+                  >
+                    {isSubmittingTip ? (
+                      <div className="flex items-center gap-2">
+                        <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
+                        Enviando...
+                      </div>
+                    ) : (
+                      <div className="flex items-center gap-2">
+                        Enviar dato <Send size={20} className="group-hover:translate-x-1 group-hover:-translate-y-1 transition-transform" />
+                      </div>
+                    )}
+                  </Button>
+                  <p className="text-center text-[11px] text-muted-foreground font-medium pt-2 italic">
+                    * Tus datos solo se usarán para contactar al servicio recomendado.
+                  </p>
+                </form>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
 
     </div>
   );
