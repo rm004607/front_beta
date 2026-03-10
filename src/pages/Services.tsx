@@ -317,32 +317,25 @@ const Services = () => {
                 </SelectContent>
               </Select>
 
-              <Select value={comunaFilter} onValueChange={(val) => {
-                setComunaFilter(val);
-                setPagination(prev => ({ ...prev, page: 1 }));
-              }}>
-                <SelectTrigger className="glass-card border-white/10 h-11">
-                  <div className="flex items-center gap-2">
-                    <MapPin size={16} className="text-primary" />
-                    <SelectValue placeholder={t('services.comuna_placeholder')} />
-                  </div>
-                </SelectTrigger>
-                <SelectContent className="glass-card border-white/10 backdrop-blur-xl">
-                  <SelectItem value="all">{t('services.all_comunas')}</SelectItem>
-                  {regionFilter !== 'all' ? (
-                    chileData.find(r => String(r.id) === String(regionFilter))?.communes.map(c => (
+              {regionFilter !== 'all' && (
+                <Select value={comunaFilter} onValueChange={(val) => {
+                  setComunaFilter(val);
+                  setPagination(prev => ({ ...prev, page: 1 }));
+                }}>
+                  <SelectTrigger className="glass-card border-white/10 h-11">
+                    <div className="flex items-center gap-2">
+                      <MapPin size={16} className="text-primary" />
+                      <SelectValue placeholder={t('services.comuna_placeholder')} />
+                    </div>
+                  </SelectTrigger>
+                  <SelectContent className="glass-card border-white/10 backdrop-blur-xl">
+                    <SelectItem value="all">{t('services.all_comunas')}</SelectItem>
+                    {chileData.find(r => String(r.id) === String(regionFilter))?.communes.map(c => (
                       <SelectItem key={c} value={c}>{c}</SelectItem>
-                    ))
-                  ) : (
-                    <>
-                      <SelectItem value="santiago">Santiago Centro</SelectItem>
-                      <SelectItem value="providencia">Providencia</SelectItem>
-                      <SelectItem value="lascondes">Las Condes</SelectItem>
-                      <SelectItem value="maipu">Maipú</SelectItem>
-                    </>
-                  )}
-                </SelectContent>
-              </Select>
+                    ))}
+                  </SelectContent>
+                </Select>
+              )}
 
               <Select value={typeFilter} onValueChange={(val) => {
                 setTypeFilter(val);
