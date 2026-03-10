@@ -181,15 +181,15 @@ export const ServiceCard = ({
     return (
         <Card
             id={`service-${service.id}`}
-            className={`group hover:shadow-2xl transition-all duration-500 border-2 rounded-[2.5rem] overflow-hidden ${String(service.id) === highlightId
+            className={`group hover:shadow-2xl transition-all duration-500 border-2 rounded-[2rem] sm:rounded-[2.5rem] overflow-hidden ${String(service.id) === highlightId
                 ? 'border-primary shadow-xl ring-4 ring-primary/15 scale-[1.02]'
                 : 'border-border hover:border-primary/30'
                 }`}
         >
-            <CardHeader className="pb-3 px-6 pt-6">
+            <CardHeader className="pb-3 px-4 sm:px-6 pt-5 sm:pt-6">
                 <div className="flex items-start gap-4">
-                    <div className="relative shrink-0 mt-1">
-                        <Avatar className="w-14 h-14 border-2 border-white shadow-md ring-4 ring-primary/5 transition-transform duration-300 group-hover:scale-105">
+                    <div className="relative shrink-0 mt-0.5 sm:mt-1">
+                        <Avatar className="w-12 h-12 sm:w-14 sm:h-14 border-2 border-white shadow-md ring-4 ring-primary/5 transition-transform duration-300 group-hover:scale-105">
                             {service.profile_image ? (
                                 <AvatarImage src={service.profile_image} alt={service.user_name} className="object-cover" />
                             ) : (
@@ -208,27 +208,27 @@ export const ServiceCard = ({
                     </div>
                     <div className="flex-1 min-w-0">
                         <div className="flex justify-between items-start gap-2">
-                            <CardTitle className="text-xl font-black truncate text-slate-900 group-hover:text-primary transition-colors leading-tight">
+                            <CardTitle className="text-lg sm:text-xl font-black truncate text-slate-900 group-hover:text-primary transition-colors leading-tight">
                                 {(!service.service_name || service.service_name.trim() === '' || service.service_name.trim() === '.') ? 'Servicio Destacado' : service.service_name}
                             </CardTitle>
                         </div>
-                        <p className="text-sm text-muted-foreground font-bold truncate mt-0.5">Por {service.user_name}</p>
+                        <p className="text-[11px] sm:text-sm text-muted-foreground font-bold truncate mt-0.5">Por {service.user_name}</p>
                     </div>
                 </div>
             </CardHeader>
-            <CardContent className="px-6 pb-6">
-                <div className="relative mb-6">
-                    <p className="text-sm text-muted-foreground line-clamp-2 italic leading-relaxed min-h-[3rem]">
+            <CardContent className="px-4 sm:px-6 pb-5 sm:pb-6">
+                <div className="relative mb-4 sm:mb-6">
+                    <p className="text-xs sm:text-sm text-muted-foreground line-clamp-2 italic leading-relaxed min-h-[2.5rem] sm:min-h-[3rem]">
                         {(!service.description || service.description.trim() === '' || service.description.trim() === '.') ? 'Sin descripción disponible.' : service.description}
                     </p>
                     <div className="flex justify-start mt-3">
                         <Dialog>
                             <DialogTrigger asChild>
-                                <button className="text-[11px] text-primary font-black uppercase tracking-widest hover:underline focus:outline-none flex items-center transition-all bg-primary/5 hover:bg-primary/10 px-3 py-1.5 rounded-xl border border-primary/10">
-                                    Detalles completos <ChevronRight className="w-3.5 h-3.5 ml-1" />
+                                <button className="text-[10px] sm:text-[11px] text-primary font-black uppercase tracking-widest hover:underline focus:outline-none flex items-center transition-all bg-primary/5 hover:bg-primary/10 px-2.5 sm:px-3 py-1.5 rounded-lg sm:rounded-xl border border-primary/10">
+                                    Detalles completos <ChevronRight className="w-3 sn:w-3.5 h-3 sm:h-3.5 ml-1" />
                                 </button>
                             </DialogTrigger>
-                            <DialogContent className="max-w-[450px] w-[95%] max-h-[90vh] overflow-y-auto rounded-[2.5rem] border-none p-0 bg-transparent shadow-none">
+                            <DialogContent className="max-w-[450px] w-[95%] max-h-[90vh] overflow-y-auto rounded-[2rem] sm:rounded-[2.5rem] border-none p-0 bg-transparent shadow-none">
                                 <div className="bg-white rounded-[3rem] overflow-hidden shadow-2xl relative">
                                     {/* Background decoration */}
                                     <div
@@ -243,20 +243,19 @@ export const ServiceCard = ({
                                         </DialogClose>
                                     </div>
 
-                                    <div className="pt-16 px-8 pb-10 text-center relative z-10">
-                                        <Avatar className="w-28 h-28 mx-auto border-[6px] border-white shadow-2xl mb-4 ring-1 ring-black/5 relative group-hover:scale-105 transition-transform duration-500">
+                                    <div className="pt-12 sm:pt-16 px-6 sm:px-8 pb-8 sm:pb-10 text-center relative z-10">
+                                        <Avatar className="w-24 h-24 sm:w-28 sm:h-28 mx-auto border-[4px] sm:border-[6px] border-white shadow-2xl mb-3 sm:mb-4 ring-1 ring-black/5 relative group-hover:scale-105 transition-transform duration-500">
                                             {service.profile_image ? (
                                                 <AvatarImage src={service.profile_image} alt={service.user_name} className="object-cover" />
                                             ) : (
                                                 <AvatarFallback className="bg-gradient-to-br from-primary to-primary/80 text-white flex flex-col items-center justify-center">
-                                                    <div className="scale-[2.5] opacity-90 mb-1">
+                                                    <div className="scale-[2] sm:scale-[2.5] opacity-90 mb-1">
                                                         {getServiceIcon(service.service_name || service.type_name || '', service.type_icon)}
                                                     </div>
                                                 </AvatarFallback>
                                             )}
                                         </Avatar>
-
-                                        <DialogTitle className="text-3xl font-black mb-1 text-slate-900">{service.user_name}</DialogTitle>
+                                        <DialogTitle className="text-2xl sm:text-3xl font-black mb-1 text-slate-900">{service.user_name}</DialogTitle>
                                         <p className="text-sm font-bold text-primary mb-6">{service.service_name}</p>
 
                                         <div className="flex items-center justify-center gap-3 mb-8">
@@ -321,25 +320,25 @@ export const ServiceCard = ({
                                             </div>
                                         </div>
 
-                                        <div className="grid grid-cols-2 gap-4 mt-10">
+                                        <div className="grid grid-cols-2 gap-3 sm:gap-4 mt-8 sm:mt-10">
                                             <Button
                                                 variant="outline"
-                                                className="w-full rounded-[1.5rem] border-2 border-yellow-400 text-yellow-700 hover:bg-yellow-50 transition-all duration-300 h-16 font-black text-sm shadow-sm"
+                                                className="w-full rounded-xl sm:rounded-[1.5rem] border-2 border-yellow-400 text-yellow-700 hover:bg-yellow-50 transition-all duration-300 h-14 sm:h-16 font-black text-xs sm:text-sm shadow-sm"
                                                 onClick={() => {
                                                     onOpenReviews(service);
                                                 }}
                                             >
-                                                <Star size={20} className="mr-2 fill-yellow-400 text-yellow-400" />
-                                                Ver Reseñas
+                                                <Star size={18} className="mr-1.5 sm:mr-2 fill-yellow-400 text-yellow-400" />
+                                                Reseñas
                                             </Button>
                                             <Button
-                                                className="w-full rounded-[1.5rem] bg-[#25D366] hover:bg-[#20ba59] text-white transition-all duration-300 h-16 font-black text-sm shadow-xl shadow-green-500/20"
+                                                className="w-full rounded-xl sm:rounded-[1.5rem] bg-[#25D366] hover:bg-[#20ba59] text-white transition-all duration-300 h-14 sm:h-16 font-black text-xs sm:text-sm shadow-xl shadow-green-500/20"
                                                 onClick={() => {
                                                     onWhatsApp(service);
                                                 }}
                                                 disabled={!service.phone}
                                             >
-                                                <MessageCircle size={24} className="mr-2" />
+                                                <MessageCircle className="w-5 h-5 sm:w-6 sm:h-6 mr-1.5 sm:mr-2" />
                                                 WhatsApp
                                             </Button>
                                         </div>
@@ -351,24 +350,24 @@ export const ServiceCard = ({
                 </div>
                 
                 <div className="space-y-6 pt-2">
-                    <div className="flex items-center justify-between gap-4">
-                        <div className="flex items-center gap-2.5 bg-secondary/5 px-4 py-2 rounded-2xl border border-secondary/10 overflow-hidden flex-1">
-                            <MapPin size={16} className="text-secondary shrink-0" />
+                    <div className="flex flex-col xs:flex-row items-stretch xs:items-center justify-between gap-3 sm:gap-4">
+                        <div className="flex items-center gap-2.5 bg-secondary/5 px-3 sm:px-4 py-2 rounded-xl sm:rounded-2xl border border-secondary/10 overflow-hidden flex-1">
+                            <MapPin className="text-secondary shrink-0 w-3.5 h-3.5 sm:w-4 sm:h-4" />
                             <div className="flex flex-col min-w-0">
-                                <span className="text-xs font-bold truncate">{service.comuna}</span>
+                                <span className="text-[11px] sm:text-xs font-bold truncate">{service.comuna}</span>
                                 {service.coverage_communes && service.coverage_communes.length > 0 && (
-                                    <span className="text-[9px] text-secondary font-black uppercase tracking-tighter">
+                                    <span className="text-[8px] sm:text-[9px] text-secondary font-black uppercase tracking-tighter">
                                         + {service.coverage_communes.length} de cobertura
                                     </span>
                                 )}
                             </div>
                         </div>
-                        <div className="flex items-center gap-1.5 px-4 py-2 bg-yellow-400/5 rounded-2xl border border-yellow-400/10 shadow-sm shrink-0">
-                            <Star className="w-4 h-4 fill-yellow-500 text-yellow-500" />
-                            <span className="text-sm font-black text-slate-800">
+                        <div className="flex items-center justify-center gap-1.5 px-3 sm:px-4 py-2 bg-yellow-400/5 rounded-xl sm:rounded-2xl border border-yellow-400/10 shadow-sm shrink-0">
+                            <Star className="w-3.5 h-3.5 sm:w-4 sm:h-4 fill-yellow-500 text-yellow-500" />
+                            <span className="text-xs sm:text-sm font-black text-slate-800">
                                 {(service.average_rating && Number(service.average_rating) > 0) ? Number(service.average_rating).toFixed(1) : '0.0'}
                             </span>
-                            <span className="text-[10px] text-muted-foreground font-bold ml-0.5">({service.reviews_count || 0})</span>
+                            <span className="text-[9px] sm:text-[10px] text-muted-foreground font-bold ml-0.5">({service.reviews_count || 0})</span>
                         </div>
                     </div>
 

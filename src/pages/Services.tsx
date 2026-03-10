@@ -265,16 +265,16 @@ const Services = () => {
 
       <div className="container mx-auto px-4 py-8 relative z-10">
         {/* Header */}
-        <div className="mb-8 p-6 glass-card rounded-3xl border-primary/10">
+        <div className="mb-6 sm:mb-8 p-4 sm:p-6 glass-card rounded-[2rem] sm:rounded-3xl border-primary/10">
           <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
             <div className="space-y-1 text-center md:text-left">
-              <h1 className="text-3xl sm:text-4xl font-heading font-bold bg-clip-text text-transparent bg-gradient-to-r from-primary to-secondary text-center md:text-left">{t('services.title')}</h1>
-              <p className="text-sm sm:text-base text-muted-foreground font-medium italic">{t('services.subtitle')}</p>
+              <h1 className="text-2xl sm:text-4xl font-heading font-bold bg-clip-text text-transparent bg-gradient-to-r from-primary to-secondary text-center md:text-left">{t('services.title')}</h1>
+              <p className="text-xs sm:text-base text-muted-foreground font-medium italic">{t('services.subtitle')}</p>
             </div>
             <div className="flex flex-wrap gap-2 w-full md:w-auto justify-center md:justify-end">
               {(user?.roles.includes('entrepreneur') || user?.role_number === 5) && (
-                <Link to="/servicios/publicar">
-                  <Button className="bg-primary hover:bg-primary/90 text-primary-foreground hover-gold-glow transition-all duration-300 w-full sm:w-auto font-bold px-6">
+                <Link to="/servicios/publicar" className="w-full sm:w-auto">
+                  <Button className="bg-primary hover:bg-primary/90 text-primary-foreground hover-gold-glow transition-all duration-300 w-full sm:w-auto font-bold px-6 h-11 sm:h-12 rounded-xl">
                     <Plus size={18} className="mr-2" />
                     {t('services.publish_btn')}
                   </Button>
@@ -285,16 +285,16 @@ const Services = () => {
         </div>
 
         {/* Filters */}
-        <Card className="mb-8 glass-card border-white/5 bg-card/30">
-          <CardContent className="p-4 sm:pt-6">
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <Card className="mb-6 sm:mb-8 glass-card border-white/5 bg-card/30 rounded-[1.5rem] sm:rounded-[2rem]">
+          <CardContent className="p-3 sm:p-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
               <div className="relative">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground" size={18} />
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground" size={16} />
                 <Input
                   placeholder={t('services.search_placeholder')}
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
-                  className="pl-10 h-11"
+                  className="pl-9 h-10 sm:h-11 text-sm bg-white/50"
                 />
               </div>
 
@@ -303,9 +303,9 @@ const Services = () => {
                 setComunaFilter('all');
                 setPagination(prev => ({ ...prev, page: 1 }));
               }}>
-                <SelectTrigger className="glass-card border-white/10 h-11">
+                <SelectTrigger className="glass-card border-white/10 h-10 sm:h-11 text-sm bg-white/50">
                   <div className="flex items-center gap-2">
-                    <Globe size={16} className="text-secondary" />
+                    <Globe size={14} className="text-secondary" />
                     <SelectValue placeholder={t('services.region_placeholder')} />
                   </div>
                 </SelectTrigger>
@@ -322,9 +322,9 @@ const Services = () => {
                   setComunaFilter(val);
                   setPagination(prev => ({ ...prev, page: 1 }));
                 }}>
-                  <SelectTrigger className="glass-card border-white/10 h-11">
+                  <SelectTrigger className="glass-card border-white/10 h-10 sm:h-11 text-sm bg-white/50">
                     <div className="flex items-center gap-2">
-                      <MapPin size={16} className="text-primary" />
+                      <MapPin size={14} className="text-primary" />
                       <SelectValue placeholder={t('services.comuna_placeholder')} />
                     </div>
                   </SelectTrigger>
@@ -341,9 +341,9 @@ const Services = () => {
                 setTypeFilter(val);
                 setPagination(prev => ({ ...prev, page: 1 }));
               }}>
-                <SelectTrigger className="glass-card border-white/10 h-11">
+                <SelectTrigger className="glass-card border-white/10 h-10 sm:h-11 text-sm bg-white/50">
                   <div className="flex items-center gap-2">
-                    <Wrench size={16} className="text-accent" />
+                    <Wrench size={14} className="text-accent" />
                     <SelectValue placeholder="Categoría" />
                   </div>
                 </SelectTrigger>
@@ -360,14 +360,14 @@ const Services = () => {
             {(typeFilter !== 'all' || searchTerm || comunaFilter !== 'all' || regionFilter !== 'all') && (
               <div className="flex flex-wrap gap-2 mt-4 pt-4 border-t border-white/5">
                 {typeFilter !== 'all' && (
-                  <Badge variant="secondary" className="bg-accent/20 text-accent border-accent/20 px-3 py-1 flex items-center gap-2">
-                    Categoría: {serviceTypes.find(t => String(t.id) === String(typeFilter))?.name || 'Cargando...'}
+                  <Badge variant="secondary" className="bg-accent/20 text-accent border-accent/20 px-2 sm:px-3 py-1 flex items-center gap-1.5 sm:gap-2 text-[10px] sm:text-xs">
+                    Cat: {serviceTypes.find(t => String(t.id) === String(typeFilter))?.name.substring(0, 15) || '...'}
                     <button onClick={() => setTypeFilter('all')} className="hover:text-primary transition-colors">x</button>
                   </Badge>
                 )}
                 {searchTerm && (
-                  <Badge variant="secondary" className="bg-primary/20 text-primary border-primary/20 px-3 py-1 flex items-center gap-2">
-                    Búsqueda: {searchTerm}
+                  <Badge variant="secondary" className="bg-primary/20 text-primary border-primary/20 px-2 sm:px-3 py-1 flex items-center gap-1.5 sm:gap-2 text-[10px] sm:text-xs">
+                    S: {searchTerm.substring(0, 10)}
                     <button onClick={() => setSearchTerm('')} className="hover:text-primary transition-colors">x</button>
                   </Badge>
                 )}

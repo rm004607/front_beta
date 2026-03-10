@@ -215,7 +215,7 @@ const Home = () => {
   const CategoryCard = ({ type, rowIndex }: { type: any, rowIndex?: number }) => (
     <Link
       to={`/servicios?type_id=${type.id}`}
-      className="group/item shrink-0 inline-flex flex-col items-center justify-center min-w-[200px] h-[180px] glass-card p-6 rounded-[2.5rem] hover:scale-105 transition-all duration-300 border-transparent hover:border-primary/30 shadow-sm hover:shadow-xl bg-white/40"
+      className="group/item shrink-0 inline-flex flex-col items-center justify-center min-w-[150px] xs:min-w-[180px] md:min-w-[200px] h-[150px] xs:h-[180px] glass-card p-4 xs:p-6 rounded-[2rem] xs:rounded-[2.5rem] hover:scale-105 transition-all duration-300 border-transparent hover:border-primary/30 shadow-sm hover:shadow-xl bg-white/40"
     >
       <div
         className={`w-14 h-14 rounded-2xl flex items-center justify-center mb-4 group-hover/item:scale-110 transition-transform shadow-md group-hover/item:rotate-6 ${isLightColor(type.color || getServiceColor(type.name)) ? 'text-slate-900' : 'text-white'}`}
@@ -223,7 +223,7 @@ const Home = () => {
       >
         {getServiceIcon(type.name, type.icon)}
       </div>
-      <h3 className="font-bold text-base group-hover/item:text-primary transition-colors text-center whitespace-normal max-w-[160px]">{type.name}</h3>
+      <h3 className="font-bold text-sm xs:text-base group-hover/item:text-primary transition-colors text-center whitespace-normal max-w-[130px] xs:max-w-[160px]">{type.name}</h3>
     </Link>
   );
 
@@ -248,7 +248,7 @@ const Home = () => {
   return (
     <div className="min-h-screen bg-mesh">
       {/* Hero Section */}
-      <section className="relative py-20 md:py-32 overflow-hidden">
+      <section className="relative py-12 md:py-32 overflow-hidden">
         {/* Animated Background Elements - More subtle for Light Mode */}
         <div className="absolute inset-0 overflow-hidden pointer-events-none">
           <div className="absolute top-[-10%] left-[-10%] w-[60%] h-[60%] md:w-[40%] md:h-[40%] bg-primary/[0.03] blur-[80px] md:blur-[120px] rounded-full animate-pulse-subtle"></div>
@@ -260,11 +260,11 @@ const Home = () => {
             {/* Left Content */}
             <div className="flex-1 text-center lg:text-left space-y-8 max-w-2xl mx-auto lg:mx-0">
               {/* Logo de Marca - Visible en todo dispositivo */}
-              <div className="flex justify-center lg:justify-start mb-8 sm:mb-12">
+              <div className="flex justify-center lg:justify-start mb-6 sm:mb-12">
                 <img
                   src={logoFull}
                   alt="Dameldato"
-                  className="h-32 sm:h-48 lg:h-64 w-auto object-contain animate-reveal drop-shadow-lg"
+                  className="h-24 xs:h-32 sm:h-48 lg:h-64 w-auto object-contain animate-reveal drop-shadow-lg"
                 />
               </div>
 
@@ -273,7 +273,7 @@ const Home = () => {
                 {t('hero.verified_community')}
               </div>
 
-              <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-sans font-extrabold leading-[1.1] tracking-tight animate-reveal delay-100 break-words">
+              <h1 className="text-3xl xs:text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-sans font-extrabold leading-[1.1] tracking-tight animate-reveal delay-100 break-words">
                 {t('hero.title_part1')} <span className="inline sm:hidden"><br /></span>
                 <span className="text-primary text-glow">{t('hero.title_part2')}</span>
               </h1>
@@ -349,9 +349,9 @@ const Home = () => {
 
       {/* Categories Grid */}
       {serviceTypes.length > 0 || loadingTypes ? (
-        <section className="py-20 container mx-auto px-4">
-          <div className="text-center mb-16 space-y-4">
-            <h2 className="text-4xl font-heading font-extrabold animate-reveal">{t('home.categories_title')}</h2>
+        <section className="py-12 md:py-20 container mx-auto px-4">
+          <div className="text-center mb-12 sm:mb-16 space-y-4">
+            <h2 className="text-3xl sm:text-4xl font-heading font-extrabold animate-reveal">{t('home.categories_title')}</h2>
             <p className="text-muted-foreground font-medium text-lg max-w-2xl mx-auto animate-reveal delay-100">
               {t('home.categories_desc')}
             </p>
@@ -411,18 +411,18 @@ const Home = () => {
       ) : null}
 
       {/* Main Actions - Re-styled as Feature Highlights */}
-      <section className="py-20 bg-primary/5">
+      <section className="py-12 md:py-20 bg-primary/5">
         <div className="container mx-auto px-4">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-5xl mx-auto">
             {/* Ofrecer Servicio */}
             <Link to={isLoggedIn ? "/servicios/publicar" : "/servicios"} className="group animate-reveal delay-200">
               <div className="relative overflow-hidden bg-white dark:bg-card border-none rounded-[2.5rem] sm:rounded-[3.5rem] p-8 sm:p-10 hover:shadow-2xl transition-all duration-500 group-hover:-translate-y-2 h-full flex flex-col items-center lg:items-start text-center lg:text-left shadow-xl shadow-secondary/5">
-                <div className="absolute top-0 right-0 w-32 h-32 bg-secondary/10 rounded-bl-[100px] -z-0"></div>
-                <div className="bg-secondary w-16 h-16 sm:w-20 sm:h-20 rounded-2xl sm:rounded-3xl flex items-center justify-center mb-6 sm:mb-8 shadow-xl shadow-secondary/20 group-hover:-rotate-12 transition-transform relative z-10">
-                  <Briefcase className="text-white w-8 h-8 sm:w-9 sm:h-9" strokeWidth={1.5} />
+                <div className="absolute top-0 right-0 w-24 h-24 sm:w-32 sm:h-32 bg-secondary/10 rounded-bl-[80px] sm:rounded-bl-[100px] -z-0"></div>
+                <div className="bg-secondary w-14 h-14 sm:w-20 sm:h-20 rounded-xl sm:rounded-3xl flex items-center justify-center mb-5 sm:mb-8 shadow-xl shadow-secondary/20 group-hover:-rotate-12 transition-transform relative z-10">
+                  <Briefcase className="text-white w-7 h-7 sm:w-9 sm:h-9" strokeWidth={1.5} />
                 </div>
-                <h3 className="text-2xl sm:text-3xl font-heading font-extrabold mb-4 relative z-10">{t('home.offer_title')}</h3>
-                <p className="text-muted-foreground text-base sm:text-lg relative z-10 mb-6">{t('home.offer_desc')}</p>
+                <h3 className="text-xl sm:text-3xl font-heading font-extrabold mb-3 sm:mb-4 relative z-10">{t('home.offer_title')}</h3>
+                <p className="text-sm sm:text-lg text-muted-foreground relative z-10 mb-5 sm:mb-6">{t('home.offer_desc')}</p>
                 <div className="text-secondary font-bold p-0 text-lg group-hover:translate-x-2 transition-transform flex items-center mt-auto">
                   {t('home.offer_cta')} <ArrowRight className="ml-2" />
                 </div>
@@ -432,14 +432,14 @@ const Home = () => {
             {/* Explorar Servicios */}
             <Link to="/servicios" className="group animate-reveal delay-300">
               <div className="relative overflow-hidden bg-white dark:bg-card border-none rounded-[2.5rem] sm:rounded-[3.5rem] p-8 sm:p-10 hover:shadow-2xl transition-all duration-500 group-hover:-translate-y-2 h-full flex flex-col items-center lg:items-start text-center lg:text-left shadow-xl shadow-primary/5">
-                <div className="absolute top-0 right-0 w-32 h-32 bg-primary/10 rounded-bl-[100px] -z-0"></div>
-                <div className="bg-primary w-16 h-16 sm:w-20 sm:h-20 rounded-2xl sm:rounded-3xl flex items-center justify-center mb-6 sm:mb-8 shadow-xl shadow-primary/20 group-hover:-rotate-12 transition-transform relative z-10">
-                  <Search className="text-white w-8 h-8 sm:w-9 sm:h-9" strokeWidth={1.5} />
+                <div className="absolute top-0 right-0 w-24 h-24 sm:w-32 sm:h-32 bg-primary/10 rounded-bl-[80px] sm:rounded-bl-[100px] -z-0"></div>
+                <div className="bg-primary w-14 h-14 sm:w-20 sm:h-20 rounded-xl sm:rounded-3xl flex items-center justify-center mb-5 sm:mb-8 shadow-xl shadow-primary/20 group-hover:-rotate-12 transition-transform relative z-10">
+                  <Search className="text-white w-7 h-7 sm:w-9 sm:h-9" strokeWidth={1.5} />
                 </div>
-                <h3 className="text-2xl sm:text-3xl font-heading font-extrabold mb-4 relative z-10">{t('hero.explore_services')}</h3>
-                <p className="text-muted-foreground text-base sm:text-lg relative z-10 mb-6">{t('home.categories_desc')}</p>
-                <div className="text-primary font-bold p-0 text-lg group-hover:translate-x-2 transition-transform flex items-center mt-auto">
-                  {t('hero.explore_services')} <ArrowRight className="ml-2" />
+                <h3 className="text-xl sm:text-3xl font-heading font-extrabold mb-3 sm:mb-4 relative z-10">{t('hero.explore_services')}</h3>
+                <p className="text-sm sm:text-lg text-muted-foreground relative z-10 mb-5 sm:mb-6 leading-tight">{t('home.categories_desc')}</p>
+                <div className="text-primary font-bold p-0 text-base sm:text-lg group-hover:translate-x-2 transition-transform flex items-center mt-auto">
+                  {t('hero.explore_services')} <ArrowRight className="ml-2 w-4 h-4 sm:w-5 sm:h-5" />
                 </div>
               </div>
             </Link>

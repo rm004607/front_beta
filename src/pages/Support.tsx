@@ -82,13 +82,13 @@ const Support = () => {
         <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-secondary/10 rounded-full blur-[120px]" />
       </div>
 
-      <div className="container mx-auto px-4 py-8 max-w-6xl relative z-10">
-        <div className="mb-8 p-8 glass-card rounded-3xl border-primary/10 text-center">
-          <div className="flex items-center justify-center gap-3 mb-4">
-            <HelpCircle className="text-primary animate-pulse-subtle" size={48} />
-            <h1 className="text-5xl font-heading font-bold bg-clip-text text-transparent bg-gradient-to-r from-primary to-secondary">Centro de Ayuda</h1>
+      <div className="container mx-auto px-4 py-6 sm:py-8 max-w-6xl relative z-10">
+        <div className="mb-6 sm:mb-8 p-6 sm:p-8 glass-card rounded-[2rem] sm:rounded-3xl border-primary/10 text-center">
+          <div className="flex flex-col sm:flex-row items-center justify-center gap-3 mb-4">
+            <HelpCircle className="text-primary animate-pulse-subtle w-10 h-10 sm:w-12 sm:h-12" />
+            <h1 className="text-3xl sm:text-5xl font-heading font-bold bg-clip-text text-transparent bg-gradient-to-r from-primary to-secondary">Centro de Ayuda</h1>
           </div>
-          <p className="text-muted-foreground text-xl italic max-w-2xl mx-auto">
+          <p className="text-muted-foreground text-base sm:text-xl italic max-w-2xl mx-auto">
             Estamos aquí para apoyarte. Encuentra respuestas rápidas o contáctanos directamente para asistirte.
           </p>
         </div>
@@ -107,9 +107,9 @@ const Support = () => {
 
           <TabsContent value="faq">
             <Card className="glass-card border-white/5 shadow-2xl overflow-hidden">
-              <CardHeader>
-                <CardTitle>Preguntas Frecuentes (FAQ)</CardTitle>
-                <CardDescription>
+              <CardHeader className="p-5 sm:p-6">
+                <CardTitle className="text-xl sm:text-2xl">Preguntas Frecuentes (FAQ)</CardTitle>
+                <CardDescription className="text-sm sm:text-base">
                   Encuentra respuestas a las preguntas más comunes sobre Dameldato
                 </CardDescription>
               </CardHeader>
@@ -132,9 +132,9 @@ const Support = () => {
 
           <TabsContent value="ticket">
             <Card className="glass-card border-white/5 shadow-2xl overflow-hidden">
-              <CardHeader>
-                <CardTitle>Enviar un Ticket de Soporte</CardTitle>
-                <CardDescription>
+              <CardHeader className="p-5 sm:p-6">
+                <CardTitle className="text-xl sm:text-2xl">Enviar un Ticket de Soporte</CardTitle>
+                <CardDescription className="text-sm sm:text-base">
                   ¿No encontraste la respuesta que buscabas? Envíanos un ticket y te ayudaremos.
                 </CardDescription>
               </CardHeader>
