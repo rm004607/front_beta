@@ -219,13 +219,17 @@ const Profile = () => {
     }
 
     try {
-      await servicesAPI.updateService(editingService.id, {
+      const response = await servicesAPI.updateService(editingService.id, {
         service_name: sanitizeInput(editServiceName, 100),
         description: sanitizeInput(editServiceDescription, 2000),
         comuna: sanitizeInput(editServiceComuna, 50),
       });
-      toast.success('Servicio actualizado exitosamente');
+      
+      const successMsg = response.message || 'Servicio actualizado exitosamente';
+      toast.success(successMsg);
+      
       setEditingService(null);
+      // Recargar la lista completa para asegurar sincronización con todos los campos (incluyendo el nombre recalculado)
       loadServices();
     } catch (error: any) {
       console.error('Error updating service:', error);

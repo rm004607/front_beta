@@ -40,6 +40,8 @@ interface ServiceDetailProps {
     setUserComment: (comment: string) => void;
     onSubmitReview: () => void;
     onReviewDeleted?: (reviewId: string) => void;
+    guestName?: string;
+    setGuestName?: (name: string) => void;
 }
 
 export const ServiceDetail = ({
@@ -55,7 +57,9 @@ export const ServiceDetail = ({
     setUserRating,
     setUserComment,
     onSubmitReview,
-    onReviewDeleted
+    onReviewDeleted,
+    guestName = '',
+    setGuestName
 }: ServiceDetailProps) => {
     if (!service) return null;
 
@@ -138,13 +142,8 @@ export const ServiceDetail = ({
                                     id="guest-name"
                                     placeholder="Ingresa tu nombre para la reseña..."
                                     className="mb-4"
-                                    onChange={(e) => {
-                                        // Usamos una técnica simple para pasar el nombre si el componente padre lo permite
-                                        // O simplemente lo inyectamos en el comentario si no queremos cambiar props aún
-                                        // Pero lo ideal es que el componente padre maneje el estado.
-                                        // Como no tenemos un 'guestName' prop, vamos a sugerir añadirlo.
-                                        (window as any).tempGuestName = e.target.value;
-                                    }}
+                                    value={guestName}
+                                    onChange={(e) => setGuestName?.(e.target.value)}
                                 />
                             </>
                         )}

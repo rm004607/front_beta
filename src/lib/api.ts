@@ -410,7 +410,7 @@ export const servicesAPI = {
     phone?: string;
     status?: 'active' | 'inactive' | 'suspended';
   }) => {
-    return request<{ message: string }>(`/services/${id}`, {
+    return request<{ message: string; service?: any }>(`/services/${id}`, {
       method: 'PUT',
       body: JSON.stringify(data),
     });

@@ -428,6 +428,21 @@ const Home = () => {
                 </div>
               </div>
             </Link>
+
+            {/* Explorar Servicios */}
+            <Link to="/servicios" className="group animate-reveal delay-300">
+              <div className="relative overflow-hidden bg-white dark:bg-card border-none rounded-[2.5rem] sm:rounded-[3.5rem] p-8 sm:p-10 hover:shadow-2xl transition-all duration-500 group-hover:-translate-y-2 h-full flex flex-col items-center lg:items-start text-center lg:text-left shadow-xl shadow-primary/5">
+                <div className="absolute top-0 right-0 w-32 h-32 bg-primary/10 rounded-bl-[100px] -z-0"></div>
+                <div className="bg-primary w-16 h-16 sm:w-20 sm:h-20 rounded-2xl sm:rounded-3xl flex items-center justify-center mb-6 sm:mb-8 shadow-xl shadow-primary/20 group-hover:-rotate-12 transition-transform relative z-10">
+                  <Search className="text-white w-8 h-8 sm:w-9 sm:h-9" strokeWidth={1.5} />
+                </div>
+                <h3 className="text-2xl sm:text-3xl font-heading font-extrabold mb-4 relative z-10">Explorar Servicios</h3>
+                <p className="text-muted-foreground text-base sm:text-lg relative z-10 mb-6">Encuentra a los mejores profesionales independientes de tu zona en un solo lugar.</p>
+                <div className="text-primary font-bold p-0 text-lg group-hover:translate-x-2 transition-transform flex items-center mt-auto">
+                  Ver Servicios <ArrowRight className="ml-2" />
+                </div>
+              </div>
+            </Link>
           </div>
         </div>
       </section>

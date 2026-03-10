@@ -66,6 +66,7 @@ const Services = () => {
   const [userComment, setUserComment] = useState('');
   const [isSubmittingReview, setIsSubmittingReview] = useState(false);
   const [reviewStats, setReviewStats] = useState<{ average_rating: number; total_reviews: number } | null>(null);
+  const [guestName, setGuestName] = useState('');
 
   useEffect(() => {
     loadServices();
@@ -194,6 +195,7 @@ const Services = () => {
     setIsReviewsModalOpen(true);
     setUserRating(0);
     setUserComment('');
+    setGuestName('');
     fetchReviews(service.id);
   };
 
@@ -227,8 +229,6 @@ const Services = () => {
 
     try {
       setIsSubmittingReview(true);
-      const guestName = (window as any).tempGuestName;
-      
       await reviewsAPI.createServiceReview(selectedServiceForReviews.id, {
         rating: userRating,
         comment: userComment,
@@ -238,14 +238,18 @@ const Services = () => {
       toast.success(t('services.review_success'));
       setUserRating(0);
       setUserComment('');
-      if (!isLoggedIn) (window as any).tempGuestName = '';
+      setGuestName('');
       // Recargar reseñas
       fetchReviews(selectedServiceForReviews.id);
       // Recargar servicios para actualizar el promedio en la lista principal
       loadServices();
     } catch (error: any) {
       console.error('Error submitting review:', error);
-      toast.error(error.message || t('services.review_error'));
+      if (error?.status === 403) {
+        toast.error("Debes contactar al emprendedor por WhatsApp antes de dejar una reseña");
+      } else {
+        toast.error(error.message || t('services.review_error'));
+      }
     } finally {
       setIsSubmittingReview(false);
     }
@@ -441,13 +445,12 @@ const Services = () => {
               setUserRating={setUserRating}
               setUserComment={setUserComment}
               onSubmitReview={handleSubmitReview}
-              onReviewDeleted={(id) => {
-                setReviews(prev => prev.filter(r => r.id !== id));
-                if (selectedServiceForReviews) {
-                  // También refrescar estadísticas para actualizar el promedio
-                  fetchReviews(selectedServiceForReviews.id);
-                }
+              onReviewDeleted={(reviewId) => {
+                setReviews(prev => prev.filter(r => r.id !== reviewId));
+                fetchReviews(selectedServiceForReviews.id);
               }}
+              guestName={guestName}
+              setGuestName={setGuestName}
             />
           </DialogContent>
         </Dialog>

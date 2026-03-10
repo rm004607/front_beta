@@ -123,12 +123,28 @@ const Layout = ({ children }: LayoutProps) => {
                   </>
                 ) : (
                   <>
-                    <Link to="/login">
-                      <Button variant="outline">{t('nav.login')}</Button>
-                    </Link>
-                    <Link to="/registro">
-                      <Button>{t('nav.register')}</Button>
-                    </Link>
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button className="bg-primary hover:bg-primary/90 text-white font-bold px-6 py-2.5 rounded-xl transition-all shadow-lg active:scale-95 text-sm h-auto">
+                          {t('hero.offer_services_btn')}
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end" className="w-72 p-2 rounded-2xl border-primary/20 shadow-2xl bg-card animate-in fade-in zoom-in duration-200">
+                        <DropdownMenuItem asChild className="p-0 mb-1">
+                          <Link to="/registro" className="flex flex-col items-start gap-1 p-3.5 rounded-xl hover:bg-primary/10 transition-colors focus:bg-primary/10 outline-none">
+                            <span className="font-bold text-primary text-base leading-tight">{t('home.want_to_offer_services')}</span>
+                            <span className="text-[10px] text-muted-foreground font-medium uppercase tracking-wider">Crear una nueva cuenta de talento</span>
+                          </Link>
+                        </DropdownMenuItem>
+                        <div className="h-px bg-border/50 my-1 mx-2" />
+                        <DropdownMenuItem asChild className="p-0">
+                          <Link to="/login" className="flex flex-col items-start gap-1 p-3.5 rounded-xl hover:bg-secondary/10 transition-colors focus:bg-secondary/10 outline-none">
+                            <span className="font-bold text-secondary text-base leading-tight">{t('home.already_offer_services')}</span>
+                            <span className="text-[10px] text-muted-foreground font-medium uppercase tracking-wider">Inicia sesión con tu cuenta existente</span>
+                          </Link>
+                        </DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
                   </>
                 )}
               </div>
@@ -136,65 +152,70 @@ const Layout = ({ children }: LayoutProps) => {
               {/* Mobile Menu */}
               <DropdownMenu>
                 <DropdownMenuTrigger asChild className="md:hidden">
-                  <Button variant="outline" size="sm">
-                    <Menu size={20} />
+                  <Button variant="outline" size="sm" className="rounded-xl border-primary/20 h-10 w-10 p-0 flex items-center justify-center">
+                    <Menu size={20} className="text-primary" />
                   </Button>
                 </DropdownMenuTrigger>
-                <DropdownMenuContent align="end" className="bg-card w-56">
-                  <DropdownMenuItem asChild>
-                    <Link to="/" className="cursor-pointer">
-                      <Home size={16} className="mr-2" />
-                      {t('nav.home')}
+                <DropdownMenuContent align="end" className="bg-card w-64 p-2 rounded-2xl border-primary/20 shadow-2xl">
+                  <DropdownMenuItem asChild className="rounded-xl mb-1">
+                    <Link to="/" className="flex items-center gap-3 p-3">
+                      <Home size={18} className="text-muted-foreground" />
+                      <span className="font-medium">{t('nav.home')}</span>
                     </Link>
                   </DropdownMenuItem>
-                  <DropdownMenuItem asChild>
-                    <Link to="/servicios" className="cursor-pointer">
-                      <Wrench size={16} className="mr-2" />
-                      {t('nav.services')}
+                  <DropdownMenuItem asChild className="rounded-xl mb-1">
+                    <Link to="/servicios" className="flex items-center gap-3 p-3">
+                      <Wrench size={18} className="text-muted-foreground" />
+                      <span className="font-medium">{t('nav.services')}</span>
                     </Link>
                   </DropdownMenuItem>
 
                   {/* Mobile auth */}
                   {isLoggedIn ? (
                     <>
-                      <DropdownMenuItem asChild>
-                        <Link to="/perfil" className="cursor-pointer">
-                          <User size={16} className="mr-2" />
-                          {t('nav.profile')}
+                      <DropdownMenuItem asChild className="rounded-xl mb-1">
+                        <Link to="/perfil" className="flex items-center gap-3 p-3">
+                          <User size={18} className="text-muted-foreground" />
+                          <span className="font-medium">{t('nav.profile')}</span>
                         </Link>
                       </DropdownMenuItem>
                       {(user?.roles.includes('admin') || user?.role_number === 5) && (
-                        <DropdownMenuItem asChild>
-                          <Link to="/admin" className="cursor-pointer">
-                            <Shield size={16} className="mr-2" />
-                            {t('nav.admin')}
+                        <DropdownMenuItem asChild className="rounded-xl mb-1">
+                          <Link to="/admin" className="flex items-center gap-3 p-3">
+                            <Shield size={18} className="text-primary" />
+                            <span className="font-medium text-primary">{t('nav.admin')}</span>
                           </Link>
                         </DropdownMenuItem>
                       )}
+                      <div className="h-px bg-border/50 my-2 mx-3" />
                       <DropdownMenuItem
                         onClick={() => {
                           logout().catch(console.error);
                         }}
-                        className="cursor-pointer"
+                        className="rounded-xl text-destructive hover:bg-destructive/10 focus:bg-destructive/10 p-3 flex items-center gap-3"
                       >
-                        <LogOut size={16} className="mr-2" />
-                        {t('nav.logout')}
+                        <LogOut size={18} />
+                        <span className="font-medium">{t('nav.logout')}</span>
                       </DropdownMenuItem>
                     </>
                   ) : (
                     <>
-                      <DropdownMenuItem asChild>
-                        <Link to="/login" className="cursor-pointer">
-                          <User size={16} className="mr-2" />
-                          {t('nav.login')}
-                        </Link>
-                      </DropdownMenuItem>
-                      <DropdownMenuItem asChild>
-                        <Link to="/registro" className="cursor-pointer">
-                          <User size={16} className="mr-2" />
-                          {t('nav.register')}
-                        </Link>
-                      </DropdownMenuItem>
+                      <div className="h-px bg-border/50 my-2 mx-3" />
+                      <div className="p-3">
+                        <p className="text-[10px] text-muted-foreground font-black uppercase tracking-[0.2em] mb-3 ml-1">Para Emprendedores</p>
+                        <div className="space-y-2">
+                          <Link to="/registro">
+                            <Button className="w-full justify-start h-12 rounded-xl bg-primary hover:bg-primary/90 shadow-lg shadow-primary/20 mb-2">
+                              {t('home.want_to_offer_services')}
+                            </Button>
+                          </Link>
+                          <Link to="/login">
+                            <Button variant="outline" className="w-full justify-start h-12 rounded-xl border-secondary/30 text-secondary hover:bg-secondary/5">
+                              {t('home.already_offer_services')}
+                            </Button>
+                          </Link>
+                        </div>
+                      </div>
                     </>
                   )}
                 </DropdownMenuContent>
