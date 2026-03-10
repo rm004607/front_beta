@@ -186,6 +186,7 @@ export const authAPI = {
     rut?: string;
     comuna?: string;
     region_id?: string | number;
+    rol?: number;
     profile_image?: string | null;
     rubro?: string;
     experience?: string;

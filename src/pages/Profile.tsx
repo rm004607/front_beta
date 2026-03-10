@@ -78,6 +78,7 @@ const Profile = () => {
   const [editPhone, setEditPhone] = useState('');
   const [editRut, setEditRut] = useState('');
   const [editComuna, setEditComuna] = useState('');
+  const [editRole, setEditRole] = useState('1');
   const [isUpdating, setIsUpdating] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   /* CV code removido */
@@ -274,6 +275,7 @@ const Profile = () => {
       setEditPhone(user.phone);
       setEditRut(formatRut(user.rut || ''));
       setEditComuna(user.comuna);
+      setEditRole(String(user.role_number || 1));
       // @ts-ignore
       setEditRegion(user.region_id || '');
       setIsEditDialogOpen(true);
@@ -294,6 +296,7 @@ const Profile = () => {
         rut?: string;
         comuna?: string;
         region_id?: string;
+        rol?: number;
       } = {};
 
       if (editName !== user.name) {
@@ -331,6 +334,16 @@ const Profile = () => {
 
       if (editRegion !== (user as any).region_id) {
         updateData.region_id = editRegion;
+      }
+
+      const userRoleNumber = Number(user.role_number || 1);
+      const selectedRoleNumber = Number(editRole || userRoleNumber);
+      if (
+        [1, 2].includes(userRoleNumber) &&
+        [1, 2].includes(selectedRoleNumber) &&
+        selectedRoleNumber !== userRoleNumber
+      ) {
+        updateData.rol = selectedRoleNumber;
       }
 
       const cleanRut = editRut.replace(/[^0-9kK]/g, '');
@@ -885,6 +898,27 @@ const Profile = () => {
                     </Select>
                   </div>
                 </div>
+                {[1, 2].includes(Number(user.role_number || 1)) && (
+                  <div>
+                    <Label htmlFor="edit-role">Modo de cuenta</Label>
+                    <Select
+                      value={editRole}
+                      onValueChange={setEditRole}
+                      disabled={isUpdating}
+                    >
+                      <SelectTrigger id="edit-role">
+                        <SelectValue placeholder="Selecciona modo" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="1">Vecino</SelectItem>
+                        <SelectItem value="2">Emprendedor</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    <p className="text-xs text-muted-foreground mt-1">
+                      Cambia a Emprendedor para poder publicar servicios.
+                    </p>
+                  </div>
+                )}
               </div>
             </div>
 
