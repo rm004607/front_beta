@@ -65,39 +65,52 @@ const Footer = () => {
                   {t('services.title')}
                 </Link>
               </li>
-              <li>
-                <Link to="/muro" className="text-muted-foreground hover:text-primary transition-colors text-sm flex items-center gap-2">
-                  <div className="w-1 h-1 rounded-full bg-primary/40" />
-                  {t('wall.title')}
-                </Link>
-              </li>
             </ul>
           </div>
 
           <div className="lg:col-span-3 space-y-6">
             <h3 className="text-foreground font-bold text-lg">{t('footer.account')}</h3>
             <ul className="space-y-4">
-              <li>
-                <Link to="/perfil" className="text-muted-foreground hover:text-primary transition-colors text-sm flex items-center gap-2">
-                  <div className="w-1 h-1 rounded-full bg-primary/40" />
-                  {t('nav.profile')}
-                </Link>
-              </li>
-              {(isEntrepreneur || isAdmin) && (
-                <li>
-                  <Link to="/servicios/publicar" className="text-primary font-medium hover:underline transition-all text-sm flex items-center gap-2">
-                    <div className="w-1 h-1 rounded-full bg-primary" />
-                    {t('services.publish_btn')}
-                  </Link>
-                </li>
-              )}
-              {isAdmin && (
-                <li>
-                  <Link to="/admin" className="text-amber-500 hover:text-amber-400 transition-colors text-sm flex items-center gap-2 font-medium">
-                    <div className="w-1 h-1 rounded-full bg-amber-500/40" />
-                    {t('nav.admin')}
-                  </Link>
-                </li>
+              {!isLoggedIn ? (
+                <>
+                  <li>
+                    <Link to="/login" className="text-muted-foreground hover:text-primary transition-colors text-sm flex items-center gap-2">
+                      <div className="w-1 h-1 rounded-full bg-primary/40" />
+                      {t('nav.login')}
+                    </Link>
+                  </li>
+                  <li>
+                    <Link to="/register" className="text-muted-foreground hover:text-primary transition-colors text-sm flex items-center gap-2">
+                      <div className="w-1 h-1 rounded-full bg-primary/40" />
+                      {t('nav.register')}
+                    </Link>
+                  </li>
+                </>
+              ) : (
+                <>
+                  <li>
+                    <Link to="/perfil" className="text-muted-foreground hover:text-primary transition-colors text-sm flex items-center gap-2">
+                      <div className="w-1 h-1 rounded-full bg-primary/40" />
+                      {t('nav.profile')}
+                    </Link>
+                  </li>
+                  {(isEntrepreneur || isAdmin) && (
+                    <li>
+                      <Link to="/servicios/publicar" className="text-primary font-medium hover:underline transition-all text-sm flex items-center gap-2">
+                        <div className="w-1 h-1 rounded-full bg-primary" />
+                        {t('services.publish_btn')}
+                      </Link>
+                    </li>
+                  )}
+                  {isAdmin && (
+                    <li>
+                      <Link to="/admin" className="text-amber-500 hover:text-amber-400 transition-colors text-sm flex items-center gap-2 font-medium">
+                        <div className="w-1 h-1 rounded-full bg-amber-500/40" />
+                        {t('nav.admin')}
+                      </Link>
+                    </li>
+                  )}
+                </>
               )}
             </ul>
           </div>
