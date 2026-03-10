@@ -213,23 +213,6 @@ export const ServiceCard = ({
                             </CardTitle>
                         </div>
                         <p className="text-sm text-muted-foreground font-bold truncate mt-0.5">Por {service.user_name}</p>
-                        <div className="flex items-center gap-2 mt-2">
-                            <div
-                                className={`flex items-center justify-center w-8 h-8 rounded-xl shadow-sm transition-transform duration-300 group-hover:scale-110 group-hover:rotate-6 ${isLightColor(service.type_color || getServiceColor(service.type_name || '')) ? 'text-slate-900' : 'text-white'}`}
-                                style={{ backgroundColor: service.type_color || getServiceColor(service.type_name || '') }}
-                            >
-                                <span className="scale-75 origin-center">
-                                    {(service.type_icon || service.type_name) ? (
-                                        <div className="[&>svg]:w-5 [&>svg]:h-5">
-                                            {getServiceIcon(service.service_name || service.type_name || '', service.type_icon)}
-                                        </div>
-                                    ) : (
-                                        <Wrench size={16} />
-                                    )}
-                                </span>
-                            </div>
-                            <span className="text-[10px] font-black uppercase tracking-widest text-muted-foreground/80">{service.type_name?.trim() ? service.type_name : 'Servicio Profesional'}</span>
-                        </div>
                     </div>
                 </div>
             </CardHeader>
@@ -318,6 +301,19 @@ export const ServiceCard = ({
                                                 </div>
                                             </div>
 
+                                            {service.coverage_communes && service.coverage_communes.length > 0 && (
+                                                <div className="bg-slate-50 p-6 rounded-[2rem] border border-slate-100">
+                                                    <h4 className="text-[11px] font-black uppercase tracking-[0.2em] text-muted-foreground mb-3 px-1">Zonas de Cobertura</h4>
+                                                    <div className="flex flex-wrap gap-2">
+                                                        {service.coverage_communes.map((commune, index) => (
+                                                            <span key={index} className="bg-white px-3 py-1 rounded-lg border border-slate-100 text-xs font-bold text-slate-600">
+                                                                {commune}
+                                                            </span>
+                                                        ))}
+                                                    </div>
+                                                </div>
+                                            )}
+
                                             <div className="p-4 bg-muted/20 rounded-2xl border-2 border-dashed border-muted">
                                                 <p className="text-[11px] font-black text-muted-foreground text-center uppercase tracking-widest">
                                                     * El precio se coordina directamente con el profesional
@@ -356,9 +352,16 @@ export const ServiceCard = ({
                 
                 <div className="space-y-6 pt-2">
                     <div className="flex items-center justify-between gap-4">
-                        <div className="flex items-center gap-2.5 bg-secondary/5 px-4 py-2 rounded-2xl border border-secondary/10 overflow-hidden">
+                        <div className="flex items-center gap-2.5 bg-secondary/5 px-4 py-2 rounded-2xl border border-secondary/10 overflow-hidden flex-1">
                             <MapPin size={16} className="text-secondary shrink-0" />
-                            <span className="text-xs font-bold truncate max-w-[120px]">{service.comuna}</span>
+                            <div className="flex flex-col min-w-0">
+                                <span className="text-xs font-bold truncate">{service.comuna}</span>
+                                {service.coverage_communes && service.coverage_communes.length > 0 && (
+                                    <span className="text-[9px] text-secondary font-black uppercase tracking-tighter">
+                                        + {service.coverage_communes.length} de cobertura
+                                    </span>
+                                )}
+                            </div>
                         </div>
                         <div className="flex items-center gap-1.5 px-4 py-2 bg-yellow-400/5 rounded-2xl border border-yellow-400/10 shadow-sm shrink-0">
                             <Star className="w-4 h-4 fill-yellow-500 text-yellow-500" />
