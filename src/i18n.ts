@@ -21,7 +21,8 @@ const resources = {
                 "title_part2": "Dato que necesitas!",
                 "description": "",
                 "join_now": "Únete Ahora",
-                "explore_services": "Explorar Servicios"
+                "explore_services": "Explorar Servicios",
+                "offer_services_btn": "¿Quieres ofrecer tus servicios?"
             },
             "home": {
                 "categories_title": "Servicios que podrás encontrar",
@@ -42,7 +43,14 @@ const resources = {
                 "step3_desc": "Conecta directamente con clientes y haz crecer tu negocio.",
                 "final_cta_title": "Empieza a solucionar tus tareas hoy mismo",
                 "final_cta_desc": "Únete a miles de personas que ya están transformando su economía local.",
-                "final_cta_btn": "Crear Mi Cuenta Gratis"
+                "final_cta_btn": "Ofrecer mis servicios",
+                "entrepreneur_choice_title": "¿Quieres ofrecer tus servicios?",
+                "entrepreneur_choice_desc": "Únete a la mejor plataforma para contactar talentos independientes.",
+                "entrepreneur_only_note": "Nota: El registro en la plataforma es exclusivo para personas que ofrecen servicios.",
+                "already_offer_services": "Ya ofrezco mis servicios en Dameldato",
+                "want_to_offer_services": "Quiero ofrecer mis servicios en Dameldato",
+                "login_panel_cta": "Acceder a mi panel",
+                "register_talent_cta": "Crear mi cuenta de talento"
             },
             "services": {
                 "title": "Servicios",
@@ -169,7 +177,8 @@ const resources = {
                 "title_part2": "Data you need!",
                 "description": "",
                 "join_now": "Join Now",
-                "explore_services": "Explore Services"
+                "explore_services": "Explore Services",
+                "offer_services_btn": "Want to offer your services?"
             },
             "home": {
                 "categories_title": "Services You'll Find",
@@ -190,7 +199,14 @@ const resources = {
                 "step3_desc": "Connect directly with customers and grow your business.",
                 "final_cta_title": "Start solving your tasks today",
                 "final_cta_desc": "Join thousands who are already transforming their local economy.",
-                "final_cta_btn": "Create My Free Account"
+                "final_cta_btn": "Offer my services",
+                "entrepreneur_choice_title": "Want to offer your services?",
+                "entrepreneur_choice_desc": "Join the best platform to contact independent talents.",
+                "entrepreneur_only_note": "Note: Registration on the platform is exclusive for people who offer services.",
+                "already_offer_services": "I already offer my services on Dameldato",
+                "want_to_offer_services": "I want to offer my services on Dameldato",
+                "login_panel_cta": "Access my panel",
+                "register_talent_cta": "Create my talent account"
             },
             "services": {
                 "title": "Services",

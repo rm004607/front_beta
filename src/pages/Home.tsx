@@ -279,30 +279,30 @@ const Home = () => {
               </h1>
 
               <p className="text-muted-foreground font-medium text-lg md:text-xl animate-reveal delay-200 leading-relaxed">
-                {t('hero.description')}
+                La mejor plataforma para contactar talentos independientes en tu zona.
               </p>
 
               <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start animate-reveal delay-300">
                 {!isLoggedIn ? (
-                  <>
-                    <Link to="/registro">
-                      <Button size="lg" className="bg-primary hover:bg-primary/90 text-primary-foreground font-bold px-8 py-7 text-lg rounded-xl shadow-xl shadow-primary/20 transition-all hover:scale-105 active:scale-95 w-full sm:w-auto h-auto">
-                        {t('hero.join_now')}
-                      </Button>
-                    </Link>
-                    <Link to="/login">
-                      <Button variant="outline" size="lg" className="border-2 border-primary/30 bg-background/50 hover:bg-primary/5 hover:border-primary/50 font-bold px-8 py-7 text-lg rounded-xl w-full sm:w-auto h-auto transition-all">
-                        {t('nav.login')}
-                      </Button>
-                    </Link>
-                  </>
+                  <Button 
+                    onClick={() => document.getElementById('entrepreneur-section')?.scrollIntoView({ behavior: 'smooth' })}
+                    size="lg" 
+                    className="bg-primary hover:bg-primary/90 text-primary-foreground font-bold px-8 py-7 text-lg rounded-xl shadow-xl shadow-primary/20 transition-all hover:scale-105 active:scale-95 w-full sm:w-auto h-auto"
+                  >
+                    {t('hero.offer_services_btn')}
+                  </Button>
                 ) : (
-                  <Link to="/servicios">
+                  <Link to="/servicios/publicar">
                     <Button size="lg" className="bg-primary hover:bg-primary/90 text-primary-foreground font-bold px-8 py-7 text-lg rounded-xl shadow-xl shadow-primary/20 transition-all hover:scale-105 active:scale-95 w-full sm:w-auto h-auto">
-                      {t('hero.explore_services')}
+                      {t('home.final_cta_btn')}
                     </Button>
                   </Link>
                 )}
+                <Link to="/servicios">
+                  <Button variant="outline" size="lg" className="border-2 border-primary/30 bg-background/50 hover:bg-primary/5 hover:border-primary/50 font-bold px-8 py-7 text-lg rounded-xl w-full sm:w-auto h-auto transition-all">
+                    {t('hero.explore_services')}
+                  </Button>
+                </Link>
               </div>
             </div>
 
@@ -568,6 +568,46 @@ const Home = () => {
           </div>
         </div>
       </section>
+      
+      {/* Entrepreneur Choice Section (for logged out) */}
+      {!isLoggedIn && (
+        <section id="entrepreneur-section" className="py-24 bg-primary/5 relative overflow-hidden">
+          <div className="absolute inset-0 bg-mesh opacity-10"></div>
+          <div className="container mx-auto px-4 relative z-10">
+            <div className="max-w-4xl mx-auto glass-card p-12 rounded-[3.5rem] text-center border-primary/20">
+              <h2 className="text-3xl md:text-5xl font-extrabold mb-6">{t('home.entrepreneur_choice_title')}</h2>
+              <p className="text-lg text-muted-foreground mb-10 max-w-2xl mx-auto">
+                {t('home.entrepreneur_choice_desc')} 
+                <span className="block mt-2 font-bold text-primary italic">{t('home.entrepreneur_only_note')}</span>
+              </p>
+              
+              <div className="grid sm:grid-cols-2 gap-6">
+                <Link to="/registro">
+                  <div className="group bg-white dark:bg-card p-8 rounded-3xl border-2 border-transparent hover:border-primary/30 hover:shadow-xl transition-all cursor-pointer h-full flex flex-col items-center">
+                    <div className="w-16 h-16 bg-primary/10 rounded-2xl flex items-center justify-center text-primary mb-4 group-hover:scale-110 transition-transform">
+                      <Briefcase size={32} />
+                    </div>
+                    <h3 className="text-xl font-bold mb-2">{t('home.want_to_offer_services')}</h3>
+                    <p className="text-sm text-muted-foreground mb-6">Regístrate en Dameldato y comienza a recibir contactos hoy mismo.</p>
+                    <Button className="w-full bg-primary hover:bg-primary/90 mt-auto">{t('home.register_talent_cta')}</Button>
+                  </div>
+                </Link>
+                
+                <Link to="/login">
+                  <div className="group bg-white dark:bg-card p-8 rounded-3xl border-2 border-transparent hover:border-secondary/30 hover:shadow-xl transition-all cursor-pointer h-full flex flex-col items-center">
+                    <div className="w-16 h-16 bg-secondary/10 rounded-2xl flex items-center justify-center text-secondary mb-4 group-hover:scale-110 transition-transform">
+                      <Star size={32} />
+                    </div>
+                    <h3 className="text-xl font-bold mb-2">{t('home.already_offer_services')}</h3>
+                    <p className="text-sm text-muted-foreground mb-6">Inicia sesión para gestionar tus publicaciones en Dameldato.</p>
+                    <Button variant="outline" className="w-full border-secondary text-secondary hover:bg-secondary/5 mt-auto">{t('home.login_panel_cta')}</Button>
+                  </div>
+                </Link>
+              </div>
+            </div>
+          </div>
+        </section>
+      )}
 
       {/* Final CTA */}
       <section className="py-24 relative overflow-hidden bg-white dark:bg-transparent">
@@ -579,11 +619,19 @@ const Home = () => {
               {t('home.final_cta_desc')}
             </p>
             <div className="flex flex-col sm:flex-row gap-6 justify-center">
-              <Link to={isLoggedIn ? "/servicios" : "/registro"}>
-                <Button size="lg" className="bg-primary hover:bg-primary/90 text-primary-foreground font-bold px-10 py-8 text-xl rounded-2xl shadow-2xl shadow-primary/20 transition-all hover:scale-105 w-full sm:w-auto">
-                  {isLoggedIn ? t('hero.explore_services') : t('home.final_cta_btn')}
-                </Button>
-              </Link>
+              <Button 
+                onClick={() => {
+                  if (isLoggedIn) {
+                    window.location.href = "/servicios/publicar";
+                  } else {
+                    document.getElementById('entrepreneur-section')?.scrollIntoView({ behavior: 'smooth' });
+                  }
+                }}
+                size="lg" 
+                className="bg-primary hover:bg-primary/90 text-primary-foreground font-bold px-10 py-8 text-xl rounded-2xl shadow-2xl shadow-primary/20 transition-all hover:scale-105 w-full sm:w-auto"
+              >
+                {t('home.final_cta_btn')}
+              </Button>
               <Link to="/servicios">
                 <Button variant="outline" size="lg" className="border-2 border-primary/20 bg-background/50 hover:bg-primary/5 hover:border-primary/40 font-bold px-10 py-8 text-xl rounded-2xl w-full sm:w-auto h-auto transition-all">
                   {t('hero.explore_services')}
