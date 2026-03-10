@@ -12,7 +12,6 @@ import Register from "./pages/Register";
 import Login from "./pages/Login";
 import Services from "./pages/Services";
 import PostService from "./pages/PostService";
-import Wall from "./pages/Wall";
 import Profile from "./pages/Profile";
 import Admin from "./pages/Admin";
 import Support from "./pages/Support";
@@ -43,7 +42,6 @@ const App = () => {
                     <Route path="/login" element={<Login />} />
                     <Route path="/servicios" element={<Services />} />
                     <Route path="/servicios/publicar" element={<PostService />} />
-                    <Route path="/muro" element={<Wall />} />
                     <Route path="/perfil" element={<Profile />} />
                     <Route path="/admin" element={<Admin />} />
                     <Route path="/ayuda" element={<Support />} />

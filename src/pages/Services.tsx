@@ -153,13 +153,6 @@ const Services = () => {
 
 
   const handleWhatsApp = (service: any) => {
-    // Verificar si el usuario está logueado
-    if (!isLoggedIn) {
-      toast.error(t('services.contact_login_msg'));
-      navigate('/login');
-      return;
-    }
-
     if (!service.phone) {
       toast.error(t('services.no_phone_msg'));
       return;

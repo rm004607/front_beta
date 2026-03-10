@@ -129,7 +129,7 @@ const Register = () => {
       localStorage.setItem('token', urlToken);
 
       if (isRegistrationPending) {
-        setStep(2); // Go directly to role selection
+        setStep(3); // Go directly to entrepreneur details
         setIsGoogleVerified(true);
       } else {
         // Si no es un registro pendiente, es un login.
@@ -152,14 +152,14 @@ const Register = () => {
 
   // Mapa de roles a números para el backend
   const roleToNumber = (role: UserRole): number => {
-    const map: Record<UserRole, number> = {
+    const map: Record<string, number> = {
       'job-seeker': 1,
       'entrepreneur': 2,
       'company': 3,
       'admin': 4,
       'super-admin': 5,
     };
-    return map[role];
+    return map[role as string] || 2;
   };
 
   const handleNext = async () => {
@@ -214,7 +214,8 @@ const Register = () => {
       localStorage.setItem('reg_phone', phone);
       localStorage.setItem('reg_comuna', comuna);
 
-      setStep(2); // Go to role selection
+      setStep(3); // Go directly to entrepreneur details
+      setSelectedRole('entrepreneur');
     }
   };
 
@@ -440,7 +441,7 @@ const Register = () => {
             <CardTitle className="text-2xl sm:text-3xl md:text-4xl font-heading font-bold bg-clip-text text-transparent bg-gradient-to-r from-primary to-secondary mb-2">
               Únete a la Comunidad
             </CardTitle>
-            <CardDescription className="text-base sm:text-lg">Paso {step === 4 ? 2 : 1} de 2</CardDescription>
+            <CardDescription className="text-base sm:text-lg">Paso {step === 1 ? 1 : 2} de 2</CardDescription>
           </CardHeader>
           <CardContent className="p-4 sm:p-6">
             {errorMessage && (
@@ -636,118 +637,6 @@ const Register = () => {
               </div>
             )}
 
-            {step === 2 && (
-              <div className="space-y-6 animate-in fade-in slide-in-from-right-4 duration-500">
-                <div className="text-center space-y-2">
-                  <h3 className="text-xl font-bold font-heading">¿Cómo quieres usar Dameldato?</h3>
-                  <p className="text-muted-foreground">Completa tus datos y selecciona tu perfil para continuar</p>
-                </div>
-
-                {/* Campos requeridos para Google Completion */}
-                {(searchParams.get('token') || (isGoogleVerified && user)) && (
-                  <div className="space-y-4 p-4 border rounded-xl bg-white/50 backdrop-blur-sm border-white/20 shadow-inner">
-                    <p className="text-sm font-semibold text-primary mb-1 flex items-center gap-2">
-                      <span className="flex h-5 w-5 items-center justify-center rounded-full bg-primary text-[10px] text-white">i</span>
-                      Información Requerida
-                    </p>
-                    <div>
-                      <Label htmlFor="rut_step2">RUT <span className="text-destructive">*</span></Label>
-                      <Input
-                        id="rut_step2"
-                        value={rut}
-                        onChange={(e) => setRut(formatRut(e.target.value))}
-                        placeholder="12.345.678-9"
-                        className={rut && !isValidRut(rut) ? 'border-red-500' : ''}
-                        maxLength={12}
-                        required
-                      />
-                    </div>
-
-                    <div>
-                      <Label htmlFor="phone_step2">Teléfono <span className="text-destructive">*</span></Label>
-                      <Input
-                        id="phone_step2"
-                        value={phone}
-                        onChange={(e) => setPhone(e.target.value)}
-                        placeholder="+56 9 1234 5678"
-                        className={phone && validatePhone(phone) === 'format' ? 'border-red-500' : ''}
-                        required
-                      />
-                    </div>
-
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                      <div>
-                        <Label htmlFor="region_step2">Región <span className="text-destructive">*</span></Label>
-                        <Select value={selectedRegion} onValueChange={(val) => {
-                          setSelectedRegion(val);
-                          setComuna('');
-                        }}>
-                          <SelectTrigger id="region_step2">
-                            <SelectValue placeholder="Región" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            {chileData.map((reg) => (
-                              <SelectItem key={reg.id} value={reg.id}>{reg.name}</SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                      </div>
-                      <div>
-                        <Label htmlFor="comuna_step2">Comuna <span className="text-destructive">*</span></Label>
-                        <Select value={comuna} onValueChange={setComuna} disabled={!selectedRegion}>
-                          <SelectTrigger id="comuna_step2">
-                            <SelectValue placeholder="Comuna" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            {selectedRegion && chileData.find(r => String(r.id) === String(selectedRegion))?.communes.map((c) => (
-                              <SelectItem key={c} value={c}>{c}</SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                      </div>
-                    </div>
-                  </div>
-                )}
-
-                <div className="flex flex-col items-center gap-4">
-                  <Button
-                    type="button"
-                    onClick={() => {
-                      setSelectedRole('job-seeker');
-                      // Enviamos el rol directamente para evitar problemas de estado asíncrono
-                      handleSubmit('job-seeker');
-                    }}
-                    className="w-full max-w-md h-20 text-xl font-bold bg-primary hover:bg-primary/90 shadow-lg shadow-primary/20 flex items-center justify-between px-8"
-                  >
-                    <span className="flex flex-col items-start">
-                      <span>🏠 Soy Vecino</span>
-                      <span className="text-xs font-normal opacity-80">Busco datos y servicios</span>
-                    </span>
-                    <ArrowRight size={24} />
-                  </Button>
-
-                  <Button
-                    type="button"
-                    onClick={() => {
-                      setSelectedRole('entrepreneur');
-                      setStep(3);
-                    }}
-                    className="w-full max-w-md h-20 text-xl font-bold bg-secondary hover:bg-secondary/90 shadow-lg shadow-secondary/20 flex items-center justify-between px-8"
-                  >
-                    <span className="flex flex-col items-start">
-                      <span>🛠️ Soy Emprendedor</span>
-                      <span className="text-xs font-normal opacity-80">Ofrezco mis servicios</span>
-                    </span>
-                    <ArrowRight size={24} />
-                  </Button>
-                </div>
-
-                <Button variant="ghost" onClick={() => setStep(1)} className="w-full">
-                  <ArrowLeft className="mr-2" size={18} />
-                  Volver al formulario
-                </Button>
-              </div>
-            )}
 
             {step === 3 && selectedRole === 'entrepreneur' && (
               <div className="space-y-6 animate-in fade-in slide-in-from-right-4 duration-500">
@@ -794,7 +683,7 @@ const Register = () => {
                 </div>
 
                 <div className="flex gap-4 pt-4">
-                  <Button variant="outline" onClick={() => setStep(2)} className="flex-1 h-12">
+                  <Button variant="outline" onClick={() => setStep(1)} className="flex-1 h-12">
                     <ArrowLeft className="mr-2" size={18} />
                     Atrás
                   </Button>

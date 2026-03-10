@@ -62,14 +62,6 @@ const Layout = ({ children }: LayoutProps) => {
                 <Wrench size={18} />
                 <span>{t('nav.services')}</span>
               </Link>
-              <Link
-                to="/muro"
-                className={`flex items-center gap-2 transition-colors ${isActive('/muro') ? 'text-primary font-semibold' : 'text-foreground hover:text-primary'
-                  }`}
-              >
-                <MessageSquare size={18} />
-                <span>{t('nav.wall')}</span>
-              </Link>
             </nav>
 
             <div className="flex items-center gap-2 sm:gap-3">
@@ -159,12 +151,6 @@ const Layout = ({ children }: LayoutProps) => {
                     <Link to="/servicios" className="cursor-pointer">
                       <Wrench size={16} className="mr-2" />
                       {t('nav.services')}
-                    </Link>
-                  </DropdownMenuItem>
-                  <DropdownMenuItem asChild>
-                    <Link to="/muro" className="cursor-pointer">
-                      <MessageSquare size={16} className="mr-2" />
-                      {t('nav.wall')}
                     </Link>
                   </DropdownMenuItem>
 

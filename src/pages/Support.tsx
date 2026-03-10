@@ -26,15 +26,15 @@ const Support = () => {
   const faqs = [
     {
       question: '¿Cómo puedo crear una cuenta?',
-      answer: 'Para crear una cuenta, haz clic en "Registrarse" en la parte superior de la página. Completa el formulario con tu información personal y selecciona el tipo de cuenta que deseas (Vecino o Emprendedor).',
+      answer: 'Para crear una cuenta, haz clic en "Registrarse" en la parte superior de la página. Completa el formulario con tu información personal y los detalles del servicio que ofreces.',
     },
     {
       question: '¿Qué hago si olvidé mi contraseña?',
       answer: 'En la página de inicio de sesión, haz clic en "¿Olvidaste tu contraseña?" y sigue las instrucciones para restablecerla. Recibirás un correo con un enlace para crear una nueva contraseña.',
     },
     {
-      question: '¿Puedo cambiar mi tipo de cuenta?',
-      answer: 'Para cambiar tu tipo de cuenta (por ejemplo, de Vecino a Emprendedor), contacta con el soporte. Los cambios de rol importantes requieren verificación.',
+      question: '¿Qué tipo de servicios puedo ofrecer?',
+      answer: 'Puedes ofrecer cualquier servicio profesional, técnico u oficio que beneficie a la comunidad, desde reparaciones del hogar hasta clases particulares o servicios de salud.',
     },
     {
       question: '¿Cómo reporto un problema o contenido inapropiado?',

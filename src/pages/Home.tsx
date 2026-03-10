@@ -414,21 +414,6 @@ const Home = () => {
       <section className="py-20 bg-primary/5">
         <div className="container mx-auto px-4">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-5xl mx-auto">
-            {/* Pared de Pegas */}
-            <Link to="/muro" className="group animate-reveal">
-              <div className="relative overflow-hidden bg-white dark:bg-card border-none rounded-[2.5rem] sm:rounded-[3.5rem] p-8 sm:p-10 hover:shadow-2xl transition-all duration-500 group-hover:-translate-y-2 h-full flex flex-col items-center lg:items-start text-center lg:text-left shadow-xl shadow-primary/5">
-                <div className="absolute top-0 right-0 w-32 h-32 bg-primary/10 rounded-bl-[100px] -z-0"></div>
-                <div className="bg-primary w-16 h-16 sm:w-20 sm:h-20 rounded-2xl sm:rounded-3xl flex items-center justify-center mb-6 sm:mb-8 shadow-xl shadow-primary/20 group-hover:rotate-12 transition-transform relative z-10">
-                  <MessageSquare className="text-white w-8 h-8 sm:w-9 sm:h-9" strokeWidth={1.5} />
-                </div>
-                <h3 className="text-2xl sm:text-3xl font-heading font-extrabold mb-4 relative z-10">{t('home.wall_title')}</h3>
-                <p className="text-muted-foreground text-base sm:text-lg relative z-10 mb-6">{t('home.wall_desc')}</p>
-                <div className="text-primary font-bold p-0 text-lg group-hover:translate-x-2 transition-transform flex items-center mt-auto">
-                  {t('home.wall_cta')} <ArrowRight className="ml-2" />
-                </div>
-              </div>
-            </Link>
-
             {/* Ofrecer Servicio */}
             <Link to={isLoggedIn ? "/servicios/publicar" : "/servicios"} className="group animate-reveal delay-200">
               <div className="relative overflow-hidden bg-white dark:bg-card border-none rounded-[2.5rem] sm:rounded-[3.5rem] p-8 sm:p-10 hover:shadow-2xl transition-all duration-500 group-hover:-translate-y-2 h-full flex flex-col items-center lg:items-start text-center lg:text-left shadow-xl shadow-secondary/5">
@@ -596,9 +581,9 @@ const Home = () => {
                   {isLoggedIn ? t('hero.explore_services') : t('home.final_cta_btn')}
                 </Button>
               </Link>
-              <Link to="/muro">
+              <Link to="/servicios">
                 <Button variant="outline" size="lg" className="border-2 border-primary/20 bg-background/50 hover:bg-primary/5 hover:border-primary/40 font-bold px-10 py-8 text-xl rounded-2xl w-full sm:w-auto h-auto transition-all">
-                  {t('wall.title')}
+                  {t('hero.explore_services')}
                 </Button>
               </Link>
             </div>
