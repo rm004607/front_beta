@@ -55,7 +55,7 @@ const Home = () => {
   const loadServiceTypes = async () => {
     try {
       setLoadingTypes(true);
-      const response = await servicesAPI.getServiceTypes();
+      const response = await servicesAPI.getServiceTypes({ onlyActive: true });
       setServiceTypes(response.types);
     } catch (error) {
       console.error('Error loading service types:', error);
