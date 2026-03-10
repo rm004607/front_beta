@@ -142,8 +142,10 @@ export const ServiceCard = ({
         if (n.includes('flete') || n.includes('mudan') || n.includes('transp')) return <Truck />;
         if (n.includes('cuidad') || n.includes('salud') || n.includes('enfer')) return <HeartPulse />;
         if (n.includes('mecanic')) return <Briefcase />;
-        if (n.includes('jardin')) return <Scissors />;
-        if (n.includes('gastro') || n.includes('comida') || n.includes('chef')) return <ChefHat />;
+        if (n.includes('peluquer') || n.includes('estetica') || n.includes('belleza') || n.includes('manicure') || n.includes('barber')) return <Scissors />;
+        if (n.includes('jardin')) return <Trees />;
+        if (n.includes('gastro') || n.includes('comida') || n.includes('chef') || n.includes('banquete')) return <ChefHat />;
+        if (n.includes('masaje') || n.includes('relax') || n.includes('terapia')) return <Sparkles />;
         return <Wrench />;
     };
 
@@ -158,6 +160,7 @@ export const ServiceCard = ({
         if (n.includes('cuidad') || n.includes('salud') || n.includes('enfer')) return '#f43f5e'; // rose-500
         if (n.includes('mecanic')) return '#4f46e5'; // indigo-600
         if (n.includes('jardin')) return '#22c55e'; // green-500
+        if (n.includes('peluquer') || n.includes('estetica') || n.includes('belleza') || n.includes('manicure') || n.includes('barber')) return '#ec4899'; // pink-500
         if (n.includes('gastro') || n.includes('comida') || n.includes('chef')) return '#ef4444'; // red-500
         return 'var(--primary)'; // Default color
     };
