@@ -313,6 +313,7 @@ export const servicesAPI = {
         type_name?: string;
         type_icon?: string;
         type_color?: string;
+        idicon?: string;
       }>;
       pagination: {
         page: number;

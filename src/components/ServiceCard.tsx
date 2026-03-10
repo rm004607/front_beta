@@ -41,6 +41,7 @@ interface Service {
     type_name?: string;
     type_icon?: string;
     type_color?: string;
+    idicon?: string;
 }
 
 interface ServiceCardProps {
@@ -78,7 +79,7 @@ export const ServiceCard = ({
                             <AvatarImage src={service.profile_image} alt={service.user_name} className="object-cover" />
                             <AvatarFallback className="bg-gradient-to-br from-primary to-primary/80 text-white flex items-center justify-center">
                                 <div className="scale-110 opacity-90">
-                                    {getServiceIcon(service.service_name || service.type_name || '', service.type_icon)}
+                                    {getServiceIcon(service.service_name || service.type_name || '', service.type_icon, service.idicon)}
                                 </div>
                             </AvatarFallback>
                         </Avatar>
@@ -130,7 +131,7 @@ export const ServiceCard = ({
                                             <AvatarImage src={service.profile_image} alt={service.user_name} className="object-cover" />
                                             <AvatarFallback className="bg-gradient-to-br from-primary to-primary/80 text-white flex flex-col items-center justify-center">
                                                 <div className="scale-[2] sm:scale-[2.5] opacity-90 mb-1">
-                                                    {getServiceIcon(service.service_name || service.type_name || '', service.type_icon)}
+                                                    {getServiceIcon(service.service_name || service.type_name || '', service.type_icon, service.idicon)}
                                                 </div>
                                             </AvatarFallback>
                                         </Avatar>
@@ -149,7 +150,7 @@ export const ServiceCard = ({
                                                 style={{ backgroundColor: service.type_color || getServiceColor(service.type_name || '') }}
                                             >
                                                 <div className="scale-100 [&>svg]:w-5 [&>svg]:h-5">
-                                                    {getServiceIcon(service.service_name || service.type_name || '', service.type_icon)}
+                                                    {getServiceIcon(service.service_name || service.type_name || '', service.type_icon, service.idicon)}
                                                 </div>
                                             </div>
                                         </div>

@@ -40,6 +40,7 @@ interface Service {
   type_name?: string;
   type_icon?: string;
   type_color?: string;
+  idicon?: string;
 }
 
 const Home = () => {
@@ -454,7 +455,7 @@ const Home = () => {
                           ) : (
                             <AvatarFallback className="bg-primary text-white flex items-center justify-center">
                               <div className="scale-110 opacity-90">
-                                {getServiceIcon(service.service_name || service.type_name || '', service.type_icon)}
+                                {getServiceIcon(service.service_name || service.type_name || '', service.type_icon, service.idicon)}
                               </div>
                             </AvatarFallback>
                           )}
@@ -471,7 +472,7 @@ const Home = () => {
                               style={{ backgroundColor: service.type_color || getServiceColor(service.type_name || '') }}
                             >
                               <div className="[&>svg]:w-5 [&>svg]:h-5 scale-90">
-                                {getServiceIcon(service.service_name || service.type_name || '', service.type_icon)}
+                                {getServiceIcon(service.service_name || service.type_name || '', service.type_icon, service.idicon)}
                               </div>
                             </div>
                             <span className="text-[10px] font-black uppercase tracking-widest text-muted-foreground/70">{service.type_name?.trim() ? service.type_name : 'Servicio'}</span>
