@@ -26,10 +26,11 @@ import {
   Anchor
 } from 'lucide-react';
 
-export const getServiceIcon = (name: string, iconId?: string) => {
-  // 1. Si existe iconId de la base de datos, lo usamos prioritariamente
-  if (iconId) {
-    const n = iconId;
+export const getServiceIcon = (name: string, iconId?: string, idicon?: string) => {
+  // 1. Si existe iconId o idicon de la base de datos, lo usamos prioritariamente
+  const finalIconId = idicon || iconId;
+  if (finalIconId) {
+    const n = finalIconId;
     if (n === 'Wrench') return <Wrench />;
     if (n === 'Lightbulb') return <Lightbulb />;
     if (n === 'ShieldCheck') return <ShieldCheck />;

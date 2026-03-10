@@ -153,7 +153,7 @@ const Home = () => {
         className={`w-14 h-14 rounded-2xl flex items-center justify-center mb-4 group-hover/item:scale-110 transition-transform shadow-md group-hover/item:rotate-6 ${isLightColor(type.color || getServiceColor(type.name)) ? 'text-slate-900' : 'text-white'}`}
         style={{ backgroundColor: type.color || getServiceColor(type.name) }}
       >
-        {getServiceIcon(type.name, type.icon)}
+        {getServiceIcon(type.name, type.icon, type.idicon)}
       </div>
       <h3 className="font-bold text-sm xs:text-base group-hover/item:text-primary transition-colors text-center whitespace-normal max-w-[130px] xs:max-w-[160px]">{type.name}</h3>
     </Link>
