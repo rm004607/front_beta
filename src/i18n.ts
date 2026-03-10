@@ -47,9 +47,9 @@ const resources = {
                 "entrepreneur_choice_title": "¿Quieres ofrecer tu servicio?",
                 "entrepreneur_choice_desc": "Únete a la mejor plataforma para contactar talentos independientes.",
                 "entrepreneur_only_note": "Nota: El registro en la plataforma es exclusivo para personas que ofrecen servicios.",
-                "already_offer_services": "Explorar Servicios en Dameldato",
+                "already_offer_services": "Ya soy parte de Dameldato",
                 "want_to_offer_services": "Quiero ofrecer mi servicio en Dameldato",
-                "login_panel_cta": "Explorar servicios",
+                "login_panel_cta": "Ya soy parte de Dameldato",
                 "register_talent_cta": "Crear mi cuenta de talento"
             },
             "services": {
@@ -203,9 +203,9 @@ const resources = {
                 "entrepreneur_choice_title": "Want to offer your services?",
                 "entrepreneur_choice_desc": "Join the best platform to contact independent talents.",
                 "entrepreneur_only_note": "Note: Registration on the platform is exclusive for people who offer services.",
-                "already_offer_services": "Explore Services on Dameldato",
+                "already_offer_services": "I am already part of Dameldato",
                 "want_to_offer_services": "I want to offer my service on Dameldato",
-                "login_panel_cta": "Explore services",
+                "login_panel_cta": "I am already part of Dameldato",
                 "register_talent_cta": "Create my talent account"
             },
             "services": {
