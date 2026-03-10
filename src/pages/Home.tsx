@@ -485,10 +485,10 @@ const Home = () => {
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
               {latestServices.map((service, i) => (
                 <Link key={service.id} to={`/servicios`} className="animate-reveal" style={{ animationDelay: `${i * 100}ms` }}>
-                  <Card className="group h-full bg-card/40 backdrop-blur-sm border-2 border-transparent hover:border-primary/30 hover:shadow-2xl hover:shadow-primary/5 transition-all duration-500 rounded-[2.5rem] overflow-hidden flex flex-col">
-                    <CardHeader className="p-8 pb-4">
-                      <div className="flex items-center gap-4 mb-6">
-                        <Avatar className="w-14 h-14 border-2 border-primary/20 ring-4 ring-primary/5">
+                  <Card className="group h-full bg-white dark:bg-card/40 backdrop-blur-sm border-2 border-transparent hover:border-primary/30 hover:shadow-2xl hover:shadow-primary/5 transition-all duration-500 rounded-[2.5rem] overflow-hidden flex flex-col shadow-sm hover:-translate-y-1">
+                    <CardHeader className="p-8 pb-5">
+                      <div className="flex items-start gap-4 mb-6">
+                        <Avatar className="w-14 h-14 border-2 border-white shadow-md ring-4 ring-primary/5 shrink-0 mt-1">
                           {service.profile_image && (
                             <AvatarImage src={service.profile_image} alt={service.user_name} />
                           )}
@@ -496,42 +496,41 @@ const Home = () => {
                             {service.user_name.split(' ').map((n: string) => n[0]).join('').substring(0, 2)}
                           </AvatarFallback>
                         </Avatar>
-                        <div>
-                          <p className="font-bold text-lg line-clamp-1 text-primary">{(!service.service_name || service.service_name.trim() === '' || service.service_name.trim() === '.') ? 'Servicio Destacado' : service.service_name}</p>
-                          <div className="flex items-center gap-1 text-sm text-muted-foreground">
-                            <span className="font-medium">{service.user_name}</span>
-                            <span className="mx-1 opacity-30">•</span>
-                            <MapPin size={14} className="text-muted-foreground/50" />
-                            <span>{(!service.comuna || service.comuna.trim() === '' || service.comuna.trim() === '.') ? 'Ubicación' : service.comuna}</span>
+                        <div className="flex-1 min-w-0">
+                          <CardTitle className="text-2xl font-black mb-1 line-clamp-1 group-hover:text-primary transition-colors leading-tight">
+                            {(!service.service_name || service.service_name.trim() === '' || service.service_name.trim() === '.') ? 'Servicio Destacado' : service.service_name}
+                          </CardTitle>
+                          <p className="text-sm text-muted-foreground font-bold truncate">Por {service.user_name}</p>
+                          
+                          <div className="flex items-center gap-2 mt-3">
+                            <div
+                              className={`shrink-0 p-1.5 rounded-xl shadow-sm transition-all duration-300 group-hover:scale-110 group-hover:rotate-6 ${isLightColor(service.type_color || getServiceColor(service.type_name || '')) ? 'text-slate-900 border-black/5' : 'text-white border-white/10'}`}
+                              style={{ backgroundColor: service.type_color || getServiceColor(service.type_name || '') }}
+                            >
+                              <div className="[&>svg]:w-5 [&>svg]:h-5 scale-90">
+                                {getServiceIcon(service.service_name || service.type_name || '', service.type_icon)}
+                              </div>
+                            </div>
+                            <span className="text-[10px] font-black uppercase tracking-widest text-muted-foreground/70">{service.type_name?.trim() ? service.type_name : 'Servicio'}</span>
                           </div>
                         </div>
                       </div>
-                      <CardTitle className="text-2xl font-extrabold mb-2 line-clamp-1 group-hover:text-primary transition-colors flex items-center gap-2">
-                        <div
-                          className={`shrink-0 p-1.5 rounded-lg shadow-sm transition-transform duration-300 group-hover:scale-110 ${isLightColor(service.type_color || getServiceColor(service.type_name || '')) ? 'text-slate-900' : 'text-white'}`}
-                          style={{ backgroundColor: service.type_color || getServiceColor(service.type_name || '') }}
-                        >
-                          {getServiceIcon(service.service_name || service.type_name || '', service.type_icon)}
-                        </div>
-                        {(!service.service_name || service.service_name.trim() === '' || service.service_name.trim() === '.') ? 'Servicio Destacado' : service.service_name}
-                      </CardTitle>
-                      <p className="text-xs text-muted-foreground font-bold mt-1 px-1">Por {service.user_name}</p>
                     </CardHeader>
                     <CardContent className="p-8 pt-0 flex-1 flex flex-col">
-                      <p className="text-muted-foreground text-lg line-clamp-2 mb-6 flex-1 italic">
+                      <p className="text-muted-foreground text-base line-clamp-2 mb-8 flex-1 italic leading-relaxed">
                         {(!service.description || service.description.trim() === '' || service.description.trim() === '.') ? 'Sin descripción disponible.' : service.description}
                       </p>
 
-                      <div className="grid grid-cols-2 gap-4 pt-6 border-t border-primary/10">
-                        <div className="flex items-center gap-2">
-                          <Star size={18} className="fill-accent text-accent" />
-                          <span className="font-bold text-lg">
+                      <div className="flex items-center justify-between pt-6 border-t border-primary/5">
+                        <div className="flex items-center gap-2 bg-yellow-400/10 px-3 py-1.5 rounded-xl border border-yellow-400/20">
+                          <Star size={18} className="fill-yellow-500 text-yellow-500" />
+                          <span className="font-black text-lg text-yellow-700">
                             {(service.average_rating && Number(service.average_rating) > 0) ? Number(service.average_rating).toFixed(1) : '0.0'}
                           </span>
                         </div>
-                        <div className="flex items-center justify-end gap-1 text-xs text-muted-foreground">
-                          <Calendar size={14} />
-                          <span>{formatDate(service.created_at)}</span>
+                        <div className="flex items-center gap-2 text-primary/60 bg-primary/5 px-3 py-1.5 rounded-xl border border-primary/10">
+                          <MapPin size={16} />
+                          <span className="text-xs font-bold">{service.comuna}</span>
                         </div>
                       </div>
                     </CardContent>

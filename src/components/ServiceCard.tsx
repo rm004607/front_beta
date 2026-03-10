@@ -61,89 +61,89 @@ export const ServiceCard = ({
     const getServiceIcon = (name: string, iconName?: string) => {
         if (iconName) {
             const n = iconName;
-            if (n === 'Wrench') return <Wrench size={20} />;
-            if (n === 'Lightbulb') return <Lightbulb size={20} />;
-            if (n === 'ShieldCheck') return <ShieldCheck size={20} />;
-            if (n === 'Sparkles') return <Sparkles size={20} />;
-            if (n === 'Building2') return <Building2 size={20} />;
-            if (n === 'Truck') return <Truck size={20} />;
-            if (n === 'HeartPulse') return <HeartPulse size={20} />;
-            if (n === 'Briefcase') return <Briefcase size={20} />;
-            if (n === 'Paintbrush') return <Paintbrush size={20} />;
-            if (n === 'Hammer') return <Hammer size={20} />;
-            if (n === 'Scissors') return <Scissors size={20} />;
-            if (n === 'Camera') return <Camera size={20} />;
-            if (n === 'Laptop') return <Laptop size={20} />;
-            if (n === 'ShoppingBag' || n === 'Store') return <ShoppingBag size={20} />;
-            if (n === 'ChefHat') return <ChefHat size={20} />;
-            if (n === 'Music') return <Music size={20} />;
-            if (n === 'Car') return <Car size={20} />;
-            if (n === 'Home') return <HomeIcon size={20} />;
-            if (n === 'Phone') return <Phone size={20} />;
-            if (n === 'Plug') return <Plug size={20} />;
-            if (n === 'PaintRoller') return <PaintRoller size={20} />;
-            if (n === 'Flame') return <Flame size={20} />;
-            if (n === 'Utensils') return <Utensils size={20} />;
-            if (n === 'Dumbbell') return <Dumbbell size={20} />;
-            if (n === 'GraduationCap') return <GraduationCap size={20} />;
-            if (n === 'Baby') return <Baby size={20} />;
-            if (n === 'Stethoscope') return <Stethoscope size={20} />;
-            if (n === 'Globe') return <Globe size={20} />;
-            if (n === 'Database') return <Database size={20} />;
-            if (n === 'Smartphone') return <Smartphone size={20} />;
-            if (n === 'Plane') return <Plane size={20} />;
-            if (n === 'Gift') return <Gift size={20} />;
-            if (n === 'Trophy') return <Trophy size={20} />;
-            if (n === 'Coffee') return <Coffee size={20} />;
-            if (n === 'Wallet') return <Wallet size={20} />;
-            if (n === 'Trees') return <Trees size={20} />;
-            if (n === 'PawPrint') return <PawPrint size={20} />;
-            if (n === 'Flower2') return <Flower2 size={20} />;
-            if (n === 'Sun') return <Sun size={20} />;
-            if (n === 'Moon') return <Moon size={20} />;
-            if (n === 'Bike') return <Bike size={20} />;
-            if (n === 'Cpu') return <Cpu size={20} />;
-            if (n === 'Mouse') return <Mouse size={20} />;
-            if (n === 'Monitor') return <Monitor size={20} />;
-            if (n === 'Cloud') return <Cloud size={20} />;
-            if (n === 'Code') return <Code size={20} />;
-            if (n === 'Languages') return <Languages size={20} />;
-            if (n === 'Book') return <Book size={20} />;
-            if (n === 'School') return <School size={20} />;
-            if (n === 'HardHat') return <HardHat size={20} />;
-            if (n === 'Construction') return <Construction size={20} />;
-            if (n === 'Drill') return <Drill size={20} />;
-            if (n === 'PlugZap') return <PlugZap size={20} />;
-            if (n === 'Waves') return <Waves size={20} />;
-            if (n === 'Zap') return <Zap size={20} />;
-            if (n === 'Ticket') return <Ticket size={20} />;
-            if (n === 'Video') return <Video size={20} />;
-            if (n === 'Mic') return <Mic size={20} />;
-            if (n === 'Smile') return <Smile size={20} />;
-            if (n === 'Gamepad2') return <Gamepad2 size={20} />;
-            if (n === 'Brush') return <Brush size={20} />;
-            if (n === 'Wind') return <Wind size={20} />;
-            if (n === 'Pill') return <Pill size={20} />;
-            if (n === 'Activity') return <Activity size={20} />;
-            if (n === 'Apple') return <Apple size={20} />;
-            if (n === 'Bone') return <Bone size={20} />;
-            if (n === 'Gem') return <Gem size={20} />;
-            if (n === 'Key') return <Key size={20} />;
-            if (n === 'Anchor') return <Anchor size={20} />;
+            // Common icons
+            if (n === 'Wrench') return <Wrench />;
+            if (n === 'Lightbulb') return <Lightbulb />;
+            if (n === 'ShieldCheck') return <ShieldCheck />;
+            if (n === 'Sparkles') return <Sparkles />;
+            if (n === 'Building2') return <Building2 />;
+            if (n === 'Truck') return <Truck />;
+            if (n === 'HeartPulse') return <HeartPulse />;
+            if (n === 'Briefcase') return <Briefcase />;
+            if (n === 'Paintbrush') return <Paintbrush />;
+            if (n === 'Hammer') return <Hammer />;
+            if (n === 'Scissors') return <Scissors />;
+            if (n === 'Camera') return <Camera />;
+            if (n === 'Laptop') return <Laptop />;
+            if (n === 'ShoppingBag' || n === 'Store') return <ShoppingBag />;
+            if (n === 'ChefHat') return <ChefHat />;
+            if (n === 'Music') return <Music />;
+            if (n === 'Car') return <Car />;
+            if (n === 'Home') return <HomeIcon />;
+            if (n === 'Phone') return <Phone />;
+            if (n === 'Plug') return <Plug />;
+            if (n === 'PaintRoller') return <PaintRoller />;
+            if (n === 'Flame') return <Flame />;
+            if (n === 'Utensils') return <Utensils />;
+            if (n === 'Dumbbell') return <Dumbbell />;
+            if (n === 'GraduationCap') return <GraduationCap />;
+            if (n === 'Baby') return <Baby />;
+            if (n === 'Stethoscope') return <Stethoscope />;
+            if (n === 'Globe') return <Globe />;
+            if (n === 'Database') return <Database />;
+            if (n === 'Smartphone') return <Smartphone />;
+            if (n === 'Plane') return <Plane />;
+            if (n === 'Gift') return <Gift />;
+            if (n === 'Trophy') return <Trophy />;
+            if (n === 'Coffee') return <Coffee />;
+            if (n === 'Wallet') return <Wallet />;
+            if (n === 'Trees') return <Trees />;
+            if (n === 'PawPrint') return <PawPrint />;
+            if (n === 'Flower2') return <Flower2 />;
+            if (n === 'Sun') return <Sun />;
+            if (n === 'Moon') return <Moon />;
+            if (n === 'Bike') return <Bike />;
+            if (n === 'Cpu') return <Cpu />;
+            if (n === 'Mouse') return <Mouse />;
+            if (n === 'Monitor') return <Monitor />;
+            if (n === 'Cloud') return <Cloud />;
+            if (n === 'Code') return <Code />;
+            if (n === 'Languages') return <Languages />;
+            if (n === 'Book') return <Book />;
+            if (n === 'School') return <School />;
+            if (n === 'HardHat') return <HardHat />;
+            if (n === 'Construction') return <Construction />;
+            if (n === 'Drill') return <Drill />;
+            if (n === 'PlugZap') return <PlugZap />;
+            if (n === 'Waves') return <Waves />;
+            if (n === 'Zap') return <Zap />;
+            if (n === 'Ticket') return <Ticket />;
+            if (n === 'Video') return <Video />;
+            if (n === 'Mic') return <Mic />;
+            if (n === 'Smile') return <Smile />;
+            if (n === 'Gamepad2') return <Gamepad2 />;
+            if (n === 'Brush') return <Brush />;
+            if (n === 'Wind') return <Wind />;
+            if (n === 'Pill') return <Pill />;
+            if (n === 'Activity') return <Activity />;
+            if (n === 'Apple') return <Apple />;
+            if (n === 'Bone') return <Bone />;
+            if (n === 'Gem') return <Gem />;
+            if (n === 'Key') return <Key />;
+            if (n === 'Anchor') return <Anchor />;
         }
         const n = name.toLowerCase();
-        if (n.includes('gasfiter') || n.includes('plomero')) return <Wrench size={20} />;
-        if (n.includes('electri')) return <Lightbulb size={20} />;
-        if (n.includes('cerrajer')) return <ShieldCheck size={20} />;
-        if (n.includes('limpieza') || n.includes('aseo')) return <Sparkles size={20} />;
-        if (n.includes('construc') || n.includes('albañil')) return <Building2 size={20} />;
-        if (n.includes('flete') || n.includes('mudan') || n.includes('transp')) return <Truck size={20} />;
-        if (n.includes('cuidad') || n.includes('salud') || n.includes('enfer')) return <HeartPulse size={20} />;
-        if (n.includes('mecanic')) return <Briefcase size={20} />;
-        if (n.includes('fontaner') || n.includes('gasfiter')) return <Wrench size={20} />;
-        if (n.includes('jardin')) return <Scissors size={20} />;
-        if (n.includes('gastro') || n.includes('comida') || n.includes('chef')) return <ChefHat size={20} />;
-        return <Wrench size={20} />;
+        if (n.includes('gasfiter') || n.includes('plomero')) return <Wrench />;
+        if (n.includes('electri')) return <Lightbulb />;
+        if (n.includes('cerrajer')) return <ShieldCheck />;
+        if (n.includes('limpieza') || n.includes('aseo')) return <Sparkles />;
+        if (n.includes('construc') || n.includes('albañil')) return <Building2 />;
+        if (n.includes('flete') || n.includes('mudan') || n.includes('transp')) return <Truck />;
+        if (n.includes('cuidad') || n.includes('salud') || n.includes('enfer')) return <HeartPulse />;
+        if (n.includes('mecanic')) return <Briefcase />;
+        if (n.includes('jardin')) return <Scissors />;
+        if (n.includes('gastro') || n.includes('comida') || n.includes('chef')) return <ChefHat />;
+        return <Wrench />;
     };
 
     const getServiceColor = (name: string) => {
@@ -180,250 +180,210 @@ export const ServiceCard = ({
     return (
         <Card
             id={`service-${service.id}`}
-            className={`group hover:shadow-2xl transition-all duration-500 border-2 rounded-2xl overflow-hidden ${String(service.id) === highlightId
+            className={`group hover:shadow-2xl transition-all duration-500 border-2 rounded-[2.5rem] overflow-hidden ${String(service.id) === highlightId
                 ? 'border-primary shadow-xl ring-4 ring-primary/15 scale-[1.02]'
                 : 'border-border hover:border-primary/30'
                 }`}
         >
-            <CardHeader className="pb-3 px-5 pt-5">
+            <CardHeader className="pb-3 px-6 pt-6">
                 <div className="flex items-start gap-4">
-                    <div className="relative shrink-0">
-                        <Avatar className="w-14 h-14 border-2 border-white shadow-md">
+                    <div className="relative shrink-0 mt-1">
+                        <Avatar className="w-14 h-14 border-2 border-white shadow-md ring-4 ring-primary/5">
                             {service.profile_image && (
                                 <AvatarImage src={service.profile_image} alt={service.user_name} />
                             )}
-                            <AvatarFallback className="text-lg font-bold bg-gradient-to-br from-secondary to-secondary/80 text-white">
-                                {service.user_name.split(' ').map((n: string) => n[0]).slice(0, 3).join('')}
+                            <AvatarFallback className="text-lg font-bold bg-gradient-to-br from-primary to-primary/80 text-white">
+                                {service.user_name.split(' ').map((n: string) => n[0]).slice(0, 2).join('')}
                             </AvatarFallback>
                         </Avatar>
-                        {service.reviews_count && service.reviews_count > 10 && (
-                            <div className="absolute -bottom-1 -right-1 bg-primary text-white p-1 rounded-full shadow-lg border border-white">
+                        {service.reviews_count && service.reviews_count > 5 && (
+                            <div className="absolute -bottom-1 -right-1 bg-yellow-500 text-white p-1 rounded-full shadow-lg border border-white">
                                 <Sparkles size={10} className="fill-white" />
                             </div>
                         )}
                     </div>
                     <div className="flex-1 min-w-0">
                         <div className="flex justify-between items-start gap-2">
-                            <CardTitle className="text-lg font-black truncate text-primary group-hover:text-primary transition-colors">
+                            <CardTitle className="text-xl font-black truncate text-slate-900 group-hover:text-primary transition-colors leading-tight">
                                 {(!service.service_name || service.service_name.trim() === '' || service.service_name.trim() === '.') ? 'Servicio Destacado' : service.service_name}
                             </CardTitle>
-                            <div className="flex items-center gap-1 bg-yellow-500/10 px-2 py-0.5 rounded-full border border-yellow-500/20 shadow-sm shrink-0">
-                                <Star className="w-3.5 h-3.5 fill-yellow-500 text-yellow-500" />
-                                <span className="text-xs font-bold text-yellow-600">
-                                    {(service.average_rating && Number(service.average_rating) > 0) ? Number(service.average_rating).toFixed(1) : '0.0'}
-                                </span>
-                            </div>
                         </div>
-                        <p className="text-xs text-muted-foreground font-bold truncate mt-0.5">Por {service.user_name}</p>
-                        <div className="flex flex-wrap items-center gap-1.5 mt-1">
-                            {service.service_name && service.service_name.trim() !== '' && service.service_name.trim() !== '.' && (
-                                <Badge variant="secondary" className="text-[10px] bg-muted/50 text-muted-foreground border-none font-medium">
-                                    {service.service_name}
-                                </Badge>
-                            )}
+                        <p className="text-sm text-muted-foreground font-bold truncate mt-0.5">Por {service.user_name}</p>
+                        <div className="flex items-center gap-2 mt-2">
                             <div
-                                className={`flex items-center gap-1 px-2 py-0.5 rounded-full border shadow-sm ${isLightColor(service.type_color || getServiceColor(service.type_name || '')) ? 'text-slate-900 border-black/5' : 'text-white border-white/10'}`}
+                                className={`flex items-center justify-center w-8 h-8 rounded-xl shadow-sm transition-transform duration-300 group-hover:scale-110 group-hover:rotate-6 ${isLightColor(service.type_color || getServiceColor(service.type_name || '')) ? 'text-slate-900' : 'text-white'}`}
                                 style={{ backgroundColor: service.type_color || getServiceColor(service.type_name || '') }}
                             >
-                                <span className="scale-75 origin-center -ml-0.5">
-                                    {getServiceIcon(service.service_name || service.type_name || '', service.type_icon)}
+                                <span className="scale-75 origin-center">
+                                    {(service.type_icon || service.type_name) ? (
+                                        <div className="[&>svg]:w-5 [&>svg]:h-5">
+                                            {getServiceIcon(service.service_name || service.type_name || '', service.type_icon)}
+                                        </div>
+                                    ) : (
+                                        <Wrench size={16} />
+                                    )}
                                 </span>
-                                <span className="text-[9px] font-bold uppercase tracking-tight">{service.type_name?.trim() ? service.type_name : 'Servicio'}</span>
                             </div>
+                            <span className="text-[10px] font-black uppercase tracking-widest text-muted-foreground/80">{service.type_name?.trim() ? service.type_name : 'Servicio Profesional'}</span>
                         </div>
                     </div>
                 </div>
             </CardHeader>
-            <CardContent className="px-5 pb-5">
-                <div className="relative mb-4">
-                    <p className="text-sm text-muted-foreground line-clamp-2 italic leading-relaxed min-h-[2.5rem]">
+            <CardContent className="px-6 pb-6">
+                <div className="relative mb-6">
+                    <p className="text-sm text-muted-foreground line-clamp-2 italic leading-relaxed min-h-[3rem]">
                         {(!service.description || service.description.trim() === '' || service.description.trim() === '.') ? 'Sin descripción disponible.' : service.description}
                     </p>
-                    <Dialog>
-                        <DialogTrigger asChild>
-                            <button className="text-xs text-primary font-bold hover:underline mt-2 focus:outline-none flex items-center transition-all bg-primary/5 px-2 py-1 rounded-md">
-                                Ver detalles completos <ChevronRight className="w-3 h-3 ml-0.5" />
-                            </button>
-                        </DialogTrigger>
-                        <DialogContent className="max-w-[450px] w-[95%] max-h-[90vh] overflow-y-auto rounded-3xl border-none p-0 bg-transparent shadow-none">
-                            <div className="bg-white rounded-[2rem] overflow-hidden shadow-2xl relative">
-                                {/* Background decoration */}
-                                <div
-                                    className="h-24 w-full absolute top-0 left-0"
-                                    style={{ backgroundColor: service.type_color || getServiceColor(service.type_name || '') }}
-                                >
-                                    <div className="absolute inset-0 opacity-10 bg-[radial-gradient(circle_at_center,_white_1px,_transparent_1px)] bg-[length:20px_20px]" />
-                                </div>
-
-                                <div className="pt-12 px-6 pb-8 text-center relative z-10">
-                                    <Avatar className="w-24 h-24 mx-auto border-4 border-white shadow-xl -mt-0 mb-4">
-                                        {service.profile_image && (
-                                            <AvatarImage src={service.profile_image} alt={service.user_name} />
-                                        )}
-                                        <AvatarFallback className="text-3xl font-bold bg-secondary text-white">
-                                            {service.user_name.split(' ').map((n: string) => n[0]).slice(0, 3).join('')}
-                                        </AvatarFallback>
-                                    </Avatar>
-
-                                    <DialogTitle className="text-2xl font-black mb-1">{service.user_name}</DialogTitle>
-
-                                    <div className="flex items-center justify-center gap-2 mb-6">
-                                        <div className="flex items-center gap-1.5 bg-yellow-500/10 px-3 py-1 rounded-full border border-yellow-500/20">
-                                            <Star className="w-4 h-4 fill-yellow-500 text-yellow-500" />
-                                            <span className="text-sm font-black text-yellow-600">
-                                                {(service.average_rating && Number(service.average_rating) > 0) ? Number(service.average_rating).toFixed(1) : '0.0'}
-                                            </span>
-                                        </div>
-                                        <div
-                                            className={`flex items-center gap-1.5 px-3 py-1 rounded-full shadow-sm ${isLightColor(service.type_color || getServiceColor(service.type_name || '')) ? 'text-slate-900' : 'text-white'}`}
-                                            style={{ backgroundColor: service.type_color || getServiceColor(service.type_name || '') }}
-                                        >
-                                            <span className="scale-75">
-                                                {getServiceIcon(service.service_name || service.type_name || '', service.type_icon)}
-                                            </span>
-                                            <span className="text-[10px] font-bold uppercase tracking-wider">{service.type_name?.trim() ? service.type_name : 'Servicio'}</span>
-                                        </div>
+                    <div className="flex justify-start mt-3">
+                        <Dialog>
+                            <DialogTrigger asChild>
+                                <button className="text-[11px] text-primary font-black uppercase tracking-widest hover:underline focus:outline-none flex items-center transition-all bg-primary/5 hover:bg-primary/10 px-3 py-1.5 rounded-xl border border-primary/10">
+                                    Detalles completos <ChevronRight className="w-3.5 h-3.5 ml-1" />
+                                </button>
+                            </DialogTrigger>
+                            <DialogContent className="max-w-[450px] w-[95%] max-h-[90vh] overflow-y-auto rounded-[2.5rem] border-none p-0 bg-transparent shadow-none">
+                                <div className="bg-white rounded-[3rem] overflow-hidden shadow-2xl relative">
+                                    {/* Background decoration */}
+                                    <div
+                                        className="h-28 w-full absolute top-0 left-0"
+                                        style={{ backgroundColor: service.type_color || getServiceColor(service.type_name || '') }}
+                                    >
+                                        <div className="absolute inset-0 opacity-10 bg-[radial-gradient(circle_at_center,_white_1px,_transparent_1px)] bg-[length:24px_24px]" />
                                     </div>
 
-                                    <div className="space-y-6 text-left">
-                                        <div className="bg-muted/30 p-4 rounded-2xl">
-                                            <h4 className="text-[10px] font-black uppercase tracking-widest text-muted-foreground mb-2 px-1">Acerca de este servicio</h4>
-                                            <p className="text-sm text-foreground whitespace-pre-wrap leading-relaxed">
-                                                {(!service.description || service.description.trim() === '' || service.description.trim() === '.') ? 'Este prestador no ha proporcionado una descripción detallada aún.' : service.description}
-                                            </p>
-                                        </div>
+                                    <div className="pt-16 px-8 pb-10 text-center relative z-10">
+                                        <Avatar className="w-28 h-28 mx-auto border-[6px] border-white shadow-2xl mb-4 ring-1 ring-black/5">
+                                            {service.profile_image && (
+                                                <AvatarImage src={service.profile_image} alt={service.user_name} />
+                                            )}
+                                            <AvatarFallback className="text-4xl font-black bg-gradient-to-br from-primary to-primary/80 text-white">
+                                                {service.user_name.split(' ').map((n: string) => n[0]).slice(0, 2).join('')}
+                                            </AvatarFallback>
+                                        </Avatar>
 
-                                        <div className="grid grid-cols-2 gap-3">
-                                            <div className="flex flex-col gap-1 bg-secondary/5 p-3 rounded-xl border border-secondary/10">
-                                                <div className="flex items-center gap-2 text-secondary">
-                                                    <MapPin size={16} />
-                                                    <span className="text-[10px] font-black uppercase tracking-widest">Base</span>
+                                        <DialogTitle className="text-3xl font-black mb-1 text-slate-900">{service.user_name}</DialogTitle>
+                                        <p className="text-sm font-bold text-primary mb-6">{service.service_name}</p>
+
+                                        <div className="flex items-center justify-center gap-3 mb-8">
+                                            <div className="flex items-center gap-2 bg-yellow-500/10 px-4 py-2 rounded-2xl border border-yellow-500/20">
+                                                <Star className="w-5 h-5 fill-yellow-500 text-yellow-500" />
+                                                <span className="text-lg font-black text-yellow-600">
+                                                    {(service.average_rating && Number(service.average_rating) > 0) ? Number(service.average_rating).toFixed(1) : '0.0'}
+                                                </span>
+                                            </div>
+                                            <div
+                                                className={`flex items-center gap-2 px-4 py-2 rounded-2xl shadow-md ${isLightColor(service.type_color || getServiceColor(service.type_name || '')) ? 'text-slate-900 border-black/5' : 'text-white border-white/10'}`}
+                                                style={{ backgroundColor: service.type_color || getServiceColor(service.type_name || '') }}
+                                            >
+                                                <div className="scale-90 [&>svg]:w-5 [&>svg]:h-5">
+                                                    {getServiceIcon(service.service_name || service.type_name || '', service.type_icon)}
                                                 </div>
-                                                <span className="font-bold text-sm ml-6">{service.comuna}</span>
+                                                <span className="text-[11px] font-black uppercase tracking-widest">{service.type_name?.trim() ? service.type_name : 'Servicio'}</span>
                                             </div>
-                                            <div className="flex flex-col gap-1 bg-primary/5 p-3 rounded-xl border border-primary/10">
-                                                <div className="flex items-center gap-2 text-primary">
-                                                    <Sparkles size={16} />
-                                                    <span className="text-[10px] font-black uppercase tracking-widest">Reseñas</span>
+                                        </div>
+
+                                        <div className="space-y-6 text-left">
+                                            <div className="bg-slate-50 p-6 rounded-[2rem] border border-slate-100">
+                                                <h4 className="text-[11px] font-black uppercase tracking-[0.2em] text-muted-foreground mb-3 px-1">Acerca de este servicio</h4>
+                                                <p className="text-sm text-slate-600 whitespace-pre-wrap leading-relaxed font-medium">
+                                                    {(!service.description || service.description.trim() === '' || service.description.trim() === '.') ? 'Este prestador no ha proporcionado una descripción detallada aún.' : service.description}
+                                                </p>
+                                            </div>
+
+                                            <div className="grid grid-cols-2 gap-4">
+                                                <div className="flex flex-col gap-1 bg-secondary/5 p-4 rounded-2xl border border-secondary/10">
+                                                    <div className="flex items-center gap-2 text-secondary">
+                                                        <MapPin size={18} />
+                                                        <span className="text-[11px] font-black uppercase tracking-widest">Base</span>
+                                                    </div>
+                                                    <span className="font-bold text-sm ml-7">{service.comuna}</span>
                                                 </div>
-                                                <span className="font-bold text-sm ml-6">{service.reviews_count || 0} recibidas</span>
+                                                <div className="flex flex-col gap-1 bg-primary/5 p-4 rounded-2xl border border-primary/10">
+                                                    <div className="flex items-center gap-2 text-primary">
+                                                        <Sparkles size={18} />
+                                                        <span className="text-[11px] font-black uppercase tracking-widest">Reseñas</span>
+                                                    </div>
+                                                    <span className="font-bold text-sm ml-7">{service.reviews_count || 0} recibidas</span>
+                                                </div>
+                                            </div>
+
+                                            <div className="p-4 bg-muted/20 rounded-2xl border-2 border-dashed border-muted">
+                                                <p className="text-[11px] font-black text-muted-foreground text-center uppercase tracking-widest">
+                                                    * El precio se coordina directamente con el profesional
+                                                </p>
                                             </div>
                                         </div>
 
-                                        <div className="space-y-2">
-                                            <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground block px-1">Lugares disponibles / Desplazamiento</Label>
-                                            <div className="flex flex-wrap gap-1.5">
-                                                {service.coverage_communes && service.coverage_communes.filter(c => c && c.trim()).length > 0 ? (
-                                                    service.coverage_communes.filter(c => c && c.trim()).map((c) => (
-                                                        <Badge key={c} variant="outline" className="text-[10px] py-0.5 px-3 border-primary/20 text-primary bg-primary/5 rounded-lg">
-                                                            {c}
-                                                        </Badge>
-                                                    ))
-                                                ) : (
-                                                    <Badge variant="outline" className="text-[10px] py-0.5 px-3 border-muted text-muted-foreground italic rounded-lg">
-                                                        Solo {service.comuna}
-                                                    </Badge>
-                                                )}
-                                            </div>
+                                        <div className="grid grid-cols-2 gap-4 mt-10">
+                                            <Button
+                                                variant="outline"
+                                                className="w-full rounded-[1.5rem] border-2 border-yellow-400 text-yellow-700 hover:bg-yellow-50 transition-all duration-300 h-16 font-black text-sm shadow-sm"
+                                                onClick={() => {
+                                                    const closeBtn = document.querySelector('[role="dialog"] button[aria-label="Close"]') as HTMLButtonElement | null;
+                                                    if (closeBtn) closeBtn.click();
+                                                    onOpenReviews(service);
+                                                }}
+                                            >
+                                                <Star size={20} className="mr-2 fill-yellow-400 text-yellow-400" />
+                                                Ver Reseñas
+                                            </Button>
+                                            <Button
+                                                className="w-full rounded-[1.5rem] bg-[#25D366] hover:bg-[#20ba59] text-white transition-all duration-300 h-16 font-black text-sm shadow-xl shadow-green-500/20"
+                                                onClick={() => {
+                                                    const closeBtn = document.querySelector('[role="dialog"] button[aria-label="Close"]') as HTMLButtonElement | null;
+                                                    if (closeBtn) closeBtn.click();
+                                                    onWhatsApp(service);
+                                                }}
+                                                disabled={!service.phone}
+                                            >
+                                                <MessageCircle size={24} className="mr-2" />
+                                                WhatsApp
+                                            </Button>
                                         </div>
-
-                                        <div className="p-4 bg-secondary/5 rounded-2xl border-2 border-dashed border-secondary/20">
-                                            <p className="text-xs font-bold text-secondary text-center italic">
-                                                * El precio se coordina por interno con el profesional
-                                            </p>
-                                        </div>
-                                    </div>
-
-                                    <div className="grid grid-cols-2 gap-4 mt-8">
-                                        <Button
-                                            variant="outline"
-                                            className="w-full rounded-2xl border-yellow-400 text-yellow-700 hover:bg-yellow-50 transition-all duration-300 h-14 font-bold text-sm"
-                                            onClick={() => {
-                                                const closeBtn = document.querySelector('[role="dialog"] button[aria-label="Close"]') as HTMLButtonElement | null;
-                                                if (closeBtn) closeBtn.click();
-                                                onOpenReviews(service);
-                                            }}
-                                        >
-                                            <Star size={18} className="mr-2 fill-yellow-400 text-yellow-400" />
-                                            Ver Reseñas
-                                        </Button>
-                                        <Button
-                                            className="w-full rounded-2xl bg-[#25D366] hover:bg-[#20ba59] text-white transition-all duration-300 h-14 font-extrabold text-sm shadow-lg shadow-green-500/20"
-                                            onClick={() => {
-                                                const closeBtn = document.querySelector('[role="dialog"] button[aria-label="Close"]') as HTMLButtonElement | null;
-                                                if (closeBtn) closeBtn.click();
-                                                onWhatsApp(service);
-                                            }}
-                                            disabled={!service.phone}
-                                        >
-                                            <MessageCircle size={20} className="mr-2" />
-                                            WhatsApp
-                                        </Button>
                                     </div>
                                 </div>
-                            </div>
-                        </DialogContent>
-                    </Dialog>
-                </div>
-                <div className="space-y-4 pt-1">
-                    <div className="flex flex-col gap-3">
-                        <div className="flex items-center justify-between">
-                            <div className="flex items-center gap-2 bg-secondary/5 px-3 py-1.5 rounded-xl border border-secondary/10 max-w-[50%]">
-                                <MapPin size={14} className="text-secondary shrink-0" />
-                                <span className="text-xs font-bold truncate">{service.comuna}</span>
-                            </div>
-                            <div className="flex items-center gap-1.5 px-3 py-1.5 bg-yellow-400/10 rounded-xl border border-yellow-400/20 shadow-sm">
-                                <Star className="w-3.5 h-3.5 fill-yellow-500 text-yellow-500" />
-                                <span className="text-xs font-black text-yellow-700">
-                                    {(service.average_rating && Number(service.average_rating) > 0) ? Number(service.average_rating).toFixed(1) : '0.0'}
-                                </span>
-                                <span className="text-[10px] text-yellow-600 font-bold opacity-70">({service.reviews_count || 0})</span>
-                            </div>
-                        </div>
-
-                        {/* Lugares Disponibles / Cobertura */}
-                        <div className="space-y-1.5">
-                            <span className="text-[9px] font-black uppercase tracking-widest text-muted-foreground px-1">Zonas de servicio</span>
-                            <div className="flex flex-wrap gap-1">
-                                {service.coverage_communes && service.coverage_communes.filter(c => c && c.trim()).length > 0 ? (
-                                    service.coverage_communes.filter(c => c && c.trim()).slice(0, 3).map((c) => (
-                                        <Badge key={c} variant="outline" className="text-[9px] py-0 px-2 border-primary/20 text-primary bg-primary/5 rounded-md">
-                                            {c}
-                                        </Badge>
-                                    ))
-                                ) : (
-                                    <Badge variant="outline" className="text-[9px] py-0 px-2 border-muted text-muted-foreground italic rounded-md">
-                                        Solo {service.comuna}
-                                    </Badge>
-                                )}
-                                {service.coverage_communes && service.coverage_communes.filter(c => c && c.trim()).length > 3 && (
-                                    <span className="text-[9px] text-muted-foreground font-bold ml-1">
-                                        +{service.coverage_communes.filter(c => c && c.trim()).length - 3} más
-                                    </span>
-                                )}
-                            </div>
-                        </div>
+                            </DialogContent>
+                        </Dialog>
                     </div>
                 </div>
-                <div className="flex flex-col sm:grid sm:grid-cols-2 gap-2 mt-5">
-                    <Button
-                        variant="outline"
-                        className="w-full border-yellow-400 text-yellow-700 hover:bg-yellow-50 transition-all duration-300 h-10 rounded-xl font-bold text-xs"
-                        onClick={() => onOpenReviews(service)}
-                    >
-                        <Star size={14} className="mr-1.5 fill-yellow-400 text-yellow-400" />
-                        Reseñas ({service.reviews_count || 0})
-                    </Button>
-                    <Button
-                        className="w-full bg-[#25D366] hover:bg-[#20ba59] text-white h-10 rounded-xl font-black text-xs shadow-md shadow-green-500/10 transition-all active:scale-[0.98]"
-                        onClick={() => onWhatsApp(service)}
-                        disabled={!service.phone}
-                    >
-                        <MessageCircle size={16} className="mr-1.5" />
-                        WhatsApp
-                    </Button>
+                
+                <div className="space-y-6 pt-2">
+                    <div className="flex items-center justify-between gap-4">
+                        <div className="flex items-center gap-2.5 bg-secondary/5 px-4 py-2 rounded-2xl border border-secondary/10 overflow-hidden">
+                            <MapPin size={16} className="text-secondary shrink-0" />
+                            <span className="text-xs font-bold truncate max-w-[120px]">{service.comuna}</span>
+                        </div>
+                        <div className="flex items-center gap-1.5 px-4 py-2 bg-yellow-400/5 rounded-2xl border border-yellow-400/10 shadow-sm shrink-0">
+                            <Star className="w-4 h-4 fill-yellow-500 text-yellow-500" />
+                            <span className="text-sm font-black text-slate-800">
+                                {(service.average_rating && Number(service.average_rating) > 0) ? Number(service.average_rating).toFixed(1) : '0.0'}
+                            </span>
+                            <span className="text-[10px] text-muted-foreground font-bold ml-0.5">({service.reviews_count || 0})</span>
+                        </div>
+                    </div>
+
+                    <div className="flex flex-col sm:grid sm:grid-cols-2 gap-3 mt-6">
+                        <Button
+                            variant="outline"
+                            className="w-full border-2 border-yellow-400 text-yellow-700 hover:bg-yellow-50 transition-all duration-300 h-12 rounded-[1.25rem] font-black text-xs shadow-sm hover:shadow-md"
+                            onClick={() => onOpenReviews(service)}
+                        >
+                            <Star size={16} className="mr-2 fill-yellow-400 text-yellow-400" />
+                            RESEÑAS
+                        </Button>
+                        <Button
+                            className="w-full bg-[#25D366] hover:bg-[#20ba59] text-white h-12 rounded-[1.25rem] font-black text-xs shadow-lg shadow-green-500/10 transition-all active:scale-[0.96] hover:shadow-green-500/20"
+                            onClick={() => onWhatsApp(service)}
+                            disabled={!service.phone}
+                        >
+                            <MessageCircle size={20} className="mr-2" />
+                            WHATSAPP
+                        </Button>
+                    </div>
                 </div>
             </CardContent>
         </Card>
     );
 };
+
+export default ServiceCard;
