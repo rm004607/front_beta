@@ -19,7 +19,7 @@ const resources = {
                 "verified_community": "Comunidad 100% Verificada",
                 "title_part1": "¡Acá está el ",
                 "title_part2": "Dato que necesitas!",
-                "description": "(Gásfiter, electricista, cerrajero, limpieza, construcciones, mecánica automotriz, cuidadores y más...)",
+                "description": "",
                 "join_now": "Únete Ahora",
                 "explore_services": "Explorar Servicios"
             },
@@ -118,7 +118,7 @@ const resources = {
                 "publish_error": "Error al publicar servicio"
             },
             "footer": {
-                "desc": "La plataforma líder en Chile para conectar talentos, oportunidades laborales y emprendimientos locales. Impulsando el crecimiento de nuestra comunidad.",
+                "desc": "La mejor plataforma para contactar talentos, oportunidades laborales y emprendimientos locales. Impulsando el crecimiento de nuestra comunidad.",
                 "explore": "Explorar",
                 "account": "Tu Cuenta",
                 "support": "Soporte",
@@ -167,7 +167,7 @@ const resources = {
                 "verified_community": "100% Verified Community",
                 "title_part1": "Here is the ",
                 "title_part2": "Data you need!",
-                "description": "(Plumber, electrician, locksmith, cleaning, construction, automotive mechanics, caregivers and more...)",
+                "description": "",
                 "join_now": "Join Now",
                 "explore_services": "Explore Services"
             },
@@ -266,7 +266,7 @@ const resources = {
                 "publish_error": "Error publishing service"
             },
             "footer": {
-                "desc": "The leading platform in Chile to connect talents, job opportunities and local entrepreneurship. Boosting our community's growth.",
+                "desc": "The best platform to connect talents, job opportunities and local entrepreneurship. Boosting our community's growth.",
                 "explore": "Explore",
                 "account": "Your Account",
                 "support": "Support",

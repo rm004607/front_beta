@@ -112,9 +112,6 @@ const Services = () => {
     }
   }, [highlightId, loading, services]);
 
-  useEffect(() => {
-    loadServices();
-  }, [searchTerm, comunaFilter, regionFilter, typeFilter, pagination.page]);
 
   // Cargar tipos de servicios para mostrar nombres en filtros/badge
   useEffect(() => {
@@ -156,6 +153,14 @@ const Services = () => {
     if (!service.phone) {
       toast.error(t('services.no_phone_msg'));
       return;
+    }
+
+    // Registrar contacto para desbloquear reseñas
+    const contactedStr = localStorage.getItem('contacted_services') || '[]';
+    const contacted = JSON.parse(contactedStr);
+    if (!contacted.includes(service.id)) {
+      contacted.push(service.id);
+      localStorage.setItem('contacted_services', JSON.stringify(contacted));
     }
 
     // Si pricing está desactivado, contactar gratis (Modo Todo Gratuito)
@@ -359,7 +364,7 @@ const Services = () => {
               <div className="flex flex-wrap gap-2 mt-4 pt-4 border-t border-white/5">
                 {typeFilter !== 'all' && (
                   <Badge variant="secondary" className="bg-accent/20 text-accent border-accent/20 px-3 py-1 flex items-center gap-2">
-                    Categoría: {serviceTypes.find(t => t.id === typeFilter)?.name || 'Cargando...'}
+                    Categoría: {serviceTypes.find(t => String(t.id) === String(typeFilter))?.name || 'Cargando...'}
                     <button onClick={() => setTypeFilter('all')} className="hover:text-primary transition-colors">x</button>
                   </Badge>
                 )}
@@ -526,7 +531,7 @@ const Services = () => {
           </DialogContent>
         </Dialog>
       </div>
-    </div >
+    </div>
   );
 };
 

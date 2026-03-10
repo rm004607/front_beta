@@ -1,4 +1,4 @@
-import { Star, Loader2, Trash2 } from 'lucide-react';
+import { Star, Loader2, Trash2, Info } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -109,37 +109,46 @@ export const ServiceDetail = ({
 
             {/* Formulario para dejar reseña */}
             {(isLoggedIn && (user?.id !== service.user_id || user?.role_number === 5)) ? (
-                <div className="border rounded-xl p-4 mb-8 bg-muted/30">
-                    <h4 className="font-bold mb-3">Deja tu reseña</h4>
-                    <div className="flex gap-2 mb-4">
-                        {[1, 2, 3, 4, 5].map((s) => (
-                            <button
-                                key={s}
-                                onClick={() => setUserRating(s)}
-                                className="transition-transform hover:scale-110"
-                            >
-                                <Star
-                                    className={`w-8 h-8 ${s <= userRating ? 'fill-yellow-400 text-yellow-400' : 'text-gray-300'}`}
-                                />
-                            </button>
-                        ))}
+                JSON.parse(localStorage.getItem('contacted_services') || '[]').includes(service.id) ? (
+                    <div className="border rounded-xl p-4 mb-8 bg-muted/30">
+                        <h4 className="font-bold mb-3">Deja tu reseña</h4>
+                        <div className="flex gap-2 mb-4">
+                            {[1, 2, 3, 4, 5].map((s) => (
+                                <button
+                                    key={s}
+                                    onClick={() => setUserRating(s)}
+                                    className="transition-transform hover:scale-110"
+                                >
+                                    <Star
+                                        className={`w-8 h-8 ${s <= userRating ? 'fill-yellow-400 text-yellow-400' : 'text-gray-300'}`}
+                                    />
+                                </button>
+                            ))}
+                        </div>
+                        <Label htmlFor="review-comment" className="mb-2 block">Tu comentario</Label>
+                        <Input
+                            id="review-comment"
+                            placeholder="Cuéntanos tu experiencia con este servicio..."
+                            value={userComment}
+                            onChange={(e) => setUserComment(e.target.value)}
+                            className="mb-4"
+                        />
+                        <Button
+                            onClick={onSubmitReview}
+                            disabled={isSubmittingReview}
+                            className="w-full"
+                        >
+                            {isSubmittingReview ? <Loader2 className="animate-spin" /> : 'Publicar Reseña'}
+                        </Button>
                     </div>
-                    <Label htmlFor="review-comment" className="mb-2 block">Tu comentario</Label>
-                    <Input
-                        id="review-comment"
-                        placeholder="Cuéntanos tu experiencia con este servicio..."
-                        value={userComment}
-                        onChange={(e) => setUserComment(e.target.value)}
-                        className="mb-4"
-                    />
-                    <Button
-                        onClick={onSubmitReview}
-                        disabled={isSubmittingReview}
-                        className="w-full"
-                    >
-                        {isSubmittingReview ? <Loader2 className="animate-spin" /> : 'Publicar Reseña'}
-                    </Button>
-                </div>
+                ) : (
+                    <div className="bg-primary/5 p-4 rounded-xl border border-dashed border-primary/20 mb-8 text-center">
+                        <p className="text-sm text-muted-foreground flex items-center justify-center gap-2">
+                            <Info size={16} />
+                            Para dejar una reseña, primero debes contactar al prestador del servicio.
+                        </p>
+                    </div>
+                )
             ) : (
                 <div className="border border-dashed rounded-xl p-6 mb-8 bg-muted/10 text-center">
                     {!isLoggedIn ? (
