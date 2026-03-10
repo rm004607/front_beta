@@ -193,15 +193,12 @@ export const ServiceCard = ({
                 <div className="flex items-start gap-4">
                     <div className="relative shrink-0 mt-0.5 sm:mt-1">
                         <Avatar className="w-12 h-12 sm:w-14 sm:h-14 border-2 border-white shadow-md ring-4 ring-primary/5 transition-transform duration-300 group-hover:scale-105">
-                            {service.profile_image ? (
-                                <AvatarImage src={service.profile_image} alt={service.user_name} className="object-cover" />
-                            ) : (
-                                <AvatarFallback className="bg-gradient-to-br from-primary to-primary/80 text-white flex items-center justify-center">
-                                    <div className="scale-110 opacity-90">
-                                        {getServiceIcon(service.service_name || service.type_name || '', service.type_icon)}
-                                    </div>
-                                </AvatarFallback>
-                            )}
+                            <AvatarImage src={service.profile_image} alt={service.user_name} className="object-cover" />
+                            <AvatarFallback className="bg-gradient-to-br from-primary to-primary/80 text-white flex items-center justify-center">
+                                <div className="scale-110 opacity-90">
+                                    {getServiceIcon(service.service_name || service.type_name || '', service.type_icon)}
+                                </div>
+                            </AvatarFallback>
                         </Avatar>
                         {service.reviews_count && service.reviews_count > 5 && (
                             <div className="absolute -bottom-1 -right-1 bg-yellow-500 text-white p-1 rounded-full shadow-lg border border-white">
@@ -248,15 +245,12 @@ export const ServiceCard = ({
 
                                     <div className="pt-12 sm:pt-16 px-6 sm:px-8 pb-8 sm:pb-10 text-center relative z-10">
                                         <Avatar className="w-24 h-24 sm:w-28 sm:h-28 mx-auto border-[4px] sm:border-[6px] border-white shadow-2xl mb-3 sm:mb-4 ring-1 ring-black/5 relative group-hover:scale-105 transition-transform duration-500">
-                                            {service.profile_image ? (
-                                                <AvatarImage src={service.profile_image} alt={service.user_name} className="object-cover" />
-                                            ) : (
-                                                <AvatarFallback className="bg-gradient-to-br from-primary to-primary/80 text-white flex flex-col items-center justify-center">
-                                                    <div className="scale-[2] sm:scale-[2.5] opacity-90 mb-1">
-                                                        {getServiceIcon(service.service_name || service.type_name || '', service.type_icon)}
-                                                    </div>
-                                                </AvatarFallback>
-                                            )}
+                                            <AvatarImage src={service.profile_image} alt={service.user_name} className="object-cover" />
+                                            <AvatarFallback className="bg-gradient-to-br from-primary to-primary/80 text-white flex flex-col items-center justify-center">
+                                                <div className="scale-[2] sm:scale-[2.5] opacity-90 mb-1">
+                                                    {getServiceIcon(service.service_name || service.type_name || '', service.type_icon)}
+                                                </div>
+                                            </AvatarFallback>
                                         </Avatar>
                                         <DialogTitle className="text-2xl sm:text-3xl font-black mb-1 text-slate-900">{service.user_name}</DialogTitle>
                                         <p className="text-sm font-bold text-primary mb-6">{service.service_name}</p>
