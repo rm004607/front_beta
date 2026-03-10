@@ -69,9 +69,7 @@ const Profile = () => {
   const { user, isLoggedIn, isLoading, loadUser } = useUser();
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
-  const [posts, setPosts] = useState<Post[]>([]);
   const [services, setServices] = useState<Service[]>([]);
-  const [loadingPosts, setLoadingPosts] = useState(false);
   const [loadingServices, setLoadingServices] = useState(false);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [editName, setEditName] = useState('');
@@ -83,7 +81,7 @@ const Profile = () => {
   const fileInputRef = useRef<HTMLInputElement>(null);
   /* CV code removido */
   // Estados para edición
-  const [editingPost, setEditingPost] = useState<Post | null>(null);
+  // Estados para edición
   // Estados para completar perfil
   const [showCompleteProfileDialog, setShowCompleteProfileDialog] = useState(false);
   const [completePhone, setCompletePhone] = useState('');
@@ -91,8 +89,6 @@ const Profile = () => {
   const [completeComuna, setCompleteComuna] = useState('');
   const [isCompletingProfile, setIsCompletingProfile] = useState(false);
   const [editingService, setEditingService] = useState<Service | null>(null);
-  const [editPostContent, setEditPostContent] = useState('');
-  const [editPostComuna, setEditPostComuna] = useState('');
   const [editServiceName, setEditServiceName] = useState('');
   const [editServiceDescription, setEditServiceDescription] = useState('');
   const [editServiceMinPrice, setEditServiceMinPrice] = useState('');
@@ -102,20 +98,6 @@ const Profile = () => {
   // Estados para regiones
   const [editRegion, setEditRegion] = useState('');
   const [completeRegion, setCompleteRegion] = useState('');
-
-  // Definir funciones antes de los hooks que las usan
-  const loadPosts = async () => {
-    try {
-      setLoadingPosts(true);
-      const response = await postsAPI.getMyPosts();
-      setPosts(response.posts || []);
-    } catch (error: any) {
-      console.error('Error loading posts:', error);
-      toast.error(error.message || 'Error al cargar publicaciones');
-    } finally {
-      setLoadingPosts(false);
-    }
-  };
 
   const loadServices = async () => {
     try {
@@ -131,21 +113,6 @@ const Profile = () => {
   };
 
 
-  const handleDeletePost = async (postId: string) => {
-    if (!confirm('¿Estás seguro de que quieres eliminar esta publicación?')) {
-      return;
-    }
-
-    try {
-      await postsAPI.deletePost(postId);
-      toast.success('Publicación eliminada');
-      loadPosts();
-    } catch (error: any) {
-      console.error('Error deleting post:', error);
-      toast.error(error.message || 'Error al eliminar publicación');
-    }
-  };
-
   const handleDeleteService = async (serviceId: string) => {
     if (!confirm('¿Estás seguro de que quieres eliminar este servicio?')) {
       return;
@@ -159,34 +126,6 @@ const Profile = () => {
       console.error('Error deleting service:', error);
       toast.error(error.message || 'Error al eliminar servicio');
     }
-  };
-
-  // Funciones de edición
-  const handleEditPost = (post: Post) => {
-    setEditingPost(post);
-    setEditPostContent(post.content);
-    setEditPostComuna(post.comuna);
-  };
-
-  const handleSavePost = async () => {
-    if (!editingPost || !editPostContent.trim() || !editPostComuna.trim()) {
-      toast.error('Por favor completa todos los campos');
-      return;
-    }
-
-    if (!isValidTextField(editPostContent, 2000)) {
-      toast.error('El contenido de la publicación contiene caracteres no permitidos');
-      return;
-    }
-
-    if (!isValidComuna(editPostComuna)) {
-      toast.error('La comuna contiene caracteres no permitidos');
-      return;
-    }
-
-    // Nota: No hay endpoint de actualización de posts aún, por ahora solo mostramos un mensaje
-    toast.info('La funcionalidad de edición de publicaciones estará disponible pronto');
-    setEditingPost(null);
   };
 
   const handleEditService = (service: Service) => {
@@ -471,13 +410,12 @@ const Profile = () => {
   // Cargar datos cuando el usuario esté disponible
   useEffect(() => {
     if (user && isLoggedIn) {
-      loadPosts();
       if (user.roles.includes('entrepreneur') || user.roles.includes('admin') || user.role_number === 5) {
         loadServices();
       }
     }
      
-  }, [user, isLoggedIn]); // loadPosts, loadServices, loadJobs son estables y no necesitan estar en deps
+  }, [user, isLoggedIn]);
 
   /* Notificación de CV removida */
 
@@ -638,93 +576,13 @@ const Profile = () => {
           )
         }
 
-        {/* Tabs para mostrar publicaciones, servicios y empleos */}
-        <Tabs defaultValue="posts" className="w-full">
-          <TabsList className={`grid w-full h-auto mb-4 p-1 gap-1 ${user.roles.includes('admin') || user.role_number === 5
-            ? 'grid-cols-1 md:grid-cols-2'
-            : (user.roles.includes('entrepreneur') ||
-              user.roles.includes('admin') || user.role_number === 5)
-              ? 'grid-cols-1 sm:grid-cols-2'
-              : 'grid-cols-1'
-            }`}>
-            <TabsTrigger value="posts" className="flex items-center gap-2">
-              <MessageSquare size={16} />
-              Publicaciones ({posts.length})
-            </TabsTrigger>
-            {(user.roles.includes('entrepreneur') || user.roles.includes('admin') || user.role_number === 5) && (
-              <TabsTrigger value="services" className="flex items-center gap-2">
-                <Wrench size={16} />
-                Servicios ({services.filter(s => s.status?.toLowerCase().trim() !== 'inactive').length})
-              </TabsTrigger>
-            )}
-          </TabsList>
+        {/* Listado de Servicios */}
+        <div className="w-full">
 
-          {/* Tab de Publicaciones */}
-          <TabsContent value="posts">
-            <Card className="border-2">
-              <CardHeader>
-                <CardTitle>Mis Publicaciones</CardTitle>
-                <CardDescription>Tus publicaciones activas en el muro</CardDescription>
-              </CardHeader>
-              <CardContent>
-                {loadingPosts ? (
-                  <div className="text-center py-8">
-                    <p className="text-muted-foreground">Cargando publicaciones...</p>
-                  </div>
-                ) : posts.length === 0 ? (
-                  <div className="text-center py-8">
-                    <p className="text-muted-foreground">No has publicado nada aún</p>
-                    <Button className="mt-4" onClick={() => navigate('/muro')}>
-                      Crear Publicación
-                    </Button>
-                  </div>
-                ) : (
-                  <div className="space-y-4">
-                    {posts.map((post) => (
-                      <Card key={post.id} className="border">
-                        <CardHeader>
-                          <div className="flex justify-between items-start">
-                            <div className="flex-1">
-                              <CardTitle className="text-lg">{post.type}</CardTitle>
-                              <CardDescription>
-                                {post.comuna} | {formatDate(post.created_at)}
-                              </CardDescription>
-                              <CardDescription className="mt-1">
-                                👍 {post.likes_count} | 💬 {post.comments_count}
-                              </CardDescription>
-                            </div>
-                            <div className="flex gap-2">
-                              <Button
-                                variant="ghost"
-                                size="sm"
-                                onClick={() => handleEditPost(post)}
-                              >
-                                <Edit size={16} />
-                              </Button>
-                              <Button
-                                variant="ghost"
-                                size="sm"
-                                onClick={() => handleDeletePost(post.id)}
-                              >
-                                <Trash2 size={16} className="text-destructive" />
-                              </Button>
-                            </div>
-                          </div>
-                        </CardHeader>
-                        <CardContent>
-                          <p className="whitespace-pre-wrap">{post.content}</p>
-                        </CardContent>
-                      </Card>
-                    ))}
-                  </div>
-                )}
-              </CardContent>
-            </Card>
-          </TabsContent>
 
-          {/* Tab de Servicios/Pymes (Emprendedores, Admin y Super-Admin) */}
+          {/* Vista de Servicios (Emprendedores, Admin y Super-Admin) */}
           {(user.roles.includes('entrepreneur') || user.roles.includes('admin') || user.role_number === 5) && (
-            <TabsContent value="services">
+            <div className="mt-6">
               <Card className="border-2">
                 <CardHeader>
                   <div className="flex justify-between items-start">
@@ -815,9 +673,9 @@ const Profile = () => {
                   )}
                 </CardContent>
               </Card>
-            </TabsContent>
+            </div>
           )}
-        </Tabs>
+        </div>
 
         {/* Dialog de Edición de Perfil */}
         <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
@@ -902,27 +760,6 @@ const Profile = () => {
                     </Select>
                   </div>
                 </div>
-                {[1, 2].includes(Number(user.role_number || 1)) && (
-                  <div>
-                    <Label htmlFor="edit-role">Modo de cuenta</Label>
-                    <Select
-                      value={editRole}
-                      onValueChange={setEditRole}
-                      disabled={isUpdating}
-                    >
-                      <SelectTrigger id="edit-role">
-                        <SelectValue placeholder="Selecciona modo" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="1">Vecino</SelectItem>
-                        <SelectItem value="2">Emprendedor</SelectItem>
-                      </SelectContent>
-                    </Select>
-                    <p className="text-xs text-muted-foreground mt-1">
-                      Cambia a Emprendedor para poder publicar servicios.
-                    </p>
-                  </div>
-                )}
               </div>
             </div>
 
@@ -944,44 +781,6 @@ const Profile = () => {
           </DialogContent>
         </Dialog>
 
-        {/* Modal de edición de Post */}
-        <Dialog open={!!editingPost} onOpenChange={(open) => !open && setEditingPost(null)}>
-          <DialogContent className="w-[95vw] sm:max-w-lg max-h-[90vh] overflow-y-auto rounded-2xl">
-            <DialogHeader>
-              <DialogTitle>Editar Publicación</DialogTitle>
-              <DialogDescription>
-                Modifica el contenido de tu publicación
-              </DialogDescription>
-            </DialogHeader>
-            <div className="space-y-4">
-              <div>
-                <Label htmlFor="edit-post-content">Contenido</Label>
-                <Textarea
-                  id="edit-post-content"
-                  value={editPostContent}
-                  onChange={(e) => setEditPostContent(e.target.value)}
-                  rows={6}
-                />
-              </div>
-              <div>
-                <Label htmlFor="edit-post-comuna">Comuna</Label>
-                <Input
-                  id="edit-post-comuna"
-                  value={editPostComuna}
-                  onChange={(e) => setEditPostComuna(e.target.value)}
-                />
-              </div>
-            </div>
-            <DialogFooter>
-              <Button variant="outline" onClick={() => setEditingPost(null)}>
-                Cancelar
-              </Button>
-              <Button onClick={handleSavePost}>
-                Guardar
-              </Button>
-            </DialogFooter>
-          </DialogContent>
-        </Dialog>
 
         {/* Modal de edición de Servicio */}
         <Dialog open={!!editingService} onOpenChange={(open) => !open && setEditingService(null)}>
