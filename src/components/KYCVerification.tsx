@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { kycAPI } from '@/lib/api';
 
 declare global {
@@ -15,6 +15,7 @@ interface Props {
 
 export default function KYCVerification({ registrationId, onSuccess, onError }: Props) {
   const buttonRef = useRef<any>(null);
+  const [isVerifying, setIsVerifying] = useState(false);
 
   useEffect(() => {
     // Cargar script SDK
@@ -34,8 +35,9 @@ export default function KYCVerification({ registrationId, onSuccess, onError }: 
       }
       try {
         await kycAPI.link(registrationId, identityId);
-        console.log('[KYC] ✅ Vinculación exitosa, llamando onSuccess...');
-        onSuccess();
+        console.log('[KYC] ✅ Vinculación exitosa en frontend, esperando webhook...');
+        setIsVerifying(true);
+        // NO llamamos a onSuccess() aquí, esperamos al poller de DB
       } catch (err) {
         console.error('[KYC] Error en /api/kyc/link:', err);
         onError('Error al vincular tu identidad. Intenta de nuevo.');
@@ -55,19 +57,54 @@ export default function KYCVerification({ registrationId, onSuccess, onError }: 
       window.removeEventListener('mati:exitedSdk', handleExited);
       try { document.body.removeChild(script); } catch {}
     };
-  }, []); // sin dependencias para que no se re-registre
+  }, [registrationId]);
+
+  // Poller para verificar en la DB si el Webhook ya lo aprobó
+  useEffect(() => {
+    if (!registrationId) return;
+
+    let poller: NodeJS.Timeout;
+
+    const checkStatus = async () => {
+      try {
+        const res = await kycAPI.checkPendingStatus(registrationId);
+        if (res.ok && res.status === 'verified') {
+          console.log('[KYC] ✅ Webhook detectado! Status de base de datos es verified.');
+          clearInterval(poller);
+          onSuccess();
+        }
+      } catch (err) {
+        // Silenciar errores de polling
+      }
+    };
+
+    // Polling cada 3 segundos
+    poller = setInterval(checkStatus, 3000);
+
+    return () => clearInterval(poller);
+  }, [registrationId, onSuccess]);
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 16 }}>
-      <p className="text-sm text-muted-foreground text-center">
-        Necesitamos verificar tu identidad. Tendrás que tomar una selfie y una foto de tu carnet chileno.
-        Esto nos ayuda a mantener la comunidad segura y evitar suplantaciones de identidad.
-      </p>
-      <mati-button
-        ref={buttonRef}
-        clientId={import.meta.env.VITE_METAMAP_CLIENT_ID}
-        flowId={import.meta.env.VITE_METAMAP_FLOW_ID}
-      />
+      {isVerifying ? (
+        <div className="flex flex-col items-center p-6 space-y-4">
+          <div className="w-12 h-12 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
+          <p className="font-semibold text-center mt-4">Analizando tus documentos...</p>
+          <p className="text-sm text-muted-foreground text-center">Esto puede tomar unos segundos, no cierres esta ventana.</p>
+        </div>
+      ) : (
+        <>
+          <p className="text-sm text-muted-foreground text-center">
+            Necesitamos verificar tu identidad. Tendrás que tomar una selfie y una foto de tu carnet chileno.
+            Esto nos ayuda a mantener la comunidad segura y evitar suplantaciones de identidad.
+          </p>
+          <mati-button
+            ref={buttonRef}
+            clientId={import.meta.env.VITE_METAMAP_CLIENT_ID}
+            flowId={import.meta.env.VITE_METAMAP_FLOW_ID}
+          />
+        </>
+      )}
       <button
         className="text-xs text-muted-foreground underline mt-2"
         onClick={() => onError('Problemas con la verificación')}

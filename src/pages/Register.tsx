@@ -54,7 +54,6 @@ const Register = () => {
   const [comuna, setComuna] = useState('');
 
   // Step 2: Roles (solo un rol según backend)
-  const [selectedRole, setSelectedRole] = useState<UserRole | null>(null);
   const [acceptTerms, setAcceptTerms] = useState(false);
   const [showTerms, setShowTerms] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -147,23 +146,6 @@ const Register = () => {
   const displayStep = step === 1 ? 1 : (step === 2 ? 2 : (step === 3 ? (isGoogleFlow ? 3 : 2) : (step === 4 ? (isGoogleFlow ? 4 : 3) : step)));
   const totalSteps = isGoogleFlow ? 4 : 3;
 
-  const selectRole = (role: UserRole) => {
-    setSelectedRole(role);
-  };
-
-
-  // Mapa de roles a números para el backend
-  const roleToNumber = (role: UserRole): number => {
-    const map: Record<UserRole, number> = {
-      'job-seeker': 1,
-      'entrepreneur': 2,
-      'company': 3,
-      'admin': 4,
-      'super-admin': 5,
-    };
-    return map[role];
-  };
-
   const handleNext = () => {
     if (step === 1) {
       if (!name || !rut || !email || !password || !phone || !comuna || !selectedRegion) {
@@ -203,8 +185,8 @@ const Register = () => {
       localStorage.setItem('reg_phone', phone);
       localStorage.setItem('reg_comuna', comuna);
 
-      // Paso 2: selección de rol (pasa directamente a registrarse como emprendedor)
-      registerWithRole('entrepreneur');
+      // Paso 2: (pasa directamente a validarse como emprendedor al enviar info basica)
+      registerWithRole();
     }
   };
 
@@ -250,9 +232,8 @@ const Register = () => {
     return true;
   };
 
-  // Register + login when user selects role (step 2). After success, user has token → go to step 3 (KYC).
-  const registerWithRole = async (role: UserRole) => {
-    setSelectedRole(role);
+  // Register + login when user completes form. After success, go to step 3 (KYC).
+  const registerWithRole = async () => {
     const isGoogleCompletion = !!searchParams.get('token') || (isGoogleVerified && user);
     const isRegistrationPending = searchParams.get('google_registration_pending') === 'true';
     const urlToken = searchParams.get('token');
@@ -302,7 +283,7 @@ const Register = () => {
         phone: sanitizeInput(phone, 20),
         comuna: sanitizeInput(comuna, 50),
         region_id: selectedRegion,
-        rol: roleToNumber(role),
+        rol: 2, // Hardcoded Entrepreneur
       };
 
       if (isRegistrationPending && urlToken) {
@@ -310,7 +291,7 @@ const Register = () => {
         const response = await authAPI.googleRegister(data);
         localStorage.setItem('token', response.token);
       } else if (isGoogleCompletion) {
-        await authAPI.updateProfile({ ...data, rol: roleToNumber(role) });
+        await authAPI.updateProfile({ ...data, rol: 2 });
       } else {
         data.email = email.trim().toLowerCase();
         data.password = password;
@@ -321,9 +302,6 @@ const Register = () => {
       }
 
       toast.success('Cuenta pendiente. Ahora verifica tu identidad.');
-      setSelectedRole(role);  // <-- siempre, sin if
-      localStorage.setItem('reg_role', role);
-      console.log('[ROLE]', role);
       setStep(3);
     } catch (error: any) {
       console.error('Error in registerWithRole:', error);
@@ -337,9 +315,7 @@ const Register = () => {
     }
   };
 
-  const handleSubmit = async (roleOverride?: UserRole) => {
-    const finalRole = roleOverride ?? selectedRole;
-    if (!finalRole || finalRole !== 'entrepreneur') return;
+  const handleSubmit = async () => {
     
     if (!registrationId && !isGoogleVerified) {
       toast.error('Falta ID de registro para enviar el formulario.');
@@ -368,7 +344,6 @@ const Register = () => {
         });
       }
       toast.success('¡Registro completado exitosamente!');
-      localStorage.removeItem('reg_role');
       setStep(5);
     } catch (error: any) {
       console.error('Error updating entrepreneur profile:', error);
@@ -587,17 +562,15 @@ const Register = () => {
             {step === 2 && (
               <div className="space-y-6 animate-in fade-in slide-in-from-right-4 duration-500">
                 <div className="text-center space-y-2">
-                  <h3 className="text-xl font-bold font-heading">¿Cómo quieres usar Dameldato?</h3>
-                  <p className="text-muted-foreground">Selecciona tu perfil para continuar</p>
+                  <h3 className="text-xl font-bold font-heading">Completa tus datos</h3>
+                  <p className="text-muted-foreground">Necesitamos unos datos adicionales para continuar</p>
                 </div>
 
-                {/* Campos requeridos para Google Completion */}
-                {(searchParams.get('token') || (isGoogleVerified && user)) && (
-                  <div className="space-y-4 p-4 border rounded-xl bg-white/50 backdrop-blur-sm border-white/20 shadow-inner">
-                    <p className="text-sm font-semibold text-primary mb-2 flex items-center gap-2">
-                      <span className="flex h-5 w-5 items-center justify-center rounded-full bg-primary text-[10px] text-white">i</span>
-                      Información Requerida
-                    </p>
+                <div className="space-y-4 p-4 border rounded-xl bg-white/50 backdrop-blur-sm border-white/20 shadow-inner">
+                  <p className="text-sm font-semibold text-primary mb-2 flex items-center gap-2">
+                    <span className="flex h-5 w-5 items-center justify-center rounded-full bg-primary text-[10px] text-white">i</span>
+                    Información Requerida
+                  </p>
 
                     <div>
                       <Label htmlFor="rut_step2">RUT <span className="text-destructive">*</span></Label>
@@ -656,13 +629,12 @@ const Register = () => {
                       </div>
                     </div>
                   </div>
-                )}
 
                 <div className="flex flex-col items-center gap-4">
                   <Button
                     type="button"
                     onClick={() => {
-                      registerWithRole('entrepreneur');
+                      registerWithRole();
                     }}
                     disabled={isSubmitting}
                     className="w-full max-w-md h-16 text-xl font-bold bg-primary hover:bg-primary/90 shadow-lg shadow-primary/20 flex items-center justify-center px-8 transition-all active:scale-[0.98]"

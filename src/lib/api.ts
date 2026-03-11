@@ -1452,6 +1452,12 @@ export const kycAPI = {
     });
   },
 
+  checkPendingStatus: async (registration_id: string) => {
+    return request<{ ok: boolean; status: string }>(`/api/kyc/pending-status/${registration_id}`, {
+      method: 'GET',
+      skipAuth: true,
+    });
+  },
 
   uploadKYC: async (formData: FormData) => {
     return request<{ message: string }>('/api/kyc/upload', {
