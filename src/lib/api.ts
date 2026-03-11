@@ -102,7 +102,7 @@ export const authAPI = {
     comuna: string;
     rol: number;
   }) => {
-    return request<{ message: string }>('/auth/register', {
+    return request<{ ok: boolean; message: string; registration_id: string }>('/auth/register', {
       method: 'POST',
       body: JSON.stringify(data),
     });
@@ -440,6 +440,20 @@ export const servicesAPI = {
       }>;
     }>(`/services/types${queryString ? `?${queryString}` : ''}`, {
       method: 'GET',
+    });
+  },
+
+  savePendingService: async (data: {
+    registration_id: string;
+    service_name?: string;
+    description?: string;
+    rubro?: string;
+    portfolio?: string;
+  }) => {
+    return request<{ ok: boolean; message: string }>('/api/services/pending', {
+      method: 'POST',
+      body: JSON.stringify(data),
+      skipAuth: true,
     });
   },
 };
@@ -1427,6 +1441,14 @@ export const kycAPI = {
     }>('/api/kyc/start', {
       method: 'POST',
       body: JSON.stringify({ identityId }),
+    });
+  },
+
+  link: async (registration_id: string, identityId: string) => {
+    return request<{ ok: boolean; message: string }>('/api/kyc/link', {
+      method: 'POST',
+      body: JSON.stringify({ registration_id, identityId }),
+      skipAuth: true,
     });
   },
 

@@ -8,11 +8,12 @@ declare global {
 }
 
 interface Props {
+  registrationId: string;
   onSuccess: () => void;
   onError: (msg: string) => void;
 }
 
-export default function KYCVerification({ onSuccess, onError }: Props) {
+export default function KYCVerification({ registrationId, onSuccess, onError }: Props) {
   const buttonRef = useRef<any>(null);
 
   useEffect(() => {
@@ -26,13 +27,18 @@ export default function KYCVerification({ onSuccess, onError }: Props) {
     const handleFinished = async (e: any) => {
       console.log('[KYC] ✅ userFinishedSdk en window:', e.detail);
       const identityId = e.detail?.identityId;
+      if (!identityId) {
+        console.error('[KYC] No identityId received from MetaMap');
+        onError('No se recibió identityId de MetaMap');
+        return;
+      }
       try {
-        if (identityId) await kycAPI.start(identityId);
-      } catch (err) {
-        console.error('[KYC] Error en /api/kyc/start (continuando igual):', err);
-      } finally {
-        console.log('[KYC] Llamando onSuccess...');
+        await kycAPI.link(registrationId, identityId);
+        console.log('[KYC] ✅ Vinculación exitosa, llamando onSuccess...');
         onSuccess();
+      } catch (err) {
+        console.error('[KYC] Error en /api/kyc/link:', err);
+        onError('Error al vincular tu identidad. Intenta de nuevo.');
       }
     };
 

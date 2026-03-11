@@ -10,7 +10,7 @@ import { Alert, AlertTitle, AlertDescription } from '@/components/ui/alert';
 import { UserRole, useUser } from '@/contexts/UserContext';
 import { ArrowRight, ArrowLeft } from 'lucide-react';
 import { toast } from 'sonner';
-import { authAPI } from '@/lib/api';
+import { authAPI, servicesAPI } from '@/lib/api';
 import {
   isValidName,
   isValidPhone,
@@ -40,6 +40,7 @@ const Register = () => {
     const stepParam = searchParams.get('step');
     return stepParam ? parseInt(stepParam) : 1;
   });
+  const [registrationId, setRegistrationId] = useState<string | null>(null);
   const [isGoogleVerified, setIsGoogleVerified] = useState(false);
   const hasPrefilled = useRef(false);
 
@@ -141,6 +142,10 @@ const Register = () => {
       setIsGoogleVerified(true);
     }
   }, [searchParams]);
+ 
+  const isGoogleFlow = !!searchParams.get('token') || isGoogleVerified;
+  const displayStep = step === 1 ? 1 : (step === 2 ? 2 : (step === 3 ? (isGoogleFlow ? 3 : 2) : (step === 4 ? (isGoogleFlow ? 4 : 3) : step)));
+  const totalSteps = isGoogleFlow ? 4 : 3;
 
   const selectRole = (role: UserRole) => {
     setSelectedRole(role);
@@ -198,8 +203,8 @@ const Register = () => {
       localStorage.setItem('reg_phone', phone);
       localStorage.setItem('reg_comuna', comuna);
 
-      // Paso 2: selección de rol (register+login happens there, then KYC in step 3)
-      setStep(2);
+      // Paso 2: selección de rol (pasa directamente a registrarse como emprendedor)
+      registerWithRole('entrepreneur');
     }
   };
 
@@ -309,15 +314,13 @@ const Register = () => {
       } else {
         data.email = email.trim().toLowerCase();
         data.password = password;
-        await authAPI.register(data);
-        const loginResponse = await authAPI.login({ email: data.email, password });
-        if ((loginResponse as any)?.token) {
-          localStorage.setItem('token', (loginResponse as any).token);
+        const registerResponse = await authAPI.register(data);
+        if (registerResponse.registration_id) {
+          setRegistrationId(registerResponse.registration_id);
         }
       }
 
-      await loadUser();
-      toast.success('Cuenta creada. Ahora verifica tu identidad.');
+      toast.success('Cuenta pendiente. Ahora verifica tu identidad.');
       setSelectedRole(role);  // <-- siempre, sin if
       localStorage.setItem('reg_role', role);
       console.log('[ROLE]', role);
@@ -334,21 +337,36 @@ const Register = () => {
     }
   };
 
-  // Step 4 only: update entrepreneur profile and go home (user already exists).
   const handleSubmit = async (roleOverride?: UserRole) => {
     const finalRole = roleOverride ?? selectedRole;
     if (!finalRole || finalRole !== 'entrepreneur') return;
+    
+    if (!registrationId && !isGoogleVerified) {
+      toast.error('Falta ID de registro para enviar el formulario.');
+      return;
+    }
 
     setIsSubmitting(true);
     setErrorMessage('');
     try {
-      await authAPI.updateProfile({
-        rubro: sanitizeInput(rubro || '', 100),
-        experience: sanitizeInput(experience || '', 2000),
-        service: sanitizeInput(service || '', 100),
-        portfolio: sanitizeInput(portfolio || '', 2000),
-      });
-      await loadUser();
+      if (isGoogleVerified) {
+        // En el flujo normal, se guarda en pending, en google sigue siendo updateProfile
+        await authAPI.updateProfile({
+          rubro: sanitizeInput(rubro || '', 100),
+          experience: sanitizeInput(experience || '', 2000),
+          service: sanitizeInput(service || '', 100),
+          portfolio: sanitizeInput(portfolio || '', 2000),
+        });
+        await loadUser();
+      } else {
+        await servicesAPI.savePendingService({
+          registration_id: registrationId!,
+          service_name: sanitizeInput(service || '', 100),
+           description: sanitizeInput(portfolio || '', 2000),
+          rubro: sanitizeInput(rubro || '', 100),
+           portfolio: sanitizeInput(portfolio || '', 2000),
+        });
+      }
       toast.success('¡Registro completado exitosamente!');
       localStorage.removeItem('reg_role');
       setStep(5);
@@ -376,9 +394,11 @@ const Register = () => {
             <CardTitle className="text-2xl sm:text-3xl md:text-4xl font-heading font-bold bg-clip-text text-transparent bg-gradient-to-r from-primary to-secondary mb-2">
               Únete a la Comunidad
             </CardTitle>
-            <CardDescription className="text-base sm:text-lg">
-              Paso {step} de {selectedRole === 'entrepreneur' ? 4 : 3}
-            </CardDescription>
+            {step < 5 && (
+              <CardDescription className="text-base sm:text-lg">
+                Paso {displayStep} de {totalSteps}
+              </CardDescription>
+            )}
           </CardHeader>
           <CardContent className="p-4 sm:p-6">
             {errorMessage && (
@@ -642,33 +662,13 @@ const Register = () => {
                   <Button
                     type="button"
                     onClick={() => {
-                      localStorage.setItem('reg_role', 'job-seeker');
-                      registerWithRole('job-seeker');
-                    }}
-                    disabled={isSubmitting}
-                    className="w-full max-w-md h-20 text-xl font-bold bg-primary hover:bg-primary/90 shadow-lg shadow-primary/20 flex items-center justify-between px-8"
-                  >
-                    <span className="flex flex-col items-start">
-                      <span>🏠 Soy Vecino</span>
-                      <span className="text-xs font-normal opacity-80">Busco datos y servicios</span>
-                    </span>
-                    <ArrowRight size={24} />
-                  </Button>
-
-                  <Button
-                    type="button"
-                    onClick={() => {
-                      localStorage.setItem('reg_role', 'entrepreneur');
                       registerWithRole('entrepreneur');
                     }}
                     disabled={isSubmitting}
-                    className="w-full max-w-md h-20 text-xl font-bold bg-secondary hover:bg-secondary/90 shadow-lg shadow-secondary/20 flex items-center justify-between px-8"
+                    className="w-full max-w-md h-16 text-xl font-bold bg-primary hover:bg-primary/90 shadow-lg shadow-primary/20 flex items-center justify-center px-8 transition-all active:scale-[0.98]"
                   >
-                    <span className="flex flex-col items-start">
-                      <span>🛠️ Soy Emprendedor</span>
-                      <span className="text-xs font-normal opacity-80">Ofrezco mis servicios</span>
-                    </span>
-                    <ArrowRight size={24} />
+                    <span>Siguiente</span>
+                    <ArrowRight className="ml-2" size={24} />
                   </Button>
                 </div>
 
@@ -690,17 +690,22 @@ const Register = () => {
                 </div>
 
                 <KYCVerification
+                  registrationId={registrationId || ''}
                   onSuccess={() => {
-                    navigate('/');
+                    if (selectedRole === 'entrepreneur') {
+                      setStep(4);
+                    } else {
+                      navigate('/');
+                    }
                   }}
                   onError={(msg) => {
                     toast.error(msg || 'No pudimos completar la verificación de identidad.');
                   }}
                 />
 
-                <Button variant="ghost" onClick={() => setStep(2)} className="w-full">
+                <Button variant="ghost" onClick={() => isGoogleFlow ? setStep(2) : setStep(1)} className="w-full">
                   <ArrowLeft className="mr-2" size={18} />
-                  Volver a selección de rol
+                  Volver al paso anterior
                 </Button>
               </div>
             )}
