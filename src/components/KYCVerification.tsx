@@ -49,12 +49,23 @@ export default function KYCVerification({ registrationId, onSuccess, onError }: 
       onError('Cerraste el proceso de verificación');
     };
 
+    const matiBtn = buttonRef.current;
+
     window.addEventListener('mati:userFinishedSdk', handleFinished);
     window.addEventListener('mati:exitedSdk', handleExited);
+
+    if (matiBtn) {
+      matiBtn.addEventListener('mati:userFinishedSdk', handleFinished);
+      matiBtn.addEventListener('mati:exitedSdk', handleExited);
+    }
 
     return () => {
       window.removeEventListener('mati:userFinishedSdk', handleFinished);
       window.removeEventListener('mati:exitedSdk', handleExited);
+      if (matiBtn) {
+        matiBtn.removeEventListener('mati:userFinishedSdk', handleFinished);
+        matiBtn.removeEventListener('mati:exitedSdk', handleExited);
+      }
       try { document.body.removeChild(script); } catch {}
     };
   }, [registrationId]);
@@ -72,17 +83,21 @@ export default function KYCVerification({ registrationId, onSuccess, onError }: 
           console.log('[KYC] ✅ Webhook detectado! Status de base de datos es verified.');
           clearInterval(poller);
           onSuccess();
+        } else if (res.ok && res.status === 'rejected') {
+          console.log('[KYC] ❌ Webhook detectado! Status de base de datos es rejected.');
+          clearInterval(poller);
+          onError('Verificación rechazada. Por favor intenta de nuevo.');
         }
       } catch (err) {
         // Silenciar errores de polling
       }
     };
 
-    // Polling cada 3 segundos
+    // Polling cada 3 segundos siempre que estemos montados
     poller = setInterval(checkStatus, 3000);
 
     return () => clearInterval(poller);
-  }, [registrationId, onSuccess]);
+  }, [registrationId, onSuccess, onError]);
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 16 }}>
@@ -102,15 +117,37 @@ export default function KYCVerification({ registrationId, onSuccess, onError }: 
             ref={buttonRef}
             clientId={import.meta.env.VITE_METAMAP_CLIENT_ID}
             flowId={import.meta.env.VITE_METAMAP_FLOW_ID}
+            metadata={JSON.stringify({ registration_id: registrationId })}
           />
         </>
       )}
-      <button
-        className="text-xs text-muted-foreground underline mt-2"
-        onClick={() => onError('Problemas con la verificación')}
-      >
-        ¿Problemas con la verificación?
-      </button>
+      <div className="flex flex-col items-center gap-2 mt-2">
+        <button
+          className="text-sm font-semibold text-primary underline"
+          onClick={async () => {
+            setIsVerifying(true);
+            try {
+              const res = await kycAPI.checkPendingStatus(registrationId);
+              if (res.ok && res.status === 'verified') {
+                onSuccess();
+              } else {
+                alert('Aún estamos esperando la confirmación de identidad. Por favor espera unos segundos.');
+                setIsVerifying(false);
+              }
+            } catch (e) {
+              setIsVerifying(false);
+            }
+          }}
+        >
+          ¿Ya terminaste? Haz clic aquí para continuar
+        </button>
+        <button
+          className="text-xs text-muted-foreground underline"
+          onClick={() => onError('Problemas con la verificación')}
+        >
+          ¿Problemas con la verificación?
+        </button>
+      </div>
     </div>
   );
 }
