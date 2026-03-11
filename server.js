@@ -14,11 +14,12 @@ app.use(helmet({
   contentSecurityPolicy: {
     directives: {
       ...helmet.contentSecurityPolicy.getDefaultDirectives(),
-      "img-src": ["'self'", "data:", "https://res.cloudinary.com", "*.googleusercontent.com"],
-      "connect-src": ["'self'", "https://*.dameldato.com", "https://*.onrender.com", "http://localhost:3000", "https://*.cloudinary.com"],
-      "script-src": ["'self'", "'unsafe-inline'", "*.google.com"],
-      "style-src": ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com"],
+      "img-src": ["'self'", "data:", "blob:", "https://res.cloudinary.com", "*.googleusercontent.com", "https://*.getmati.com", "https://*.mati.io", "https://*.metamap.com"],
+      "connect-src": ["'self'", "https://*.dameldato.com", "https://*.onrender.com", "http://localhost:3000", "https://*.cloudinary.com", "https://*.getmati.com", "https://*.mati.io", "https://*.metamap.com"],
+      "script-src": ["'self'", "'unsafe-inline'", "*.google.com", "https://*.getmati.com", "https://*.mati.io", "https://*.metamap.com"],
+      "style-src": ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com", "https://*.getmati.com", "https://*.mati.io", "https://*.metamap.com"],
       "font-src": ["'self'", "https://fonts.gstatic.com"],
+      "frame-src": ["'self'", "https://*.getmati.com", "https://*.mati.io", "https://*.metamap.com"],
     },
   },
   crossOriginEmbedderPolicy: false,
@@ -30,7 +31,8 @@ app.use((req, res, next) => {
   res.setHeader('X-Frame-Options', 'DENY');
   res.setHeader('X-Content-Type-Options', 'nosniff');
   res.setHeader('Referrer-Policy', 'strict-origin-when-cross-origin');
-  res.setHeader('Permissions-Policy', 'camera=(), microphone=(), geolocation=()');
+  // Se debe permitir camera para el KYC de Metamap
+  res.setHeader('Permissions-Policy', 'camera=*, microphone=(), geolocation=()');
   next();
 });
 
