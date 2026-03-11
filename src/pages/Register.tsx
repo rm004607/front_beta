@@ -707,23 +707,6 @@ const Register = () => {
             )}
 
             {step === 4 && (
-              <div className="text-center space-y-6 animate-in fade-in slide-in-from-right-4 duration-500">
-                <div className="text-6xl">🎉</div>
-                <h3 className="text-2xl font-bold font-heading">¡Ya estás listo!</h3>
-                <p className="text-muted-foreground">
-                  Tu identidad está siendo verificada. Mientras tanto, puedes explorar 
-                  los servicios disponibles en la plataforma.
-                </p>
-                <Button 
-                  onClick={() => navigate('/servicios')} 
-                  className="w-full h-12 font-bold"
-                >
-                  Ver servicios disponibles →
-                </Button>
-              </div>
-            )}
-
-            {step === 4 && selectedRole === 'entrepreneur' && (
               <div className="space-y-6 animate-in fade-in slide-in-from-right-4 duration-500">
                 <div className="space-y-4 p-5 border-2 border-secondary/30 rounded-2xl bg-secondary/5">
                   <div className="flex items-center gap-2 mb-2">
