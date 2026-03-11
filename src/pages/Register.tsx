@@ -10,10 +10,9 @@ import { Alert, AlertTitle, AlertDescription } from '@/components/ui/alert';
 import { UserRole, useUser } from '@/contexts/UserContext';
 import { ArrowRight, ArrowLeft } from 'lucide-react';
 import { toast } from 'sonner';
-import { authAPI, validationAPI } from '@/lib/api';
+import { authAPI } from '@/lib/api';
 import {
   isValidName,
-  validatePhone,
   isValidPhone,
   isValidComuna,
   isValidRut,
@@ -22,7 +21,6 @@ import {
   sanitizeInput,
   getValidationErrorMessage
 } from '@/lib/input-validator';
-
 import { chileData } from '@/lib/chile-data';
 import {
   Select,
@@ -31,6 +29,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import KYCVerification from '@/components/KYCVerification';
 
 const Register = () => {
   const [errorMessage, setErrorMessage] = useState('');
@@ -41,7 +40,6 @@ const Register = () => {
     const stepParam = searchParams.get('step');
     return stepParam ? parseInt(stepParam) : 1;
   });
-  const [isKycVerified, setIsKycVerified] = useState(true);
   const [isGoogleVerified, setIsGoogleVerified] = useState(false);
   const hasPrefilled = useRef(false);
 
@@ -51,7 +49,7 @@ const Register = () => {
   const [rut, setRut] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [phone, setPhone] = useState('+56 ');
+  const [phone, setPhone] = useState('');
   const [comuna, setComuna] = useState('');
 
   // Step 2: Roles (solo un rol según backend)
@@ -60,8 +58,6 @@ const Register = () => {
   const [showTerms, setShowTerms] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [selectedRegion, setSelectedRegion] = useState('');
-  const [isVerifyingIdentity, setIsVerifyingIdentity] = useState(false);
-
 
   // Persistir datos si viene de QR o Google
   // Función para decodificar JWT sin librerías externas
@@ -110,8 +106,21 @@ const Register = () => {
     }
 
     // Del mismo modo para localStorage, solo si están vacíos al inicio
-    // Se ha eliminado la pre-población de localStorage para asegurar un formulario limpio
+    if (!hasPrefilled.current) {
+      const savedName = localStorage.getItem('reg_name');
+      if (savedName && !name) setName(savedName);
 
+      const savedEmail = localStorage.getItem('reg_email');
+      if (savedEmail && !email) setEmail(savedEmail);
+
+      const savedComuna = localStorage.getItem('reg_comuna');
+      if (savedComuna && !comuna) setComuna(savedComuna);
+
+      // Si cargamos algo de localStorage, también marcamos como prefilled
+      if (savedName || savedEmail || savedComuna) {
+        hasPrefilled.current = true;
+      }
+    }
   }, [user, searchParams]); // Reducimos dependencias para evitar bucles de reset
 
   // Step 3: Role-specific data
@@ -120,27 +129,15 @@ const Register = () => {
   const [service, setService] = useState('');
   const [portfolio, setPortfolio] = useState('');
 
-  // Detect Google redirect
+  // Detect Google redirect: token in URL → go to step 2 (role selection); user is not in DB yet if google_registration_pending
   useEffect(() => {
     const urlToken = searchParams.get('token');
-    const isRegistrationPending = searchParams.get('google_registration_pending') === 'true';
-
     if (urlToken) {
       localStorage.setItem('token', urlToken);
-
-      if (isRegistrationPending) {
-        setStep(3); // Go directly to entrepreneur details
-        setIsGoogleVerified(true);
-      } else {
-        // Si no es un registro pendiente, es un login.
-        // Cargamos el usuario y lo mandamos al inicio.
-        loadUser().then(() => {
-          navigate('/');
-        });
-      }
+      setStep(2); // Role selection (KYC runs after we have a token, in step 3)
+      setIsGoogleVerified(true);
+      loadUser();
     } else if (localStorage.getItem('token')) {
-      // Si no hay token en URL pero hay uno en localStorage, y estamos en /registro,
-      // podría ser una continuación de flujo de Google (especialmente si no hay sesión normal)
       setIsGoogleVerified(true);
     }
   }, [searchParams]);
@@ -152,17 +149,17 @@ const Register = () => {
 
   // Mapa de roles a números para el backend
   const roleToNumber = (role: UserRole): number => {
-    const map: Record<string, number> = {
+    const map: Record<UserRole, number> = {
       'job-seeker': 1,
       'entrepreneur': 2,
       'company': 3,
       'admin': 4,
       'super-admin': 5,
     };
-    return map[role as string] || 2;
+    return map[role];
   };
 
-  const handleNext = async () => {
+  const handleNext = () => {
     if (step === 1) {
       if (!name || !rut || !email || !password || !phone || !comuna || !selectedRegion) {
         toast.error('Por favor completa todos los campos requeridos');
@@ -185,8 +182,7 @@ const Register = () => {
       }
 
       if (!isValidPhone(phone)) {
-        const phoneError = validatePhone(phone);
-        toast.error(getValidationErrorMessage('phone', phoneError === 'format' ? 'format' : 'length'));
+        toast.error(getValidationErrorMessage('phone', containsSQLInjection(phone) ? 'sql' : 'format'));
         return;
       }
 
@@ -195,18 +191,6 @@ const Register = () => {
         return;
       }
 
-      setIsVerifyingIdentity(true);
-      try {
-        const cleanRutForApi = rut.replace(/\./g, '').toUpperCase();
-        await validationAPI.verifyRut(cleanRutForApi);
-      } catch (verificationError: any) {
-        console.error('Error verifying RUT on backend:', verificationError);
-        toast.error(verificationError?.message || 'No se pudo verificar tu RUT en este momento. Intenta nuevamente más tarde.');
-        setIsVerifyingIdentity(false);
-        return;
-      }
-      setIsVerifyingIdentity(false);
-
       // Guardar datos temporalmente
       localStorage.setItem('reg_name', name);
       localStorage.setItem('reg_rut', rut);
@@ -214,26 +198,8 @@ const Register = () => {
       localStorage.setItem('reg_phone', phone);
       localStorage.setItem('reg_comuna', comuna);
 
-      setStep(3); // Go directly to entrepreneur details
-      setSelectedRole('entrepreneur');
-    }
-  };
-
-
-  const handlePhoneChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const value = e.target.value;
-
-    // Si el usuario intenta borrar el +56, forzarlo
-    if (!value.startsWith('+56 ')) {
-      // Si el valor es solo +56 o menor, dejarlo como +56 
-      if (value.length < 4 || !value.startsWith('+56')) {
-        setPhone('+56 ');
-      } else {
-        // Si tiene caracteres pero no empieza con espacio después de 56
-        setPhone('+56 ' + value.replace(/^\+56\s*/, ''));
-      }
-    } else {
-      setPhone(value);
+      // Paso 2: selección de rol (register+login happens there, then KYC in step 3)
+      setStep(2);
     }
   };
 
@@ -279,68 +245,24 @@ const Register = () => {
     return true;
   };
 
-  const normalizeName = (value: string): string => {
-    return value
-      .normalize('NFD')
-      .replace(/[\u0300-\u036f]/g, '')
-      .toUpperCase()
-      .replace(/[^A-Z\s]/g, ' ')
-      .replace(/\s+/g, ' ')
-      .trim();
-  };
-
-  const areNamesSimilar = (inputName: string, apiName: string): boolean => {
-    const normInput = normalizeName(inputName);
-    const normApi = normalizeName(apiName);
-    if (!normInput || !normApi) return false;
-
-    if (normInput === normApi) return true;
-
-    const inputParts = normInput.split(' ');
-    const apiParts = normApi.split(' ');
-    const apiSet = new Set(apiParts);
-
-    const matches = inputParts.filter((p) => p && apiSet.has(p)).length;
-
-    // Reject inputs with only a single word (e.g., just "Juan") if the API has multiple words
-    if (inputParts.length < 2 && apiParts.length >= 2) return false;
-
-    // For similarity, we want a strict match where almost all input words are present in the api name
-    // e.g., input "Juan Perez", api "Juan Antonio Perez Gomez" => inputParts=2, matches=2 => 2/2 = 1.0 (100% match)
-    const matchRatio = matches / inputParts.length;
-
-    return matchRatio >= 0.8;
-  };
-
-  const handleSubmit = async (roleOverride?: UserRole) => {
-    const finalRole = roleOverride || selectedRole;
-
-    if (!finalRole) {
-      toast.error('Selecciona un rol');
-      return;
-    }
-
+  // Register + login when user selects role (step 2). After success, user has token → go to step 3 (KYC).
+  const registerWithRole = async (role: UserRole) => {
+    setSelectedRole(role);
     const isGoogleCompletion = !!searchParams.get('token') || (isGoogleVerified && user);
+    const isRegistrationPending = searchParams.get('google_registration_pending') === 'true';
+    const urlToken = searchParams.get('token');
 
-    // Validar email real (solo if no es Google completion o si el email está vacío y no es Google)
     if (!isGoogleCompletion && !isValidEmail(email)) {
       toast.error('Por favor ingresa un email válido y real');
       return;
     }
-
-    // Validaciones de seguridad y campos obligatorios
     if (isGoogleCompletion) {
-      if (!name || !isValidName(name)) {
-        toast.error('Por favor ingresa tu nombre completo');
-        return;
-      }
       if (!rut || !isValidRut(rut)) {
         toast.error('Por favor ingresa un RUT válido');
         return;
       }
       if (!phone || !isValidPhone(phone)) {
-        const phoneError = validatePhone(phone || '');
-        toast.error(getValidationErrorMessage('phone', phoneError === 'format' ? 'format' : 'length'));
+        toast.error('Por favor ingresa un teléfono válido');
         return;
       }
       if (!comuna || !selectedRegion) {
@@ -348,23 +270,18 @@ const Register = () => {
         return;
       }
     } else {
-      // Registro normal
       if (name && !isValidName(name)) {
         toast.error(getValidationErrorMessage('name', containsSQLInjection(name) ? 'sql' : 'format'));
         return;
       }
-
       if (rut && !isValidRut(rut)) {
         toast.error(getValidationErrorMessage('rut', containsSQLInjection(rut) ? 'sql' : 'format'));
         return;
       }
-
       if (phone && !isValidPhone(phone)) {
-        const phoneError = validatePhone(phone);
-        toast.error(getValidationErrorMessage('phone', phoneError === 'format' ? 'format' : 'length'));
+        toast.error(getValidationErrorMessage('phone', containsSQLInjection(phone) ? 'sql' : 'format'));
         return;
       }
-
       if (comuna && !isValidComuna(comuna)) {
         toast.error(getValidationErrorMessage('comuna', containsSQLInjection(comuna) ? 'sql' : 'format'));
         return;
@@ -374,52 +291,70 @@ const Register = () => {
     setIsSubmitting(true);
     setErrorMessage('');
     try {
-      const urlToken = searchParams.get('token');
-      const isRegistrationPending = searchParams.get('google_registration_pending') === 'true';
-      const isGoogleCompletion = !!urlToken || isGoogleVerified || !!localStorage.getItem('token');
-
-      // Sanitizar inputs antes de enviar
       const data: any = {
         name: sanitizeInput(name, 100),
         rut: rut ? sanitizeInput(rut.replace(/[^0-9kK]/g, ''), 12) : undefined,
         phone: sanitizeInput(phone, 20),
         comuna: sanitizeInput(comuna, 50),
         region_id: selectedRegion,
-        rol: roleToNumber(finalRole),
-        // Campos adicionales para emprendedores
-        rubro: finalRole === 'entrepreneur' ? sanitizeInput(rubro || '', 100) : undefined,
-        experience: finalRole === 'entrepreneur' ? sanitizeInput(experience || '', 2000) : undefined,
-        service: finalRole === 'entrepreneur' ? sanitizeInput(service || '', 100) : undefined,
-        portfolio: finalRole === 'entrepreneur' ? sanitizeInput(portfolio || '', 2000) : undefined,
+        rol: roleToNumber(role),
       };
 
       if (isRegistrationPending && urlToken) {
-        // Nuevo flujo: Registro con Google aún no creado en BD
         data.token = urlToken;
         const response = await authAPI.googleRegister(data);
-        // Guardar nuevo token de sesión
         localStorage.setItem('token', response.token);
       } else if (isGoogleCompletion) {
-        // Flujo antiguo o actualización de cuenta Google existente
-        await authAPI.updateProfile(data);
+        await authAPI.updateProfile({ ...data, rol: roleToNumber(role) });
       } else {
-        // Registro normal requiere email y password
         data.email = email.trim().toLowerCase();
         data.password = password;
         await authAPI.register(data);
-        await authAPI.login({ email: data.email, password });
+        const loginResponse = await authAPI.login({ email: data.email, password });
+        if ((loginResponse as any)?.token) {
+          localStorage.setItem('token', (loginResponse as any).token);
+        }
       }
 
-      // Cargar usuario
       await loadUser();
-
-      toast.success('¡Registro completado exitosamente!');
-      navigate('/');
+      toast.success('Cuenta creada. Ahora verifica tu identidad.');
+      setSelectedRole(role);  // <-- siempre, sin if
+      localStorage.setItem('reg_role', role);
+      console.log('[ROLE]', role);
+      setStep(3);
     } catch (error: any) {
-      console.error('Error in registration/completion:', error);
+      console.error('Error in registerWithRole:', error);
       const msg = error?.status === 400 && error?.message?.toLowerCase().includes('rut')
         ? 'El RUT ya se encuentra registrado con otra cuenta'
         : (error instanceof Error ? error.message : 'Error al procesar solicitud');
+      setErrorMessage(msg);
+      toast.error(msg);
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  // Step 4 only: update entrepreneur profile and go home (user already exists).
+  const handleSubmit = async (roleOverride?: UserRole) => {
+    const finalRole = roleOverride ?? selectedRole;
+    if (!finalRole || finalRole !== 'entrepreneur') return;
+
+    setIsSubmitting(true);
+    setErrorMessage('');
+    try {
+      await authAPI.updateProfile({
+        rubro: sanitizeInput(rubro || '', 100),
+        experience: sanitizeInput(experience || '', 2000),
+        service: sanitizeInput(service || '', 100),
+        portfolio: sanitizeInput(portfolio || '', 2000),
+      });
+      await loadUser();
+      toast.success('¡Registro completado exitosamente!');
+      localStorage.removeItem('reg_role');
+      setStep(5);
+    } catch (error: any) {
+      console.error('Error updating entrepreneur profile:', error);
+      const msg = error instanceof Error ? error.message : 'Error al guardar perfil';
       setErrorMessage(msg);
       toast.error(msg);
     } finally {
@@ -441,7 +376,9 @@ const Register = () => {
             <CardTitle className="text-2xl sm:text-3xl md:text-4xl font-heading font-bold bg-clip-text text-transparent bg-gradient-to-r from-primary to-secondary mb-2">
               Únete a la Comunidad
             </CardTitle>
-            <CardDescription className="text-base sm:text-lg">Paso {step === 1 ? 1 : 2} de 2</CardDescription>
+            <CardDescription className="text-base sm:text-lg">
+              Paso {step} de {selectedRole === 'entrepreneur' ? 4 : 3}
+            </CardDescription>
           </CardHeader>
           <CardContent className="p-4 sm:p-6">
             {errorMessage && (
@@ -460,7 +397,6 @@ const Register = () => {
                     onChange={(e) => setName(e.target.value)}
                     placeholder="Tu nombre completo"
                     className={name && !isValidName(name) ? 'border-red-500' : ''}
-                    autoComplete="off"
                   />
                   {name && !isValidName(name) && (
                     <p className="text-sm text-red-500 mt-1">
@@ -477,7 +413,6 @@ const Register = () => {
                     placeholder="12.345.678-9"
                     className={rut && !isValidRut(rut) ? 'border-red-500' : ''}
                     maxLength={12}
-                    autoComplete="off"
                   />
                   {rut && !isValidRut(rut) && (
                     <p className="text-sm text-red-500 mt-1">
@@ -485,8 +420,6 @@ const Register = () => {
                     </p>
                   )}
                 </div>
-
-
                 <div>
                   <Label htmlFor="email">Email</Label>
                   <Input
@@ -496,7 +429,6 @@ const Register = () => {
                     onChange={(e) => setEmail(e.target.value)}
                     placeholder="tu@email.com"
                     className={email && !isValidEmail(email) ? 'border-red-500' : ''}
-                    autoComplete="off"
                   />
                   {email && !isValidEmail(email) && (
                     <p className="text-sm text-red-500 mt-1">
@@ -512,7 +444,6 @@ const Register = () => {
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     placeholder="Mínimo 6 caracteres"
-                    autoComplete="off"
                   />
                 </div>
                 <div>
@@ -520,14 +451,13 @@ const Register = () => {
                   <Input
                     id="phone"
                     value={phone}
-                    onChange={handlePhoneChange}
+                    onChange={(e) => setPhone(e.target.value)}
                     placeholder="+56 9 1234 5678"
-                    className={phone && phone !== '+56 ' && validatePhone(phone) === 'format' ? 'border-red-500' : ''}
-                    autoComplete="off"
+                    className={phone && !isValidPhone(phone) ? 'border-red-500' : ''}
                   />
-                  {phone && phone !== '+56 ' && validatePhone(phone) === 'format' && (
+                  {phone && !isValidPhone(phone) && (
                     <p className="text-sm text-red-500 mt-1">
-                      {getValidationErrorMessage('phone', 'format')}
+                      {getValidationErrorMessage('phone', containsSQLInjection(phone) ? 'sql' : 'format')}
                     </p>
                   )}
                 </div>
@@ -582,31 +512,28 @@ const Register = () => {
                       </button>
                       {showTerms && (
                         <div className="mt-2 max-h-48 overflow-y-auto rounded-md border p-3 text-xs leading-relaxed">
-                          <p className="font-bold text-sm mb-4">TÉRMINOS Y CONDICIONES DE USO – DAMELDATO</p>
-                          <p className="mb-2"><strong>1. Aceptación de los Términos</strong><br />Al acceder, registrarse o utilizar Dameldato, el usuario declara haber leído, entendido y aceptado íntegramente los presentes Términos y Condiciones. Si no está de acuerdo, deberá abstenerse de utilizar la plataforma.</p>
-                          <p className="mb-2"><strong>2. ¿Qué es Dameldato?</strong><br />Dameldato es una plataforma digital de contacto que permite a personas que ofrecen servicios (“Proveedores”) publicar información básica sobre dichos servicios y a personas interesadas (“Usuarios”) contactarlos directamente, principalmente mediante WhatsApp u otros medios externos. Dameldato NO presta servicios, NO contrata, NO valida, NO certifica ni NO supervisa a los Proveedores.</p>
-                          <p className="mb-2"><strong>3. Rol de la Plataforma (Cláusula Crítica)</strong><br />Dameldato actúa únicamente como un medio de publicación y contacto. La plataforma NO es parte de ninguna relación contractual, acuerdo verbal, pago, prestación de servicio, garantía, reclamo, conflicto, daño o perjuicio que pudiera surgir entre Usuarios y Proveedores. Cualquier acuerdo celebrado es exclusiva responsabilidad de las partes involucradas.</p>
-                          <p className="mb-2"><strong>4. Registro y Uso</strong><br />El registro es voluntario y gratuito (salvo que se indique lo contrario). El usuario es responsable de la veracidad de la información que publica. Dameldato no se hace responsable por información falsa, incompleta o engañosa proporcionada por los usuarios.</p>
-                          <p className="mb-2"><strong>5. Contacto entre Usuarios</strong><br />El contacto entre Usuarios y Proveedores se realiza fuera de la plataforma, principalmente mediante WhatsApp u otros medios externos. Dameldato no controla, registra ni interviene en dichas comunicaciones.</p>
-                          <p className="mb-2"><strong>6. Responsabilidad y Exención</strong><br />Dameldato NO será responsable, bajo ninguna circunstancia, por: Incumplimiento de servicios; Daños materiales, personales o morales; Fraudes, estafas o engaños; Pagos, cobros, reembolsos o disputas económicas; Accidentes, lesiones o pérdidas; Calidad, legalidad o resultado de los servicios ofrecidos. El uso de la plataforma se realiza bajo exclusiva responsabilidad del usuario.</p>
-                          <p className="mb-2"><strong>7. Contenido Publicado</strong><br />Dameldato se reserva el derecho de modificar, ocultar o eliminar publicaciones que: Sean falsas, ilegales o engañosas; Infrinjan derechos de terceros; Atenten contra la ley, la moral o el orden público. Esto no implica obligación de supervisión permanente.</p>
-                          <p className="mb-2"><strong>8. Suspensión o Eliminación de Cuentas</strong><br />Dameldato podrá suspender o eliminar cuentas sin previo aviso si detecta uso indebido, fraude, abuso o incumplimiento de estos términos.</p>
-                          <p className="mb-2"><strong>9. Modificaciones</strong><br />Dameldato podrá actualizar estos Términos y Condiciones en cualquier momento. El uso continuado de la plataforma implica aceptación de los cambios.</p>
-                          <p className="mb-2"><strong>10. Legislación Aplicable</strong><br />Estos Términos se rigen por las leyes vigentes de la República de Chile. Cualquier controversia deberá resolverse conforme a dicha legislación.</p>
-                          <p className="mb-2"><strong>11. Contacto</strong><br />Para consultas generales sobre la plataforma: 🌐 dameldato.com</p>
+                          <p><strong>Bienvenido/a a Dameldato</strong>, una plataforma que conecta a personas que buscan oportunidades laborales, empresas que contratan y emprendedores que ofrecen servicios.</p>
+                          <p className="mt-2">Al registrarse y utilizar Dameldato, usted acepta estos Términos y Condiciones. Si no está de acuerdo, no debe usar la plataforma.</p>
+                          <p className="mt-2"><strong>1. Aceptación de los Términos</strong><br />Al crear una cuenta en Dameldato, el usuario declara haber leído, entendido y aceptado íntegramente estos Términos y Condiciones, así como la Política de Privacidad asociada.</p>
+                          <p className="mt-2"><strong>2. Naturaleza del Servicio</strong><br />Dameldato es una plataforma que facilita la conexión entre usuarios, empresas y proveedores de servicios. Dameldato no garantiza empleos, ni se responsabiliza por acuerdos, pagos, compromisos o relaciones laborales generadas entre los usuarios fuera de la plataforma. El usuario entiende que Dameldato no participa en negociaciones laborales, no valida la veracidad total de las ofertas publicadas por terceros y no se hace responsable de conflictos, pérdidas o daños derivados de interacciones entre usuarios.</p>
+                          <p className="mt-2"><strong>3. Registro y Responsabilidad del Usuario</strong><br />El usuario debe proporcionar datos verdaderos, completos y actualizados; no crear cuentas falsas o duplicadas; no suplantar identidad; no publicar contenido ofensivo, ilegal o que viole derechos; y mantener segura su información de inicio de sesión. Dameldato puede suspender o eliminar cuentas que incumplan estos términos sin previo aviso.</p>
+                          <p className="mt-2"><strong>4. Contenido Publicado por Usuarios</strong><br />Los usuarios son responsables del contenido que publiquen y declaran tener derechos para hacerlo. Otorgan a Dameldato una licencia no exclusiva para mostrarlo en la plataforma. Dameldato puede eliminar contenido que infrinja leyes o buenas prácticas.</p>
+                          <p className="mt-2"><strong>5. Pagos y Paquetes</strong><br />Algunos servicios requieren pago. Los precios se muestran en pesos chilenos (CLP) y pueden cambiar. No hay reembolsos salvo error de Dameldato.</p>
+                          <p className="mt-2"><strong>6. Limitación de Responsabilidad</strong><br />Dameldato no garantiza encontrar empleo, que empleadores o trabajadores cumplan, ni que la plataforma sea ininterrumpida o totalmente segura. No es responsable por daños, pérdidas de datos, ingresos u oportunidades, ni por conflictos entre usuarios. El uso es bajo responsabilidad del usuario.</p>
+                          <p className="mt-2"><strong>7. Datos Personales</strong><br />Dameldato trata datos según su Política de Privacidad, no vende datos a terceros y usa la información para operar y mejorar el servicio.</p>
+                          <p className="mt-2"><strong>8. Modificaciones de los Términos</strong><br />Dameldato puede actualizar estos Términos; el uso continuado implica aceptación.</p>
+                          <p className="mt-2"><strong>9. Suspensión o Eliminación de Cuenta</strong><br />Dameldato puede suspender o eliminar cuentas que infrinjan términos, cometan fraude o pongan en riesgo la plataforma o a otros usuarios.</p>
+                          <p className="mt-2"><strong>10. Ley Aplicable</strong><br />Estos Términos se rigen por las leyes de Chile (o el país que se elija).</p>
+                          <p className="mt-2"><strong>11. Aceptación</strong><br />Al continuar, confirmas que aceptas estos Términos.</p>
                         </div>
                       )}
                     </div>
                   </div>
 
                   <div className="pt-6">
-                    <Button
-                      onClick={handleNext}
-                      disabled={isVerifyingIdentity}
-                      className="w-full font-bold text-lg h-12"
-                    >
-                      {isVerifyingIdentity ? 'Validando identidad...' : 'Siguiente'}
-                      {!isVerifyingIdentity && <ArrowRight className="ml-2" size={18} />}
+                    <Button onClick={handleNext} className="w-full font-bold text-lg h-12">
+                      Siguiente
+                      <ArrowRight className="ml-2" size={18} />
                     </Button>
                   </div>
 
@@ -637,12 +564,169 @@ const Register = () => {
               </div>
             )}
 
+            {step === 2 && (
+              <div className="space-y-6 animate-in fade-in slide-in-from-right-4 duration-500">
+                <div className="text-center space-y-2">
+                  <h3 className="text-xl font-bold font-heading">¿Cómo quieres usar Dameldato?</h3>
+                  <p className="text-muted-foreground">Selecciona tu perfil para continuar</p>
+                </div>
 
-            {step === 3 && selectedRole === 'entrepreneur' && (
+                {/* Campos requeridos para Google Completion */}
+                {(searchParams.get('token') || (isGoogleVerified && user)) && (
+                  <div className="space-y-4 p-4 border rounded-xl bg-white/50 backdrop-blur-sm border-white/20 shadow-inner">
+                    <p className="text-sm font-semibold text-primary mb-2 flex items-center gap-2">
+                      <span className="flex h-5 w-5 items-center justify-center rounded-full bg-primary text-[10px] text-white">i</span>
+                      Información Requerida
+                    </p>
+
+                    <div>
+                      <Label htmlFor="rut_step2">RUT <span className="text-destructive">*</span></Label>
+                      <Input
+                        id="rut_step2"
+                        value={rut}
+                        onChange={(e) => setRut(formatRut(e.target.value))}
+                        placeholder="12.345.678-9"
+                        className={rut && !isValidRut(rut) ? 'border-red-500' : ''}
+                        maxLength={12}
+                        required
+                      />
+                    </div>
+
+                    <div>
+                      <Label htmlFor="phone_step2">Teléfono <span className="text-destructive">*</span></Label>
+                      <Input
+                        id="phone_step2"
+                        value={phone}
+                        onChange={(e) => setPhone(e.target.value)}
+                        placeholder="+56 9 1234 5678"
+                        className={phone && !isValidPhone(phone) ? 'border-red-500' : ''}
+                        required
+                      />
+                    </div>
+
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                      <div>
+                        <Label htmlFor="region_step2">Región <span className="text-destructive">*</span></Label>
+                        <Select value={selectedRegion} onValueChange={(val) => {
+                          setSelectedRegion(val);
+                          setComuna('');
+                        }}>
+                          <SelectTrigger id="region_step2">
+                            <SelectValue placeholder="Región" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {chileData.map((reg) => (
+                              <SelectItem key={reg.id} value={reg.id}>{reg.name}</SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
+                      <div>
+                        <Label htmlFor="comuna_step2">Comuna <span className="text-destructive">*</span></Label>
+                        <Select value={comuna} onValueChange={setComuna} disabled={!selectedRegion}>
+                          <SelectTrigger id="comuna_step2">
+                            <SelectValue placeholder="Comuna" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {selectedRegion && chileData.find(r => String(r.id) === String(selectedRegion))?.communes.map((c) => (
+                              <SelectItem key={c} value={c}>{c}</SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                <div className="flex flex-col items-center gap-4">
+                  <Button
+                    type="button"
+                    onClick={() => {
+                      localStorage.setItem('reg_role', 'job-seeker');
+                      registerWithRole('job-seeker');
+                    }}
+                    disabled={isSubmitting}
+                    className="w-full max-w-md h-20 text-xl font-bold bg-primary hover:bg-primary/90 shadow-lg shadow-primary/20 flex items-center justify-between px-8"
+                  >
+                    <span className="flex flex-col items-start">
+                      <span>🏠 Soy Vecino</span>
+                      <span className="text-xs font-normal opacity-80">Busco datos y servicios</span>
+                    </span>
+                    <ArrowRight size={24} />
+                  </Button>
+
+                  <Button
+                    type="button"
+                    onClick={() => {
+                      localStorage.setItem('reg_role', 'entrepreneur');
+                      registerWithRole('entrepreneur');
+                    }}
+                    disabled={isSubmitting}
+                    className="w-full max-w-md h-20 text-xl font-bold bg-secondary hover:bg-secondary/90 shadow-lg shadow-secondary/20 flex items-center justify-between px-8"
+                  >
+                    <span className="flex flex-col items-start">
+                      <span>🛠️ Soy Emprendedor</span>
+                      <span className="text-xs font-normal opacity-80">Ofrezco mis servicios</span>
+                    </span>
+                    <ArrowRight size={24} />
+                  </Button>
+                </div>
+
+                <Button variant="ghost" onClick={() => setStep(1)} className="w-full">
+                  <ArrowLeft className="mr-2" size={18} />
+                  Volver al formulario
+                </Button>
+              </div>
+            )}
+
+            {step === 3 && (
+              <div className="space-y-6 animate-in fade-in slide-in-from-right-4 duration-500">
+                <div className="text-center space-y-2">
+                  <h3 className="text-xl font-bold font-heading">Verifica tu identidad</h3>
+                  <p className="text-muted-foreground text-sm">
+                    Antes de continuar, debemos verificar que eres una persona real. Este proceso es
+                    rápido y solo lo harás una vez.
+                  </p>
+                </div>
+
+                <KYCVerification
+                  onSuccess={() => {
+                    navigate('/');
+                  }}
+                  onError={(msg) => {
+                    toast.error(msg || 'No pudimos completar la verificación de identidad.');
+                  }}
+                />
+
+                <Button variant="ghost" onClick={() => setStep(2)} className="w-full">
+                  <ArrowLeft className="mr-2" size={18} />
+                  Volver a selección de rol
+                </Button>
+              </div>
+            )}
+
+            {step === 4 && selectedRole === 'job-seeker' && (
+              <div className="text-center space-y-6 animate-in fade-in slide-in-from-right-4 duration-500">
+                <div className="text-6xl">🎉</div>
+                <h3 className="text-2xl font-bold font-heading">¡Ya estás listo!</h3>
+                <p className="text-muted-foreground">
+                  Tu identidad está siendo verificada. Mientras tanto, puedes explorar 
+                  los servicios disponibles en la plataforma.
+                </p>
+                <Button 
+                  onClick={() => navigate('/servicios')} 
+                  className="w-full h-12 font-bold"
+                >
+                  Ver servicios disponibles →
+                </Button>
+              </div>
+            )}
+
+            {step === 4 && selectedRole === 'entrepreneur' && (
               <div className="space-y-6 animate-in fade-in slide-in-from-right-4 duration-500">
                 <div className="space-y-4 p-5 border-2 border-secondary/30 rounded-2xl bg-secondary/5">
                   <div className="flex items-center gap-2 mb-2">
-                    <div className="w-8 h-8 rounded-full bg-secondary flex items-center justify-center text-white">3</div>
+                    <div className="w-8 h-8 rounded-full bg-secondary flex items-center justify-center text-white">4</div>
                     <h3 className="font-heading font-bold text-xl">Tu Perfil de Emprendedor</h3>
                   </div>
 
@@ -683,7 +767,7 @@ const Register = () => {
                 </div>
 
                 <div className="flex gap-4 pt-4">
-                  <Button variant="outline" onClick={() => setStep(1)} className="flex-1 h-12">
+                  <Button variant="outline" onClick={() => setStep(3)} className="flex-1 h-12">
                     <ArrowLeft className="mr-2" size={18} />
                     Atrás
                   </Button>
@@ -693,10 +777,27 @@ const Register = () => {
                 </div>
               </div>
             )}
+
+            {step === 5 && (
+              <div className="text-center space-y-6 animate-in fade-in slide-in-from-right-4 duration-500">
+                <div className="text-6xl">🚀</div>
+                <h3 className="text-2xl font-bold font-heading">¡Perfil creado!</h3>
+                <p className="text-muted-foreground">
+                  Tu identidad está siendo verificada. Una vez aprobada, 
+                  podrás publicar tus servicios desde la sección de servicios.
+                </p>
+                <Button 
+                  onClick={() => navigate('/servicios/publicar')} 
+                  className="w-full h-12 font-bold bg-secondary hover:bg-secondary/90"
+                >
+                  Publicar mi primer servicio →
+                </Button>
+              </div>
+            )}
           </CardContent>
         </Card>
       </div>
-    </div >
+    </div>
   );
 };
 

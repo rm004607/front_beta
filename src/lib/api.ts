@@ -1414,6 +1414,22 @@ export const kycAPI = {
     });
   },
 
+  start: async (identityId: string) => {
+    return request<{
+      message: string;
+      kyc?: {
+        kyc_status: 'not_started' | 'pending' | 'verified' | 'rejected';
+        id_front_url?: string;
+        id_back_url?: string;
+        face_url?: string;
+        rejection_reason?: string;
+      };
+    }>('/api/kyc/start', {
+      method: 'POST',
+      body: JSON.stringify({ identityId }),
+    });
+  },
+
 
   uploadKYC: async (formData: FormData) => {
     return request<{ message: string }>('/api/kyc/upload', {
