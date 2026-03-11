@@ -692,11 +692,7 @@ const Register = () => {
                 <KYCVerification
                   registrationId={registrationId || ''}
                   onSuccess={() => {
-                    if (selectedRole === 'entrepreneur') {
-                      setStep(4);
-                    } else {
-                      navigate('/');
-                    }
+                    setStep(4);
                   }}
                   onError={(msg) => {
                     toast.error(msg || 'No pudimos completar la verificación de identidad.');
@@ -710,7 +706,7 @@ const Register = () => {
               </div>
             )}
 
-            {step === 4 && selectedRole === 'job-seeker' && (
+            {step === 4 && (
               <div className="text-center space-y-6 animate-in fade-in slide-in-from-right-4 duration-500">
                 <div className="text-6xl">🎉</div>
                 <h3 className="text-2xl font-bold font-heading">¡Ya estás listo!</h3>
