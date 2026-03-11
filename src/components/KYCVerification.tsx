@@ -37,7 +37,15 @@ export default function KYCVerification({ registrationId, onSuccess, onError }: 
         await kycAPI.link(registrationId, identityId);
         console.log('[KYC] ✅ Vinculación exitosa en frontend, esperando webhook...');
         setIsVerifying(true);
-        // NO llamamos a onSuccess() aquí, esperamos al poller de DB
+        
+        // Verificación inmediata inicial para no esperar al primer tick del intervalo
+        try {
+          const res = await kycAPI.checkPendingStatus(registrationId);
+          if (res.ok && res.status === 'verified') {
+            onSuccess();
+          }
+        } catch (e) {}
+        
       } catch (err) {
         console.error('[KYC] Error en /api/kyc/link:', err);
         onError('Error al vincular tu identidad. Intenta de nuevo.');
@@ -93,8 +101,8 @@ export default function KYCVerification({ registrationId, onSuccess, onError }: 
       }
     };
 
-    // Polling cada 3 segundos siempre que estemos montados
-    poller = setInterval(checkStatus, 3000);
+    // Polling cada 2 segundos siempre que estemos montados
+    poller = setInterval(checkStatus, 2000);
 
     return () => clearInterval(poller);
   }, [registrationId, onSuccess, onError]);
