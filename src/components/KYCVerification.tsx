@@ -121,33 +121,12 @@ export default function KYCVerification({ registrationId, onSuccess, onError }: 
           />
         </>
       )}
-      <div className="flex flex-col items-center gap-2 mt-2">
-        <button
-          className="text-sm font-semibold text-primary underline"
-          onClick={async () => {
-            setIsVerifying(true);
-            try {
-              const res = await kycAPI.checkPendingStatus(registrationId);
-              if (res.ok && res.status === 'verified') {
-                onSuccess();
-              } else {
-                alert('Aún estamos esperando la confirmación de identidad. Por favor espera unos segundos.');
-                setIsVerifying(false);
-              }
-            } catch (e) {
-              setIsVerifying(false);
-            }
-          }}
-        >
-          ¿Ya terminaste? Haz clic aquí para continuar
-        </button>
-        <button
-          className="text-xs text-muted-foreground underline"
-          onClick={() => onError('Problemas con la verificación')}
-        >
-          ¿Problemas con la verificación?
-        </button>
-      </div>
+      <button
+        className="text-xs text-muted-foreground underline"
+        onClick={() => onError('Problemas con la verificación')}
+      >
+        ¿Problemas con la verificación?
+      </button>
     </div>
   );
 }

@@ -143,8 +143,10 @@ const Register = () => {
   }, [searchParams]);
  
   const isGoogleFlow = !!searchParams.get('token') || isGoogleVerified;
-  const displayStep = step === 1 ? 1 : (step === 2 ? 2 : (step === 3 ? (isGoogleFlow ? 3 : 2) : (step === 4 ? (isGoogleFlow ? 4 : 3) : step)));
-  const totalSteps = isGoogleFlow ? 4 : 3;
+  
+  // Mapear los pasos internos a números legibles para el usuario (1 al 3)
+  const displayStep = step === 1 ? 1 : (step <= 3 ? 2 : 3);
+  const totalSteps = 3;
 
   const handleNext = () => {
     if (step === 1) {
