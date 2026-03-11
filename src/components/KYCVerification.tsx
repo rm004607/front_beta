@@ -65,7 +65,7 @@ export default function KYCVerification({ registrationId, onSuccess, onError }: 
       </p>
       <mati-button
         ref={buttonRef}
-        clientid={import.meta.env.VITE_METAMAP_CLIENT_ID}
+        clientId={import.meta.env.VITE_METAMAP_CLIENT_ID}
         flowId={import.meta.env.VITE_METAMAP_FLOW_ID}
       />
       <button
