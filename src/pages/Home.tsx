@@ -616,9 +616,9 @@ const Home = () => {
               </p>
             </div>
 
-            <div className="relative animate-reveal delay-300">
-              {/* Video Player Container */}
-              <div className="relative z-10 glass-card p-2 md:p-4 rounded-[2.5rem] md:rounded-[4rem] border-primary/10 shadow-2xl overflow-hidden bg-white/50 group">
+            <div className="relative animate-reveal delay-300" style={{ transform: 'translateZ(0)', willChange: 'transform' }}>
+              {/* Video Player Container - Removed glass-card (backdrop-blur) for performance */}
+              <div className="relative z-10 p-2 md:p-4 rounded-[2.5rem] md:rounded-[4rem] border border-primary/10 shadow-xl overflow-hidden bg-white group">
                 <div className="aspect-video rounded-[2rem] md:rounded-[3.2rem] overflow-hidden bg-slate-900 relative">
                   <video 
                     className="w-full h-full object-cover pointer-events-none"
@@ -629,6 +629,7 @@ const Home = () => {
                     playsInline
                     preload="metadata"
                   >
+                    <source src="/Pink-and-Purple-Simple-Animated-Team-Profile-Introduction-Video.webm" type="video/webm" />
                     <source src="/Pink and Purple Simple Animated Team Profile Introduction Video.mp4" type="video/mp4" />
                     Tu navegador no soporta el video.
                   </video>
@@ -638,9 +639,9 @@ const Home = () => {
                 </div>
               </div>
 
-              {/* Decorative Background Elements */}
-              <div className="absolute -top-12 -right-12 w-64 h-64 bg-secondary/10 rounded-full blur-[80px] -z-10 animate-pulse-subtle"></div>
-              <div className="absolute -bottom-12 -left-12 w-64 h-64 bg-primary/10 rounded-full blur-[80px] -z-10 animate-pulse-subtle" style={{ animationDelay: '1.5s' }}></div>
+              {/* Decorative Background Elements - Removed pulse animation for performance */}
+              <div className="absolute -top-12 -right-12 w-64 h-64 bg-secondary/10 rounded-full blur-[80px] -z-10"></div>
+              <div className="absolute -bottom-12 -left-12 w-64 h-64 bg-primary/10 rounded-full blur-[80px] -z-10"></div>
             </div>
 
             <div className="grid md:grid-cols-3 gap-8 pt-8">
