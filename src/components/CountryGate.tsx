@@ -1,22 +1,25 @@
 import { useState, useEffect } from 'react';
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
-import { Button } from "@/components/ui/button";
 import { useTranslation } from 'react-i18next';
+import ComingSoon from '@/pages/ComingSoon';
 
 export const CountryGate = () => {
-  const [isOpen, setIsOpen] = useState(false);
+  const [isBlocked, setIsBlocked] = useState(false);
   const [detectedCountry, setDetectedCountry] = useState('');
+  const [isLoading, setIsLoading] = useState(true);
   const { t } = useTranslation();
 
   useEffect(() => {
-    const hasSeenModal = localStorage.getItem('dameldato_location_modal_seen');
-    if (hasSeenModal) return;
+    // Check if we already have a block status to avoid re-fetching
+    const storedStatus = localStorage.getItem('dameldato_block_status');
+    if (storedStatus === 'blocked') {
+      setIsBlocked(true);
+      setIsLoading(false);
+      return;
+    } else if (storedStatus === 'allowed') {
+      setIsBlocked(false);
+      setIsLoading(false);
+      return;
+    }
 
     const detectLocation = async () => {
       try {
@@ -30,57 +33,46 @@ export const CountryGate = () => {
           data = await response.json();
           
           if (data.status === 'success') {
-            console.log('Location detection (fallback):', data.country, data.countryCode);
-            if (data.countryCode !== 'CL') {
-              setDetectedCountry(data.country);
-              setIsOpen(true);
-            }
+            const isCL = data.countryCode === 'CL';
+            setIsBlocked(!isCL);
+            setDetectedCountry(data.country);
+            localStorage.setItem('dameldato_block_status', isCL ? 'allowed' : 'blocked');
           }
         } else {
-          console.log('Location detection (primary):', data.country_name, data.country_code);
-          if (data.country_code !== 'CL') {
-            setDetectedCountry(data.country_name);
-            setIsOpen(true);
-          } else {
-            console.log('User is in Chile (CL), modal will not show.');
-          }
+          const isCL = data.country_code === 'CL';
+          setIsBlocked(!isCL);
+          setDetectedCountry(data.country_name);
+          localStorage.setItem('dameldato_block_status', isCL ? 'allowed' : 'blocked');
         }
       } catch (error) {
         console.error('Error detecting location:', error);
+        // Default to not blocking if detection fails to avoid locking out legitimate users
+        setIsBlocked(false);
+      } finally {
+        setIsLoading(false);
       }
     };
 
     detectLocation();
   }, []);
 
-  const handleClose = () => {
-    localStorage.setItem('dameldato_location_modal_seen', 'true');
-    setIsOpen(false);
-  };
+  // For manual testing/override via console
+  useEffect(() => {
+    (window as any).forceBlock = (block: boolean) => {
+      setIsBlocked(block);
+      localStorage.setItem('dameldato_block_status', block ? 'blocked' : 'allowed');
+    };
+  }, []);
 
-  return (
-    <Dialog open={isOpen} onOpenChange={setIsOpen}>
-      <DialogContent className="sm:max-w-md rounded-[2rem] border-primary/20 bg-white/95 backdrop-blur-xl">
-        <DialogHeader className="space-y-4">
-          <div className="mx-auto w-16 h-16 bg-primary/10 rounded-2xl flex items-center justify-center text-primary animate-bounce-subtle">
-            <span className="text-3xl">🌎</span>
-          </div>
-          <DialogTitle className="text-2xl font-black text-center">
-            {t('home.coming_soon_title')}
-          </DialogTitle>
-          <DialogDescription className="text-base text-center font-medium leading-relaxed">
-            {t('home.coming_soon_desc', { country: detectedCountry })}
-          </DialogDescription>
-        </DialogHeader>
-        <div className="flex justify-center pt-4">
-          <Button 
-            onClick={handleClose}
-            className="bg-primary hover:bg-primary/90 text-white font-bold px-8 py-6 rounded-xl shadow-lg shadow-primary/20 transition-all hover:scale-105"
-          >
-            {t('home.coming_soon_cta')}
-          </Button>
-        </div>
-      </DialogContent>
-    </Dialog>
-  );
+  if (isLoading) return null;
+
+  if (isBlocked) {
+    return (
+      <div className="fixed inset-0 z-[9999] bg-white overflow-y-auto">
+        <ComingSoon />
+      </div>
+    );
+  }
+
+  return null;
 };
