@@ -51,7 +51,12 @@ const resources = {
                 "want_to_offer_services": "Quiero ofrecer mi servicio en Dameldato",
                 "login_panel_cta": "Ya soy parte de Dameldato",
                 "already_part_description": "Sigue ofreciendo tus servicios",
-                "register_talent_cta": "Crear mi cuenta de talento"
+                "register_talent_cta": "Crear mi cuenta de talento",
+                "countries_title": "Países donde estamos",
+                "countries_desc": "Actualmente operamos en Chile, conectando talentos locales con vecinos de todo el país.",
+                "coming_soon_title": "¡Hola! 👋 Próximamente en tu país",
+                "coming_soon_desc": "Detectamos que nos visitas desde {{country}}. Por ahora Dameldato solo opera en Chile, pero estamos trabajando para llegar pronto a tu zona.",
+                "coming_soon_cta": "Explorar sitio"
             },
             "services": {
                 "title": "Servicios",
@@ -208,7 +213,12 @@ const resources = {
                 "want_to_offer_services": "I want to offer my service on Dameldato",
                 "login_panel_cta": "I am already part of Dameldato",
                 "already_part_description": "Keep offering your services",
-                "register_talent_cta": "Create my talent account"
+                "register_talent_cta": "Create my talent account",
+                "countries_title": "Countries where we are",
+                "countries_desc": "We currently operate in Chile, connecting local talents with neighbors across the country.",
+                "coming_soon_title": "Hello! 👋 Coming soon to your country",
+                "coming_soon_desc": "We detected you are visiting from {{country}}. For now Dameldato only operates in Chile, but we are working to arrive in your area soon.",
+                "coming_soon_cta": "Explore site"
             },
             "services": {
                 "title": "Services",

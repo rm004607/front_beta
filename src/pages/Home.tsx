@@ -599,6 +599,43 @@ const Home = () => {
         </div>
       </section>
 
+      {/* Countries Where We Are Section */}
+      <section className="py-24 relative overflow-hidden bg-white">
+        <div className="container mx-auto px-4 text-center">
+          <div className="max-w-4xl mx-auto space-y-8">
+            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/5 text-primary font-bold text-sm uppercase tracking-wider">
+              <Globe size={16} />
+              {t('home.countries_title')}
+            </div>
+            <h2 className="text-3xl md:text-5xl font-black text-slate-900">
+              {t('home.countries_title')}
+            </h2>
+            <p className="text-xl text-muted-foreground leading-relaxed">
+              {t('home.countries_desc')}
+            </p>
+            
+            <div className="flex justify-center pt-8">
+              <div className="group relative">
+                <div className="absolute -inset-4 bg-gradient-to-r from-primary/20 to-secondary/20 rounded-[2.5rem] blur-xl opacity-0 group-hover:opacity-100 transition-opacity"></div>
+                <div className="relative bg-white border-2 border-primary/10 p-8 rounded-[2.5rem] shadow-xl flex flex-col items-center gap-4 transition-transform group-hover:-translate-y-2">
+                  <div className="w-24 h-16 rounded-xl overflow-hidden shadow-md border border-slate-100">
+                    <img 
+                      src="https://flagcdn.com/cl.svg" 
+                      alt="Chile" 
+                      className="w-full h-full object-cover"
+                    />
+                  </div>
+                  <div>
+                    <h3 className="text-2xl font-black text-slate-900">Chile</h3>
+                    <p className="text-xs font-bold text-primary uppercase tracking-widest mt-1">Sede Principal</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
       {/* Entrepreneur Choice Section (for logged out) */}
       {!isLoggedIn && (
         <section id="entrepreneur-section" className="py-24 bg-primary/5 relative overflow-hidden">
