@@ -9,27 +9,27 @@ const ComingSoon = () => {
     <div className="min-h-screen bg-mesh flex flex-col items-center justify-start p-6 md:p-12 overflow-y-auto">
       <div className="max-w-4xl w-full space-y-12 py-12 animate-reveal">
         {/* Logo Section */}
-        <div className="flex justify-center mb-8">
+        <div className="flex justify-center mb-6">
           <img
             src={logoFull}
             alt="Dameldato"
-            className="h-28 md:h-40 object-contain drop-shadow-2xl animate-float"
+            className="h-20 md:h-40 object-contain drop-shadow-2xl animate-float"
           />
         </div>
 
         {/* Hero Block */}
-        <div className="glass-card p-8 md:p-16 rounded-[3.5rem] border-primary/20 text-center relative overflow-hidden shadow-2xl">
+        <div className="glass-card p-6 xs:p-8 md:p-16 rounded-[2.5rem] sm:rounded-[3.5rem] border-primary/20 text-center relative overflow-hidden shadow-2xl">
           <div className="absolute top-0 right-0 w-64 h-64 bg-primary/5 rounded-bl-full -z-10 blur-3xl"></div>
           
-          <div className="mx-auto w-24 h-24 bg-primary/10 rounded-[2rem] flex items-center justify-center text-primary mb-8 animate-pulse-subtle">
-            <Globe size={48} />
+          <div className="mx-auto w-16 h-16 md:w-24 md:h-24 bg-primary/10 rounded-2xl md:rounded-[2rem] flex items-center justify-center text-primary mb-6 md:mb-8 animate-pulse-subtle">
+            <Globe size={40} className="md:w-12 md:h-12" />
           </div>
 
-          <h1 className="text-4xl md:text-7xl font-black text-slate-900 leading-tight tracking-tighter mb-6">
+          <h1 className="text-3xl xs:text-4xl md:text-7xl font-black text-slate-900 leading-tight tracking-tighter mb-4 md:mb-6">
              {t('home.coming_soon_title')}
           </h1>
 
-          <p className="text-xl md:text-2xl text-muted-foreground font-medium leading-relaxed max-w-2xl mx-auto">
+          <p className="text-base md:text-2xl text-muted-foreground font-medium leading-relaxed max-w-2xl mx-auto">
             {t('home.coming_soon_desc', { country: 'tu zona' })}
           </p>
         </div>

@@ -232,11 +232,11 @@ const Home = () => {
             {/* Left Content */}
             <div className="flex-1 text-center lg:text-left space-y-8 max-w-2xl mx-auto lg:mx-0">
               {/* Logo de Marca - Visible en todo dispositivo */}
-              <div className="flex justify-center lg:justify-start mb-6 sm:mb-12">
+              <div className="flex justify-center lg:justify-start mb-4 sm:mb-12">
                 <img
                   src={logoFull}
                   alt="Dameldato"
-                  className="h-24 xs:h-32 sm:h-48 lg:h-64 w-auto object-contain animate-reveal drop-shadow-lg"
+                  className="h-20 xs:h-28 sm:h-48 lg:h-64 w-auto object-contain animate-reveal drop-shadow-lg"
                 />
               </div>
 
@@ -245,12 +245,12 @@ const Home = () => {
                 {t('hero.verified_community')}
               </div>
 
-              <h1 className="text-3xl xs:text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-sans font-extrabold leading-[1.1] tracking-tight animate-reveal delay-100 break-words">
+              <h1 className="text-3xl xs:text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-sans font-extrabold leading-[1.15] tracking-tight animate-reveal delay-100 break-words">
                 {t('hero.title_part1')} <span className="inline sm:hidden"><br /></span>
                 <span className="text-primary text-glow">{t('hero.title_part2')}</span>
               </h1>
 
-              <p className="text-muted-foreground font-medium text-lg md:text-xl animate-reveal delay-200 leading-relaxed">
+              <p className="text-muted-foreground font-medium text-base sm:text-lg md:text-xl animate-reveal delay-200 leading-relaxed max-w-lg mx-auto lg:mx-0">
                 La mejor plataforma para contactar talentos independientes en tu zona.
               </p>
 
@@ -293,24 +293,24 @@ const Home = () => {
                   </div>
                 </div>
 
-                {/* Floating Elements */}
-                <div className="absolute -top-4 -right-4 sm:-top-6 sm:-right-6 glass-card p-3 sm:p-4 rounded-2xl animate-float shadow-xl flex items-center gap-2 sm:gap-3 border-primary/20" style={{ animationDelay: '1s' }}>
-                  <div className="w-8 h-8 sm:w-10 sm:h-10 bg-success rounded-full flex items-center justify-center text-white">
-                    <Star size={16} fill="currentColor" className="sm:w-5 sm:h-5" />
+                {/* Floating Elements - Adjusted for Mobile to avoid overflow */}
+                <div className="absolute -top-4 -right-2 sm:-top-6 sm:-right-6 glass-card p-2 sm:p-4 rounded-2xl animate-float shadow-xl flex items-center gap-2 sm:gap-3 border-primary/20 z-20" style={{ animationDelay: '1s' }}>
+                  <div className="w-7 h-7 sm:w-10 sm:h-10 bg-success rounded-full flex items-center justify-center text-white">
+                    <Star size={14} fill="currentColor" className="sm:w-5 sm:h-5" />
                   </div>
                   <div>
-                    <p className="text-[10px] sm:text-xs text-muted-foreground">Calidad</p>
-                    <p className="font-bold text-xs sm:text-sm">Expertos 5⭐</p>
+                    <p className="text-[9px] sm:text-xs text-muted-foreground font-bold">Calidad</p>
+                    <p className="font-black text-[10px] sm:text-sm">Expertos 5⭐</p>
                   </div>
                 </div>
 
-                <div className="absolute -bottom-4 -left-4 sm:-bottom-6 sm:-left-6 glass-card p-3 sm:p-4 rounded-2xl animate-float shadow-xl flex items-center gap-2 sm:gap-3 border-secondary/20" style={{ animationDelay: '2s' }}>
-                  <div className="w-8 h-8 sm:w-10 sm:h-10 bg-secondary rounded-full flex items-center justify-center text-white">
-                    <MapPin size={16} className="sm:w-5 sm:h-5" />
+                <div className="absolute -bottom-4 -left-2 sm:-bottom-6 sm:-left-6 glass-card p-2 sm:p-4 rounded-2xl animate-float shadow-xl flex items-center gap-2 sm:gap-3 border-secondary/20 z-20" style={{ animationDelay: '2s' }}>
+                  <div className="w-7 h-7 sm:w-10 sm:h-10 bg-secondary rounded-full flex items-center justify-center text-white">
+                    <MapPin size={14} className="sm:w-5 sm:h-5" />
                   </div>
                   <div>
-                    <p className="text-[10px] sm:text-xs text-muted-foreground">Ubicuidad</p>
-                    <p className="font-bold text-xs sm:text-sm">Tu Comuna</p>
+                    <p className="text-[9px] sm:text-xs text-muted-foreground font-bold">Ubicuidad</p>
+                    <p className="font-black text-[10px] sm:text-sm">Tu Comuna</p>
                   </div>
                 </div>
               </div>
@@ -340,9 +340,9 @@ const Home = () => {
             ) : serviceTypes.length >= 6 ? (
               // Render Marquee for 6 or more categories
               <div className="relative overflow-hidden group pause-on-hover">
-                {/* Glassy Fades on edges for depth */}
-                <div className="absolute left-0 top-0 bottom-0 w-32 bg-gradient-to-r from-background via-background/80 to-transparent z-20 pointer-events-none"></div>
-                <div className="absolute right-0 top-0 bottom-0 w-32 bg-gradient-to-l from-background via-background/80 to-transparent z-20 pointer-events-none"></div>
+                {/* Glassy Fades on edges for depth - Narrower on Mobile */}
+                <div className="absolute left-0 top-0 bottom-0 w-16 md:w-32 bg-gradient-to-r from-background via-background/80 to-transparent z-20 pointer-events-none"></div>
+                <div className="absolute right-0 top-0 bottom-0 w-16 md:w-32 bg-gradient-to-l from-background via-background/80 to-transparent z-20 pointer-events-none"></div>
 
                 <div className="space-y-8 py-4">
                   {[0, 1, 2].map((rowIndex) => {
@@ -420,7 +420,7 @@ const Home = () => {
       </section>
 
       {/* Últimos Anuncios */}
-      <section className="py-24 container mx-auto px-4">
+      <section className="py-12 md:py-24 container mx-auto px-4">
         <div className="max-w-6xl mx-auto">
           <div className="flex flex-col md:flex-row items-center justify-between mb-12 gap-6">
             <div className="text-center md:text-left">
@@ -533,12 +533,12 @@ const Home = () => {
                   <span className="text-primary font-bold uppercase tracking-[0.2em] text-sm">Nuestro ADN</span>
                 </div>
                 
-                <h2 className="text-4xl md:text-5xl lg:text-7xl font-black leading-tight tracking-tighter">
+                <h2 className="text-3xl sm:text-4xl md:text-5xl lg:text-7xl font-black leading-[1.15] tracking-tighter">
                   Nacimos para que los <br />
                   <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary to-secondary">buenos datos</span> no se pierdan.
                 </h2>
                 
-                <div className="space-y-6 text-xl md:text-2xl text-muted-foreground leading-relaxed animate-reveal delay-100">
+                <div className="space-y-6 text-lg sm:text-xl md:text-2xl text-muted-foreground leading-relaxed animate-reveal delay-100">
                   <p className="font-medium">
                     En Dameldato, creemos que el conocimiento no sirve de mucho si no se comparte. 
                     Nacimos para transformar la curiosidad en soluciones reales, creando un espacio donde el "dato" de uno ayuda a todos.
@@ -599,8 +599,79 @@ const Home = () => {
         </div>
       </section>
 
+      {/* Nuestro Equipo - Video Section */}
+      <section className="py-12 md:py-24 relative overflow-hidden bg-slate-50">
+        <div className="container mx-auto px-4">
+          <div className="max-w-6xl mx-auto space-y-12">
+            <div className="text-center space-y-4">
+              <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-secondary/10 text-secondary font-bold text-sm uppercase tracking-wider animate-reveal">
+                <Users size={16} />
+                Nuestros Valores
+              </div>
+              <h2 className="text-3xl md:text-5xl font-black text-slate-900 animate-reveal delay-100">
+                Nuestro <span className="text-secondary">Equipo</span>
+              </h2>
+              <p className="text-xl text-muted-foreground leading-relaxed max-w-2xl mx-auto animate-reveal delay-200">
+                Conoce a las personas apasionadas que trabajan día a día para que Dameldato sea la red de confianza más grande de la región.
+              </p>
+            </div>
+
+            <div className="relative animate-reveal delay-300">
+              {/* Video Player Container */}
+              <div className="relative z-10 glass-card p-2 md:p-4 rounded-[2.5rem] md:rounded-[4rem] border-primary/10 shadow-2xl overflow-hidden bg-white/50 group">
+                <div className="aspect-video rounded-[2rem] md:rounded-[3.2rem] overflow-hidden bg-slate-900 relative">
+                  <video 
+                    className="w-full h-full object-cover pointer-events-none"
+                    poster="/logo_nombre.webp"
+                    autoPlay
+                    muted
+                    loop
+                    playsInline
+                    preload="metadata"
+                  >
+                    <source src="/Pink and Purple Simple Animated Team Profile Introduction Video.mp4" type="video/mp4" />
+                    Tu navegador no soporta el video.
+                  </video>
+                  
+                  {/* Overlay decoration */}
+                  <div className="absolute inset-0 pointer-events-none bg-gradient-to-t from-black/20 to-transparent"></div>
+                </div>
+              </div>
+
+              {/* Decorative Background Elements */}
+              <div className="absolute -top-12 -right-12 w-64 h-64 bg-secondary/10 rounded-full blur-[80px] -z-10 animate-pulse-subtle"></div>
+              <div className="absolute -bottom-12 -left-12 w-64 h-64 bg-primary/10 rounded-full blur-[80px] -z-10 animate-pulse-subtle" style={{ animationDelay: '1.5s' }}></div>
+            </div>
+
+            <div className="grid md:grid-cols-3 gap-8 pt-8">
+              <div className="bg-white p-8 rounded-[2.5rem] shadow-xl shadow-slate-200/50 border border-slate-100 space-y-4 hover:-translate-y-2 transition-transform duration-300">
+                <div className="w-12 h-12 bg-primary/10 rounded-2xl flex items-center justify-center text-primary">
+                  <HeartPulse size={24} />
+                </div>
+                <h4 className="text-xl font-black text-slate-900">Pasión</h4>
+                <p className="text-muted-foreground font-medium">Amamos lo que hacemos y nos esforzamos por la excelencia en cada detalle.</p>
+              </div>
+              <div className="bg-white p-8 rounded-[2.5rem] shadow-xl shadow-slate-200/50 border border-slate-100 space-y-4 hover:-translate-y-2 transition-transform duration-300">
+                <div className="w-12 h-12 bg-secondary/10 rounded-2xl flex items-center justify-center text-secondary">
+                  <ShieldCheck size={24} />
+                </div>
+                <h4 className="text-xl font-black text-slate-900">Confianza</h4>
+                <p className="text-muted-foreground font-medium">Construimos puentes seguros entre personas para fortalecer la comunidad.</p>
+              </div>
+              <div className="bg-white p-8 rounded-[2.5rem] shadow-xl shadow-slate-200/50 border border-slate-100 space-y-4 hover:-translate-y-2 transition-transform duration-300">
+                <div className="w-12 h-12 bg-indigo-500/10 rounded-2xl flex items-center justify-center text-indigo-600">
+                  <Globe size={24} />
+                </div>
+                <h4 className="text-xl font-black text-slate-900">Visión</h4>
+                <p className="text-muted-foreground font-medium">Miramos hacia el futuro con el objetivo de llegar a cada rincón del mundo.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
       {/* Countries Where We Are Section */}
-      <section className="py-24 relative overflow-hidden bg-white">
+      <section className="py-12 md:py-24 relative overflow-hidden bg-white">
         <div className="container mx-auto px-4 text-center">
           <div className="max-w-4xl mx-auto space-y-8">
             <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/5 text-primary font-bold text-sm uppercase tracking-wider">
@@ -638,7 +709,7 @@ const Home = () => {
 
       {/* Entrepreneur Choice Section (for logged out) */}
       {!isLoggedIn && (
-        <section id="entrepreneur-section" className="py-24 bg-primary/5 relative overflow-hidden">
+        <section id="entrepreneur-section" className="py-12 md:py-24 bg-primary/5 relative overflow-hidden">
           <div className="absolute inset-0 bg-mesh opacity-10"></div>
           <div className="container mx-auto px-4 relative z-10">
             <div className="max-w-4xl mx-auto glass-card p-12 rounded-[3.5rem] text-center border-primary/20">
@@ -677,7 +748,7 @@ const Home = () => {
       )}
 
       {/* "¿Tienes un buen dato?" Form Section */}
-      <section className="py-24 relative overflow-hidden bg-white">
+      <section className="py-12 md:py-24 relative overflow-hidden bg-white">
         <div className="absolute top-0 right-0 w-1/3 h-full bg-primary/5 -skew-x-12 translate-x-1/2"></div>
         <div className="container mx-auto px-4 relative z-10">
           <div className="max-w-5xl mx-auto flex flex-col lg:flex-row items-center gap-16">
@@ -686,7 +757,7 @@ const Home = () => {
                 <Sparkles size={16} />
                 Comunidad Dameldato
               </div>
-              <h2 className="text-4xl md:text-5xl font-black leading-tight text-slate-900">
+              <h2 className="text-3xl sm:text-4xl md:text-5xl font-black leading-tight text-slate-900">
                 ¿Tienes un <span className="text-indigo-600 italic">buen dato</span> que quieras compartir?
               </h2>
               <p className="text-xl text-muted-foreground leading-relaxed">
