@@ -517,47 +517,88 @@ const Home = () => {
         </div>
       </section>
 
-      {/* How it works - Re-styled as Steps */}
-      <section className="bg-mesh border-y border-primary/10 py-24">
+      {/* Sección Nosotros / Nuestra Historia - Rediseño de Marca */}
+      <section className="py-24 relative overflow-hidden">
         <div className="container mx-auto px-4">
-          <div className="text-center mb-16 space-y-4">
-            <h2 className="text-4xl font-heading font-extrabold animate-reveal">{t('home.how_it_works')}</h2>
-            <p className="text-muted-foreground font-medium text-lg max-w-2xl mx-auto animate-reveal delay-100">
-              {t('home.how_it_works_desc')}
-            </p>
-          </div>
-
-          <div className="grid md:grid-cols-3 gap-12 max-w-6xl mx-auto relative">
-            {/* Connection Line */}
-            <div className="hidden lg:block absolute top-1/2 left-[15%] right-[15%] h-1 border-t-2 border-dashed border-primary/20 -translate-y-[80px]"></div>
-
-            <div className="text-center animate-reveal relative group">
-              <div className="bg-primary text-white w-20 h-20 rounded-[2rem] flex items-center justify-center mx-auto mb-8 shadow-2xl shadow-primary/30 text-3xl font-bold rotate-6 group-hover:rotate-0 transition-transform">
-                1
-              </div>
-              <h3 className="text-2xl font-bold mb-4">{t('home.step1_title')}</h3>
-              <p className="text-muted-foreground text-lg">{t('home.step1_desc')}</p>
+          <div className="max-w-6xl mx-auto relative">
+            {/* Elemento Decorativo Gigante (Marca) */}
+            <div className="absolute -top-20 -left-10 text-[20rem] font-black text-primary/[0.03] select-none pointer-events-none italic">
+              D
             </div>
+            
+            <div className="grid lg:grid-cols-5 gap-12 items-center">
+              <div className="lg:col-span-3 space-y-8">
+                <div className="flex items-center gap-3">
+                  <div className="h-1 w-12 bg-primary rounded-full"></div>
+                  <span className="text-primary font-bold uppercase tracking-[0.2em] text-sm">Nuestro ADN</span>
+                </div>
+                
+                <h2 className="text-4xl md:text-5xl lg:text-7xl font-black leading-tight tracking-tighter">
+                  Nacimos para que los <br />
+                  <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary to-secondary">buenos datos</span> no se pierdan.
+                </h2>
+                
+                <div className="space-y-6 text-xl md:text-2xl text-muted-foreground leading-relaxed animate-reveal delay-100">
+                  <p className="font-medium">
+                    En Dameldato, creemos que el conocimiento no sirve de mucho si no se comparte. 
+                    Nacimos para transformar la curiosidad en soluciones reales, creando un espacio donde el "dato" de uno ayuda a todos.
+                  </p>
+                  <p className="font-medium">
+                    Somos la red donde cada pregunta encuentra su respuesta y cada recomendación cuenta. 
+                    Porque cuando compartimos lo que sabemos, construimos una comunidad más fuerte.
+                  </p>
+                </div>
 
-            <div className="text-center animate-reveal delay-200 relative group">
-              <div className="bg-secondary text-white w-20 h-20 rounded-[2rem] flex items-center justify-center mx-auto mb-8 shadow-2xl shadow-secondary/30 text-3xl font-bold -rotate-6 group-hover:rotate-0 transition-transform">
-                2
+                <div className="pt-8 flex flex-wrap gap-10">
+                  <div className="flex items-center gap-4">
+                    <div className="w-16 h-16 rounded-2xl bg-primary/5 flex items-center justify-center text-primary shadow-inner">
+                      <Users size={32} />
+                    </div>
+                    <div>
+                      <h4 className="font-black text-2xl leading-none">Comunidad</h4>
+                      <p className="text-xs text-muted-foreground font-bold uppercase tracking-widest mt-1">Gente Real</p>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-4">
+                    <div className="w-16 h-16 rounded-2xl bg-secondary/5 flex items-center justify-center text-secondary shadow-inner">
+                      <Lightbulb size={32} />
+                    </div>
+                    <div>
+                      <h4 className="font-black text-2xl leading-none">Soluciones</h4>
+                      <p className="text-xs text-muted-foreground font-bold uppercase tracking-widest mt-1">Claridad Total</p>
+                    </div>
+                  </div>
+                </div>
               </div>
-              <h3 className="text-2xl font-bold mb-4">{t('home.step2_title')}</h3>
-              <p className="text-muted-foreground text-lg">{t('home.step2_desc')}</p>
-            </div>
 
-            <div className="text-center animate-reveal delay-500 relative group">
-              <div className="bg-accent text-white w-20 h-20 rounded-[2rem] flex items-center justify-center mx-auto mb-8 shadow-2xl shadow-accent/30 text-3xl font-bold rotate-12 group-hover:rotate-0 transition-transform">
-                3
+              <div className="lg:col-span-2">
+                <div className="relative group">
+                  {/* Card Central de "Toma el Dato" */}
+                  <div className="bg-gradient-to-br from-primary to-indigo-700 p-10 sm:p-12 rounded-[3.5rem] text-white shadow-2xl shadow-primary/30 relative z-10 transform -rotate-2 group-hover:rotate-0 transition-transform duration-500 overflow-hidden">
+                    <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-bl-full translate-x-10 -translate-y-10 blur-2xl"></div>
+                    <div className="absolute bottom-0 left-0 w-32 h-32 bg-secondary/20 rounded-tr-full -translate-x-10 translate-y-10 blur-2xl"></div>
+                    
+                    <Smile className="w-16 h-16 mb-8 text-white/90" strokeWidth={1.5} />
+                    <h3 className="text-3xl font-black mb-6 italic leading-tight">
+                      “Toma, aquí está el dato.”
+                    </h3>
+                    <p className="text-white/80 font-medium text-lg leading-relaxed mb-8">
+                      Nuestra frase favorita resume todo lo que hacemos: estar listos para ayudar cuando más se necesita.
+                    </p>
+                    
+                    <div className="h-1 w-20 bg-secondary rounded-full"></div>
+                  </div>
+                  
+                  {/* Decorative Elements around current card */}
+                  <div className="absolute -bottom-6 -right-6 w-full h-full border-2 border-primary/10 rounded-[3.5rem] -z-10 translate-x-4 translate-y-4"></div>
+                  <div className="absolute -top-10 -left-10 w-24 h-24 bg-secondary/5 rounded-full blur-3xl"></div>
+                </div>
               </div>
-              <h3 className="text-2xl font-bold mb-4">{t('home.step3_title')}</h3>
-              <p className="text-muted-foreground text-lg">{t('home.step3_desc')}</p>
             </div>
           </div>
         </div>
       </section>
-      
+
       {/* Entrepreneur Choice Section (for logged out) */}
       {!isLoggedIn && (
         <section id="entrepreneur-section" className="py-24 bg-primary/5 relative overflow-hidden">
