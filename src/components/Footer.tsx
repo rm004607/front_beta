@@ -13,20 +13,20 @@ const Footer = () => {
   const isAdmin = user?.roles.includes('admin') || user?.role_number === 5;
 
   return (
-    <footer className="bg-card border-t border-border mt-auto pt-16 pb-8">
-      <div className="container mx-auto px-4">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-12 gap-12 mb-16">
+    <footer className="bg-card border-t border-border mt-auto pt-8 pb-6 xs:pt-10 sm:pt-12 md:pt-16 md:pb-8">
+      <div className="container mx-auto px-3 xs:px-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-12 gap-8 xs:gap-10 sm:gap-12 mb-8 xs:mb-12 sm:mb-16">
           {/* Brand Section */}
-          <div className="lg:col-span-4 space-y-6">
+          <div className="lg:col-span-4 space-y-4 xs:space-y-6">
             <Link to="/" className="flex items-center group">
               <div className="p-0 transition-opacity group-hover:opacity-90">
-                <img src={logoDameldato} alt="Dameldato" className="h-14 sm:h-16 w-auto object-contain" />
+                <img src={logoDameldato} alt="Dameldato" className="h-12 xs:h-14 sm:h-16 w-auto max-w-[200px] xs:max-w-none object-contain" />
               </div>
             </Link>
-            <p className="text-muted-foreground font-medium leading-relaxed max-w-sm">
+            <p className="text-muted-foreground font-medium leading-relaxed max-w-sm text-sm xs:text-base">
               {t('footer.desc')}
             </p>
-            <div className="flex gap-4">
+            <div className="flex flex-wrap gap-3 xs:gap-4">
               <a
                 href="https://www.instagram.com/dameldato_/"
                 target="_blank"
@@ -56,8 +56,8 @@ const Footer = () => {
           </div>
 
           {/* Navigation Links */}
-          <div className="lg:col-span-2 space-y-6">
-            <h3 className="text-foreground font-bold text-lg">{t('footer.explore')}</h3>
+          <div className="lg:col-span-2 space-y-4 xs:space-y-6">
+            <h3 className="text-foreground font-bold text-base xs:text-lg">{t('footer.explore')}</h3>
             <ul className="space-y-4">
               <li>
                 <Link to="/servicios" className="text-muted-foreground hover:text-primary transition-colors text-sm flex items-center gap-2">
@@ -68,8 +68,8 @@ const Footer = () => {
             </ul>
           </div>
 
-          <div className="lg:col-span-3 space-y-6">
-            <h3 className="text-foreground font-bold text-lg">{t('footer.account')}</h3>
+          <div className="lg:col-span-3 space-y-4 xs:space-y-6">
+            <h3 className="text-foreground font-bold text-base xs:text-lg">{t('footer.account')}</h3>
             <ul className="space-y-4">
               {!isLoggedIn ? (
                 <>
@@ -116,9 +116,9 @@ const Footer = () => {
           </div>
 
           {/* Contact Section */}
-          <div className="lg:col-span-3 space-y-6">
-            <h3 className="text-foreground font-bold text-lg">{t('footer.support')}</h3>
-            <div className="bg-muted/50 p-4 rounded-2xl border border-border space-y-4">
+          <div className="lg:col-span-3 space-y-4 xs:space-y-6">
+            <h3 className="text-foreground font-bold text-base xs:text-lg">{t('footer.support')}</h3>
+            <div className="bg-muted/50 p-3 xs:p-4 rounded-xl xs:rounded-2xl border border-border space-y-3 xs:space-y-4">
               <Link to="/ayuda" className="flex items-center gap-3 text-sm text-muted-foreground hover:text-primary transition-colors">
                 <div className="p-2 bg-primary/10 rounded-lg text-primary">
                   <HelpCircle size={18} />
@@ -136,15 +136,15 @@ const Footer = () => {
         </div>
 
         {/* Bottom Bar */}
-        <div className="pt-8 border-t border-border flex flex-col md:flex-row justify-between items-center gap-4">
-          <p className="text-muted-foreground font-medium text-xs">
+        <div className="pt-6 xs:pt-8 border-t border-border flex flex-col md:flex-row justify-between items-center gap-3 xs:gap-4 text-center md:text-left">
+          <p className="text-muted-foreground font-medium text-[11px] xs:text-xs order-2 md:order-1">
             © {new Date().getFullYear()} Dameldato. {t('footer.rights')}
           </p>
-          <div className="flex gap-6">
-            <Link to="/terminos" className="text-xs text-muted-foreground hover:text-primary transition-colors">
+          <div className="flex flex-wrap justify-center gap-4 xs:gap-6 order-1 md:order-2">
+            <Link to="/terminos" className="text-[11px] xs:text-xs text-muted-foreground hover:text-primary transition-colors">
               {t('footer.terms')}
             </Link>
-            <Link to="/privacidad" className="text-xs text-muted-foreground hover:text-primary transition-colors">
+            <Link to="/privacidad" className="text-[11px] xs:text-xs text-muted-foreground hover:text-primary transition-colors">
               {t('footer.privacy')}
             </Link>
           </div>

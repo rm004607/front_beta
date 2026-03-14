@@ -187,7 +187,7 @@ const Home = () => {
   const CategoryCard = ({ type, rowIndex }: { type: any, rowIndex?: number }) => (
     <Link
       to={`/servicios?type_id=${type.id}`}
-      className="group/item shrink-0 inline-flex flex-col items-center justify-center min-w-[150px] xs:min-w-[180px] md:min-w-[200px] h-[150px] xs:h-[180px] glass-card p-4 xs:p-6 rounded-[2rem] xs:rounded-[2.5rem] hover:scale-105 transition-all duration-300 border-transparent hover:border-primary/30 shadow-sm hover:shadow-xl bg-white/40"
+      className="group/item shrink-0 inline-flex flex-col items-center justify-center min-w-[120px] xs:min-w-[150px] sm:min-w-[180px] md:min-w-[200px] h-[130px] xs:h-[150px] sm:h-[180px] glass-card p-3 xs:p-4 sm:p-6 rounded-xl xs:rounded-2xl sm:rounded-[2.5rem] hover:scale-105 transition-all duration-300 border-transparent hover:border-primary/30 shadow-sm hover:shadow-xl bg-white/40"
     >
       <div
         className={`w-14 h-14 rounded-2xl flex items-center justify-center mb-4 group-hover/item:scale-110 transition-transform shadow-md group-hover/item:rotate-6 ${isLightColor(type.color || getServiceColor(type.name)) ? 'text-slate-900' : 'text-white'}`}
@@ -195,7 +195,7 @@ const Home = () => {
       >
         {getServiceIcon(type.name, type.icon, type.idicon)}
       </div>
-      <h3 className="font-bold text-sm xs:text-base group-hover/item:text-primary transition-colors text-center whitespace-normal max-w-[130px] xs:max-w-[160px]">{type.name}</h3>
+      <h3 className="font-bold text-xs xs:text-sm sm:text-base group-hover/item:text-primary transition-colors text-center whitespace-normal max-w-[100px] xs:max-w-[130px] sm:max-w-[160px]">{type.name}</h3>
     </Link>
   );
 
@@ -218,72 +218,72 @@ const Home = () => {
   };
 
   return (
-    <div className="min-h-screen bg-mesh">
+    <div className="min-h-screen w-full max-w-[100vw] overflow-x-hidden bg-mesh">
       {/* Hero Section */}
-      <section className="relative py-12 md:py-32 overflow-hidden">
+      <section className="relative py-8 sm:py-12 md:py-24 lg:py-32 overflow-hidden">
         {/* Animated Background Elements - More subtle for Light Mode */}
         <div className="absolute inset-0 overflow-hidden pointer-events-none">
           <div className="absolute top-[-10%] left-[-10%] w-[60%] h-[60%] md:w-[40%] md:h-[40%] bg-primary/[0.03] blur-[80px] md:blur-[120px] rounded-full animate-pulse-subtle"></div>
           <div className="absolute bottom-[-10%] right-[-10%] w-[60%] h-[60%] md:w-[40%] md:h-[40%] bg-secondary/[0.03] blur-[80px] md:blur-[120px] rounded-full animate-pulse-subtle" style={{ animationDelay: '1s' }}></div>
         </div>
 
-        <div className="container mx-auto px-4 relative z-10">
-          <div className="flex flex-col lg:flex-row items-center gap-12 lg:gap-20">
+        <div className="container mx-auto px-3 xs:px-4 sm:px-4 relative z-10">
+          <div className="flex flex-col lg:flex-row items-center gap-8 sm:gap-12 lg:gap-20">
             {/* Left Content */}
-            <div className="flex-1 text-center lg:text-left space-y-8 max-w-2xl mx-auto lg:mx-0">
-              {/* Logo de Marca - Visible en todo dispositivo */}
-              <div className="flex justify-center lg:justify-start mb-4 sm:mb-12">
+            <div className="flex-1 min-w-0 w-full text-center lg:text-left space-y-5 sm:space-y-8 max-w-2xl mx-auto lg:mx-0">
+              {/* Logo - escala por resolución */}
+              <div className="flex justify-center lg:justify-start mb-2 sm:mb-8">
                 <img
                   src={logoFull}
                   alt="Dameldato"
-                  className="h-20 xs:h-28 sm:h-48 lg:h-64 w-auto object-contain animate-reveal drop-shadow-lg"
+                  className="h-14 xs:h-20 sm:h-32 md:h-40 lg:h-56 xl:h-64 w-auto max-w-[85vw] object-contain animate-reveal drop-shadow-lg"
                 />
               </div>
 
-              <div className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-sky-100 border border-sky-200/80 text-primary text-sm font-semibold animate-reveal">
-                <ShieldCheck size={16} />
-                {t('hero.verified_community')}
+              <div className="inline-flex items-center gap-2 px-3 py-2 xs:px-4 xs:py-2.5 rounded-xl bg-sky-100 border border-sky-200/80 text-primary text-xs xs:text-sm font-semibold animate-reveal">
+                <ShieldCheck size={14} className="xs:w-4 xs:h-4 shrink-0" />
+                <span className="truncate">{t('hero.verified_community')}</span>
               </div>
 
-              <h1 className="text-3xl xs:text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-sans font-extrabold leading-[1.15] tracking-tight animate-reveal delay-100 break-words">
+              <h1 className="text-2xl xs:text-3xl sm:text-4xl md:text-5xl lg:text-6xl xl:text-7xl font-sans font-extrabold leading-[1.2] tracking-tight animate-reveal delay-100 break-words">
                 {t('hero.title_part1')} <span className="inline sm:hidden"><br /></span>
                 <span className="text-primary text-glow">{t('hero.title_part2')}</span>
               </h1>
 
-              <p className="text-muted-foreground font-medium text-base sm:text-lg md:text-xl animate-reveal delay-200 leading-relaxed max-w-lg mx-auto lg:mx-0">
+              <p className="text-muted-foreground font-medium text-sm xs:text-base sm:text-lg md:text-xl animate-reveal delay-200 leading-relaxed max-w-lg mx-auto lg:mx-0">
                 La mejor plataforma para contactar talentos independientes en tu zona.
               </p>
 
-              <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start animate-reveal delay-300">
+              <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center lg:justify-start animate-reveal delay-300">
                 {!isLoggedIn ? (
                   <Button 
                     onClick={() => document.getElementById('entrepreneur-section')?.scrollIntoView({ behavior: 'smooth' })}
                     size="lg" 
-                    className="bg-primary hover:bg-primary/90 text-primary-foreground font-bold px-8 py-7 text-lg rounded-xl shadow-xl shadow-primary/20 transition-all hover:scale-105 active:scale-95 w-full sm:w-auto h-auto"
+                    className="bg-primary hover:bg-primary/90 text-primary-foreground font-bold px-5 py-5 xs:px-6 sm:px-8 sm:py-7 text-base sm:text-lg rounded-xl shadow-xl shadow-primary/20 transition-all hover:scale-105 active:scale-95 w-full sm:w-auto h-auto min-h-12"
                   >
                     {t('hero.offer_services_btn')}
                   </Button>
                 ) : (
                   <Link to="/servicios/publicar">
-                    <Button size="lg" className="bg-primary hover:bg-primary/90 text-primary-foreground font-bold px-8 py-7 text-lg rounded-xl shadow-xl shadow-primary/20 transition-all hover:scale-105 active:scale-95 w-full sm:w-auto h-auto">
+                    <Button size="lg" className="bg-primary hover:bg-primary/90 text-primary-foreground font-bold px-5 py-5 xs:px-6 sm:px-8 sm:py-7 text-base sm:text-lg rounded-xl shadow-xl shadow-primary/20 transition-all hover:scale-105 active:scale-95 w-full sm:w-auto h-auto min-h-12">
                       {t('home.final_cta_btn')}
                     </Button>
                   </Link>
                 )}
-                <Link to="/servicios">
-                  <Button variant="outline" size="lg" className="border-2 border-primary/30 bg-background/50 hover:bg-primary/5 hover:border-primary/50 font-bold px-8 py-7 text-lg rounded-xl w-full sm:w-auto h-auto transition-all">
+                <Link to="/servicios" className="w-full sm:w-auto">
+                  <Button variant="outline" size="lg" className="border-2 border-primary/30 bg-background/50 hover:bg-primary/5 hover:border-primary/50 font-bold px-5 py-5 xs:px-6 sm:px-8 sm:py-7 text-base sm:text-lg rounded-xl w-full h-auto min-h-12 transition-all">
                     {t('hero.explore_services')}
                   </Button>
                 </Link>
               </div>
             </div>
 
-            {/* Right Content - Visual */}
-            <div className="flex-1 relative animate-reveal delay-500">
-              <div className="relative z-10 w-full max-w-[650px] mx-auto">
-                <div className="relative aspect-square rounded-[3rem] bg-gradient-to-br from-primary/5 to-secondary/5 p-1 animate-float">
-                  <div className="absolute inset-0 bg-mesh opacity-20 rounded-[3rem]"></div>
-                  <div className="w-full h-full glass-card rounded-[3rem] flex items-center justify-center p-8 overflow-hidden group border-none">
+            {/* Right Content - Visual: se adapta al ancho */}
+            <div className="flex-1 w-full min-w-0 relative animate-reveal delay-500">
+              <div className="relative z-10 w-full max-w-full lg:max-w-[650px] mx-auto">
+                <div className="relative aspect-square rounded-2xl sm:rounded-[2.5rem] md:rounded-[3rem] bg-gradient-to-br from-primary/5 to-secondary/5 p-1 animate-float">
+                  <div className="absolute inset-0 bg-mesh opacity-20 rounded-2xl sm:rounded-[2.5rem] md:rounded-[3rem]"></div>
+                  <div className="w-full h-full glass-card rounded-2xl sm:rounded-[2.5rem] md:rounded-[3rem] flex items-center justify-center p-4 sm:p-6 md:p-8 overflow-hidden group border-none">
                     <div className="absolute inset-0 bg-gradient-to-tr from-transparent via-white/5 to-transparent translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-1000"></div>
                     <img
                       src="https://images.unsplash.com/photo-1582213782179-e0d53f98f2ca?q=80&w=2070&auto=format&fit=crop"
@@ -293,21 +293,21 @@ const Home = () => {
                   </div>
                 </div>
 
-                {/* Floating badge: Calidad Expertos 5⭐ */}
-                <div className="absolute -top-4 -right-2 sm:-top-6 sm:-right-6 glass-card px-3 py-2 sm:px-4 sm:py-2.5 rounded-2xl animate-float shadow-xl flex items-center gap-2 sm:gap-3 border-primary/20 z-20" style={{ animationDelay: '1s' }}>
-                  <div className="w-7 h-7 sm:w-9 sm:h-9 bg-emerald-500 rounded-full flex items-center justify-center text-white shrink-0">
-                    <Star size={14} fill="currentColor" className="sm:w-4 sm:h-4" />
+                {/* Badge Calidad - dentro del contenedor en móvil */}
+                <div className="absolute top-2 right-2 sm:top-2 sm:right-2 md:-top-2 md:-right-2 lg:-top-6 lg:-right-6 glass-card px-2.5 py-1.5 sm:px-4 sm:py-2.5 rounded-xl sm:rounded-2xl animate-float shadow-xl flex items-center gap-1.5 sm:gap-3 border-primary/20 z-20" style={{ animationDelay: '1s' }}>
+                  <div className="w-6 h-6 sm:w-9 sm:h-9 bg-emerald-500 rounded-full flex items-center justify-center text-white shrink-0">
+                    <Star size={12} fill="currentColor" className="sm:w-4 sm:h-4" />
                   </div>
-                  <p className="font-black text-[10px] sm:text-sm text-foreground whitespace-nowrap">Calidad Expertos 5⭐</p>
+                  <p className="font-black text-[9px] xs:text-[10px] sm:text-sm text-foreground whitespace-nowrap">Calidad Expertos 5⭐</p>
                 </div>
 
-                <div className="absolute -bottom-4 -left-2 sm:-bottom-6 sm:-left-6 glass-card p-2 sm:p-4 rounded-2xl animate-float shadow-xl flex items-center gap-2 sm:gap-3 border-secondary/20 z-20" style={{ animationDelay: '2s' }}>
-                  <div className="w-7 h-7 sm:w-10 sm:h-10 bg-secondary rounded-full flex items-center justify-center text-white">
-                    <MapPin size={14} className="sm:w-5 sm:h-5" />
+                <div className="absolute bottom-2 left-2 sm:bottom-2 sm:left-2 md:-bottom-2 md:-left-2 lg:-bottom-6 lg:-left-6 glass-card p-1.5 sm:p-4 rounded-xl sm:rounded-2xl animate-float shadow-xl flex items-center gap-1.5 sm:gap-3 border-secondary/20 z-20" style={{ animationDelay: '2s' }}>
+                  <div className="w-6 h-6 sm:w-10 sm:h-10 bg-secondary rounded-full flex items-center justify-center text-white shrink-0">
+                    <MapPin size={12} className="sm:w-5 sm:h-5" />
                   </div>
-                  <div>
-                    <p className="text-[9px] sm:text-xs text-muted-foreground font-bold">Ubicuidad</p>
-                    <p className="font-black text-[10px] sm:text-sm">Tu Comuna</p>
+                  <div className="min-w-0">
+                    <p className="text-[8px] xs:text-[9px] sm:text-xs text-muted-foreground font-bold">Ubicuidad</p>
+                    <p className="font-black text-[9px] xs:text-[10px] sm:text-sm truncate">Tu Comuna</p>
                   </div>
                 </div>
               </div>
@@ -318,7 +318,7 @@ const Home = () => {
 
       {/* Categories Grid */}
       {serviceTypes.length > 0 || loadingTypes ? (
-        <section className="py-12 md:py-20 container mx-auto px-4">
+        <section className="py-8 sm:py-12 md:py-20 container mx-auto px-3 xs:px-4 overflow-hidden">
           <div className="text-center mb-12 sm:mb-16 space-y-4">
             <h2 className="text-3xl sm:text-4xl font-heading font-extrabold animate-reveal">{t('home.categories_title')}</h2>
             <p className="text-muted-foreground font-medium text-lg max-w-2xl mx-auto animate-reveal delay-100">
@@ -707,36 +707,36 @@ const Home = () => {
 
       {/* Entrepreneur Choice Section (for logged out) */}
       {!isLoggedIn && (
-        <section id="entrepreneur-section" className="py-12 md:py-24 bg-primary/5 relative overflow-hidden">
+        <section id="entrepreneur-section" className="py-8 sm:py-12 md:py-24 bg-primary/5 relative overflow-hidden">
           <div className="absolute inset-0 bg-mesh opacity-10"></div>
-          <div className="container mx-auto px-4 relative z-10">
-            <div className="max-w-4xl mx-auto glass-card p-12 rounded-[3.5rem] text-center border-primary/20">
-              <h2 className="text-2xl sm:text-3xl md:text-4xl font-extrabold text-foreground mb-2">Personas que ofrecen servicios.</h2>
-              <p className="text-lg text-muted-foreground mb-10 max-w-2xl mx-auto">
+          <div className="container mx-auto px-3 xs:px-4 relative z-10">
+            <div className="max-w-4xl mx-auto glass-card p-5 xs:p-6 sm:p-8 md:p-12 rounded-2xl sm:rounded-3xl md:rounded-[3.5rem] text-center border-primary/20">
+              <h2 className="text-lg xs:text-xl sm:text-2xl md:text-4xl font-extrabold text-foreground mb-2 px-1">Personas que ofrecen servicios.</h2>
+              <p className="text-sm xs:text-base sm:text-lg text-muted-foreground mb-6 sm:mb-10 max-w-2xl mx-auto px-1">
                 {t('home.entrepreneur_choice_desc')}{' '}
                 <span className="block mt-2 font-bold text-primary italic">{t('home.entrepreneur_only_note')}</span>
               </p>
               
-              <div className="grid sm:grid-cols-2 gap-6">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
                 <Link to="/registro">
-                  <div className="group bg-white/90 dark:bg-card p-8 rounded-3xl border border-border/50 hover:border-primary/30 hover:shadow-xl transition-all cursor-pointer h-full flex flex-col items-center text-center">
-                    <div className="w-16 h-16 bg-violet-100 rounded-2xl flex items-center justify-center text-violet-600 mb-4 group-hover:scale-110 transition-transform">
-                      <Briefcase size={32} strokeWidth={1.5} />
+                  <div className="group bg-white/90 dark:bg-card p-5 xs:p-6 sm:p-8 rounded-2xl sm:rounded-3xl border border-border/50 hover:border-primary/30 hover:shadow-xl transition-all cursor-pointer h-full flex flex-col items-center text-center">
+                    <div className="w-12 h-12 xs:w-14 xs:h-14 sm:w-16 sm:h-16 bg-violet-100 rounded-xl sm:rounded-2xl flex items-center justify-center text-violet-600 mb-3 sm:mb-4 group-hover:scale-110 transition-transform shrink-0">
+                      <Briefcase className="w-6 h-6 sm:w-8 sm:h-8" strokeWidth={1.5} />
                     </div>
-                    <h3 className="text-xl font-bold mb-2 text-foreground">{t('home.want_to_offer_services')}</h3>
-                    <p className="text-sm text-muted-foreground mb-6">Regístrate en Dameldato y comienza a recibir contactos hoy mismo.</p>
-                    <Button className="w-full bg-primary hover:bg-primary/90 mt-auto rounded-xl font-semibold">{t('home.register_talent_cta')}</Button>
+                    <h3 className="text-base xs:text-lg sm:text-xl font-bold mb-1 sm:mb-2 text-foreground">{t('home.want_to_offer_services')}</h3>
+                    <p className="text-xs xs:text-sm text-muted-foreground mb-4 sm:mb-6">Regístrate en Dameldato y comienza a recibir contactos hoy mismo.</p>
+                    <Button className="w-full bg-primary hover:bg-primary/90 mt-auto rounded-xl font-semibold text-sm sm:text-base min-h-11">{t('home.register_talent_cta')}</Button>
                   </div>
                 </Link>
                 
                 <Link to="/login">
-                  <div className="group bg-white/90 dark:bg-card p-8 rounded-3xl border border-border/50 hover:border-green-500/30 hover:shadow-xl transition-all cursor-pointer h-full flex flex-col items-center text-center">
-                    <div className="w-16 h-16 bg-emerald-100 rounded-2xl flex items-center justify-center text-emerald-600 mb-4 group-hover:scale-110 transition-transform">
-                      <Search size={32} strokeWidth={1.5} />
+                  <div className="group bg-white/90 dark:bg-card p-5 xs:p-6 sm:p-8 rounded-2xl sm:rounded-3xl border border-border/50 hover:border-green-500/30 hover:shadow-xl transition-all cursor-pointer h-full flex flex-col items-center text-center">
+                    <div className="w-12 h-12 xs:w-14 xs:h-14 sm:w-16 sm:h-16 bg-emerald-100 rounded-xl sm:rounded-2xl flex items-center justify-center text-emerald-600 mb-3 sm:mb-4 group-hover:scale-110 transition-transform shrink-0">
+                      <Search className="w-6 h-6 sm:w-8 sm:h-8" strokeWidth={1.5} />
                     </div>
-                    <h3 className="text-xl font-bold mb-2 text-foreground">{t('home.already_offer_services')}</h3>
-                    <p className="text-sm text-muted-foreground mb-6">{t('home.already_part_description')}</p>
-                    <Button className="w-full bg-emerald-600 hover:bg-emerald-700 text-white mt-auto font-black border-none h-12 rounded-xl shadow-lg shadow-emerald-500/20 uppercase tracking-wider text-xs">
+                    <h3 className="text-base xs:text-lg sm:text-xl font-bold mb-1 sm:mb-2 text-foreground">{t('home.already_offer_services')}</h3>
+                    <p className="text-xs xs:text-sm text-muted-foreground mb-4 sm:mb-6">{t('home.already_part_description')}</p>
+                    <Button className="w-full bg-emerald-600 hover:bg-emerald-700 text-white mt-auto font-black border-none min-h-11 h-auto py-3 rounded-xl shadow-lg shadow-emerald-500/20 uppercase tracking-wider text-[10px] xs:text-xs">
                       {t('home.login_panel_cta')}
                     </Button>
                   </div>

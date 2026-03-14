@@ -13,6 +13,9 @@ export default {
       },
     },
     extend: {
+      screens: {
+        xs: "375px",
+      },
       fontFamily: {
         sans: ['Inter', 'sans-serif'],
         heading: ['Montserrat', 'sans-serif'],

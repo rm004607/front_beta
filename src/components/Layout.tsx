@@ -33,10 +33,10 @@ const Layout = ({ children }: LayoutProps) => {
   const isActive = (path: string) => location.pathname === path;
 
   return (
-    <div className="min-h-screen flex flex-col">
+    <div className="min-h-screen w-full max-w-[100vw] overflow-x-hidden flex flex-col">
       {/* Header */}
       <header className="bg-card border-b border-border sticky top-0 z-50">
-        <div className="container mx-auto px-4 py-4">
+        <div className="container mx-auto px-3 xs:px-4 py-3 xs:py-4">
           <div className="flex items-center justify-between">
             <Link to="/" className="flex items-center shrink-0">
               {/* Logo Completo - Visible en Desktop */}
