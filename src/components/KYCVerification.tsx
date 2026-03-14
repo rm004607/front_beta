@@ -8,18 +8,23 @@ declare global {
 }
 
 interface Props {
-  /** En flujo email/contraseña viene del backend; en flujo Google es null y se usa kycAPI.start con token */
+  /** En flujo email/contraseña viene del backend; en flujo Google es null */
   registrationId: string | null;
   onSuccess: () => void;
   onError: (msg: string) => void;
+  /** Si el backend no soporta KYC para este flujo (ej. 404), se llama para mostrar "Continuar sin verificación" */
+  onKYCUnavailable?: () => void;
 }
 
 const isGoogleFlow = (regId: string | null) => !regId || !String(regId).trim();
 
-export default function KYCVerification({ registrationId, onSuccess, onError }: Props) {
+export default function KYCVerification({ registrationId, onSuccess, onError, onKYCUnavailable }: Props) {
   const buttonRef = useRef<any>(null);
   const [isVerifying, setIsVerifying] = useState(false);
+  /** En flujo Google, el regId se obtiene al terminar MetaMap y se usa para polling */
+  const [pendingRegIdFromBackend, setPendingRegIdFromBackend] = useState<string | null>(null);
   const useGoogleFlow = isGoogleFlow(registrationId);
+  const effectiveRegId = (registrationId || '').trim() || pendingRegIdFromBackend;
 
   useEffect(() => {
     const script = document.createElement('script');
@@ -37,18 +42,33 @@ export default function KYCVerification({ registrationId, onSuccess, onError }: 
       }
 
       if (useGoogleFlow) {
-        // Flujo Google: usuario ya autenticado, vincular identityId con el usuario por token
+        // Flujo Google: intentar obtener registration_id del backend para el usuario autenticado y usar link()
         try {
-          await kycAPI.start(identityId);
-          console.log('[KYC] ✅ KYC start exitoso (flujo Google), esperando webhook...');
-          setIsVerifying(true);
-          const res = await kycAPI.getKYCStatus();
-          if (res?.kyc?.kyc_status === 'verified') {
-            onSuccess();
+          const { registration_id: regId } = await kycAPI.getRegistrationIdForUser();
+          if (!regId?.trim()) {
+            onKYCUnavailable?.() ?? onError('La verificación no está disponible para este flujo. Puedes continuar sin verificación.');
+            return;
           }
-        } catch (err) {
-          console.error('[KYC] Error en /api/kyc/start (flujo Google):', err);
-          onError('Error al vincular tu identidad. Intenta de nuevo.');
+          const regIdTrim = regId.trim();
+          await kycAPI.link(regIdTrim, identityId);
+          console.log('[KYC] ✅ Vinculación exitosa (flujo Google), esperando webhook...');
+          setPendingRegIdFromBackend(regIdTrim);
+          setIsVerifying(true);
+          try {
+            const res = await kycAPI.checkPendingStatus(regIdTrim);
+            if (res.ok && res.status === 'verified') {
+              onSuccess();
+            }
+          } catch (e) {}
+        } catch (err: any) {
+          const is404 = err?.status === 404;
+          if (is404 || err?.message?.toLowerCase().includes('no encontrada') || err?.message?.toLowerCase().includes('not found')) {
+            console.warn('[KYC] Backend no expone registration_id para usuario (flujo Google). Mostrando opción de continuar sin verificación.');
+            onKYCUnavailable?.() ?? onError('La verificación no está disponible para registro con Google. Puedes continuar sin verificación.');
+          } else {
+            console.error('[KYC] Error en flujo Google:', err);
+            onError('Error al vincular tu identidad. Intenta de nuevo.');
+          }
         }
         return;
       }
@@ -94,20 +114,20 @@ export default function KYCVerification({ registrationId, onSuccess, onError }: 
     };
   }, [registrationId, useGoogleFlow, onSuccess, onError]);
 
-  // Poller: flujo con registration_id (pendiente de registro)
+  // Poller: verificación por registration_id (email/password o Google cuando el backend devuelve regId)
   useEffect(() => {
-    if (useGoogleFlow || !registrationId?.trim()) return;
+    if (!effectiveRegId || !isVerifying) return;
 
     let poller: NodeJS.Timeout;
     const checkStatus = async () => {
       try {
-        const res = await kycAPI.checkPendingStatus(registrationId);
+        const res = await kycAPI.checkPendingStatus(effectiveRegId);
         if (res.ok && res.status === 'verified') {
-          console.log('[KYC] ✅ Webhook detectado! Status de base de datos es verified.');
+          console.log('[KYC] ✅ Webhook detectado! Status verified.');
           clearInterval(poller);
           onSuccess();
         } else if (res.ok && res.status === 'rejected') {
-          console.log('[KYC] ❌ Webhook detectado! Status de base de datos es rejected.');
+          console.log('[KYC] ❌ Webhook detectado! Status rejected.');
           clearInterval(poller);
           onError('Verificación rechazada. Por favor intenta de nuevo.');
         }
@@ -115,31 +135,7 @@ export default function KYCVerification({ registrationId, onSuccess, onError }: 
     };
     poller = setInterval(checkStatus, 2000);
     return () => clearInterval(poller);
-  }, [registrationId, useGoogleFlow, onSuccess, onError]);
-
-  // Poller: flujo Google (usuario autenticado, estado por getKYCStatus)
-  useEffect(() => {
-    if (!useGoogleFlow || !isVerifying) return;
-
-    let poller: NodeJS.Timeout;
-    const checkStatus = async () => {
-      try {
-        const res = await kycAPI.getKYCStatus();
-        const status = res?.kyc?.kyc_status;
-        if (status === 'verified') {
-          console.log('[KYC] ✅ KYC verified (flujo Google).');
-          clearInterval(poller);
-          onSuccess();
-        } else if (status === 'rejected') {
-          console.log('[KYC] ❌ KYC rejected (flujo Google).');
-          clearInterval(poller);
-          onError('Verificación rechazada. Por favor intenta de nuevo.');
-        }
-      } catch (err) {}
-    };
-    poller = setInterval(checkStatus, 2000);
-    return () => clearInterval(poller);
-  }, [useGoogleFlow, isVerifying, onSuccess, onError]);
+  }, [effectiveRegId, isVerifying, onSuccess, onError]);
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 16 }}>

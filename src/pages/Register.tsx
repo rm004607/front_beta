@@ -42,7 +42,14 @@ const Register = () => {
   });
   const [registrationId, setRegistrationId] = useState<string | null>(null);
   const [isGoogleVerified, setIsGoogleVerified] = useState(false);
+  /** Cuando el backend no soporta KYC para este flujo (ej. 404), mostrar opción de continuar sin verificación */
+  const [showKYCFallback, setShowKYCFallback] = useState(false);
   const hasPrefilled = useRef(false);
+
+  // Al salir del paso 3, resetear fallback para que al volver se muestre de nuevo el botón KYC
+  useEffect(() => {
+    if (step !== 3) setShowKYCFallback(false);
+  }, [step]);
 
 
   // Step 1: Basic data
@@ -663,13 +670,25 @@ const Register = () => {
                   </p>
                 </div>
 
-                <KYCVerification
-                  registrationId={registrationId}
-                  onSuccess={() => setStep(4)}
-                  onError={(msg) => {
-                    toast.error(msg || 'No pudimos completar la verificación de identidad.');
-                  }}
-                />
+                {showKYCFallback ? (
+                  <div className="rounded-2xl border border-amber-500/30 bg-amber-500/5 p-4 space-y-3">
+                    <p className="text-sm text-foreground font-medium">
+                      La verificación de identidad no está disponible en este momento para registro con Google. Puedes continuar y completar tu perfil; podrás verificar tu identidad más adelante.
+                    </p>
+                    <Button className="w-full" onClick={() => setStep(4)}>
+                      Continuar sin verificación
+                    </Button>
+                  </div>
+                ) : (
+                  <KYCVerification
+                    registrationId={registrationId}
+                    onSuccess={() => setStep(4)}
+                    onError={(msg) => {
+                      toast.error(msg || 'No pudimos completar la verificación de identidad.');
+                    }}
+                    onKYCUnavailable={() => setShowKYCFallback(true)}
+                  />
+                )}
 
                 <Button variant="ghost" onClick={() => isGoogleFlow ? setStep(2) : setStep(1)} className="w-full">
                   <ArrowLeft className="mr-2" size={18} />

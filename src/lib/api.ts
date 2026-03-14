@@ -1428,19 +1428,10 @@ export const kycAPI = {
     });
   },
 
-  start: async (identityId: string) => {
-    return request<{
-      message: string;
-      kyc?: {
-        kyc_status: 'not_started' | 'pending' | 'verified' | 'rejected';
-        id_front_url?: string;
-        id_back_url?: string;
-        face_url?: string;
-        rejection_reason?: string;
-      };
-    }>('/api/kyc/start', {
-      method: 'POST',
-      body: JSON.stringify({ identityId }),
+  /** Obtiene un registration_id para el usuario autenticado (flujo Google). Si el backend no expone esta ruta, devuelve 404. */
+  getRegistrationIdForUser: async () => {
+    return request<{ registration_id: string }>('/api/kyc/registration-id', {
+      method: 'GET',
     });
   },
 
