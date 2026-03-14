@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom';
-import { Facebook, Twitter, Instagram, Linkedin, Mail, Phone, MapPin, HelpCircle } from 'lucide-react';
+import { Instagram, Linkedin, Mail, MapPin, HelpCircle } from 'lucide-react';
 import { useUser } from '@/contexts/UserContext';
 import { useTranslation } from 'react-i18next';
 import logoDameldato from '/logo_nombre.webp';
@@ -28,7 +28,7 @@ const Footer = () => {
             </p>
             <div className="flex gap-4">
               <a
-                href="https://www.instagram.com/dameldato.com/"
+                href="https://www.instagram.com/dameldato_/"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="w-10 h-10 rounded-full bg-muted flex items-center justify-center text-muted-foreground hover:bg-primary hover:text-white transition-all duration-300"
@@ -37,7 +37,7 @@ const Footer = () => {
                 <Instagram size={18} />
               </a>
               <a
-                href="https://www.linkedin.com/feed/"
+                href="https://www.linkedin.com/in/dameldato-contacto-55039a3b7/"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="w-10 h-10 rounded-full bg-muted flex items-center justify-center text-muted-foreground hover:bg-primary hover:text-white transition-all duration-300"

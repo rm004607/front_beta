@@ -240,7 +240,7 @@ const Home = () => {
                 />
               </div>
 
-              <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 border border-primary/20 text-primary text-sm font-semibold animate-reveal">
+              <div className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-sky-100 border border-sky-200/80 text-primary text-sm font-semibold animate-reveal">
                 <ShieldCheck size={16} />
                 {t('hero.verified_community')}
               </div>
@@ -293,15 +293,12 @@ const Home = () => {
                   </div>
                 </div>
 
-                {/* Floating Elements - Adjusted for Mobile to avoid overflow */}
-                <div className="absolute -top-4 -right-2 sm:-top-6 sm:-right-6 glass-card p-2 sm:p-4 rounded-2xl animate-float shadow-xl flex items-center gap-2 sm:gap-3 border-primary/20 z-20" style={{ animationDelay: '1s' }}>
-                  <div className="w-7 h-7 sm:w-10 sm:h-10 bg-success rounded-full flex items-center justify-center text-white">
-                    <Star size={14} fill="currentColor" className="sm:w-5 sm:h-5" />
+                {/* Floating badge: Calidad Expertos 5⭐ */}
+                <div className="absolute -top-4 -right-2 sm:-top-6 sm:-right-6 glass-card px-3 py-2 sm:px-4 sm:py-2.5 rounded-2xl animate-float shadow-xl flex items-center gap-2 sm:gap-3 border-primary/20 z-20" style={{ animationDelay: '1s' }}>
+                  <div className="w-7 h-7 sm:w-9 sm:h-9 bg-emerald-500 rounded-full flex items-center justify-center text-white shrink-0">
+                    <Star size={14} fill="currentColor" className="sm:w-4 sm:h-4" />
                   </div>
-                  <div>
-                    <p className="text-[9px] sm:text-xs text-muted-foreground font-bold">Calidad</p>
-                    <p className="font-black text-[10px] sm:text-sm">Expertos 5⭐</p>
-                  </div>
+                  <p className="font-black text-[10px] sm:text-sm text-foreground whitespace-nowrap">Calidad Expertos 5⭐</p>
                 </div>
 
                 <div className="absolute -bottom-4 -left-2 sm:-bottom-6 sm:-left-6 glass-card p-2 sm:p-4 rounded-2xl animate-float shadow-xl flex items-center gap-2 sm:gap-3 border-secondary/20 z-20" style={{ animationDelay: '2s' }}>
@@ -714,32 +711,34 @@ const Home = () => {
           <div className="absolute inset-0 bg-mesh opacity-10"></div>
           <div className="container mx-auto px-4 relative z-10">
             <div className="max-w-4xl mx-auto glass-card p-12 rounded-[3.5rem] text-center border-primary/20">
-              <h2 className="text-3xl md:text-5xl font-extrabold mb-6">{t('home.entrepreneur_choice_title')}</h2>
+              <h2 className="text-2xl sm:text-3xl md:text-4xl font-extrabold text-foreground mb-2">Personas que ofrecen servicios.</h2>
               <p className="text-lg text-muted-foreground mb-10 max-w-2xl mx-auto">
-                {t('home.entrepreneur_choice_desc')} 
+                {t('home.entrepreneur_choice_desc')}{' '}
                 <span className="block mt-2 font-bold text-primary italic">{t('home.entrepreneur_only_note')}</span>
               </p>
               
               <div className="grid sm:grid-cols-2 gap-6">
                 <Link to="/registro">
-                  <div className="group bg-white dark:bg-card p-8 rounded-3xl border-2 border-transparent hover:border-primary/30 hover:shadow-xl transition-all cursor-pointer h-full flex flex-col items-center">
-                    <div className="w-16 h-16 bg-primary/10 rounded-2xl flex items-center justify-center text-primary mb-4 group-hover:scale-110 transition-transform">
-                      <Briefcase size={32} />
+                  <div className="group bg-white/90 dark:bg-card p-8 rounded-3xl border border-border/50 hover:border-primary/30 hover:shadow-xl transition-all cursor-pointer h-full flex flex-col items-center text-center">
+                    <div className="w-16 h-16 bg-violet-100 rounded-2xl flex items-center justify-center text-violet-600 mb-4 group-hover:scale-110 transition-transform">
+                      <Briefcase size={32} strokeWidth={1.5} />
                     </div>
-                    <h3 className="text-xl font-bold mb-2">{t('home.want_to_offer_services')}</h3>
+                    <h3 className="text-xl font-bold mb-2 text-foreground">{t('home.want_to_offer_services')}</h3>
                     <p className="text-sm text-muted-foreground mb-6">Regístrate en Dameldato y comienza a recibir contactos hoy mismo.</p>
-                    <Button className="w-full bg-primary hover:bg-primary/90 mt-auto">{t('home.register_talent_cta')}</Button>
+                    <Button className="w-full bg-primary hover:bg-primary/90 mt-auto rounded-xl font-semibold">{t('home.register_talent_cta')}</Button>
                   </div>
                 </Link>
                 
-                <Link to="/servicios">
-                  <div className="group bg-white dark:bg-card p-8 rounded-3xl border-2 border-transparent hover:border-green-500/30 hover:shadow-xl transition-all cursor-pointer h-full flex flex-col items-center">
-                    <div className="w-16 h-16 bg-green-500/10 rounded-2xl flex items-center justify-center text-green-600 mb-4 group-hover:scale-110 transition-transform">
-                      <Search size={32} />
+                <Link to="/login">
+                  <div className="group bg-white/90 dark:bg-card p-8 rounded-3xl border border-border/50 hover:border-green-500/30 hover:shadow-xl transition-all cursor-pointer h-full flex flex-col items-center text-center">
+                    <div className="w-16 h-16 bg-emerald-100 rounded-2xl flex items-center justify-center text-emerald-600 mb-4 group-hover:scale-110 transition-transform">
+                      <Search size={32} strokeWidth={1.5} />
                     </div>
-                    <h3 className="text-xl font-bold mb-2">{t('home.already_offer_services')}</h3>
-                    <p className="text-sm text-muted-foreground mb-6 text-center">{t('home.already_part_description')}</p>
-                    <Button className="w-full bg-[#25D366] hover:bg-[#20ba59] text-white mt-auto font-black border-none h-12 rounded-xl shadow-lg shadow-green-500/20 uppercase tracking-wider text-xs">{t('home.login_panel_cta')}</Button>
+                    <h3 className="text-xl font-bold mb-2 text-foreground">{t('home.already_offer_services')}</h3>
+                    <p className="text-sm text-muted-foreground mb-6">{t('home.already_part_description')}</p>
+                    <Button className="w-full bg-emerald-600 hover:bg-emerald-700 text-white mt-auto font-black border-none h-12 rounded-xl shadow-lg shadow-emerald-500/20 uppercase tracking-wider text-xs">
+                      {t('home.login_panel_cta')}
+                    </Button>
                   </div>
                 </Link>
               </div>
