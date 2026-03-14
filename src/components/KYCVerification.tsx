@@ -8,23 +8,25 @@ declare global {
 }
 
 interface Props {
-  registrationId: string;
+  /** En flujo email/contraseña viene del backend; en flujo Google es null y se usa kycAPI.start con token */
+  registrationId: string | null;
   onSuccess: () => void;
   onError: (msg: string) => void;
 }
 
+const isGoogleFlow = (regId: string | null) => !regId || !String(regId).trim();
+
 export default function KYCVerification({ registrationId, onSuccess, onError }: Props) {
   const buttonRef = useRef<any>(null);
   const [isVerifying, setIsVerifying] = useState(false);
+  const useGoogleFlow = isGoogleFlow(registrationId);
 
   useEffect(() => {
-    // Cargar script SDK
     const script = document.createElement('script');
     script.src = 'https://web-button.mati.io/button.js';
     script.async = true;
     document.body.appendChild(script);
 
-    // ✅ CLAVE: listeners en WINDOW, no en buttonRef
     const handleFinished = async (e: any) => {
       console.log('[KYC] ✅ userFinishedSdk en window:', e.detail);
       const identityId = e.detail?.identityId ?? e.detail?.id ?? e.detail?.userId;
@@ -33,25 +35,35 @@ export default function KYCVerification({ registrationId, onSuccess, onError }: 
         onError('No se recibió identityId de MetaMap. Intenta de nuevo.');
         return;
       }
-      const regId = (registrationId || '').trim();
-      if (!regId) {
-        console.error('[KYC] No registration_id disponible (flujo Google o registro incompleto).');
-        onError('Falta el ID de registro. Completa el registro desde el inicio o intenta con email y contraseña.');
+
+      if (useGoogleFlow) {
+        // Flujo Google: usuario ya autenticado, vincular identityId con el usuario por token
+        try {
+          await kycAPI.start(identityId);
+          console.log('[KYC] ✅ KYC start exitoso (flujo Google), esperando webhook...');
+          setIsVerifying(true);
+          const res = await kycAPI.getKYCStatus();
+          if (res?.kyc?.kyc_status === 'verified') {
+            onSuccess();
+          }
+        } catch (err) {
+          console.error('[KYC] Error en /api/kyc/start (flujo Google):', err);
+          onError('Error al vincular tu identidad. Intenta de nuevo.');
+        }
         return;
       }
+
+      const regId = (registrationId || '').trim();
       try {
         await kycAPI.link(regId, identityId);
         console.log('[KYC] ✅ Vinculación exitosa en frontend, esperando webhook...');
         setIsVerifying(true);
-        
-        // Verificación inmediata inicial para no esperar al primer tick del intervalo
         try {
           const res = await kycAPI.checkPendingStatus(regId);
           if (res.ok && res.status === 'verified') {
             onSuccess();
           }
         } catch (e) {}
-        
       } catch (err) {
         console.error('[KYC] Error en /api/kyc/link:', err);
         onError('Error al vincular tu identidad. Intenta de nuevo.');
@@ -64,10 +76,8 @@ export default function KYCVerification({ registrationId, onSuccess, onError }: 
     };
 
     const matiBtn = buttonRef.current;
-
     window.addEventListener('mati:userFinishedSdk', handleFinished);
     window.addEventListener('mati:exitedSdk', handleExited);
-
     if (matiBtn) {
       matiBtn.addEventListener('mati:userFinishedSdk', handleFinished);
       matiBtn.addEventListener('mati:exitedSdk', handleExited);
@@ -82,14 +92,13 @@ export default function KYCVerification({ registrationId, onSuccess, onError }: 
       }
       try { document.body.removeChild(script); } catch {}
     };
-  }, [registrationId]);
+  }, [registrationId, useGoogleFlow, onSuccess, onError]);
 
-  // Poller para verificar en la DB si el Webhook ya lo aprobó
+  // Poller: flujo con registration_id (pendiente de registro)
   useEffect(() => {
-    if (!registrationId) return;
+    if (useGoogleFlow || !registrationId?.trim()) return;
 
     let poller: NodeJS.Timeout;
-
     const checkStatus = async () => {
       try {
         const res = await kycAPI.checkPendingStatus(registrationId);
@@ -102,16 +111,35 @@ export default function KYCVerification({ registrationId, onSuccess, onError }: 
           clearInterval(poller);
           onError('Verificación rechazada. Por favor intenta de nuevo.');
         }
-      } catch (err) {
-        // Silenciar errores de polling
-      }
+      } catch (err) {}
     };
-
-    // Polling cada 2 segundos siempre que estemos montados
     poller = setInterval(checkStatus, 2000);
-
     return () => clearInterval(poller);
-  }, [registrationId, onSuccess, onError]);
+  }, [registrationId, useGoogleFlow, onSuccess, onError]);
+
+  // Poller: flujo Google (usuario autenticado, estado por getKYCStatus)
+  useEffect(() => {
+    if (!useGoogleFlow || !isVerifying) return;
+
+    let poller: NodeJS.Timeout;
+    const checkStatus = async () => {
+      try {
+        const res = await kycAPI.getKYCStatus();
+        const status = res?.kyc?.kyc_status;
+        if (status === 'verified') {
+          console.log('[KYC] ✅ KYC verified (flujo Google).');
+          clearInterval(poller);
+          onSuccess();
+        } else if (status === 'rejected') {
+          console.log('[KYC] ❌ KYC rejected (flujo Google).');
+          clearInterval(poller);
+          onError('Verificación rechazada. Por favor intenta de nuevo.');
+        }
+      } catch (err) {}
+    };
+    poller = setInterval(checkStatus, 2000);
+    return () => clearInterval(poller);
+  }, [useGoogleFlow, isVerifying, onSuccess, onError]);
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 16 }}>
@@ -131,7 +159,7 @@ export default function KYCVerification({ registrationId, onSuccess, onError }: 
             ref={buttonRef}
             clientId={import.meta.env.VITE_METAMAP_CLIENT_ID}
             flowId={import.meta.env.VITE_METAMAP_FLOW_ID}
-            metadata={JSON.stringify({ registration_id: (registrationId || '').trim() })}
+            metadata={JSON.stringify(registrationId?.trim() ? { registration_id: registrationId.trim() } : { flow: 'google' })}
           />
         </>
       )}

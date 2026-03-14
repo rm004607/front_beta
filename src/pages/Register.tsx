@@ -663,29 +663,13 @@ const Register = () => {
                   </p>
                 </div>
 
-                {registrationId ? (
-                  <KYCVerification
-                    registrationId={registrationId}
-                    onSuccess={() => {
-                      setStep(4);
-                    }}
-                    onError={(msg) => {
-                      toast.error(msg || 'No pudimos completar la verificación de identidad.');
-                    }}
-                  />
-                ) : (
-                  <div className="rounded-2xl border border-amber-500/30 bg-amber-500/5 p-4 space-y-3">
-                    <p className="text-sm text-foreground font-medium">
-                      La verificación de identidad no está disponible en este flujo. Si te registraste con Google, puedes continuar y completar tu perfil.
-                    </p>
-                    <Button
-                      className="w-full"
-                      onClick={() => setStep(4)}
-                    >
-                      Continuar sin verificación por ahora
-                    </Button>
-                  </div>
-                )}
+                <KYCVerification
+                  registrationId={registrationId}
+                  onSuccess={() => setStep(4)}
+                  onError={(msg) => {
+                    toast.error(msg || 'No pudimos completar la verificación de identidad.');
+                  }}
+                />
 
                 <Button variant="ghost" onClick={() => isGoogleFlow ? setStep(2) : setStep(1)} className="w-full">
                   <ArrowLeft className="mr-2" size={18} />
