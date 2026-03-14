@@ -335,13 +335,17 @@ const Register = () => {
     setErrorMessage('');
     try {
       if (isGoogleVerified) {
-        // En el flujo normal, se guarda en pending, en google sigue siendo updateProfile
-        await authAPI.updateProfile({
-          rubro: sanitizeInput(rubro || '', 100),
-          experience: sanitizeInput(experience || '', 2000),
-          service: sanitizeInput(service || '', 100),
-          portfolio: sanitizeInput(portfolio || '', 2000),
-        });
+        // Construir payload solo con campos con valor; el backend exige "al menos un campo para actualizar"
+        const rubroVal = sanitizeInput(rubro || '', 100).trim();
+        const experienceVal = sanitizeInput(experience || '', 2000).trim();
+        const serviceVal = sanitizeInput(service || '', 100).trim();
+        const portfolioVal = sanitizeInput(portfolio || '', 2000).trim();
+        const profilePayload: Record<string, string | number> = { rol: 2 };
+        if (rubroVal) profilePayload.rubro = rubroVal;
+        if (experienceVal) profilePayload.experience = experienceVal;
+        if (serviceVal) profilePayload.service = serviceVal;
+        if (portfolioVal) profilePayload.portfolio = portfolioVal;
+        await authAPI.updateProfile(profilePayload);
         await loadUser();
       } else {
         await servicesAPI.savePendingService({
