@@ -27,20 +27,26 @@ export default function KYCVerification({ registrationId, onSuccess, onError }: 
     // ✅ CLAVE: listeners en WINDOW, no en buttonRef
     const handleFinished = async (e: any) => {
       console.log('[KYC] ✅ userFinishedSdk en window:', e.detail);
-      const identityId = e.detail?.identityId;
+      const identityId = e.detail?.identityId ?? e.detail?.id ?? e.detail?.userId;
       if (!identityId) {
-        console.error('[KYC] No identityId received from MetaMap');
-        onError('No se recibió identityId de MetaMap');
+        console.error('[KYC] No identityId received from MetaMap', e.detail);
+        onError('No se recibió identityId de MetaMap. Intenta de nuevo.');
+        return;
+      }
+      const regId = (registrationId || '').trim();
+      if (!regId) {
+        console.error('[KYC] No registration_id disponible (flujo Google o registro incompleto).');
+        onError('Falta el ID de registro. Completa el registro desde el inicio o intenta con email y contraseña.');
         return;
       }
       try {
-        await kycAPI.link(registrationId, identityId);
+        await kycAPI.link(regId, identityId);
         console.log('[KYC] ✅ Vinculación exitosa en frontend, esperando webhook...');
         setIsVerifying(true);
         
         // Verificación inmediata inicial para no esperar al primer tick del intervalo
         try {
-          const res = await kycAPI.checkPendingStatus(registrationId);
+          const res = await kycAPI.checkPendingStatus(regId);
           if (res.ok && res.status === 'verified') {
             onSuccess();
           }
@@ -125,7 +131,7 @@ export default function KYCVerification({ registrationId, onSuccess, onError }: 
             ref={buttonRef}
             clientId={import.meta.env.VITE_METAMAP_CLIENT_ID}
             flowId={import.meta.env.VITE_METAMAP_FLOW_ID}
-            metadata={JSON.stringify({ registration_id: registrationId })}
+            metadata={JSON.stringify({ registration_id: (registrationId || '').trim() })}
           />
         </>
       )}
