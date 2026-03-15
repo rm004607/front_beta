@@ -334,8 +334,14 @@ const Register = () => {
     setIsSubmitting(true);
     setErrorMessage('');
     try {
+      const applyAuthAndRedirect = async (token: string) => {
+        localStorage.setItem('token', token);
+        await loadUser();
+        toast.success('¡Registro completado exitosamente!');
+        navigate('/', { replace: true });
+      };
+
       if (isGoogleVerified) {
-        // Construir payload solo con campos con valor; el backend exige "al menos un campo para actualizar"
         const rubroVal = sanitizeInput(rubro || '', 100).trim();
         const experienceVal = sanitizeInput(experience || '', 2000).trim();
         const serviceVal = sanitizeInput(service || '', 100).trim();
@@ -345,21 +351,30 @@ const Register = () => {
         if (experienceVal) profilePayload.experience = experienceVal;
         if (serviceVal) profilePayload.service = serviceVal;
         if (portfolioVal) profilePayload.portfolio = portfolioVal;
-        await authAPI.updateProfile(profilePayload);
+        const profileRes = await authAPI.updateProfile(profilePayload);
+        if (profileRes.token && (profileRes.registration_complete || profileRes.user)) {
+          await applyAuthAndRedirect(profileRes.token);
+          return;
+        }
         await loadUser();
       } else {
         const rubroVal = sanitizeInput(rubro || '', 100).trim();
         const experienceVal = sanitizeInput(experience || '', 2000).trim();
         const serviceVal = sanitizeInput(service || '', 100).trim();
         const portfolioVal = sanitizeInput(portfolio || '', 2000).trim();
+        let completedWithAuth = false;
         try {
-          await servicesAPI.savePendingService({
+          const pendingRes = await servicesAPI.savePendingService({
             registration_id: registrationId!,
             service_name: serviceVal,
             description: portfolioVal,
             rubro: rubroVal,
             portfolio: portfolioVal,
           });
+          if (pendingRes.token && pendingRes.user) {
+            await applyAuthAndRedirect(pendingRes.token);
+            completedWithAuth = true;
+          }
         } catch (pendingErr: any) {
           if (pendingErr?.status === 404) {
             const profilePayload: Record<string, string | number> = { rol: 2 };
@@ -367,12 +382,18 @@ const Register = () => {
             if (experienceVal) profilePayload.experience = experienceVal;
             if (serviceVal) profilePayload.service = serviceVal;
             if (portfolioVal) profilePayload.portfolio = portfolioVal;
-            await authAPI.updateProfile(profilePayload);
-            await loadUser();
+            const profileRes = await authAPI.updateProfile(profilePayload);
+            if (profileRes.token && (profileRes.registration_complete || profileRes.user)) {
+              await applyAuthAndRedirect(profileRes.token);
+              completedWithAuth = true;
+            } else {
+              await loadUser();
+            }
           } else {
             throw pendingErr;
           }
         }
+        if (completedWithAuth) return;
       }
       toast.success('¡Registro completado exitosamente!');
       setStep(5);

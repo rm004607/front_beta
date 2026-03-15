@@ -195,17 +195,20 @@ export const authAPI = {
   }) => {
     return request<{
       message: string;
-      user: {
+      token?: string;
+      registration_complete?: boolean;
+      user?: {
         id: string;
         name: string;
         email: string;
-        phone: string;
-        comuna: string;
-        profile_image: string | null;
-        cv_url: string | null;
-        role_number: number;
-        role: string;
+        phone?: string;
+        comuna?: string;
+        profile_image?: string | null;
+        cv_url?: string | null;
+        role_number?: number;
+        role?: string;
       };
+      service?: { id: string; service_name: string; status: string };
     }>('/auth/profile', {
       method: 'PATCH',
       body: JSON.stringify(data),
@@ -450,7 +453,13 @@ export const servicesAPI = {
     rubro?: string;
     portfolio?: string;
   }) => {
-    return request<{ ok: boolean; message: string }>('/api/services/pending', {
+    return request<{
+      ok: boolean;
+      status?: string;
+      message: string;
+      token?: string;
+      user?: { id: string; name: string; email: string };
+    }>('/api/services/pending', {
       method: 'POST',
       body: JSON.stringify(data),
       skipAuth: true,
