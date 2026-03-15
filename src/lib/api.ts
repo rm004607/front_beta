@@ -207,7 +207,7 @@ export const authAPI = {
         role: string;
       };
     }>('/auth/profile', {
-      method: 'PUT',
+      method: 'PATCH',
       body: JSON.stringify(data),
     });
   },
