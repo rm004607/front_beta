@@ -348,19 +348,37 @@ const Register = () => {
         await authAPI.updateProfile(profilePayload);
         await loadUser();
       } else {
-        await servicesAPI.savePendingService({
-          registration_id: registrationId!,
-          service_name: sanitizeInput(service || '', 100),
-           description: sanitizeInput(portfolio || '', 2000),
-          rubro: sanitizeInput(rubro || '', 100),
-           portfolio: sanitizeInput(portfolio || '', 2000),
-        });
+        const rubroVal = sanitizeInput(rubro || '', 100).trim();
+        const experienceVal = sanitizeInput(experience || '', 2000).trim();
+        const serviceVal = sanitizeInput(service || '', 100).trim();
+        const portfolioVal = sanitizeInput(portfolio || '', 2000).trim();
+        try {
+          await servicesAPI.savePendingService({
+            registration_id: registrationId!,
+            service_name: serviceVal,
+            description: portfolioVal,
+            rubro: rubroVal,
+            portfolio: portfolioVal,
+          });
+        } catch (pendingErr: any) {
+          if (pendingErr?.status === 404) {
+            const profilePayload: Record<string, string | number> = { rol: 2 };
+            if (rubroVal) profilePayload.rubro = rubroVal;
+            if (experienceVal) profilePayload.experience = experienceVal;
+            if (serviceVal) profilePayload.service = serviceVal;
+            if (portfolioVal) profilePayload.portfolio = portfolioVal;
+            await authAPI.updateProfile(profilePayload);
+            await loadUser();
+          } else {
+            throw pendingErr;
+          }
+        }
       }
       toast.success('¡Registro completado exitosamente!');
       setStep(5);
     } catch (error: any) {
       console.error('Error updating entrepreneur profile:', error);
-      const msg = error instanceof Error ? error.message : 'Error al guardar perfil';
+      const msg = error?.message || (error instanceof Error ? error.message : 'Error al guardar perfil');
       setErrorMessage(msg);
       toast.error(msg);
     } finally {
