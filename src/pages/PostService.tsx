@@ -9,7 +9,7 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Badge } from '@/components/ui/badge';
 import { useUser } from '@/contexts/UserContext';
 import { useTranslation } from 'react-i18next';
-import { Wrench, AlertCircle, MapPin, Edit, Sparkles } from 'lucide-react';
+import { Wrench, AlertCircle, MapPin, Edit, Sparkles, Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
 import { servicesAPI, packagesAPI, configAPI, aiAPI } from '@/lib/api';
 import {
@@ -555,12 +555,21 @@ const PostService = () => {
                 <Button
                   type="button"
                   variant="default"
-                  className="mt-3 border-0 bg-gradient-to-r from-cyan-500 via-sky-500 to-indigo-500 text-white shadow-md shadow-sky-500/30 hover:from-cyan-400 hover:via-sky-400 hover:to-indigo-400 focus-visible:ring-2 focus-visible:ring-sky-400/60"
+                  className="mt-3 border-0 bg-gradient-to-r from-cyan-500 via-sky-500 to-indigo-500 text-white shadow-md shadow-sky-500/30 hover:from-cyan-400 hover:via-sky-400 hover:to-indigo-400 focus-visible:ring-2 focus-visible:ring-sky-400/60 disabled:opacity-90"
                   onClick={handleImproveDescription}
                   disabled={improvingDescription || description.trim().length < 20}
                 >
-                  <Sparkles className="h-4 w-4 mr-2" />
-                  {improvingDescription ? 'Mejorando redacción...' : 'Mejorar redacción con IA'}
+                  {improvingDescription ? (
+                    <>
+                      <Loader2 className="h-4 w-4 mr-2 animate-spin shrink-0" />
+                      <span>Mejorando redacción...</span>
+                    </>
+                  ) : (
+                    <>
+                      <Sparkles className="h-4 w-4 mr-2 shrink-0" />
+                      <span>Mejorar redacción con IA</span>
+                    </>
+                  )}
                 </Button>
 
                 {showDescriptionSuggestion && suggestedDescription && (
