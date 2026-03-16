@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -65,6 +65,8 @@ const PostService = () => {
   const [improvingDescription, setImprovingDescription] = useState(false);
   const [suggestedDescription, setSuggestedDescription] = useState('');
   const [showDescriptionSuggestion, setShowDescriptionSuggestion] = useState(false);
+  const [aiError, setAiError] = useState<{ message: string; showRetryButton: boolean } | null>(null);
+  const descriptionTextareaRef = useRef<HTMLTextAreaElement>(null);
 
   if (!isLoggedIn) {
     navigate('/registro');
@@ -162,6 +164,7 @@ const PostService = () => {
       return;
     }
 
+    setAiError(null);
     try {
       setImprovingDescription(true);
       const response = await aiAPI.rewriteServiceDescription(baseText);
@@ -181,7 +184,17 @@ const PostService = () => {
       setSuggestedDescription(suggestion);
       setShowDescriptionSuggestion(true);
     } catch (error: any) {
-      toast.error(error?.message || 'Error al generar la sugerencia');
+      if (error?.status === 422 && error?.code === 'unintelligible_input') {
+        setAiError({
+          message: 'No pudimos entender lo que escribiste. Intenta describirlo de nuevo de forma más clara.',
+          showRetryButton: true,
+        });
+      } else {
+        setAiError({
+          message: 'Error al mejorar la descripción. Intenta más tarde.',
+          showRetryButton: false,
+        });
+      }
     } finally {
       setImprovingDescription(false);
     }
@@ -540,6 +553,7 @@ const PostService = () => {
               <div>
                 <Label htmlFor="description">{t('post_service.description_label')}</Label>
                 <Textarea
+                  ref={descriptionTextareaRef}
                   id="description"
                   value={description}
                   onChange={(e) => {
@@ -547,11 +561,34 @@ const PostService = () => {
                     if (showDescriptionSuggestion) {
                       setShowDescriptionSuggestion(false);
                     }
+                    if (aiError) setAiError(null);
                   }}
                   placeholder={t('post_service.description_placeholder')}
                   rows={5}
                   required
                 />
+                {aiError && (
+                  <Alert variant="destructive" className="mt-3 select-none">
+                    <AlertCircle className="h-4 w-4" />
+                    <AlertDescription className="flex flex-wrap items-center gap-2">
+                      <span>{aiError.message}</span>
+                      {aiError.showRetryButton && (
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="sm"
+                          className="shrink-0 border-destructive/50 text-destructive hover:bg-destructive/10"
+                          onClick={() => {
+                            setAiError(null);
+                            descriptionTextareaRef.current?.focus();
+                          }}
+                        >
+                          Intentar de nuevo
+                        </Button>
+                      )}
+                    </AlertDescription>
+                  </Alert>
+                )}
                 <Button
                   type="button"
                   variant="default"
