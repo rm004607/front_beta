@@ -1,4 +1,4 @@
-﻿import { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -412,7 +412,7 @@ const PostService = () => {
                 ) : (
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2">
                     <div>
-                      <Label htmlFor="baseRegion" className="text-xs">RegiÃ³n *</Label>
+                      <Label htmlFor="baseRegion" className="text-xs">Región *</Label>
                       <Select value={baseRegion} onValueChange={(val) => {
                         setBaseRegion(val);
                         setComuna('');
