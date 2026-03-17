@@ -50,11 +50,46 @@ const Home = () => {
   const [loadingServices, setLoadingServices] = useState(true);
   const [serviceTypes, setServiceTypes] = useState<any[]>([]);
   const [loadingTypes, setLoadingTypes] = useState(true);
+  const [latestCarouselIndex, setLatestCarouselIndex] = useState(0);
+  const [latestItemsPerView, setLatestItemsPerView] = useState(3);
 
   useEffect(() => {
     loadLatestServices();
     loadServiceTypes();
   }, [isLoggedIn, user?.region_id]);
+
+  useEffect(() => {
+    const computeItemsPerView = () => {
+      if (typeof window === 'undefined') return 3;
+      const w = window.innerWidth;
+      if (w >= 1024) return 3; // lg
+      if (w >= 768) return 2; // md
+      return 1; // mobile
+    };
+
+    const update = () => setLatestItemsPerView(computeItemsPerView());
+    update();
+    window.addEventListener('resize', update);
+    return () => window.removeEventListener('resize', update);
+  }, []);
+
+  useEffect(() => {
+    if (loadingServices) return;
+    const maxIndex = Math.max(0, latestServices.length - latestItemsPerView);
+    if (maxIndex === 0) {
+      setLatestCarouselIndex(0);
+      return;
+    }
+
+    // Keep index in bounds when list or viewport changes
+    setLatestCarouselIndex((prev) => Math.min(prev, maxIndex));
+
+    const id = window.setInterval(() => {
+      setLatestCarouselIndex((prev) => (prev >= maxIndex ? 0 : prev + 1));
+    }, 3000);
+
+    return () => window.clearInterval(id);
+  }, [latestServices.length, latestItemsPerView, loadingServices]);
 
   const loadServiceTypes = async () => {
     try {
@@ -387,64 +422,92 @@ const Home = () => {
               </Link>
             </div>
           ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-              {latestServices.map((service, i) => (
-                <Link key={service.id} to={`/servicios`} className="animate-reveal" style={{ animationDelay: `${i * 100}ms` }}>
-                  <Card className="group h-full bg-white dark:bg-card/40 backdrop-blur-sm border-2 border-transparent hover:border-primary/30 hover:shadow-2xl hover:shadow-primary/5 transition-all duration-500 rounded-[2.5rem] overflow-hidden flex flex-col shadow-sm hover:-translate-y-1">
-                    <CardHeader className="p-8 pb-5">
-                      <div className="flex items-start gap-4 mb-6">
-                        <Avatar className="w-14 h-14 border-2 border-white shadow-md ring-4 ring-primary/5 shrink-0 mt-1">
-                          {service.profile_image ? (
-                            <AvatarImage src={service.profile_image} alt={service.user_name} />
-                          ) : (
-                            <AvatarFallback className="bg-primary text-white flex items-center justify-center">
-                              <div className="scale-110 opacity-90">
-                                {getServiceIcon(service.service_name || service.type_name || '', service.type_icon, service.idicon)}
-                              </div>
-                            </AvatarFallback>
-                          )}
-                        </Avatar>
-                        <div className="flex-1 min-w-0">
-                          <CardTitle className="text-2xl font-black mb-1 line-clamp-1 group-hover:text-primary transition-colors leading-tight">
-                            {(!service.service_name || service.service_name.trim() === '' || service.service_name.trim() === '.') ? 'Servicio Destacado' : service.service_name}
-                          </CardTitle>
-                          <p className="text-sm text-muted-foreground font-bold truncate">Por {service.user_name}</p>
-                          
-                          <div className="flex items-center gap-2 mt-3">
-                            <div
-                              className={`shrink-0 p-1.5 rounded-xl shadow-sm transition-all duration-300 group-hover:scale-110 group-hover:rotate-6 ${isLightColor(service.type_color || getServiceColor(service.type_name || '')) ? 'text-slate-900 border-black/5' : 'text-white border-white/10'}`}
-                              style={{ backgroundColor: service.type_color || getServiceColor(service.type_name || '') }}
-                            >
-                              <div className="[&>svg]:w-5 [&>svg]:h-5 scale-90">
-                                {getServiceIcon(service.service_name || service.type_name || '', service.type_icon, service.idicon)}
+            <div className="relative">
+              <div className="overflow-hidden">
+                <div
+                  className="flex gap-8 transition-transform duration-700 ease-in-out will-change-transform"
+                  style={{
+                    transform: `translateX(-${latestCarouselIndex * (100 / Math.max(1, latestItemsPerView))}%)`,
+                  }}
+                >
+                  {latestServices.map((service, i) => (
+                    <div
+                      key={service.id}
+                      className="min-w-0 flex-[0_0_100%] md:flex-[0_0_50%] lg:flex-[0_0_33.3333%]"
+                    >
+                      <Link to={`/servicios`} className="animate-reveal block h-full" style={{ animationDelay: `${i * 50}ms` }}>
+                        <Card className="group h-full bg-white dark:bg-card/40 backdrop-blur-sm border-2 border-transparent hover:border-primary/30 hover:shadow-2xl hover:shadow-primary/5 transition-all duration-500 rounded-[2.5rem] overflow-hidden flex flex-col shadow-sm hover:-translate-y-1">
+                          <CardHeader className="p-8 pb-5">
+                            <div className="flex items-start gap-4 mb-6">
+                              <Avatar className="w-14 h-14 border-2 border-white shadow-md ring-4 ring-primary/5 shrink-0 mt-1">
+                                {service.profile_image ? (
+                                  <AvatarImage src={service.profile_image} alt={service.user_name} />
+                                ) : (
+                                  <AvatarFallback className="bg-primary text-white flex items-center justify-center">
+                                    <div className="scale-110 opacity-90">
+                                      {getServiceIcon(service.service_name || service.type_name || '', service.type_icon, service.idicon)}
+                                    </div>
+                                  </AvatarFallback>
+                                )}
+                              </Avatar>
+                              <div className="flex-1 min-w-0">
+                                <CardTitle className="text-2xl font-black mb-1 line-clamp-1 group-hover:text-primary transition-colors leading-tight">
+                                  {(!service.service_name || service.service_name.trim() === '' || service.service_name.trim() === '.') ? 'Servicio Destacado' : service.service_name}
+                                </CardTitle>
+                                <p className="text-sm text-muted-foreground font-bold truncate">Por {service.user_name}</p>
+
+                                <div className="flex items-center gap-2 mt-3">
+                                  <div
+                                    className={`shrink-0 p-1.5 rounded-xl shadow-sm transition-all duration-300 group-hover:scale-110 group-hover:rotate-6 ${isLightColor(service.type_color || getServiceColor(service.type_name || '')) ? 'text-slate-900 border-black/5' : 'text-white border-white/10'}`}
+                                    style={{ backgroundColor: service.type_color || getServiceColor(service.type_name || '') }}
+                                  >
+                                    <div className="[&>svg]:w-5 [&>svg]:h-5 scale-90">
+                                      {getServiceIcon(service.service_name || service.type_name || '', service.type_icon, service.idicon)}
+                                    </div>
+                                  </div>
+                                  <span className="text-[10px] font-black uppercase tracking-widest text-muted-foreground/70">{service.type_name?.trim() ? service.type_name : 'Servicio'}</span>
+                                </div>
                               </div>
                             </div>
-                            <span className="text-[10px] font-black uppercase tracking-widest text-muted-foreground/70">{service.type_name?.trim() ? service.type_name : 'Servicio'}</span>
-                          </div>
-                        </div>
-                      </div>
-                    </CardHeader>
-                    <CardContent className="p-8 pt-0 flex-1 flex flex-col">
-                      <p className="text-muted-foreground text-base line-clamp-2 mb-8 flex-1 italic leading-relaxed">
-                        {(!service.description || service.description.trim() === '' || service.description.trim() === '.') ? 'Sin descripción disponible.' : service.description}
-                      </p>
+                          </CardHeader>
+                          <CardContent className="p-8 pt-0 flex-1 flex flex-col">
+                            <p className="text-muted-foreground text-base line-clamp-2 mb-8 flex-1 italic leading-relaxed">
+                              {(!service.description || service.description.trim() === '' || service.description.trim() === '.') ? 'Sin descripción disponible.' : service.description}
+                            </p>
 
-                      <div className="flex items-center justify-between pt-6 border-t border-primary/5">
-                        <div className="flex items-center gap-2 bg-yellow-400/10 px-3 py-1.5 rounded-xl border border-yellow-400/20">
-                          <Star size={18} className="fill-yellow-500 text-yellow-500" />
-                          <span className="font-black text-lg text-yellow-700">
-                            {(service.average_rating && Number(service.average_rating) > 0) ? Number(service.average_rating).toFixed(1) : '0.0'}
-                          </span>
-                        </div>
-                        <div className="flex items-center gap-2 text-primary/60 bg-primary/5 px-3 py-1.5 rounded-xl border border-primary/10">
-                          <MapPin size={16} />
-                          <span className="text-xs font-bold">{service.comuna}</span>
-                        </div>
-                      </div>
-                    </CardContent>
-                  </Card>
-                </Link>
-              ))}
+                            <div className="flex items-center justify-between pt-6 border-t border-primary/5">
+                              <div className="flex items-center gap-2 bg-yellow-400/10 px-3 py-1.5 rounded-xl border border-yellow-400/20">
+                                <Star size={18} className="fill-yellow-500 text-yellow-500" />
+                                <span className="font-black text-lg text-yellow-700">
+                                  {(service.average_rating && Number(service.average_rating) > 0) ? Number(service.average_rating).toFixed(1) : '0.0'}
+                                </span>
+                              </div>
+                              <div className="flex items-center gap-2 text-primary/60 bg-primary/5 px-3 py-1.5 rounded-xl border border-primary/10">
+                                <MapPin size={16} />
+                                <span className="text-xs font-bold">{service.comuna}</span>
+                              </div>
+                            </div>
+                          </CardContent>
+                        </Card>
+                      </Link>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div className="mt-6 flex items-center justify-center gap-2">
+                {Array.from({ length: Math.max(1, latestServices.length - latestItemsPerView + 1) }).map((_, idx) => (
+                  <button
+                    key={idx}
+                    type="button"
+                    aria-label={`Ir al slide ${idx + 1}`}
+                    onClick={() => setLatestCarouselIndex(idx)}
+                    className={`h-2.5 w-2.5 rounded-full transition-all ${
+                      idx === latestCarouselIndex ? 'bg-primary w-6' : 'bg-primary/20 hover:bg-primary/35'
+                    }`}
+                  />
+                ))}
+              </div>
             </div>
           )}
         </div>
