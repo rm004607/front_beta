@@ -91,7 +91,7 @@ export const ServiceCard = ({
                     </div>
                     <div className="flex-1 min-w-0">
                         <div className="flex justify-between items-start gap-2">
-                            <CardTitle className="text-lg sm:text-xl font-black truncate text-slate-900 group-hover:text-primary transition-colors leading-tight">
+                            <CardTitle className="text-lg sm:text-xl font-black truncate text-foreground group-hover:text-primary transition-colors leading-tight">
                                 {(!service.service_name || service.service_name.trim() === '' || service.service_name.trim() === '.') ? 'Servicio Destacado' : service.service_name}
                             </CardTitle>
                         </div>
@@ -116,7 +116,7 @@ export const ServiceCard = ({
                                     <CloseIcon size={20} />
                                 </DialogClose>
 
-                                <div className="bg-white rounded-[3rem] overflow-hidden shadow-2xl relative">
+                                <div className="bg-background rounded-[3rem] overflow-hidden shadow-2xl relative">
                                     <div
                                         className="h-28 w-full absolute top-0 left-0 md:hidden"
                                         style={{ backgroundColor: service.type_color || getServiceColor(service.type_name || '') }}
@@ -125,7 +125,7 @@ export const ServiceCard = ({
                                     </div>
 
                                     <div className="grid grid-cols-1 md:grid-cols-[280px_1fr] relative z-10">
-                                        <div className="bg-slate-50 md:border-r border-slate-100 flex flex-col">
+                                        <div className="bg-muted/30 md:border-r border-border/40 flex flex-col">
                                             <div
                                                 className="hidden md:block h-28 w-full relative"
                                                 style={{ backgroundColor: service.type_color || getServiceColor(service.type_name || '') }}
@@ -142,7 +142,7 @@ export const ServiceCard = ({
                                                         </div>
                                                     </AvatarFallback>
                                                 </Avatar>
-                                                <DialogTitle className="text-2xl sm:text-3xl md:text-2xl font-black mb-1 text-slate-900">{service.user_name}</DialogTitle>
+                                                <DialogTitle className="text-2xl sm:text-3xl md:text-2xl font-black mb-1 text-foreground">{service.user_name}</DialogTitle>
                                                 <span className="inline-flex mx-auto text-xs sm:text-sm font-bold text-primary mb-6 px-3 py-1 rounded-full bg-primary/10 border border-primary/10">
                                                     {service.service_name}
                                                 </span>
@@ -150,7 +150,7 @@ export const ServiceCard = ({
                                                 <div className="flex items-center justify-center gap-3 mb-6">
                                                     <div className="flex items-center gap-2 bg-yellow-400/15 px-5 py-2.5 rounded-2xl border border-yellow-400/20 shadow-sm">
                                                         <Star className="w-5 h-5 fill-yellow-500 text-yellow-500" />
-                                                        <span className="text-lg font-black text-slate-800">
+                                                        <span className="text-lg font-black text-foreground">
                                                             {(service.average_rating && Number(service.average_rating) > 0) ? Number(service.average_rating).toFixed(1) : '0.0'}
                                                         </span>
                                                     </div>
@@ -208,9 +208,9 @@ export const ServiceCard = ({
 
                                         <div className="p-6 sm:p-8 text-center md:text-left">
                                             <div className="space-y-6 text-left">
-                                                <div className="bg-slate-50 p-6 rounded-[2rem] border border-slate-100">
+                                                <div className="bg-muted/30 p-6 rounded-[2rem] border border-border/40">
                                                     <h4 className="text-[11px] font-black uppercase tracking-[0.2em] text-muted-foreground mb-3 px-1">Acerca de este servicio</h4>
-                                                    <p className="text-sm text-slate-600 whitespace-pre-wrap leading-relaxed font-medium">
+                                                    <p className="text-sm text-muted-foreground whitespace-pre-wrap leading-relaxed font-medium">
                                                         {(!service.description || service.description.trim() === '' || service.description.trim() === '.') ? 'Este prestador no ha proporcionado una descripción detallada aún.' : service.description}
                                                     </p>
                                                 </div>
