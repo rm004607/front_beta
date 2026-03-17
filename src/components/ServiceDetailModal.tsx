@@ -32,7 +32,7 @@ export function ServiceDetailModalContent({ service, onClose, onOpenReviews, onW
   return (
     <div className="bg-white dark:bg-card rounded-[3rem] overflow-hidden shadow-2xl relative text-foreground">
       <div
-        className="h-28 w-full absolute top-0 left-0 md:hidden"
+        className="h-28 w-full absolute -top-px -left-px -right-px md:hidden rounded-t-[3rem]"
         style={{ backgroundColor: service.type_color || getServiceColor(service.type_name || '') }}
       >
         <div className="absolute inset-0 opacity-10 bg-[radial-gradient(circle_at_center,_white_1px,_transparent_1px)] bg-[length:24px_24px]" />
@@ -41,7 +41,7 @@ export function ServiceDetailModalContent({ service, onClose, onOpenReviews, onW
       <div className="grid grid-cols-1 md:grid-cols-[280px_1fr] relative z-10">
         <div className="bg-muted/30 md:border-r border-border/40 flex flex-col">
           <div
-            className="hidden md:block h-28 w-full relative"
+            className="hidden md:block h-28 w-full relative -top-px -left-px -right-px rounded-tl-[3rem]"
             style={{ backgroundColor: service.type_color || getServiceColor(service.type_name || '') }}
           >
             <div className="absolute inset-0 opacity-10 bg-[radial-gradient(circle_at_center,_white_1px,_transparent_1px)] bg-[length:24px_24px]" />
