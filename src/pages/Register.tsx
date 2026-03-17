@@ -299,6 +299,10 @@ const Register = () => {
         data.token = urlToken;
         const response = await authAPI.googleRegister(data);
         localStorage.setItem('token', response.token);
+        if (response.kyc_pending) {
+          navigate(`/verificacion-biometrica?token=${encodeURIComponent(response.token)}&kyc_pending=true`, { replace: true });
+          return;
+        }
       } else if (isGoogleCompletion) {
         await authAPI.updateProfile({ ...data, rol: 2 });
       } else {

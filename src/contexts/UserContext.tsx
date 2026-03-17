@@ -16,6 +16,8 @@ export interface UserProfile {
   roles: UserRole[];
   role_number?: number;
   region_id?: string;
+  kyc_status?: 'not_started' | 'pending' | 'verified' | 'rejected';
+  kyc_completed?: boolean;
   // Job seeker specific
   rubro?: string;
   experience?: string;
@@ -104,8 +106,9 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
         window.history.replaceState({}, '', url.pathname + url.search);
 
         // Si es un login de Google, forzamos ir a /registro para asegurar la selección de rol
-        // excepto si ya estamos en /registro
-        if (isGoogleLogin && window.location.pathname !== '/registro') {
+        // excepto si ya estamos en /registro o en verificación biométrica (backend envió ahí)
+        const path = window.location.pathname;
+        if (isGoogleLogin && path !== '/registro' && path !== '/verificacion-biometrica') {
           window.location.href = `/registro?token=${urlToken}${isRegistrationPending ? '&google_registration_pending=true' : ''}`;
           return;
         }
@@ -150,9 +153,18 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
         roles: [roleMap[Number(dbUser.role_number)] || 'job-seeker'],
         role_number: Number(dbUser.role_number),
         region_id: dbUser.region_id,
+        kyc_status: dbUser.kyc_status,
+        kyc_completed: dbUser.kyc_completed,
       };
 
       setUser(userProfile);
+
+      // Si el usuario está logueado pero no tiene KYC completado, redirigir a verificación biométrica
+      const path = window.location.pathname;
+      if (userProfile.kyc_completed === false && path !== '/verificacion-biometrica' && path !== '/login' && path !== '/registro') {
+        window.location.href = '/verificacion-biometrica';
+        return;
+      }
     } catch (error: any) {
       // Si no hay cookie válida o expiró, el usuario no está autenticado
       // Esto es normal cuando el usuario no ha iniciado sesión

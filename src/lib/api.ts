@@ -148,6 +148,8 @@ export const authAPI = {
         profile_image?: string | null;
         cv_url?: string | null;
         region_id?: string;
+        kyc_status?: 'not_started' | 'pending' | 'verified' | 'rejected';
+        kyc_completed?: boolean;
       };
     }>('/auth/me', {
       method: 'GET',
@@ -244,6 +246,8 @@ export const authAPI = {
         email: string;
         rut: string;
       };
+      kyc_pending?: boolean;
+      kyc_completed?: boolean;
     }>('/auth/google-register', {
       method: 'POST',
       body: JSON.stringify(data),
@@ -1459,6 +1463,14 @@ export const kycAPI = {
     return request<{ ok: boolean; status: string }>(`/api/kyc/pending-status/${registration_id}`, {
       method: 'GET',
       skipAuth: true,
+    });
+  },
+
+  /** Inicia verificación biométrica (post-MetaMap). Usar con token de auth en localStorage. */
+  start: async (identityId: string) => {
+    return request<{ ok: boolean; message?: string }>('/api/kyc/start', {
+      method: 'POST',
+      body: JSON.stringify({ identityId }),
     });
   },
 

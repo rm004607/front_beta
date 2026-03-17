@@ -20,6 +20,7 @@ import NotFound from "./pages/NotFound";
 import Terms from "./pages/Terms";
 import Privacy from "./pages/Privacy";
 import ComingSoon from "./pages/ComingSoon";
+import VerificacionBiometrica from "./pages/VerificacionBiometrica";
 import ScrollToTop from "./components/ScrollToTop";
 import { CountryGate } from "./components/CountryGate";
 
@@ -46,6 +47,7 @@ const App = () => {
                     <Route path="/servicios" element={<Services />} />
                     <Route path="/servicios/publicar" element={<PostService />} />
                     <Route path="/perfil" element={<Profile />} />
+                    <Route path="/verificacion-biometrica" element={<VerificacionBiometrica />} />
                     <Route path="/admin" element={<Admin />} />
                     <Route path="/ayuda" element={<Support />} />
                     <Route path="/flow/callback" element={<FlowCallback />} />
