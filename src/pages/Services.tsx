@@ -29,6 +29,7 @@ import {
 } from '@/components/ui/select';
 import { ServiceCard } from '@/components/ServiceCard';
 import { ServiceDetail } from '@/components/ServiceDetail';
+import { ServiceDetailModalContent } from '@/components/ServiceDetailModal';
 
 const Services = () => {
   const { user, isLoggedIn } = useUser();
@@ -56,6 +57,9 @@ const Services = () => {
   const [pendingContactService, setPendingContactService] = useState<any>(null);
   const [whatsappPrice, setWhatsappPrice] = useState<number>(2990);
   const [pricingEnabled, setPricingEnabled] = useState<boolean>(true);
+
+  // Detalle completo (un solo modal en la página para evitar conflictos con N Dialogs)
+  const [detailService, setDetailService] = useState<any>(null);
 
   // Reseñas
   const [isReviewsModalOpen, setIsReviewsModalOpen] = useState(false);
@@ -408,6 +412,7 @@ const Services = () => {
                   isSuperAdmin={user?.role_number === 5}
                   onOpenReviews={handleOpenReviews}
                   onWhatsApp={handleWhatsApp}
+                  onOpenDetail={setDetailService}
                   onDelete={handleDeleteService}
                   onEdit={(s) => navigate(`/admin?tab=services&search=${s.user_name}`)}
                 />
@@ -421,6 +426,20 @@ const Services = () => {
             )}
           </>
         )}
+
+        {/* Modal Detalles completos (un solo Dialog en la página) */}
+        <Dialog open={!!detailService} onOpenChange={(open) => !open && setDetailService(null)}>
+          <DialogContent disableAnimation className="max-w-[820px] w-[95%] max-h-[90vh] overflow-y-auto rounded-[2rem] sm:rounded-[2.5rem] border border-border p-0 bg-card shadow-2xl">
+            {detailService && (
+              <ServiceDetailModalContent
+                service={detailService}
+                onClose={() => setDetailService(null)}
+                onOpenReviews={(s) => { setDetailService(null); handleOpenReviews(s); }}
+                onWhatsApp={(s) => { setDetailService(null); handleWhatsApp(s); }}
+              />
+            )}
+          </DialogContent>
+        </Dialog>
 
         {/* Modal de Reseñas */}
         <Dialog open={isReviewsModalOpen} onOpenChange={setIsReviewsModalOpen}>
