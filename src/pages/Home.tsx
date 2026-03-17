@@ -440,15 +440,11 @@ const Home = () => {
                           <CardHeader className="p-8 pb-5">
                             <div className="flex items-start gap-4 mb-6">
                               <Avatar className="w-14 h-14 border-2 border-white shadow-md ring-4 ring-primary/5 shrink-0 mt-1">
-                                {service.profile_image ? (
-                                  <AvatarImage src={service.profile_image} alt={service.user_name} />
-                                ) : (
-                                  <AvatarFallback className="bg-primary text-white flex items-center justify-center">
+                                <AvatarFallback className="bg-primary text-white flex items-center justify-center">
                                     <div className="scale-110 opacity-90">
                                       {getServiceIcon(service.service_name || service.type_name || '', service.type_icon, service.idicon)}
                                     </div>
                                   </AvatarFallback>
-                                )}
                               </Avatar>
                               <div className="flex-1 min-w-0">
                                 <CardTitle className="text-2xl font-black mb-1 line-clamp-1 group-hover:text-primary transition-colors leading-tight">

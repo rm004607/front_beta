@@ -18,7 +18,7 @@ import { servicesAPI, configAPI } from '@/lib/api';
 import { toast } from 'sonner';
 import { getServiceIcon, getServiceColor, isLightColor } from '@/lib/serviceUtils';
 import { Badge } from '@/components/ui/badge';
-import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
+import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Label } from '@/components/ui/label';
 
 interface Service {
@@ -77,7 +77,6 @@ export const ServiceCard = ({
                 <div className="flex items-start gap-4">
                     <div className="relative shrink-0 mt-0.5 sm:mt-1">
                         <Avatar className="w-12 h-12 sm:w-14 sm:h-14 border-2 border-white shadow-md ring-4 ring-primary/5 transition-transform duration-300 group-hover:scale-105">
-                            <AvatarImage src={service.profile_image} alt={service.user_name} className="object-cover" />
                             <AvatarFallback className="bg-gradient-to-br from-primary to-primary/80 text-white flex items-center justify-center">
                                 <div className="scale-110 opacity-90">
                                     {getServiceIcon(service.service_name || service.type_name || '', service.type_icon, service.idicon)}

@@ -1,6 +1,6 @@
 import { Star, MapPin, MessageCircle, Sparkles } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
+import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { DialogTitle } from '@/components/ui/dialog';
 import { getServiceIcon, getServiceColor, isLightColor } from '@/lib/serviceUtils';
 
@@ -49,7 +49,6 @@ export function ServiceDetailModalContent({ service, onClose, onOpenReviews, onW
 
           <div className="pt-12 sm:pt-16 md:pt-0 px-6 sm:px-8 md:px-6 pb-6 md:pb-8 text-center flex-1 flex flex-col">
             <Avatar className="w-24 h-24 sm:w-28 sm:h-28 mx-auto border-[4px] sm:border-[6px] border-white shadow-2xl mb-3 sm:mb-4 ring-1 ring-black/5 relative md:-mt-12">
-              <AvatarImage src={service.profile_image} alt={service.user_name} className="object-cover" />
               <AvatarFallback className="bg-gradient-to-br from-primary to-primary/80 text-white flex flex-col items-center justify-center">
                 <div className="scale-[2] sm:scale-[2.5] opacity-90 mb-1">
                   {getServiceIcon(service.service_name || service.type_name || '', service.type_icon, service.idicon)}
