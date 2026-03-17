@@ -6,7 +6,7 @@ import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
-import { MapPin, Search, MessageCircle, Loader2, Plus, TrendingUp, DollarSign, Star, Globe, Wrench } from 'lucide-react';
+import { MapPin, Search, MessageCircle, Loader2, Plus, TrendingUp, DollarSign, Star, Globe, Wrench, X } from 'lucide-react';
 import { servicesAPI, flowAPI, configAPI, reviewsAPI } from '@/lib/api';
 import { toast } from 'sonner';
 import { useUser } from '@/contexts/UserContext';
@@ -19,6 +19,7 @@ import {
   DialogDescription,
   DialogHeader,
   DialogTitle,
+  DialogClose,
 } from '@/components/ui/dialog';
 import {
   Select,
@@ -430,6 +431,10 @@ const Services = () => {
         {/* Modal Detalles completos (un solo Dialog en la página) */}
         <Dialog open={!!detailService} onOpenChange={(open) => !open && setDetailService(null)}>
           <DialogContent disableAnimation className="max-w-[820px] w-[95%] max-h-[90vh] overflow-y-auto rounded-[2rem] sm:rounded-[2.5rem] border border-border p-0 bg-card shadow-2xl">
+            <DialogClose className="absolute top-4 right-4 z-[70] bg-black/50 hover:bg-black/70 text-white p-2 rounded-full backdrop-blur-md transition-all active:scale-95 border-0">
+              <X size={20} />
+              <span className="sr-only">Cerrar</span>
+            </DialogClose>
             {detailService && (
               <ServiceDetailModalContent
                 service={detailService}
