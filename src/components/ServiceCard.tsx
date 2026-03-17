@@ -107,7 +107,7 @@ export const ServiceCard = ({
                     <div className="flex justify-start mt-3">
                         <Dialog>
                             <DialogTrigger asChild>
-                                <button className="text-[10px] sm:text-[11px] text-primary font-black uppercase tracking-widest hover:underline focus:outline-none flex items-center transition-all bg-primary/5 hover:bg-primary/10 px-2.5 sm:px-3 py-1.5 rounded-lg sm:rounded-xl border border-primary/10">
+                                <button className="text-[10px] sm:text-[11px] text-primary font-black uppercase tracking-widest hover:underline focus:outline-none flex items-center transition-all bg-primary/5 hover:bg-primary/10 dark:bg-primary/15 dark:hover:bg-primary/20 px-2.5 sm:px-3 py-1.5 rounded-lg sm:rounded-xl border border-primary/10 dark:border-primary/25">
                                     Detalles completos <ChevronRight className="w-3 sn:w-3.5 h-3 sm:h-3.5 ml-1" />
                                 </button>
                             </DialogTrigger>
