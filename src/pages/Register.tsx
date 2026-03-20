@@ -7,7 +7,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Alert, AlertTitle, AlertDescription } from '@/components/ui/alert';
 import { useUser } from '@/contexts/UserContext';
-import { ArrowRight, ArrowLeft } from 'lucide-react';
+import { ArrowRight, ArrowLeft, Eye, EyeOff, CheckCircle2 } from 'lucide-react';
 import { toast } from 'sonner';
 import { authAPI, kycAPI } from '@/lib/api';
 import {
@@ -49,6 +49,7 @@ const Register = () => {
   const [rut, setRut] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
   const [phone, setPhone] = useState('');
   const [comuna, setComuna] = useState('');
   const [rutExists, setRutExists] = useState(false);
@@ -146,6 +147,19 @@ const Register = () => {
   const displayStep = step <= 2 ? step : 2;
   const totalSteps = 2;
 
+  const isStrongPassword = (value: string): boolean => {
+    if (value.length < 6) return false;
+    const upperCount = (value.match(/[A-Z]/g) || []).length;
+    const numberCount = (value.match(/[0-9]/g) || []).length;
+    return upperCount >= 1 && numberCount >= 3;
+  };
+
+  const passwordChecks = {
+    minLength: password.length >= 6,
+    uppercase: (password.match(/[A-Z]/g) || []).length >= 1,
+    numbers: (password.match(/[0-9]/g) || []).length >= 3,
+  };
+
   const checkRutExists = async (rutValue: string): Promise<boolean> => {
     const cleanRut = rutValue.replace(/[^0-9kK]/g, '');
     if (!cleanRut || !isValidRut(rutValue)) {
@@ -180,6 +194,11 @@ const Register = () => {
 
       if (!isValidEmail(email)) {
         toast.error('Por favor ingresa un email válido y real');
+        return;
+      }
+
+      if (requiresPassword && !isStrongPassword(password)) {
+        toast.error('La contraseña debe tener al menos 6 caracteres, 1 mayúscula y 3 números');
         return;
       }
 
@@ -456,14 +475,44 @@ const Register = () => {
                 </div>
                 <div>
                   <Label htmlFor="password">Contraseña</Label>
-                  <Input
-                    id="password"
-                    type="password"
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    placeholder={searchParams.get('google_registration_pending') === 'true' ? 'No requerida para Google' : 'Mínimo 6 caracteres'}
-                    disabled={searchParams.get('google_registration_pending') === 'true'}
-                  />
+                  <div className="relative">
+                    <Input
+                      id="password"
+                      type={showPassword ? 'text' : 'password'}
+                      value={password}
+                      onChange={(e) => setPassword(e.target.value)}
+                      placeholder={searchParams.get('google_registration_pending') === 'true' ? 'No requerida para Google' : 'Mínimo 6 caracteres, 1 mayúscula y 3 números'}
+                      disabled={searchParams.get('google_registration_pending') === 'true'}
+                      className="pr-10"
+                    />
+                    {searchParams.get('google_registration_pending') !== 'true' && (
+                      <button
+                        type="button"
+                        onClick={() => setShowPassword((prev) => !prev)}
+                        className="absolute inset-y-0 right-0 flex items-center px-3 text-muted-foreground hover:text-foreground"
+                        aria-label={showPassword ? 'Ocultar contraseña' : 'Mostrar contraseña'}
+                      >
+                        {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+                      </button>
+                    )}
+                  </div>
+                  {searchParams.get('google_registration_pending') !== 'true' && (
+                    <div className="mt-2 rounded-md border border-border/60 bg-muted/20 p-3 space-y-1.5">
+                      <p className="text-xs font-medium text-muted-foreground">Requisitos de contraseña</p>
+                      <div className={`flex items-center gap-2 text-xs ${passwordChecks.minLength ? 'text-green-600' : 'text-muted-foreground'}`}>
+                        <CheckCircle2 size={14} className={passwordChecks.minLength ? 'opacity-100' : 'opacity-40'} />
+                        <span>Mínimo 6 caracteres</span>
+                      </div>
+                      <div className={`flex items-center gap-2 text-xs ${passwordChecks.uppercase ? 'text-green-600' : 'text-muted-foreground'}`}>
+                        <CheckCircle2 size={14} className={passwordChecks.uppercase ? 'opacity-100' : 'opacity-40'} />
+                        <span>Mínimo 1 mayúscula</span>
+                      </div>
+                      <div className={`flex items-center gap-2 text-xs ${passwordChecks.numbers ? 'text-green-600' : 'text-muted-foreground'}`}>
+                        <CheckCircle2 size={14} className={passwordChecks.numbers ? 'opacity-100' : 'opacity-40'} />
+                        <span>Mínimo 3 números</span>
+                      </div>
+                    </div>
+                  )}
                 </div>
                 <div>
                   <Label htmlFor="phone">Teléfono de Contacto <span className="text-destructive">*</span></Label>
