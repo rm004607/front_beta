@@ -97,6 +97,14 @@ async function request<T>(
 
 // API de autenticación
 export const authAPI = {
+  checkRutExists: async (rut: string) => {
+    const cleanRut = rut.replace(/[^0-9kK]/g, '');
+    return request<{ exists: boolean }>(`/auth/check-rut?rut=${encodeURIComponent(cleanRut)}`, {
+      method: 'GET',
+      skipAuth: true,
+    });
+  },
+
   register: async (data: {
     name: string;
     email: string;
@@ -240,6 +248,7 @@ export const authAPI = {
     return request<{
       message: string;
       token: string;
+      registration_id?: string;
       user: {
         id: string;
         name: string;
@@ -1455,6 +1464,23 @@ export const kycAPI = {
     return request<{ ok: boolean; message: string }>('/api/kyc/link', {
       method: 'POST',
       body: JSON.stringify({ registration_id, identityId }),
+      skipAuth: true,
+    });
+  },
+
+  confirm: async (registration_id: string) => {
+    return request<{
+      ok: boolean;
+      token: string;
+      user: {
+        id: string;
+        name: string;
+        email: string;
+      };
+      message?: string;
+    }>('/api/kyc/confirm', {
+      method: 'POST',
+      body: JSON.stringify({ registration_id }),
       skipAuth: true,
     });
   },

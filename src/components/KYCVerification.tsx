@@ -8,23 +8,14 @@ declare global {
 }
 
 interface Props {
-  /** En flujo email/contraseña viene del backend; en flujo Google es null */
   registrationId: string | null;
   onSuccess: () => void;
   onError: (msg: string) => void;
-  /** Si el backend no soporta KYC para este flujo (ej. 404), se llama para mostrar "Continuar sin verificación" */
-  onKYCUnavailable?: () => void;
 }
 
-const isGoogleFlow = (regId: string | null) => !regId || !String(regId).trim();
-
-export default function KYCVerification({ registrationId, onSuccess, onError, onKYCUnavailable }: Props) {
+export default function KYCVerification({ registrationId, onSuccess, onError }: Props) {
   const buttonRef = useRef<any>(null);
   const [isVerifying, setIsVerifying] = useState(false);
-  /** En flujo Google, el regId se obtiene al terminar MetaMap y se usa para polling */
-  const [pendingRegIdFromBackend, setPendingRegIdFromBackend] = useState<string | null>(null);
-  const useGoogleFlow = isGoogleFlow(registrationId);
-  const effectiveRegId = (registrationId || '').trim() || pendingRegIdFromBackend;
 
   useEffect(() => {
     const script = document.createElement('script');
@@ -35,58 +26,32 @@ export default function KYCVerification({ registrationId, onSuccess, onError, on
     const handleFinished = async (e: any) => {
       console.log('[KYC] ✅ userFinishedSdk en window:', e.detail);
       const identityId = e.detail?.identityId ?? e.detail?.id ?? e.detail?.userId;
+      const regId = (registrationId || '').trim();
+
+      if (!regId) {
+        onError('No encontramos el ID de registro. Vuelve a intentar desde el inicio.');
+        return;
+      }
+
       if (!identityId) {
         console.error('[KYC] No identityId received from MetaMap', e.detail);
         onError('No se recibió identityId de MetaMap. Intenta de nuevo.');
         return;
       }
 
-      if (useGoogleFlow) {
-        // Flujo Google: intentar obtener registration_id del backend para el usuario autenticado y usar link()
-        try {
-          const { registration_id: regId } = await kycAPI.getRegistrationIdForUser();
-          if (!regId?.trim()) {
-            onKYCUnavailable?.() ?? onError('La verificación no está disponible para este flujo. Puedes continuar sin verificación.');
-            return;
-          }
-          const regIdTrim = regId.trim();
-          await kycAPI.link(regIdTrim, identityId);
-          console.log('[KYC] ✅ Vinculación exitosa (flujo Google), esperando webhook...');
-          setPendingRegIdFromBackend(regIdTrim);
-          setIsVerifying(true);
-          try {
-            const res = await kycAPI.checkPendingStatus(regIdTrim);
-            if (res.ok && res.status === 'verified') {
-              onSuccess();
-            }
-          } catch (e) {}
-        } catch (err: any) {
-          const is404 = err?.status === 404;
-          if (is404 || err?.message?.toLowerCase().includes('no encontrada') || err?.message?.toLowerCase().includes('not found')) {
-            console.warn('[KYC] Backend no expone registration_id para usuario (flujo Google). Mostrando opción de continuar sin verificación.');
-            onKYCUnavailable?.() ?? onError('La verificación no está disponible para registro con Google. Puedes continuar sin verificación.');
-          } else {
-            console.error('[KYC] Error en flujo Google:', err);
-            onError('Error al vincular tu identidad. Intenta de nuevo.');
-          }
-        }
-        return;
-      }
-
-      const regId = (registrationId || '').trim();
       try {
-        await kycAPI.link(regId, identityId);
-        console.log('[KYC] ✅ Vinculación exitosa en frontend, esperando webhook...');
         setIsVerifying(true);
-        try {
-          const res = await kycAPI.checkPendingStatus(regId);
-          if (res.ok && res.status === 'verified') {
-            onSuccess();
-          }
-        } catch (e) {}
-      } catch (err) {
+        await kycAPI.link(regId, identityId);
+        const confirmRes = await kycAPI.confirm(regId);
+        if (confirmRes?.token) {
+          localStorage.setItem('token', confirmRes.token);
+        }
+        onSuccess();
+      } catch (err: any) {
         console.error('[KYC] Error en /api/kyc/link:', err);
-        onError('Error al vincular tu identidad. Intenta de nuevo.');
+        onError(err?.message || 'Error al completar la verificación de identidad.');
+      } finally {
+        setIsVerifying(false);
       }
     };
 
@@ -112,30 +77,7 @@ export default function KYCVerification({ registrationId, onSuccess, onError, on
       }
       try { document.body.removeChild(script); } catch {}
     };
-  }, [registrationId, useGoogleFlow, onSuccess, onError]);
-
-  // Poller: verificación por registration_id (email/password o Google cuando el backend devuelve regId)
-  useEffect(() => {
-    if (!effectiveRegId || !isVerifying) return;
-
-    let poller: NodeJS.Timeout;
-    const checkStatus = async () => {
-      try {
-        const res = await kycAPI.checkPendingStatus(effectiveRegId);
-        if (res.ok && res.status === 'verified') {
-          console.log('[KYC] ✅ Webhook detectado! Status verified.');
-          clearInterval(poller);
-          onSuccess();
-        } else if (res.ok && res.status === 'rejected') {
-          console.log('[KYC] ❌ Webhook detectado! Status rejected.');
-          clearInterval(poller);
-          onError('Verificación rechazada. Por favor intenta de nuevo.');
-        }
-      } catch (err) {}
-    };
-    poller = setInterval(checkStatus, 2000);
-    return () => clearInterval(poller);
-  }, [effectiveRegId, isVerifying, onSuccess, onError]);
+  }, [registrationId, onSuccess, onError]);
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 16 }}>
@@ -155,7 +97,7 @@ export default function KYCVerification({ registrationId, onSuccess, onError, on
             ref={buttonRef}
             clientId={import.meta.env.VITE_METAMAP_CLIENT_ID}
             flowId={import.meta.env.VITE_METAMAP_FLOW_ID}
-            metadata={JSON.stringify(registrationId?.trim() ? { registration_id: registrationId.trim() } : { flow: 'google' })}
+            metadata={JSON.stringify({ registration_id: registrationId?.trim() || '' })}
           />
         </>
       )}
