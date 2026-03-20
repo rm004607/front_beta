@@ -48,7 +48,7 @@ const Services = () => {
   const [loading, setLoading] = useState(true);
   const [pagination, setPagination] = useState({
     page: 1,
-    limit: 20,
+    limit: 9,
     total: 0,
     totalPages: 0,
   });
@@ -445,6 +445,40 @@ const Services = () => {
             {services.length === 0 && !loading && (
               <div className="text-center py-12">
                 <p className="text-muted-foreground text-lg">{t('services.not_found')}</p>
+              </div>
+            )}
+
+            {pagination.totalPages > 1 && (
+              <div className="mt-8 flex flex-wrap items-center justify-center gap-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  disabled={pagination.page <= 1}
+                  onClick={() => setPagination((prev) => ({ ...prev, page: prev.page - 1 }))}
+                >
+                  Anterior
+                </Button>
+
+                {Array.from({ length: pagination.totalPages }, (_, i) => i + 1).map((pageNum) => (
+                  <Button
+                    key={pageNum}
+                    variant={pageNum === pagination.page ? 'default' : 'outline'}
+                    size="sm"
+                    onClick={() => setPagination((prev) => ({ ...prev, page: pageNum }))}
+                    className="min-w-9"
+                  >
+                    {pageNum}
+                  </Button>
+                ))}
+
+                <Button
+                  variant="outline"
+                  size="sm"
+                  disabled={pagination.page >= pagination.totalPages}
+                  onClick={() => setPagination((prev) => ({ ...prev, page: prev.page + 1 }))}
+                >
+                  Siguiente
+                </Button>
               </div>
             )}
           </>
