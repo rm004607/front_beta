@@ -399,7 +399,7 @@ const Home = () => {
             <div className="relative">
               <div className="overflow-hidden">
                 <div
-                  className="flex gap-8 transition-transform duration-700 ease-in-out will-change-transform"
+                  className="flex items-stretch gap-4 md:gap-8 transition-transform duration-700 ease-in-out will-change-transform"
                   style={{
                     transform: `translateX(-${latestCarouselIndex * (100 / Math.max(1, latestItemsPerView))}%)`,
                   }}
@@ -407,12 +407,12 @@ const Home = () => {
                   {latestServices.map((service, i) => (
                     <div
                       key={service.id}
-                      className="min-w-0 flex-[0_0_100%] md:flex-[0_0_50%] lg:flex-[0_0_33.3333%]"
+                      className="min-w-0 flex-[0_0_100%] md:flex-[0_0_50%] lg:flex-[0_0_33.3333%] px-1 md:px-0"
                     >
-                      <Link to={`/servicios`} className="animate-reveal block h-full" style={{ animationDelay: `${i * 50}ms` }}>
+                      <Link to={`/servicios`} className="animate-reveal block h-full w-full max-w-xl mx-auto" style={{ animationDelay: `${i * 50}ms` }}>
                         <Card className="group h-full bg-white dark:bg-card/40 backdrop-blur-sm border-2 border-transparent hover:border-primary/30 hover:shadow-2xl hover:shadow-primary/5 transition-all duration-500 rounded-[2.5rem] overflow-hidden flex flex-col shadow-sm hover:-translate-y-1">
                           <CardHeader className="p-8 pb-5">
-                            <div className="flex items-start gap-4 mb-6">
+                            <div className="flex flex-col items-center text-center gap-4 mb-6">
                               <Avatar className="w-14 h-14 border-2 border-white shadow-md ring-4 ring-primary/5 shrink-0 mt-1">
                                 <AvatarFallback className="bg-primary text-white flex items-center justify-center">
                                     <div className="scale-110 opacity-90">
@@ -420,13 +420,13 @@ const Home = () => {
                                     </div>
                                   </AvatarFallback>
                               </Avatar>
-                              <div className="flex-1 min-w-0">
+                              <div className="flex-1 min-w-0 w-full">
                                 <CardTitle className="text-2xl font-black mb-1 line-clamp-1 group-hover:text-primary transition-colors leading-tight">
                                   {(!service.service_name || service.service_name.trim() === '' || service.service_name.trim() === '.') ? 'Servicio Destacado' : service.service_name}
                                 </CardTitle>
                                 <p className="text-sm text-muted-foreground font-bold truncate">Por {service.user_name}</p>
 
-                                <div className="flex items-center gap-2 mt-3">
+                                <div className="flex items-center justify-center gap-2 mt-3">
                                   <div
                                     className={`shrink-0 p-1.5 rounded-xl shadow-sm transition-all duration-300 group-hover:scale-110 group-hover:rotate-6 ${isLightColor(service.type_color || getServiceColor(service.type_name || '')) ? 'text-slate-900 border-black/5' : 'text-white border-white/10'}`}
                                     style={{ backgroundColor: service.type_color || getServiceColor(service.type_name || '') }}
@@ -445,7 +445,7 @@ const Home = () => {
                               {(!service.description || service.description.trim() === '' || service.description.trim() === '.') ? 'Sin descripción disponible.' : service.description}
                             </p>
 
-                            <div className="flex items-center justify-between pt-6 border-t border-primary/5">
+                            <div className="flex items-center justify-center gap-4 pt-6 border-t border-primary/5">
                               <div className="flex items-center gap-2 bg-yellow-400/10 px-3 py-1.5 rounded-xl border border-yellow-400/20">
                                 <Star size={18} className="fill-yellow-500 text-yellow-500" />
                                 <span className="font-black text-lg text-yellow-700">
