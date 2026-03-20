@@ -5,7 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import {
   Briefcase, Wrench, Building2, MessageSquare, ArrowRight, MapPin,
   Calendar, DollarSign, Clock, Star, Users, ShoppingBag,
-  ChefHat, Truck, HeartPulse, Lightbulb, ShieldCheck, Sparkles,
+  ChefHat, Truck, Lightbulb, ShieldCheck, Sparkles,
   Paintbrush, Camera, Scissors, Laptop, Hammer, Music,
   Car, Home as HomeIcon, Phone,
   Plug, PaintRoller, Flame, Utensils, Dumbbell, GraduationCap,
@@ -305,34 +305,8 @@ const Home = () => {
                   <div key={i} className="h-40 rounded-3xl bg-muted animate-pulse"></div>
                 ))}
               </div>
-            ) : serviceTypes.length >= 6 ? (
-              // Render Marquee for 6 or more categories
-              <div className="relative overflow-hidden group pause-on-hover">
-                {/* Glassy Fades on edges for depth - Narrower on Mobile */}
-                <div className="absolute left-0 top-0 bottom-0 w-16 md:w-32 bg-gradient-to-r from-background via-background/80 to-transparent z-20 pointer-events-none"></div>
-                <div className="absolute right-0 top-0 bottom-0 w-16 md:w-32 bg-gradient-to-l from-background via-background/80 to-transparent z-20 pointer-events-none"></div>
-
-                <div className="space-y-8 py-4">
-                  {[0, 1, 2].map((rowIndex) => {
-                    const animationClass = rowIndex % 2 === 0 ? "animate-marquee-reverse" : "animate-marquee";
-                    const rowItems = serviceTypes.filter((_, idx) => idx % 3 === rowIndex);
-                    if (rowItems.length === 0) return null;
-                    const displayItems = [...rowItems, ...rowItems, ...rowItems];
-
-                    return (
-                      <div key={rowIndex} className="flex gap-6 whitespace-nowrap">
-                        <div className={`flex gap-6 ${animationClass}`} style={{ animationDuration: rowIndex === 1 ? '40s' : '35s' }}>
-                          {displayItems.map((type, i) => (
-                            <CategoryCard key={`${rowIndex}-${type.id}-${i}`} type={type} rowIndex={rowIndex} />
-                          ))}
-                        </div>
-                      </div>
-                    );
-                  })}
-                </div>
-              </div>
             ) : (
-              // Render Static Grid for 1-5 categories
+              // Render Static Grid for all categories (better performance)
               <div className="flex flex-wrap justify-center gap-6 px-4 py-4 animate-reveal">
                 {serviceTypes.map((type) => (
                   <CategoryCard key={type.id} type={type} />
@@ -636,66 +610,6 @@ const Home = () => {
               <div className="absolute -bottom-12 -left-12 w-64 h-64 bg-primary/10 rounded-full blur-[80px] -z-10"></div>
             </div>
 
-            <div className="grid md:grid-cols-3 gap-8 pt-8">
-              <div className="bg-white p-8 rounded-[2.5rem] shadow-xl shadow-slate-200/50 border border-slate-100 space-y-4 hover:-translate-y-2 transition-transform duration-300">
-                <div className="w-12 h-12 bg-primary/10 rounded-2xl flex items-center justify-center text-primary">
-                  <HeartPulse size={24} />
-                </div>
-                <h4 className="text-xl font-black text-slate-900">Pasión</h4>
-                <p className="text-muted-foreground font-medium">Amamos lo que hacemos y nos esforzamos por la excelencia en cada detalle.</p>
-              </div>
-              <div className="bg-white p-8 rounded-[2.5rem] shadow-xl shadow-slate-200/50 border border-slate-100 space-y-4 hover:-translate-y-2 transition-transform duration-300">
-                <div className="w-12 h-12 bg-secondary/10 rounded-2xl flex items-center justify-center text-secondary">
-                  <ShieldCheck size={24} />
-                </div>
-                <h4 className="text-xl font-black text-slate-900">Confianza</h4>
-                <p className="text-muted-foreground font-medium">Construimos puentes seguros entre personas para fortalecer la comunidad.</p>
-              </div>
-              <div className="bg-white p-8 rounded-[2.5rem] shadow-xl shadow-slate-200/50 border border-slate-100 space-y-4 hover:-translate-y-2 transition-transform duration-300">
-                <div className="w-12 h-12 bg-indigo-500/10 rounded-2xl flex items-center justify-center text-indigo-600">
-                  <Globe size={24} />
-                </div>
-                <h4 className="text-xl font-black text-slate-900">Visión</h4>
-                <p className="text-muted-foreground font-medium">Miramos hacia el futuro con el objetivo de llegar a cada rincón del mundo.</p>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* Countries Where We Are Section */}
-      <section className="py-12 md:py-24 relative overflow-hidden bg-white">
-        <div className="container mx-auto px-4 text-center">
-          <div className="max-w-4xl mx-auto space-y-8">
-            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/5 text-primary font-bold text-sm uppercase tracking-wider">
-              <Globe size={16} />
-              {t('home.countries_title')}
-            </div>
-            <h2 className="text-3xl md:text-5xl font-black text-slate-900">
-              {t('home.countries_title')}
-            </h2>
-            <p className="text-xl text-muted-foreground leading-relaxed">
-              {t('home.countries_desc')}
-            </p>
-            
-            <div className="flex justify-center pt-8">
-              <div className="group relative">
-                <div className="absolute -inset-4 bg-gradient-to-r from-primary/20 to-secondary/20 rounded-[2.5rem] blur-xl opacity-0 group-hover:opacity-100 transition-opacity"></div>
-                <div className="relative bg-white border-2 border-primary/10 p-8 rounded-[2.5rem] shadow-xl flex flex-col items-center gap-4 transition-transform group-hover:-translate-y-2">
-                  <div className="w-24 h-16 rounded-xl overflow-hidden shadow-md border border-slate-100">
-                    <img 
-                      src="https://flagcdn.com/cl.svg" 
-                      alt="Chile" 
-                      className="w-full h-full object-cover"
-                    />
-                  </div>
-                  <div>
-                    <h3 className="text-2xl font-black text-slate-900">Chile</h3>
-                    <p className="text-xs font-bold text-primary uppercase tracking-widest mt-1">Sede Principal</p>
-                  </div>
-                </div>
-              </div>
-            </div>
           </div>
         </div>
       </section>
@@ -818,7 +732,7 @@ const Home = () => {
                     )}
                   </Button>
                   <p className="text-center text-[11px] text-muted-foreground font-medium pt-2 italic">
-                    * Tus datos solo se usarán para contactar al servicio recomendado.
+                    * El número de teléfono que nos provees solo lo usaremos para contactar el dato que nos das.
                   </p>
                 </form>
               </div>

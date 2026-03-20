@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { chileData } from '@/lib/chile-data';
 import { Button } from '@/components/ui/button';
@@ -52,6 +52,7 @@ const Services = () => {
     total: 0,
     totalPages: 0,
   });
+  const latestLoadRequestId = useRef(0);
 
   // Pago por contacto
   const [isPaidContactModalOpen, setIsPaidContactModalOpen] = useState(false);
@@ -76,6 +77,12 @@ const Services = () => {
   useEffect(() => {
     loadServices();
   }, [searchTerm, comunaFilter, regionFilter, typeFilter, pagination.page]);
+
+  // Cuando cambia un filtro (o búsqueda), siempre volvemos a la primera página.
+  // Evita estados donde "faltan servicios" por seguir en página > 1.
+  useEffect(() => {
+    setPagination((prev) => (prev.page === 1 ? prev : { ...prev, page: 1 }));
+  }, [searchTerm, comunaFilter, regionFilter, typeFilter]);
 
   // Cargar precio dinámico y estado de pricing
   useEffect(() => {
@@ -103,6 +110,7 @@ const Services = () => {
       setPagination(prev => ({ ...prev, page: 1 }));
     } else {
       setTypeFilter('all');
+      setPagination(prev => ({ ...prev, page: 1 }));
     }
   }, [searchParams]);
 
@@ -133,6 +141,7 @@ const Services = () => {
   }, []);
 
   const loadServices = async () => {
+    const requestId = ++latestLoadRequestId.current;
     setLoading(true);
     try {
       const response = await servicesAPI.getServices({
@@ -144,13 +153,25 @@ const Services = () => {
         page: pagination.page,
         limit: pagination.limit,
       });
+
+      // Evita que respuestas antiguas sobreescriban resultados más nuevos.
+      if (requestId !== latestLoadRequestId.current) return;
+
       setServices(response.services);
-      setPagination(response.pagination);
+      setPagination((prev) => ({
+        ...prev,
+        page: response.pagination.page,
+        total: response.pagination.total,
+        totalPages: response.pagination.totalPages,
+      }));
     } catch (error) {
+      if (requestId !== latestLoadRequestId.current) return;
       toast.error(t('services.loading_error'));
       console.error('Error loading services:', error);
     } finally {
-      setLoading(false);
+      if (requestId === latestLoadRequestId.current) {
+        setLoading(false);
+      }
     }
   };
 
@@ -385,6 +406,7 @@ const Services = () => {
                       setRegionFilter('all');
                       setSearchTerm('');
                       setTypeFilter('all');
+                      setPagination(prev => ({ ...prev, page: 1 }));
                     }}
                     className="text-xs text-muted-foreground hover:text-primary"
                   >
