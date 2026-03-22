@@ -1,13 +1,13 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
+import { ScrollArea } from '@/components/ui/scroll-area';
+import { Checkbox } from '@/components/ui/checkbox';
 import {
   Select,
   SelectContent,
@@ -24,33 +24,19 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog';
 import { useUser } from '@/contexts/UserContext';
-import logoDameldato from '/logo_nombre.webp';
-import { MapPin, Phone, Mail, Edit, Wrench, Building2, MessageSquare, Trash2, X, FileText, Download, AlertCircle, Eye, Plus, Star, Users, Briefcase } from 'lucide-react';
-import { postsAPI, servicesAPI, authAPI } from '@/lib/api';
+import { MapPin, Phone, Mail, Wrench, Building2, Trash2, FileText, Plus, Star, Users, ChevronRight, Loader2 } from 'lucide-react';
+import { servicesAPI, authAPI } from '@/lib/api';
 import { toast } from 'sonner';
 import {
-  isValidName,
   validatePhone,
   isValidPhone,
   isValidComuna,
   isValidRut,
   formatRut,
-  isValidTextField,
   sanitizeInput,
   getValidationErrorMessage
 } from '@/lib/input-validator';
-import { Alert, AlertDescription } from '@/components/ui/alert';
 import { chileData } from '@/lib/chile-data';
-
-interface Post {
-  id: string;
-  type: string;
-  content: string;
-  comuna: string;
-  created_at: string;
-  likes_count: number;
-  comments_count: number;
-}
 
 interface Service {
   id: string;
@@ -62,6 +48,8 @@ interface Service {
   created_at: string;
   average_rating?: number;
   reviews_count?: number;
+  region_id?: string;
+  coverage_communes?: string[];
 }
 
 
@@ -71,32 +59,26 @@ const Profile = () => {
   const [searchParams, setSearchParams] = useSearchParams();
   const [services, setServices] = useState<Service[]>([]);
   const [loadingServices, setLoadingServices] = useState(false);
-  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
-  const [editName, setEditName] = useState('');
-  const [editPhone, setEditPhone] = useState('');
-  const [editRut, setEditRut] = useState('');
-  const [editComuna, setEditComuna] = useState('');
-  const [editRole, setEditRole] = useState('1');
-  const [isUpdating, setIsUpdating] = useState(false);
-  const fileInputRef = useRef<HTMLInputElement>(null);
-  /* CV code removido */
-  // Estados para edición
-  // Estados para edición
-  // Estados para completar perfil
+  const [isSavingLocation, setIsSavingLocation] = useState(false);
+  const [locationDialogOpen, setLocationDialogOpen] = useState(false);
+  const [locRegion, setLocRegion] = useState('');
+  const [locComuna, setLocComuna] = useState('');
+  const [phoneDialogOpen, setPhoneDialogOpen] = useState(false);
+  const [editPhoneValue, setEditPhoneValue] = useState('');
+  const [isSavingPhone, setIsSavingPhone] = useState(false);
   const [showCompleteProfileDialog, setShowCompleteProfileDialog] = useState(false);
   const [completePhone, setCompletePhone] = useState('');
   const [completeRut, setCompleteRut] = useState('');
   const [completeComuna, setCompleteComuna] = useState('');
   const [isCompletingProfile, setIsCompletingProfile] = useState(false);
   const [editingService, setEditingService] = useState<Service | null>(null);
-  const [editServiceName, setEditServiceName] = useState('');
-  const [editServiceDescription, setEditServiceDescription] = useState('');
-  const [editServiceMinPrice, setEditServiceMinPrice] = useState('');
-  const [editServiceMaxPrice, setEditServiceMaxPrice] = useState('');
+  const [editServiceRegion, setEditServiceRegion] = useState('');
   const [editServiceComuna, setEditServiceComuna] = useState('');
+  const [editServiceCoverageCommunes, setEditServiceCoverageCommunes] = useState<string[]>([]);
+  const [editCoveragePickRegion, setEditCoveragePickRegion] = useState('');
+  const [loadingServiceDetail, setLoadingServiceDetail] = useState(false);
+  const [isSavingService, setIsSavingService] = useState(false);
 
-  // Estados para regiones
-  const [editRegion, setEditRegion] = useState('');
   const [completeRegion, setCompleteRegion] = useState('');
 
   const loadServices = async () => {
@@ -128,51 +110,62 @@ const Profile = () => {
     }
   };
 
-  const handleEditService = (service: Service) => {
+  const handleEditService = async (service: Service) => {
     setEditingService(service);
-    setEditServiceName(service.service_name);
-    setEditServiceDescription(service.description);
-
-    // Price range logic removed as requested
-
-    setEditServiceComuna(service.comuna);
+    setLoadingServiceDetail(true);
+    setEditCoveragePickRegion('');
+    try {
+      const { service: full } = await servicesAPI.getServiceById(service.id);
+      const s = full as Service & { coverage_communes?: string[]; region_id?: string };
+      const comuna = s.comuna || service.comuna;
+      setEditServiceComuna(comuna);
+      const rid =
+        s.region_id ||
+        chileData.find((r) => r.communes.includes(comuna))?.id ||
+        '';
+      setEditServiceRegion(rid);
+      setEditServiceCoverageCommunes(
+        Array.isArray(s.coverage_communes) ? [...s.coverage_communes] : []
+      );
+    } catch {
+      setEditServiceComuna(service.comuna);
+      setEditServiceRegion(
+        chileData.find((r) => r.communes.includes(service.comuna))?.id || ''
+      );
+      setEditServiceCoverageCommunes(service.coverage_communes ? [...service.coverage_communes] : []);
+    } finally {
+      setLoadingServiceDetail(false);
+    }
   };
 
   const handleSaveService = async () => {
-    if (!editingService || !editServiceName.trim() || !editServiceDescription.trim() || !editServiceComuna.trim()) {
-      toast.error('Por favor completa todos los campos obligatorios');
-      return;
-    }
-
-    if (!isValidTextField(editServiceName, 100)) {
-      toast.error('El nombre del servicio contiene caracteres no permitidos');
-      return;
-    }
-    if (!isValidTextField(editServiceDescription, 2000)) {
-      toast.error('La descripción contiene caracteres no permitidos');
+    if (!editingService || !editServiceComuna.trim() || !editServiceRegion) {
+      toast.error('Selecciona región y comuna de origen');
       return;
     }
     if (!isValidComuna(editServiceComuna)) {
-      toast.error('La comuna contiene caracteres no permitidos');
+      toast.error('Comuna no válida');
       return;
     }
 
     try {
+      setIsSavingService(true);
       const response = await servicesAPI.updateService(editingService.id, {
-        service_name: sanitizeInput(editServiceName, 100),
-        description: sanitizeInput(editServiceDescription, 2000),
         comuna: sanitizeInput(editServiceComuna, 50),
+        region_id: editServiceRegion,
+        coverage_communes:
+          editServiceCoverageCommunes.length > 0 ? editServiceCoverageCommunes : undefined,
       });
-      
-      const successMsg = response.message || 'Servicio actualizado exitosamente';
+
+      const successMsg = response.message || 'Ubicación del servicio actualizada';
       toast.success(successMsg);
-      
       setEditingService(null);
-      // Recargar la lista completa para asegurar sincronización con todos los campos (incluyendo el nombre recalculado)
       loadServices();
     } catch (error: any) {
       console.error('Error updating service:', error);
       toast.error(error.message || 'Error al actualizar servicio');
+    } finally {
+      setIsSavingService(false);
     }
   };
 
@@ -212,121 +205,76 @@ const Profile = () => {
     }
   };
 
-  const handleOpenEditDialog = () => {
-    if (user) {
-      setEditName(user.name);
-      setEditPhone(user.phone);
-      setEditRut(formatRut(user.rut || ''));
-      setEditComuna(user.comuna);
-      setEditRole(String(user.role_number || 1));
-      // @ts-ignore
-      setEditRegion(user.region_id || '');
-      setIsEditDialogOpen(true);
-    }
-  };
-
-
-  const handleUpdateProfile = async () => {
+  const openLocationDialog = () => {
     if (!user) return;
+    setLocRegion(user.region_id ? String(user.region_id) : '');
+    setLocComuna(user.comuna || '');
+    setLocationDialogOpen(true);
+  };
 
+  const openPhoneDialog = () => {
+    if (!user) return;
+    setEditPhoneValue(user.phone || '');
+    setPhoneDialogOpen(true);
+  };
+
+  const handleSavePhone = async () => {
+    if (!user) return;
+    const trimmed = editPhoneValue.trim();
+    if (!trimmed) {
+      toast.error('Ingresa un número de teléfono');
+      return;
+    }
+    if (!isValidPhone(trimmed)) {
+      const phoneError = validatePhone(trimmed);
+      toast.error(getValidationErrorMessage('phone', phoneError === 'format' ? 'format' : 'length'));
+      return;
+    }
+    if (trimmed === user.phone) {
+      setPhoneDialogOpen(false);
+      return;
+    }
     try {
-      setIsUpdating(true);
-
-      // Actualizar perfil
-      const updateData: {
-        name?: string;
-        phone?: string;
-        rut?: string;
-        comuna?: string;
-        region_id?: string;
-        rol?: number;
-      } = {};
-
-      if (editName !== user.name) {
-        if (!isValidName(editName)) {
-          toast.error('Nombre no válido');
-          setIsUpdating(false);
-          return;
-        }
-        updateData.name = sanitizeInput(editName, 100);
-      }
-
-      if (editPhone !== user.phone) {
-        if (!editPhone.trim()) {
-          toast.error('El teléfono es obligatorio');
-          setIsUpdating(false);
-          return;
-        }
-        if (!isValidPhone(editPhone)) {
-          const phoneError = validatePhone(editPhone);
-          toast.error(getValidationErrorMessage('phone', phoneError === 'format' ? 'format' : 'length'));
-          setIsUpdating(false);
-          return;
-        }
-        updateData.phone = sanitizeInput(editPhone, 20);
-      }
-
-      if (editComuna !== user.comuna) {
-        if (!isValidComuna(editComuna)) {
-          toast.error('Comuna no válida');
-          setIsUpdating(false);
-          return;
-        }
-        updateData.comuna = sanitizeInput(editComuna, 50);
-      }
-
-      if (editRegion !== (user as any).region_id) {
-        updateData.region_id = editRegion;
-      }
-
-      const userRoleNumber = Number(user.role_number || 1);
-      const selectedRoleNumber = Number(editRole || userRoleNumber);
-      if (
-        [1, 2].includes(userRoleNumber) &&
-        [1, 2].includes(selectedRoleNumber) &&
-        selectedRoleNumber !== userRoleNumber
-      ) {
-        updateData.rol = selectedRoleNumber;
-      }
-
-      const cleanRut = editRut.replace(/[^0-9kK]/g, '');
-      const userRutClean = (user.rut || '').replace(/[^0-9kK]/g, '');
-
-      if (cleanRut !== userRutClean) {
-        if (editRut && !isValidRut(editRut)) {
-          toast.error('RUT no válido');
-          setIsUpdating(false);
-          return;
-        }
-        updateData.rut = editRut ? sanitizeInput(cleanRut, 12) : '';
-      }
-
-
-      // Si no hay cambios, cerrar el diálogo
-      if (Object.keys(updateData).length === 0) {
-        setIsEditDialogOpen(false);
-        return;
-      }
-
-      await authAPI.updateProfile(updateData);
-
-      // Actualizar el contexto del usuario
+      setIsSavingPhone(true);
+      await authAPI.updateProfile({
+        phone: sanitizeInput(trimmed, 20),
+      });
       await loadUser();
-      setIsEditDialogOpen(false);
-      toast.success('Perfil actualizado correctamente');
+      setPhoneDialogOpen(false);
+      toast.success('Teléfono actualizado');
     } catch (error: any) {
-      console.error('Error updating profile:', error);
-      if (error?.status === 400 && error?.message?.toLowerCase().includes('rut')) {
-        toast.error('El RUT ya se encuentra registrado con otra cuenta');
-      } else {
-        toast.error(error.message || 'Error al actualizar perfil');
-      }
+      console.error('Error updating phone:', error);
+      toast.error(error.message || 'No se pudo actualizar el teléfono');
     } finally {
-      setIsUpdating(false);
+      setIsSavingPhone(false);
     }
   };
 
-  /* CV handlers removidos */
+  const handleSaveLocation = async () => {
+    if (!user || !locRegion || !locComuna.trim()) {
+      toast.error('Selecciona región y comuna');
+      return;
+    }
+    if (!isValidComuna(locComuna)) {
+      toast.error('Comuna no válida');
+      return;
+    }
+    try {
+      setIsSavingLocation(true);
+      await authAPI.updateProfile({
+        region_id: locRegion,
+        comuna: sanitizeInput(locComuna, 50),
+      });
+      await loadUser();
+      setLocationDialogOpen(false);
+      toast.success('Ubicación actualizada');
+    } catch (error: any) {
+      console.error('Error updating location:', error);
+      toast.error(error.message || 'No se pudo actualizar la ubicación');
+    } finally {
+      setIsSavingLocation(false);
+    }
+  };
 
 
 
@@ -397,8 +345,8 @@ const Profile = () => {
       setShowCompleteProfileDialog(true);
       setCompletePhone(user?.phone || '');
       setCompleteComuna(user?.comuna || '');
-      // @ts-ignore
       setCompleteRegion(user?.region_id || '');
+      setCompleteRut(formatRut(user?.rut || ''));
       // Limpiar el query param
       searchParams.delete('complete_profile');
       setSearchParams(searchParams, { replace: true });
@@ -434,418 +382,480 @@ const Profile = () => {
     return null;
   }
 
-  return (
-    <div className="min-h-screen bg-background relative overflow-hidden pb-12">
-      {/* Decorative background elements */}
-      <div className="absolute top-0 left-0 w-full h-full pointer-events-none">
-        <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-primary/10 rounded-full blur-[120px]" />
-        <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-secondary/10 rounded-full blur-[120px]" />
-      </div>
+  const userRegionName = user.region_id
+    ? chileData.find((r) => String(r.id) === String(user.region_id))?.name
+    : null;
 
-      <div className="container mx-auto px-4 py-8 max-w-4xl relative z-10">
-        <div className="flex flex-col sm:flex-row justify-between items-center mb-8 p-4 sm:p-6 glass-card rounded-2xl sm:rounded-3xl border-primary/10 gap-4">
-          <h1 className="text-3xl sm:text-4xl font-heading font-bold bg-clip-text text-transparent bg-gradient-to-r from-primary to-secondary text-center">Mi Perfil</h1>
-          <Button
-            variant="outline"
-            onClick={handleOpenEditDialog}
-            className="w-full sm:w-auto border-primary/20 hover:bg-primary/10 transition-all duration-300"
-          >
-            <Edit size={16} className="mr-2 text-primary" />
-            Editar Perfil
-          </Button>
+  return (
+    <div className="min-h-screen bg-muted/30 pb-16 lg:pb-24">
+      <div className="mx-auto w-full max-w-xl px-4 py-8 sm:px-5 sm:py-10 lg:max-w-6xl lg:px-10 lg:py-12 xl:max-w-7xl">
+        <div className="mb-6 lg:mb-10">
+          <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground mb-1 lg:text-sm">
+            Cuenta
+          </p>
+          <h1 className="text-2xl font-normal text-foreground tracking-tight sm:text-3xl lg:text-[2rem] lg:tracking-tight">
+            Perfil
+          </h1>
         </div>
 
-        {/* Banner para completar perfil (si faltan campos) */}
         {hasMissingFields && (
-          <Card className="mb-6 border-none bg-gradient-to-br from-accent/20 to-accent/5 backdrop-blur-md shadow-xl border-accent/20">
-            <CardContent className="pt-6">
-              <div className="flex items-center gap-6">
-                <div className="flex-shrink-0">
-                  <div className="w-auto h-auto bg-transparent flex items-center justify-center p-0">
-                    <img
-                      src={logoDameldato}
-                      alt="Dameldato"
-                      className="h-12 sm:h-16 w-auto object-contain"
-                    />
-                  </div>
-                </div>
-                <div className="flex-1">
-                  <h3 className="text-2xl font-heading font-bold mb-2">
-                    ¡Completa tu perfil!
-                  </h3>
-                  <p className="text-muted-foreground font-medium mb-4">
-                    Completa tu información personal (teléfono y comuna) para que otros usuarios puedan contactarte.
-                  </p>
-                  <Button
-                    onClick={() => {
-                      setCompletePhone(user.phone || '');
-                      setCompleteComuna(user.comuna || '');
-                      // @ts-ignore
-                      setCompleteRegion(user.region_id || '');
-                      setShowCompleteProfileDialog(true);
-                    }}
-                    className="bg-primary hover:bg-primary/90"
-                  >
-                    <Users size={16} className="mr-2" />
-                    Completar Perfil
-                  </Button>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
+          <div className="mb-6 rounded-2xl border border-border bg-card p-4 shadow-sm lg:mb-8 lg:flex lg:items-center lg:justify-between lg:gap-6 lg:p-6">
+            <p className="text-sm text-muted-foreground mb-3 lg:mb-0 lg:flex-1">
+              Falta información de contacto. Complétala una vez para que otros usuarios puedan ubicarte.
+            </p>
+            <Button
+              variant="secondary"
+              size="sm"
+              className="rounded-full shrink-0"
+              onClick={() => {
+                setCompletePhone(user.phone || '');
+                setCompleteComuna(user.comuna || '');
+                setCompleteRegion(user.region_id || '');
+                setCompleteRut(formatRut(user.rut || ''));
+                setShowCompleteProfileDialog(true);
+              }}
+            >
+              <Users size={14} className="mr-2" />
+              Completar datos
+            </Button>
+          </div>
         )}
 
-        {/* Basic Info Card */}
-        <Card className="mb-6 glass-card border-white/5 shadow-2xl overflow-hidden">
-          <CardHeader>
-            <div className="flex flex-col md:flex-row items-center md:items-start gap-6 text-center md:text-left">
-              <Avatar className="w-24 h-24">
-                {user.profile_image && (
-                  <AvatarImage src={user.profile_image} alt={user.name} />
-                )}
-                <AvatarFallback className="text-3xl font-heading bg-primary text-white">
-                  {user.name.split(' ').map(n => n[0]).join('')}
-                </AvatarFallback>
-              </Avatar>
-              <div className="flex-1 min-w-0 w-full">
-                <CardTitle className="text-3xl mb-3 break-words">{user.name}</CardTitle>
-                <div className="flex flex-wrap justify-center md:justify-start gap-2 mb-4">
-                  {user.roles.map((role) => (
-                    <Badge key={role} variant="secondary" className="flex items-center gap-1">
-                      {getRoleIcon(role)}
-                      {getRoleLabel(role)}
-                    </Badge>
-                  ))}
-                </div>
-                <div className="space-y-2 text-foreground/80 font-medium flex flex-col items-center md:items-start text-sm sm:text-base">
-                  <div className="flex items-center gap-2 max-w-full">
-                    <Mail size={16} className="shrink-0 text-primary" />
-                    <span className="break-all">{user.email}</span>
-                  </div>
-                  {user.rut && (
-                    <div className="flex items-center gap-2 max-w-full">
-                      <FileText size={16} className="shrink-0 text-primary" />
-                      <span className="break-all">RUT: {user.rut}</span>
-                    </div>
-                  )}
-                  <div className="flex items-center gap-2">
-                    <Phone size={16} className="shrink-0 text-primary" />
-                    <span>{user.phone}</span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <MapPin size={16} className="shrink-0 text-primary" />
-                    <span>{user.comuna}</span>
-                  </div>
-                </div>
+        <div className="rounded-2xl border border-border bg-card shadow-sm overflow-hidden lg:shadow-md lg:rounded-3xl">
+          {/* Móvil: avatar arriba centrado · Escritorio: fila con avatar + nombre */}
+          <div className="flex flex-col items-center border-b border-border/60 pt-8 pb-6 px-6 lg:flex-row lg:items-center lg:gap-10 lg:px-10 lg:py-10 lg:text-left">
+            <Avatar className="h-20 w-20 ring-1 ring-border lg:h-28 lg:w-28 lg:ring-2 lg:ring-border/80">
+              {user.profile_image && <AvatarImage src={user.profile_image} alt={user.name} />}
+              <AvatarFallback className="text-xl font-medium bg-muted text-foreground lg:text-3xl">
+                {user.name
+                  .split(' ')
+                  .map((n) => n[0])
+                  .join('')
+                  .slice(0, 2)}
+              </AvatarFallback>
+            </Avatar>
+            <div className="mt-4 flex flex-col items-center lg:mt-0 lg:items-start lg:min-w-0 lg:flex-1">
+              <h2 className="text-xl font-medium text-foreground text-center lg:text-2xl lg:font-normal">
+                {user.name}
+              </h2>
+              <div className="mt-2 flex flex-wrap justify-center gap-1.5 lg:justify-start lg:gap-2">
+                {user.roles.map((role) => (
+                  <span
+                    key={role}
+                    className="inline-flex items-center gap-1 rounded-full bg-muted px-2.5 py-0.5 text-xs text-muted-foreground lg:px-3 lg:py-1 lg:text-sm"
+                  >
+                    {getRoleIcon(role)}
+                    {getRoleLabel(role)}
+                  </span>
+                ))}
               </div>
             </div>
-          </CardHeader>
-        </Card>
+          </div>
 
-
-        {/* Sección de CV removida */}
-
-        {
-          user.roles.includes('entrepreneur') && (
-            <Card className="mb-6 border-2">
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Wrench className="text-secondary" />
-                  Servicio Ofrecido
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-3">
-                {user.service && (
-                  <div>
-                    <span className="font-semibold">Servicio:</span> {user.service}
-                  </div>
-                )}
-                {user.priceRange && (
-                  <div>
-                    <span className="font-semibold">Rango de Precio:</span> {user.priceRange}
-                  </div>
-                )}
-                {user.portfolio && user.portfolio.length > 0 && (
-                  <div>
-                    <span className="font-semibold">Descripción:</span>
-                    <p className="text-muted-foreground mt-1">{user.portfolio[0]}</p>
-                  </div>
-                )}
-              </CardContent>
-            </Card>
-          )
-        }
-
-        {/* Listado de Servicios */}
-        <div className="w-full">
-
-
-          {/* Vista de Servicios (Emprendedores, Admin y Super-Admin) */}
-          {(user.roles.includes('entrepreneur') || user.roles.includes('admin') || user.role_number === 5) && (
-            <div className="mt-6">
-              <Card className="border-2">
-                <CardHeader>
-                  <div className="flex justify-between items-start">
-                    <div>
-                      <CardTitle>Mis Servicios</CardTitle>
-                      <CardDescription>Servicios activos que has publicado</CardDescription>
-                    </div>
-                    <Button onClick={() => navigate('/servicios/publicar')} size="sm">
-                      <Plus size={16} className="mr-2" />
-                      Nuevo Servicio
-                    </Button>
-                  </div>
-                </CardHeader>
-                <CardContent>
-                  {loadingServices ? (
-                    <div className="text-center py-8">
-                      <p className="text-muted-foreground">Cargando servicios...</p>
-                    </div>
-                  ) : services.length === 0 ? (
-                    <div className="text-center py-8">
-                      <p className="text-muted-foreground">No has publicado servicios aún</p>
-                      <Button className="mt-4" onClick={() => navigate('/servicios/publicar')}>
-                        Publicar Servicio
-                      </Button>
-                    </div>
-                  ) : (
-                    <div className="space-y-4">
-                      {services.filter(s => s.status?.toLowerCase().trim() !== 'inactive').map((service) => (
-                        <Card key={service.id} className="border">
-                          <CardHeader>
-                            <div className="flex justify-between items-start">
-                              <div className="flex-1">
-                                <div className="flex items-center gap-2 mb-1">
-                                  <CardTitle className="text-lg">{service.service_name}</CardTitle>
-                                  <Badge
-                                    className={
-                                      service.status?.toLowerCase().trim() === 'active' ? 'bg-green-500/10 text-green-500 border-green-500/20 hover:bg-green-500/20' :
-                                        service.status?.toLowerCase().trim() === 'pending' ? 'bg-amber-500/10 text-amber-500 border-amber-500/20 hover:bg-amber-500/20' :
-                                          (service.status?.toLowerCase().trim() === 'rejected' || service.status?.toLowerCase().trim() === 'suspended') ? 'bg-red-500/10 text-red-500 border-red-500/20 hover:bg-red-500/20' :
-                                            'bg-gray-500/10 text-gray-500 border-gray-500/20 hover:bg-gray-500/20'
-                                    }
-                                    variant="outline"
-                                  >
-                                    {service.status?.toLowerCase().trim() === 'active' ? '✅ Activo' :
-                                      service.status?.toLowerCase().trim() === 'pending' ? '⏳ Pendiente' :
-                                        (service.status?.toLowerCase().trim() === 'rejected' || service.status?.toLowerCase().trim() === 'suspended') ? '❌ Bloqueado' :
-                                          service.status}
-                                  </Badge>
-                                </div>
-                                <CardDescription className="flex flex-col gap-1">
-                                  <span>{service.comuna} | {formatDate(service.created_at)}</span>
-                                  <div className="flex items-center gap-1 text-xs text-muted-foreground">
-                                    <Star className="w-3 h-3 fill-yellow-400 text-yellow-400" />
-                                    <span className="font-bold text-yellow-500">
-                                      {(service.average_rating && Number(service.average_rating) > 0) ? Number(service.average_rating).toFixed(1) : '0.0'}
-                                    </span>
-                                    <span className="text-[10px]">({service.reviews_count || 0} reseñas)</span>
-                                  </div>
-                                </CardDescription>
-                              </div>
-                              <div className="flex gap-2">
-                                <Button
-                                  variant="ghost"
-                                  size="sm"
-                                  onClick={() => handleEditService(service)}
-                                >
-                                  <Edit size={16} />
-                                </Button>
-                                <Button
-                                  variant="ghost"
-                                  size="sm"
-                                  onClick={() => handleDeleteService(service.id)}
-                                >
-                                  <Trash2 size={16} className="text-destructive" />
-                                </Button>
-                              </div>
-                            </div>
-                          </CardHeader>
-                          <CardContent>
-                            <p className="mb-2">{service.description}</p>
-                            {service.price_range && (
-                              <p className="text-sm text-muted-foreground">Precio: {service.price_range}</p>
-                            )}
-                          </CardContent>
-                        </Card>
-                      ))}
-                    </div>
-                  )}
-                </CardContent>
-              </Card>
+          {/* Móvil: lista vertical · Escritorio: rejilla 2 columnas */}
+          <div className="divide-y divide-border/60 lg:grid lg:grid-cols-2 lg:divide-y-0 lg:gap-0 lg:border-t-0">
+            <div
+              className={`px-5 py-4 flex items-start gap-3 lg:px-8 lg:py-6 lg:border-r lg:border-border/60 ${
+                !user.rut ? 'lg:col-span-2 lg:border-r-0 lg:border-b lg:border-border/60' : ''
+              }`}
+            >
+              <Mail className="h-5 w-5 text-muted-foreground shrink-0 mt-0.5 lg:h-5 lg:w-5" />
+              <div className="min-w-0 flex-1">
+                <p className="text-xs text-muted-foreground lg:text-sm">Correo</p>
+                <p className="text-sm text-foreground break-all lg:text-base">{user.email}</p>
+              </div>
             </div>
-          )}
+            {user.rut && (
+              <div className="px-5 py-4 flex items-start gap-3 lg:px-8 lg:py-6">
+                <FileText className="h-5 w-5 text-muted-foreground shrink-0 mt-0.5" />
+                <div className="min-w-0 flex-1">
+                  <p className="text-xs text-muted-foreground lg:text-sm">RUT</p>
+                  <p className="text-sm text-foreground lg:text-base">{user.rut}</p>
+                </div>
+              </div>
+            )}
+            <div className="px-5 py-4 lg:px-8 lg:py-6 lg:border-r lg:border-border/60 lg:border-t lg:border-border/60">
+              <div className="flex items-start gap-3">
+                <Phone className="h-5 w-5 text-muted-foreground shrink-0 mt-0.5" />
+                <div className="min-w-0 flex-1">
+                  <p className="text-xs text-muted-foreground lg:text-sm">Teléfono</p>
+                  <p className="text-sm text-foreground lg:text-base">{user.phone || '—'}</p>
+                </div>
+              </div>
+              <Button
+                type="button"
+                variant="link"
+                className="h-auto p-0 mt-2 text-sm font-normal text-primary lg:mt-3"
+                onClick={openPhoneDialog}
+              >
+                ¿Quieres cambiar tu número?
+              </Button>
+            </div>
+            <div className="px-5 py-4 lg:px-8 lg:py-6 lg:border-t lg:border-border/60">
+              <div className="flex items-start gap-3">
+                <MapPin className="h-5 w-5 text-muted-foreground shrink-0 mt-0.5" />
+                <div className="min-w-0 flex-1">
+                  <p className="text-xs text-muted-foreground lg:text-sm">Ubicación</p>
+                  <p className="text-sm text-foreground lg:text-base">
+                    {userRegionName ? `${userRegionName} · ` : ''}
+                    {user.comuna || '—'}
+                  </p>
+                </div>
+              </div>
+              <Button
+                type="button"
+                variant="link"
+                className="h-auto p-0 mt-2 text-sm font-normal text-primary lg:mt-3"
+                onClick={openLocationDialog}
+              >
+                ¿Quieres cambiar tu ubicación?
+              </Button>
+            </div>
+          </div>
         </div>
 
-        {/* Dialog de Edición de Perfil */}
-        <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
-          <DialogContent className="w-[95vw] sm:max-w-[500px] max-h-[90vh] overflow-y-auto rounded-3xl p-4 sm:p-6">
-            <DialogHeader>
-              <DialogTitle>Editar Perfil</DialogTitle>
-              <DialogDescription>
-                Actualiza tu información personal
-              </DialogDescription>
-            </DialogHeader>
 
-            <div className="space-y-4 py-4">
-
-              {/* Campos del formulario */}
-              <div className="space-y-4">
-                <div>
-                  <Label htmlFor="edit-name">Nombre</Label>
-                  <Input
-                    id="edit-name"
-                    value={editName}
-                    onChange={(e) => setEditName(e.target.value)}
-                    disabled={isUpdating}
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="edit-phone">Teléfono</Label>
-                  <Input
-                    id="edit-phone"
-                    value={editPhone}
-                    onChange={(e) => setEditPhone(e.target.value)}
-                    disabled={isUpdating}
-                    className={editPhone && validatePhone(editPhone) === 'format' ? 'border-red-500' : ''}
-                  />
-                  {editPhone && validatePhone(editPhone) === 'format' && (
-                    <p className="text-[10px] text-red-500 mt-1">
-                      {getValidationErrorMessage('phone', 'format')}
-                    </p>
-                  )}
-                </div>
-                <div>
-                  <Label htmlFor="edit-rut">RUT</Label>
-                  <Input
-                    id="edit-rut"
-                    value={editRut}
-                    onChange={(e) => {
-                      const value = e.target.value;
-                      // Formatear RUT si existe la función importada
-                      setEditRut(value);
-                    }}
-                    placeholder="12.345.678-9"
-                    disabled={isUpdating}
-                  />
-                </div>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  <div>
-                    <Label htmlFor="edit-region">Región</Label>
-                    <Select value={editRegion} onValueChange={(val) => {
-                      setEditRegion(val);
-                      setEditComuna('');
-                    }} disabled={isUpdating}>
-                      <SelectTrigger id="edit-region">
-                        <SelectValue placeholder="Selecciona Región" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {chileData.map((reg) => (
-                          <SelectItem key={reg.id} value={reg.id}>{reg.name}</SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  <div>
-                    <Label htmlFor="edit-comuna">Comuna</Label>
-                    <Select value={editComuna} onValueChange={setEditComuna} disabled={!editRegion || isUpdating}>
-                      <SelectTrigger id="edit-comuna">
-                        <SelectValue placeholder="Selecciona Comuna" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {editRegion && chileData.find(r => String(r.id) === String(editRegion))?.communes.map((c) => (
-                          <SelectItem key={c} value={c}>{c}</SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-                </div>
+        {(user.roles.includes('entrepreneur') || user.roles.includes('admin') || user.role_number === 5) && (
+          <div className="mt-10 lg:mt-14">
+            <div className="mb-5 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between lg:mb-6">
+              <div>
+                <h2 className="text-lg font-medium text-foreground lg:text-xl">Tus publicaciones</h2>
+                <p className="text-sm text-muted-foreground lg:text-base lg:mt-1">
+                  Solo puedes ajustar ubicación y zonas de desplazamiento.
+                </p>
               </div>
-            </div>
-
-            <DialogFooter>
               <Button
                 variant="outline"
-                onClick={() => setIsEditDialogOpen(false)}
-                disabled={isUpdating}
+                size="sm"
+                className="rounded-full shrink-0 w-full sm:w-auto"
+                onClick={() => navigate('/servicios/publicar')}
+              >
+                <Plus size={14} className="mr-1.5" />
+                Nuevo servicio
+              </Button>
+            </div>
+
+            {loadingServices ? (
+              <p className="text-sm text-muted-foreground py-8 text-center lg:py-12">Cargando…</p>
+            ) : services.length === 0 ? (
+              <div className="rounded-2xl border border-dashed border-border bg-card/50 py-10 text-center lg:py-14 lg:max-w-2xl lg:mx-auto">
+                <p className="text-sm text-muted-foreground mb-3 lg:text-base">Aún no tienes servicios publicados</p>
+                <Button size="sm" className="rounded-full" onClick={() => navigate('/servicios/publicar')}>
+                  Publicar servicio
+                </Button>
+              </div>
+            ) : (
+              <div className="space-y-3 lg:grid lg:grid-cols-2 lg:gap-5 lg:space-y-0 xl:gap-6">
+                {services
+                  .filter((s) => s.status?.toLowerCase().trim() !== 'inactive')
+                  .map((service) => (
+                    <div
+                      key={service.id}
+                      className="rounded-2xl border border-border bg-card p-4 shadow-sm"
+                    >
+                      <div className="flex items-start justify-between gap-3">
+                        <div className="min-w-0">
+                          <p className="font-medium text-foreground truncate">{service.service_name}</p>
+                          <p className="text-xs text-muted-foreground mt-0.5">
+                            {service.comuna} · {formatDate(service.created_at)}
+                          </p>
+                          <div className="mt-2 flex items-center gap-1.5 text-xs text-muted-foreground">
+                            <Star className="h-3 w-3 fill-amber-400 text-amber-400" />
+                            <span>
+                              {(service.average_rating && Number(service.average_rating) > 0)
+                                ? Number(service.average_rating).toFixed(1)
+                                : '—'}{' '}
+                              ({service.reviews_count || 0})
+                            </span>
+                          </div>
+                        </div>
+                        <Badge variant="secondary" className="shrink-0 text-[10px] font-normal">
+                          {service.status?.toLowerCase().trim() === 'active'
+                            ? 'Activo'
+                            : service.status?.toLowerCase().trim() === 'pending'
+                              ? 'Pendiente'
+                              : service.status}
+                        </Badge>
+                      </div>
+                      <p className="mt-3 text-sm text-muted-foreground line-clamp-2">{service.description}</p>
+                      <div className="mt-4 flex flex-wrap gap-2">
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="rounded-full text-primary -ml-2"
+                          onClick={() => handleEditService(service)}
+                          disabled={loadingServiceDetail && editingService?.id === service.id}
+                        >
+                          Editar ubicación
+                          <ChevronRight className="h-4 w-4 ml-0.5" />
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="rounded-full text-destructive -ml-2"
+                          onClick={() => handleDeleteService(service.id)}
+                        >
+                          <Trash2 className="h-4 w-4 mr-1" />
+                          Eliminar
+                        </Button>
+                      </div>
+                    </div>
+                  ))}
+              </div>
+            )}
+          </div>
+        )}
+
+        <Dialog open={phoneDialogOpen} onOpenChange={setPhoneDialogOpen}>
+          <DialogContent className="w-[95vw] sm:max-w-md rounded-2xl border shadow-lg">
+            <DialogHeader>
+              <DialogTitle className="text-lg font-medium">Cambiar teléfono</DialogTitle>
+              <DialogDescription className="text-sm text-muted-foreground">
+                Actualiza el número donde pueden contactarte. El resto de tu perfil no se modifica aquí.
+              </DialogDescription>
+            </DialogHeader>
+            <div className="space-y-2 py-2">
+              <Label htmlFor="profile-phone-edit" className="text-xs text-muted-foreground">
+                Teléfono
+              </Label>
+              <Input
+                id="profile-phone-edit"
+                value={editPhoneValue}
+                onChange={(e) => setEditPhoneValue(e.target.value)}
+                placeholder="+56 9 1234 5678"
+                disabled={isSavingPhone}
+                className={
+                  editPhoneValue && validatePhone(editPhoneValue) === 'format' ? 'border-red-500 rounded-xl' : 'rounded-xl'
+                }
+              />
+              {editPhoneValue && validatePhone(editPhoneValue) === 'format' && (
+                <p className="text-xs text-red-500">{getValidationErrorMessage('phone', 'format')}</p>
+              )}
+            </div>
+            <DialogFooter className="gap-2 sm:gap-0">
+              <Button
+                variant="outline"
+                className="rounded-full"
+                onClick={() => setPhoneDialogOpen(false)}
+                disabled={isSavingPhone}
               >
                 Cancelar
               </Button>
-              <Button
-                onClick={handleUpdateProfile}
-                disabled={isUpdating}
-              >
-                {isUpdating ? 'Guardando...' : 'Guardar Cambios'}
+              <Button className="rounded-full" onClick={handleSavePhone} disabled={isSavingPhone}>
+                {isSavingPhone ? 'Guardando…' : 'Guardar'}
               </Button>
             </DialogFooter>
           </DialogContent>
         </Dialog>
 
-
-        {/* Modal de edición de Servicio */}
-        <Dialog open={!!editingService} onOpenChange={(open) => !open && setEditingService(null)}>
-          <DialogContent className="w-[95vw] sm:max-w-xl max-h-[90vh] overflow-y-auto rounded-2xl">
+        <Dialog open={locationDialogOpen} onOpenChange={setLocationDialogOpen}>
+          <DialogContent className="w-[95vw] sm:max-w-md rounded-2xl border shadow-lg">
             <DialogHeader>
-              <DialogTitle>Editar Servicio</DialogTitle>
-              <DialogDescription>
-                Modifica la información de tu servicio
+              <DialogTitle className="text-lg font-medium">Cambiar ubicación</DialogTitle>
+              <DialogDescription className="text-sm text-muted-foreground">
+                Actualiza región y comuna. El resto de tu perfil no se modifica aquí.
               </DialogDescription>
             </DialogHeader>
-            <div className="space-y-4">
-              <div>
-                <Label htmlFor="edit-service-name">Nombre del Servicio</Label>
-                <Input
-                  id="edit-service-name"
-                  value={editServiceName}
-                  onChange={(e) => setEditServiceName(e.target.value)}
-                />
-              </div>
-              <div>
-                <Label htmlFor="edit-service-description">Descripción</Label>
-                <Textarea
-                  id="edit-service-description"
-                  value={editServiceDescription}
-                  onChange={(e) => setEditServiceDescription(e.target.value)}
-                  rows={4}
-                />
-              </div>
-              {/* Price fields removed as requested */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div className="space-y-4 py-2">
+              <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
                 <div>
-                  <Label htmlFor="edit-service-region">Región</Label>
+                  <Label className="text-xs text-muted-foreground">Región</Label>
                   <Select
-                    value={chileData.find(r => r.communes.includes(editServiceComuna))?.id || ''}
-                    onValueChange={(val) => {
-                      // This is tricky since we don't have service_region_id in state yet
-                      // For now, we'll just let the commune update
+                    value={locRegion}
+                    onValueChange={(v) => {
+                      setLocRegion(v);
+                      setLocComuna('');
                     }}
+                    disabled={isSavingLocation}
                   >
-                    <SelectTrigger id="edit-service-region">
-                      <SelectValue placeholder="Selecciona Región" />
+                    <SelectTrigger className="mt-1 rounded-xl">
+                      <SelectValue placeholder="Región" />
                     </SelectTrigger>
                     <SelectContent>
                       {chileData.map((reg) => (
-                        <SelectItem key={reg.id} value={reg.id}>{reg.name}</SelectItem>
+                        <SelectItem key={reg.id} value={reg.id}>
+                          {reg.name}
+                        </SelectItem>
                       ))}
                     </SelectContent>
                   </Select>
                 </div>
                 <div>
-                  <Label htmlFor="edit-service-comuna">Comuna</Label>
-                  <Input
-                    id="edit-service-comuna"
-                    value={editServiceComuna}
-                    onChange={(e) => setEditServiceComuna(e.target.value)}
-                  />
+                  <Label className="text-xs text-muted-foreground">Comuna</Label>
+                  <Select
+                    value={locComuna}
+                    onValueChange={setLocComuna}
+                    disabled={!locRegion || isSavingLocation}
+                  >
+                    <SelectTrigger className="mt-1 rounded-xl">
+                      <SelectValue placeholder="Comuna" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {locRegion &&
+                        chileData
+                          .find((r) => String(r.id) === String(locRegion))
+                          ?.communes.map((c) => (
+                            <SelectItem key={c} value={c}>
+                              {c}
+                            </SelectItem>
+                          ))}
+                    </SelectContent>
+                  </Select>
                 </div>
               </div>
             </div>
-            <DialogFooter>
-              <Button variant="outline" onClick={() => setEditingService(null)}>
+            <DialogFooter className="gap-2 sm:gap-0">
+              <Button variant="outline" className="rounded-full" onClick={() => setLocationDialogOpen(false)} disabled={isSavingLocation}>
                 Cancelar
               </Button>
-              <Button onClick={handleSaveService}>
-                Guardar
+              <Button className="rounded-full" onClick={handleSaveLocation} disabled={isSavingLocation}>
+                {isSavingLocation ? 'Guardando…' : 'Guardar'}
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+
+        <Dialog
+          open={!!editingService}
+          onOpenChange={(open) => {
+            if (!open && !isSavingService) setEditingService(null);
+          }}
+        >
+          <DialogContent className="w-[95vw] sm:max-w-lg max-h-[90vh] overflow-y-auto rounded-2xl">
+            <DialogHeader>
+              <DialogTitle className="text-lg font-medium">Ubicación del servicio</DialogTitle>
+              <DialogDescription className="text-sm">
+                {editingService ? (
+                  <span className="text-muted-foreground">{editingService.service_name}</span>
+                ) : null}
+              </DialogDescription>
+            </DialogHeader>
+            {loadingServiceDetail ? (
+              <p className="py-8 text-center text-sm text-muted-foreground">Cargando datos…</p>
+            ) : (
+              <div className="space-y-5 py-2">
+                <div>
+                  <p className="text-xs font-medium text-muted-foreground mb-1">Origen (región y comuna)</p>
+                  <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                    <Select
+                      value={editServiceRegion}
+                      onValueChange={(v) => {
+                        setEditServiceRegion(v);
+                        setEditServiceComuna('');
+                      }}
+                      disabled={isSavingService}
+                    >
+                      <SelectTrigger className="rounded-xl">
+                        <SelectValue placeholder="Región" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {chileData.map((reg) => (
+                          <SelectItem key={reg.id} value={reg.id}>
+                            {reg.name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <Select
+                      value={editServiceComuna}
+                      onValueChange={setEditServiceComuna}
+                      disabled={!editServiceRegion || isSavingService}
+                    >
+                      <SelectTrigger className="rounded-xl">
+                        <SelectValue placeholder="Comuna" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {editServiceRegion &&
+                          chileData
+                            .find((r) => String(r.id) === String(editServiceRegion))
+                            ?.communes.map((c) => (
+                              <SelectItem key={c} value={c}>
+                                {c}
+                              </SelectItem>
+                            ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+                <div>
+                  <p className="text-xs font-medium text-muted-foreground mb-2">Zonas de desplazamiento (opcional)</p>
+                  <div className="space-y-2">
+                    <Select
+                      value={editCoveragePickRegion}
+                      onValueChange={setEditCoveragePickRegion}
+                      disabled={isSavingService}
+                    >
+                      <SelectTrigger className="rounded-xl">
+                        <SelectValue placeholder="Elegir región para marcar comunas" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {chileData.map((reg) => (
+                          <SelectItem key={reg.id} value={reg.id}>
+                            {reg.name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    {editCoveragePickRegion && (
+                      <ScrollArea className="h-40 rounded-xl border bg-muted/20 p-2">
+                        <div className="grid grid-cols-2 gap-2 pr-2">
+                          {chileData
+                            .find((r) => String(r.id) === String(editCoveragePickRegion))
+                            ?.communes.map((c) => (
+                              <div key={c} className="flex items-center gap-2">
+                                <Checkbox
+                                  id={`cov-prof-${c}`}
+                                  checked={editServiceCoverageCommunes.includes(c)}
+                                  disabled={isSavingService}
+                                  onCheckedChange={(checked) => {
+                                    if (checked) {
+                                      setEditServiceCoverageCommunes([...editServiceCoverageCommunes, c]);
+                                    } else {
+                                      setEditServiceCoverageCommunes(
+                                        editServiceCoverageCommunes.filter((x) => x !== c)
+                                      );
+                                    }
+                                  }}
+                                />
+                                <label htmlFor={`cov-prof-${c}`} className="text-xs cursor-pointer truncate">
+                                  {c}
+                                </label>
+                              </div>
+                            ))}
+                        </div>
+                      </ScrollArea>
+                    )}
+                    {editServiceCoverageCommunes.length > 0 && (
+                      <p className="text-[11px] text-muted-foreground">
+                        {editServiceCoverageCommunes.length} comuna(s) seleccionada(s)
+                      </p>
+                    )}
+                  </div>
+                </div>
+              </div>
+            )}
+            <DialogFooter className="gap-2 sm:gap-0">
+              <Button
+                variant="outline"
+                className="rounded-full"
+                onClick={() => setEditingService(null)}
+                disabled={isSavingService}
+              >
+                Cerrar
+              </Button>
+              <Button
+                className="rounded-full min-w-[10rem]"
+                onClick={handleSaveService}
+                disabled={loadingServiceDetail || isSavingService}
+              >
+                {isSavingService ? (
+                  <>
+                    <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                    Guardando…
+                  </>
+                ) : (
+                  'Guardar cambios'
+                )}
               </Button>
             </DialogFooter>
           </DialogContent>

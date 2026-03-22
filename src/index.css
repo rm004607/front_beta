@@ -252,4 +252,28 @@ All colors MUST be HSL.
   .pause-on-hover:hover .animate-marquee-reverse {
     animation-play-state: paused;
   }
+
+  /* Carrusel categorías home: sin duplicar ítems; ida y vuelta si hay overflow */
+  @keyframes home-categories-pingpong {
+    0% {
+      transform: translateX(0);
+    }
+    100% {
+      transform: translateX(var(--categories-shift, 0px));
+    }
+  }
+
+  .home-categories-track--scroll {
+    animation: home-categories-pingpong var(--categories-duration, 32s) ease-in-out infinite alternate;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .home-categories-track--scroll {
+      animation: none;
+    }
+  }
+
+  .pause-home-categories:hover .home-categories-track--scroll {
+    animation-play-state: paused;
+  }
 }

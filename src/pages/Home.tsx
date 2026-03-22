@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef, useLayoutEffect, useMemo, type CSSProperties } from 'react';
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -25,6 +25,7 @@ import logoFull from '/logo_nombre.webp';
 import { getServiceIcon, getServiceColor, isLightColor } from '@/lib/serviceUtils';
 import { toast } from 'sonner';
 import { Mail, Send } from 'lucide-react';
+import { cn } from '@/lib/utils';
 
 interface Service {
   id: string;
@@ -52,6 +53,41 @@ const Home = () => {
   const [loadingTypes, setLoadingTypes] = useState(true);
   const [latestCarouselIndex, setLatestCarouselIndex] = useState(0);
   const [latestItemsPerView, setLatestItemsPerView] = useState(3);
+
+  const categoriesViewportRef = useRef<HTMLDivElement>(null);
+  const categoriesTrackRef = useRef<HTMLDivElement>(null);
+  /** Pixels de scroll horizontal disponibles; 0 = no cabe carrusel, no animar */
+  const [categoriesOverflowPx, setCategoriesOverflowPx] = useState(0);
+
+  const categoriesScrollDuration = useMemo(() => {
+    if (categoriesOverflowPx <= 0) return 32;
+    return Math.min(55, Math.max(18, categoriesOverflowPx / 28));
+  }, [categoriesOverflowPx]);
+
+  useLayoutEffect(() => {
+    if (loadingTypes || serviceTypes.length === 0) {
+      setCategoriesOverflowPx(0);
+      return;
+    }
+
+    const measure = () => {
+      const vp = categoriesViewportRef.current;
+      const track = categoriesTrackRef.current;
+      if (!vp || !track) return;
+      const dist = track.scrollWidth - vp.clientWidth;
+      setCategoriesOverflowPx(dist > 8 ? dist : 0);
+    };
+
+    measure();
+    const ro = new ResizeObserver(() => measure());
+    if (categoriesViewportRef.current) ro.observe(categoriesViewportRef.current);
+    if (categoriesTrackRef.current) ro.observe(categoriesTrackRef.current);
+    window.addEventListener('resize', measure);
+    return () => {
+      ro.disconnect();
+      window.removeEventListener('resize', measure);
+    };
+  }, [loadingTypes, serviceTypes]);
 
   useEffect(() => {
     loadLatestServices();
@@ -155,18 +191,21 @@ const Home = () => {
     }
   };
 
-  const CategoryCard = ({ type, rowIndex }: { type: any, rowIndex?: number }) => (
+  /** Tarjeta para el carrusel horizontal (1 fila, estilo limpio) */
+  const CategoryCarouselCard = ({ type }: { type: any }) => (
     <Link
       to={`/servicios?type_id=${type.id}`}
-      className="group/item shrink-0 inline-flex flex-col items-center justify-center min-w-[120px] xs:min-w-[150px] sm:min-w-[180px] md:min-w-[200px] h-[130px] xs:h-[150px] sm:h-[180px] glass-card p-3 xs:p-4 sm:p-6 rounded-xl xs:rounded-2xl sm:rounded-[2.5rem] hover:scale-105 transition-all duration-300 border-transparent hover:border-primary/30 shadow-sm hover:shadow-xl bg-white/40"
+      className="group/cat shrink-0 flex w-[132px] flex-col items-center justify-center rounded-2xl border border-border/60 bg-white px-3 py-4 shadow-sm transition-all duration-300 hover:border-primary/25 hover:shadow-md sm:w-[152px] sm:py-5"
     >
       <div
-        className={`w-14 h-14 rounded-2xl flex items-center justify-center mb-4 group-hover/item:scale-110 transition-transform shadow-md group-hover/item:rotate-6 ${isLightColor(type.color || getServiceColor(type.name)) ? 'text-slate-900' : 'text-white'}`}
+        className={`mb-3 flex h-12 w-12 items-center justify-center rounded-xl shadow-sm transition-transform duration-300 group-hover/cat:scale-105 sm:h-14 sm:w-14 sm:rounded-2xl ${isLightColor(type.color || getServiceColor(type.name)) ? 'text-slate-900' : 'text-white'}`}
         style={{ backgroundColor: type.color || getServiceColor(type.name) }}
       >
         {getServiceIcon(type.name, type.icon, type.idicon)}
       </div>
-      <h3 className="font-bold text-xs xs:text-sm sm:text-base group-hover/item:text-primary transition-colors text-center whitespace-normal max-w-[100px] xs:max-w-[130px] sm:max-w-[160px]">{type.name}</h3>
+      <h3 className="text-center text-xs font-semibold leading-tight text-foreground transition-colors group-hover/cat:text-primary sm:text-sm">
+        {type.name}
+      </h3>
     </Link>
   );
 
@@ -297,27 +336,58 @@ const Home = () => {
             </p>
           </div>
 
-          <div className="relative overflow-hidden group">
+          <div className={cn('relative', categoriesOverflowPx > 0 && 'pause-home-categories')}>
             {loadingTypes ? (
-              // Loading state
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-6 px-4">
-                {[1, 2, 3, 4].map((i) => (
-                  <div key={i} className="h-40 rounded-3xl bg-muted animate-pulse"></div>
+              <div className="flex justify-center gap-4 overflow-hidden px-4 py-4">
+                {[1, 2, 3, 4, 5, 6].map((i) => (
+                  <div
+                    key={i}
+                    className="h-[120px] w-[132px] shrink-0 rounded-2xl border border-border/50 bg-muted/50 animate-pulse sm:h-[136px] sm:w-[152px]"
+                  />
                 ))}
               </div>
             ) : (
-              // Render Static Grid for all categories (better performance)
-              <div className="flex flex-wrap justify-center gap-6 px-4 py-4 animate-reveal">
-                {serviceTypes.map((type) => (
-                  <CategoryCard key={type.id} type={type} />
-                ))}
+              <div ref={categoriesViewportRef} className="relative overflow-hidden py-2">
+                {categoriesOverflowPx > 0 && (
+                  <>
+                    <div
+                      className="pointer-events-none absolute inset-y-0 left-0 z-[1] w-10 bg-gradient-to-r from-background to-transparent sm:w-16"
+                      aria-hidden
+                    />
+                    <div
+                      className="pointer-events-none absolute inset-y-0 right-0 z-[1] w-10 bg-gradient-to-l from-background to-transparent sm:w-16"
+                      aria-hidden
+                    />
+                  </>
+                )}
+
+                <div
+                  ref={categoriesTrackRef}
+                  className={cn(
+                    'flex gap-4 sm:gap-5 md:gap-6',
+                    categoriesOverflowPx > 0
+                      ? 'home-categories-track--scroll w-max'
+                      : 'w-full flex-wrap justify-center'
+                  )}
+                  style={
+                    categoriesOverflowPx > 0
+                      ? ({
+                          ['--categories-shift' as string]: `-${categoriesOverflowPx}px`,
+                          ['--categories-duration' as string]: `${categoriesScrollDuration}s`,
+                        } as CSSProperties)
+                      : undefined
+                  }
+                >
+                  {serviceTypes.map((type) => (
+                    <CategoryCarouselCard key={type.id} type={type} />
+                  ))}
+                </div>
               </div>
             )}
 
-            {/* Subtle decoration for interaction */}
-            <div className="flex justify-center mt-8">
-              <div className="px-5 py-2 glass-card rounded-full text-[9px] font-black uppercase tracking-[0.2em] text-primary/60 border-primary/10 shadow-sm">
-                Catálogo Interactivo • Explora por categorías
+            <div className="mt-8 flex justify-center">
+              <div className="rounded-full border border-border/60 bg-white/80 px-4 py-2 text-[10px] font-medium uppercase tracking-[0.18em] text-muted-foreground shadow-sm backdrop-blur-sm sm:text-[11px]">
+                Catálogo interactivo · Explora por categorías
               </div>
             </div>
           </div>

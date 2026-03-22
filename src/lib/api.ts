@@ -361,6 +361,8 @@ export const servicesAPI = {
         user_id: string;
         user_name: string;
         user_email: string;
+        region_id?: string;
+        coverage_communes?: string[];
       };
     }>(`/services/${id}`, {
       method: 'GET',
@@ -409,6 +411,8 @@ export const servicesAPI = {
         user_id?: string;
         average_rating?: number;
         reviews_count?: number;
+        region_id?: string;
+        coverage_communes?: string[];
       }>;
       stats: {
         total: number;
@@ -428,6 +432,8 @@ export const servicesAPI = {
     price_range?: string;
     comuna?: string;
     phone?: string;
+    region_id?: string;
+    coverage_communes?: string[];
     status?: 'active' | 'inactive' | 'suspended';
   }) => {
     return request<{ message: string; service?: any }>(`/services/${id}`, {
