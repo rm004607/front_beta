@@ -96,6 +96,11 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
 
         const isGoogleLogin = urlParams.get('google_login') === 'true';
         const isRegistrationPending = urlParams.get('google_registration_pending') === 'true';
+        if (isRegistrationPending) {
+          localStorage.setItem('google_registration_pending', 'true');
+        } else {
+          localStorage.removeItem('google_registration_pending');
+        }
 
         // Limpiar parámetros de la URL
         const url = new URL(window.location.href);

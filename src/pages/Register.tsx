@@ -61,6 +61,10 @@ const Register = () => {
   const [showTerms, setShowTerms] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [selectedRegion, setSelectedRegion] = useState('');
+  const googleTokenFromFlow = searchParams.get('token') || localStorage.getItem('token');
+  const isGoogleRegistrationPending =
+    searchParams.get('google_registration_pending') === 'true' ||
+    localStorage.getItem('google_registration_pending') === 'true';
 
   // Persistir datos si viene de QR o Google
   // Función para decodificar JWT sin librerías externas
@@ -78,8 +82,8 @@ const Register = () => {
   };
 
   useEffect(() => {
-    const urlToken = searchParams.get('token');
-    const isRegistrationPending = searchParams.get('google_registration_pending') === 'true';
+    const urlToken = googleTokenFromFlow;
+    const isRegistrationPending = isGoogleRegistrationPending;
 
     // Si el registro de Google está pendiente, tratar de pre-poblar desde el token
     if (isRegistrationPending && urlToken && !hasPrefilled.current) {
@@ -128,8 +132,8 @@ const Register = () => {
 
   // Detect Google redirect: token in URL → go to step 2 (role selection); user is not in DB yet if google_registration_pending
   useEffect(() => {
-    const urlToken = searchParams.get('token');
-    const isRegistrationPending = searchParams.get('google_registration_pending') === 'true';
+    const urlToken = googleTokenFromFlow;
+    const isRegistrationPending = isGoogleRegistrationPending;
     if (urlToken) {
       localStorage.setItem('token', urlToken);
       setIsGoogleVerified(true);
@@ -142,7 +146,7 @@ const Register = () => {
     }
   }, [searchParams]);
  
-  const isGoogleFlow = !!searchParams.get('token') || isGoogleVerified;
+  const isGoogleFlow = !!googleTokenFromFlow || isGoogleVerified;
   
   const displayStep = step <= 2 ? step : 2;
   const totalSteps = 2;
@@ -184,7 +188,7 @@ const Register = () => {
   };
 
   const handleNext = async () => {
-    const isRegistrationPending = searchParams.get('google_registration_pending') === 'true';
+    const isRegistrationPending = isGoogleRegistrationPending;
     const requiresPassword = !isRegistrationPending;
     if (step === 1) {
       if (!name || !rut || !email || (requiresPassword && !password) || !phone || !comuna || !selectedRegion) {
@@ -294,9 +298,9 @@ const Register = () => {
 
   // Register + login when user completes form. After success, go to step 3 (KYC).
   const registerWithRole = async () => {
-    const isGoogleCompletion = !!searchParams.get('token') || (isGoogleVerified && user);
-    const isRegistrationPending = searchParams.get('google_registration_pending') === 'true';
-    const urlToken = searchParams.get('token');
+    const isGoogleCompletion = !!googleTokenFromFlow || (isGoogleVerified && user);
+    const isRegistrationPending = isGoogleRegistrationPending;
+    const urlToken = googleTokenFromFlow;
 
     if (!isGoogleCompletion && !isValidEmail(email)) {
       toast.error('Por favor ingresa un email válido y real');
@@ -350,6 +354,7 @@ const Register = () => {
         data.token = urlToken;
         const response = await authAPI.googleRegister(data);
         localStorage.setItem('token', response.token);
+        localStorage.removeItem('google_registration_pending');
         if (response.registration_id) {
           setRegistrationId(response.registration_id);
         } else {
@@ -481,11 +486,11 @@ const Register = () => {
                       type={showPassword ? 'text' : 'password'}
                       value={password}
                       onChange={(e) => setPassword(e.target.value)}
-                      placeholder={searchParams.get('google_registration_pending') === 'true' ? 'No requerida para Google' : 'Mínimo 6 caracteres, 1 mayúscula y 3 números'}
-                      disabled={searchParams.get('google_registration_pending') === 'true'}
+                      placeholder={isGoogleRegistrationPending ? 'No requerida para Google' : 'Mínimo 6 caracteres, 1 mayúscula y 3 números'}
+                      disabled={isGoogleRegistrationPending}
                       className="pr-10"
                     />
-                    {searchParams.get('google_registration_pending') !== 'true' && (
+                    {!isGoogleRegistrationPending && (
                       <button
                         type="button"
                         onClick={() => setShowPassword((prev) => !prev)}
@@ -496,7 +501,7 @@ const Register = () => {
                       </button>
                     )}
                   </div>
-                  {searchParams.get('google_registration_pending') !== 'true' && (
+                  {!isGoogleRegistrationPending && (
                     <div className="mt-2 rounded-md border border-border/60 bg-muted/20 p-3 space-y-1.5">
                       <p className="text-xs font-medium text-muted-foreground">Requisitos de contraseña</p>
                       <div className={`flex items-center gap-2 text-xs ${passwordChecks.minLength ? 'text-green-600' : 'text-muted-foreground'}`}>
