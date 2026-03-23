@@ -61,10 +61,12 @@ const Register = () => {
   const [showTerms, setShowTerms] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [selectedRegion, setSelectedRegion] = useState('');
-  const googleTokenFromFlow = searchParams.get('token') || localStorage.getItem('token');
+  const googleTokenFromFlow =
+    searchParams.get('token') || localStorage.getItem('google_oauth_token');
   const isGoogleRegistrationPending =
-    searchParams.get('google_registration_pending') === 'true' ||
-    localStorage.getItem('google_registration_pending') === 'true';
+    (searchParams.get('google_registration_pending') === 'true' ||
+      localStorage.getItem('google_registration_pending') === 'true') &&
+    !!googleTokenFromFlow;
 
   // Persistir datos si viene de QR o Google
   // Función para decodificar JWT sin librerías externas
@@ -191,12 +193,12 @@ const Register = () => {
     const isRegistrationPending = isGoogleRegistrationPending;
     const requiresPassword = !isRegistrationPending;
     if (step === 1) {
-      if (!name || !rut || !email || (requiresPassword && !password) || !phone || !comuna || !selectedRegion) {
+      if (!rut || (requiresPassword && (!name || !email || !password)) || !phone || !comuna || !selectedRegion) {
         toast.error('Por favor completa todos los campos requeridos');
         return;
       }
 
-      if (!isValidEmail(email)) {
+      if (!isRegistrationPending && !isValidEmail(email)) {
         toast.error('Por favor ingresa un email válido y real');
         return;
       }
@@ -355,6 +357,7 @@ const Register = () => {
         const response = await authAPI.googleRegister(data);
         localStorage.setItem('token', response.token);
         localStorage.removeItem('google_registration_pending');
+        localStorage.removeItem('google_oauth_token');
         if (response.registration_id) {
           setRegistrationId(response.registration_id);
         } else {
@@ -417,21 +420,23 @@ const Register = () => {
             )}
             {step === 1 && (
               <div className="space-y-6">
-                <div>
-                  <Label htmlFor="name">Nombre Completo</Label>
-                  <Input
-                    id="name"
-                    value={name}
-                    onChange={(e) => setName(e.target.value)}
-                    placeholder="Tu nombre completo"
-                    className={name && !isValidName(name) ? 'border-red-500' : ''}
-                  />
-                  {name && !isValidName(name) && (
-                    <p className="text-sm text-red-500 mt-1">
-                      {getValidationErrorMessage('name', containsSQLInjection(name) ? 'sql' : 'format')}
-                    </p>
-                  )}
-                </div>
+                {!isGoogleRegistrationPending && (
+                  <div>
+                    <Label htmlFor="name">Nombre Completo</Label>
+                    <Input
+                      id="name"
+                      value={name}
+                      onChange={(e) => setName(e.target.value)}
+                      placeholder="Tu nombre completo"
+                      className={name && !isValidName(name) ? 'border-red-500' : ''}
+                    />
+                    {name && !isValidName(name) && (
+                      <p className="text-sm text-red-500 mt-1">
+                        {getValidationErrorMessage('name', containsSQLInjection(name) ? 'sql' : 'format')}
+                      </p>
+                    )}
+                  </div>
+                )}
                 <div>
                   <Label htmlFor="rut">RUT</Label>
                   <Input
@@ -462,22 +467,24 @@ const Register = () => {
                     </p>
                   )}
                 </div>
-                <div>
-                  <Label htmlFor="email">Email</Label>
-                  <Input
-                    id="email"
-                    type="email"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    placeholder="tu@email.com"
-                    className={email && !isValidEmail(email) ? 'border-red-500' : ''}
-                  />
-                  {email && !isValidEmail(email) && (
-                    <p className="text-sm text-red-500 mt-1">
-                      Por favor ingresa un email válido y real
-                    </p>
-                  )}
-                </div>
+                {!isGoogleRegistrationPending && (
+                  <div>
+                    <Label htmlFor="email">Email</Label>
+                    <Input
+                      id="email"
+                      type="email"
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
+                      placeholder="tu@email.com"
+                      className={email && !isValidEmail(email) ? 'border-red-500' : ''}
+                    />
+                    {email && !isValidEmail(email) && (
+                      <p className="text-sm text-red-500 mt-1">
+                        Por favor ingresa un email válido y real
+                      </p>
+                    )}
+                  </div>
+                )}
                 <div>
                   <Label htmlFor="password">Contraseña</Label>
                   <div className="relative">
