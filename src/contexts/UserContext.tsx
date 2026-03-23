@@ -96,13 +96,6 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
 
         const isGoogleLogin = urlParams.get('google_login') === 'true';
         const isRegistrationPending = urlParams.get('google_registration_pending') === 'true';
-        if (isRegistrationPending) {
-          localStorage.setItem('google_registration_pending', 'true');
-          localStorage.setItem('google_oauth_token', urlToken);
-        } else {
-          localStorage.removeItem('google_registration_pending');
-          localStorage.removeItem('google_oauth_token');
-        }
 
         // Limpiar parámetros de la URL
         const url = new URL(window.location.href);

@@ -42,6 +42,7 @@ const Register = () => {
   const [registrationId, setRegistrationId] = useState<string | null>(null);
   const [isGoogleVerified, setIsGoogleVerified] = useState(false);
   const hasPrefilled = useRef(false);
+  const isGoogleRegistrationPending = searchParams.get('google_registration_pending') === 'true';
 
 
   // Step 1: Basic data
@@ -61,12 +62,6 @@ const Register = () => {
   const [showTerms, setShowTerms] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [selectedRegion, setSelectedRegion] = useState('');
-  const googleTokenFromFlow =
-    searchParams.get('token') || localStorage.getItem('google_oauth_token');
-  const isGoogleRegistrationPending =
-    (searchParams.get('google_registration_pending') === 'true' ||
-      localStorage.getItem('google_registration_pending') === 'true') &&
-    !!googleTokenFromFlow;
 
   // Persistir datos si viene de QR o Google
   // Función para decodificar JWT sin librerías externas
@@ -84,8 +79,8 @@ const Register = () => {
   };
 
   useEffect(() => {
-    const urlToken = googleTokenFromFlow;
-    const isRegistrationPending = isGoogleRegistrationPending;
+    const urlToken = searchParams.get('token');
+    const isRegistrationPending = searchParams.get('google_registration_pending') === 'true';
 
     // Si el registro de Google está pendiente, tratar de pre-poblar desde el token
     if (isRegistrationPending && urlToken && !hasPrefilled.current) {
@@ -134,8 +129,8 @@ const Register = () => {
 
   // Detect Google redirect: token in URL → go to step 2 (role selection); user is not in DB yet if google_registration_pending
   useEffect(() => {
-    const urlToken = googleTokenFromFlow;
-    const isRegistrationPending = isGoogleRegistrationPending;
+    const urlToken = searchParams.get('token');
+    const isRegistrationPending = searchParams.get('google_registration_pending') === 'true';
     if (urlToken) {
       localStorage.setItem('token', urlToken);
       setIsGoogleVerified(true);
@@ -148,7 +143,7 @@ const Register = () => {
     }
   }, [searchParams]);
  
-  const isGoogleFlow = !!googleTokenFromFlow || isGoogleVerified;
+  const isGoogleFlow = !!searchParams.get('token') || isGoogleVerified;
   
   const displayStep = step <= 2 ? step : 2;
   const totalSteps = 2;
@@ -190,15 +185,17 @@ const Register = () => {
   };
 
   const handleNext = async () => {
-    const isRegistrationPending = isGoogleRegistrationPending;
-    const requiresPassword = !isRegistrationPending;
+    const requiresPassword = !isGoogleRegistrationPending;
     if (step === 1) {
-      if (!rut || (requiresPassword && (!name || !email || !password)) || !phone || !comuna || !selectedRegion) {
+      if (
+        (isGoogleRegistrationPending && (!rut || !phone || !comuna || !selectedRegion)) ||
+        (!isGoogleRegistrationPending && (!name || !rut || !email || (requiresPassword && !password) || !phone || !comuna || !selectedRegion))
+      ) {
         toast.error('Por favor completa todos los campos requeridos');
         return;
       }
 
-      if (!isRegistrationPending && !isValidEmail(email)) {
+      if (!isGoogleRegistrationPending && !isValidEmail(email)) {
         toast.error('Por favor ingresa un email válido y real');
         return;
       }
@@ -208,7 +205,7 @@ const Register = () => {
         return;
       }
 
-      if (!isValidName(name)) {
+      if (!isGoogleRegistrationPending && !isValidName(name)) {
         toast.error(getValidationErrorMessage('name', containsSQLInjection(name) ? 'sql' : 'format'));
         return;
       }
@@ -300,9 +297,9 @@ const Register = () => {
 
   // Register + login when user completes form. After success, go to step 3 (KYC).
   const registerWithRole = async () => {
-    const isGoogleCompletion = !!googleTokenFromFlow || (isGoogleVerified && user);
-    const isRegistrationPending = isGoogleRegistrationPending;
-    const urlToken = googleTokenFromFlow;
+    const isGoogleCompletion = !!searchParams.get('token') || (isGoogleVerified && user);
+    const isRegistrationPending = searchParams.get('google_registration_pending') === 'true';
+    const urlToken = searchParams.get('token');
 
     if (!isGoogleCompletion && !isValidEmail(email)) {
       toast.error('Por favor ingresa un email válido y real');
@@ -356,8 +353,6 @@ const Register = () => {
         data.token = urlToken;
         const response = await authAPI.googleRegister(data);
         localStorage.setItem('token', response.token);
-        localStorage.removeItem('google_registration_pending');
-        localStorage.removeItem('google_oauth_token');
         if (response.registration_id) {
           setRegistrationId(response.registration_id);
         } else {
@@ -421,9 +416,12 @@ const Register = () => {
             {step === 1 && (
               <div className="space-y-6">
                 {isGoogleRegistrationPending && (
-                  <div className="rounded-lg border border-primary/20 bg-primary/5 p-3 text-sm text-primary">
-                    Registro con Google: completa RUT, telefono y ubicacion para continuar.
-                  </div>
+                  <Alert>
+                    <AlertTitle>Registro con Google</AlertTitle>
+                    <AlertDescription>
+                      Completa tu RUT, telefono y ubicacion para terminar tu registro.
+                    </AlertDescription>
+                  </Alert>
                 )}
                 {!isGoogleRegistrationPending && (
                   <div>
