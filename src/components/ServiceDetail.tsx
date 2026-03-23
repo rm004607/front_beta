@@ -2,7 +2,6 @@ import { Star, Loader2, Trash2, Info } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import { DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { reviewsAPI } from '@/lib/api';
 import { toast } from 'sonner';
@@ -40,8 +39,6 @@ interface ServiceDetailProps {
     setUserComment: (comment: string) => void;
     onSubmitReview: () => void;
     onReviewDeleted?: (reviewId: string) => void;
-    guestName?: string;
-    setGuestName?: (name: string) => void;
 }
 
 export const ServiceDetail = ({
@@ -57,9 +54,7 @@ export const ServiceDetail = ({
     setUserRating,
     setUserComment,
     onSubmitReview,
-    onReviewDeleted,
-    guestName = '',
-    setGuestName
+    onReviewDeleted
 }: ServiceDetailProps) => {
     if (!service) return null;
 
@@ -135,18 +130,6 @@ export const ServiceDetail = ({
                                 </button>
                             ))}
                         </div>
-                        {!isLoggedIn && (
-                            <>
-                                <Label htmlFor="guest-name" className="mb-2 block">Tu Nombre</Label>
-                                <Input
-                                    id="guest-name"
-                                    placeholder="Ingresa tu nombre para la reseña..."
-                                    className="mb-4"
-                                    value={guestName}
-                                    onChange={(e) => setGuestName?.(e.target.value)}
-                                />
-                            </>
-                        )}
                         <Label htmlFor="review-comment" className="mb-2 block">Tu comentario</Label>
                         <Input
                             id="review-comment"
@@ -195,18 +178,9 @@ export const ServiceDetail = ({
                         <div key={review.id} className="border-b pb-4 last:border-0">
                             <div className="flex justify-between items-start mb-2">
                                 <div className="flex items-center gap-2">
-                                    <Avatar className="w-8 h-8">
-                                        {review.profile_image && <AvatarImage src={review.profile_image} />}
-                                        <AvatarFallback className="bg-primary text-white text-xs">
-                                            {review.user_name.substring(0, 2).toUpperCase()}
-                                        </AvatarFallback>
-                                    </Avatar>
-                                    <div>
-                                        <p className="text-sm font-bold">{review.user_name}</p>
-                                        <p className="text-[10px] text-muted-foreground">
-                                            {new Date(review.created_at).toLocaleDateString()}
-                                        </p>
-                                    </div>
+                                    <p className="text-[10px] text-muted-foreground">
+                                        {new Date(review.created_at).toLocaleDateString()}
+                                    </p>
                                 </div>
                                 <div className="flex items-center gap-2">
                                     <div className="flex gap-0.5">
@@ -229,7 +203,7 @@ export const ServiceDetail = ({
                                     )}
                                 </div>
                             </div>
-                            <p className="text-sm text-foreground/90 leading-relaxed pl-10 mt-1">{review.comment}</p>
+                            <p className="text-sm text-foreground/90 leading-relaxed mt-1">{review.comment}</p>
                         </div>
                     ))
                 )}

@@ -72,7 +72,6 @@ const Services = () => {
   const [userComment, setUserComment] = useState('');
   const [isSubmittingReview, setIsSubmittingReview] = useState(false);
   const [reviewStats, setReviewStats] = useState<{ average_rating: number; total_reviews: number } | null>(null);
-  const [guestName, setGuestName] = useState('');
 
   useEffect(() => {
     loadServices();
@@ -221,7 +220,6 @@ const Services = () => {
     setIsReviewsModalOpen(true);
     setUserRating(0);
     setUserComment('');
-    setGuestName('');
     fetchReviews(service.id);
   };
 
@@ -257,14 +255,12 @@ const Services = () => {
       setIsSubmittingReview(true);
       await reviewsAPI.createServiceReview(selectedServiceForReviews.id, {
         rating: userRating,
-        comment: userComment,
-        guest_name: !isLoggedIn ? (guestName || 'Invitado') : undefined
+        comment: userComment
       });
       
       toast.success(t('services.review_success'));
       setUserRating(0);
       setUserComment('');
-      setGuestName('');
       // Recargar reseñas
       fetchReviews(selectedServiceForReviews.id);
       // Recargar servicios para actualizar el promedio en la lista principal
@@ -522,8 +518,6 @@ const Services = () => {
                 setReviews(prev => prev.filter(r => r.id !== reviewId));
                 fetchReviews(selectedServiceForReviews.id);
               }}
-              guestName={guestName}
-              setGuestName={setGuestName}
             />
           </DialogContent>
         </Dialog>
