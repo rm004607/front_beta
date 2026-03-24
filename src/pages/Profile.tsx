@@ -37,6 +37,7 @@ import {
   getValidationErrorMessage
 } from '@/lib/input-validator';
 import { chileData } from '@/lib/chile-data';
+import { getServiceRegionDisplayName, getUserOfferRegionDisplayName } from '@/lib/serviceUtils';
 
 interface Service {
   id: string;
@@ -382,9 +383,10 @@ const Profile = () => {
     return null;
   }
 
-  const userRegionName = user.region_id
+  const domicileRegionName = user.region_id
     ? chileData.find((r) => String(r.id) === String(user.region_id))?.name
     : null;
+  const offerRegionDisplay = getUserOfferRegionDisplayName(user);
 
   return (
     <div className="min-h-screen bg-muted/30 pb-16 lg:pb-24">
@@ -495,9 +497,9 @@ const Profile = () => {
               <div className="flex items-start gap-3">
                 <MapPin className="h-5 w-5 text-muted-foreground shrink-0 mt-0.5" />
                 <div className="min-w-0 flex-1">
-                  <p className="text-xs text-muted-foreground lg:text-sm">Ubicación</p>
+                  <p className="text-xs text-muted-foreground lg:text-sm">Ubicación (domicilio)</p>
                   <p className="text-sm text-foreground lg:text-base">
-                    {userRegionName ? `${userRegionName} · ` : ''}
+                    {domicileRegionName ? `${domicileRegionName} · ` : ''}
                     {user.comuna || '—'}
                   </p>
                 </div>
@@ -511,6 +513,22 @@ const Profile = () => {
                 ¿Quieres cambiar tu ubicación?
               </Button>
             </div>
+            {(user.role_number === 2 || user.role_number === 3) && (
+              <div className="px-5 py-4 flex items-start gap-3 lg:px-8 lg:py-6 lg:col-span-2 bg-secondary/5 border-t border-secondary/10">
+                <MapPin className="h-5 w-5 text-secondary shrink-0 mt-0.5" />
+                <div className="min-w-0 flex-1">
+                  <p className="text-[11px] font-semibold uppercase tracking-wide text-secondary lg:text-xs">
+                    Región de oferta
+                  </p>
+                  <p className="text-sm text-foreground lg:text-base mt-0.5">
+                    {offerRegionDisplay || '—'}
+                  </p>
+                  <p className="text-xs text-muted-foreground mt-1">
+                    Según tu servicio activo más reciente; no es tu domicilio.
+                  </p>
+                </div>
+              </div>
+            )}
           </div>
         </div>
 
@@ -557,7 +575,7 @@ const Profile = () => {
                         <div className="min-w-0">
                           <p className="font-medium text-foreground truncate">{service.service_name}</p>
                           <p className="text-xs text-muted-foreground mt-0.5">
-                            {service.comuna} · {formatDate(service.created_at)}
+                            {getServiceRegionDisplayName(service)} · {formatDate(service.created_at)}
                           </p>
                           <div className="mt-2 flex items-center gap-1.5 text-xs text-muted-foreground">
                             <Star className="h-3 w-3 fill-amber-400 text-amber-400" />

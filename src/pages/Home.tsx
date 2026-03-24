@@ -22,7 +22,7 @@ import { useTranslation } from 'react-i18next';
 import { servicesAPI, supportAPI } from '@/lib/api';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import logoFull from '/logo_nombre.webp';
-import { getServiceIcon, getServiceColor, isLightColor } from '@/lib/serviceUtils';
+import { getServiceIcon, getServiceColor, isLightColor, getServiceRegionDisplayName } from '@/lib/serviceUtils';
 import { toast } from 'sonner';
 import { Mail, Send } from 'lucide-react';
 import { cn } from '@/lib/utils';
@@ -32,6 +32,9 @@ interface Service {
   service_name: string;
   description: string;
   comuna: string;
+  region_id?: string;
+  region_name?: string;
+  offer_region?: { id: string; name: string } | null;
   price_range?: string;
   created_at: string;
   user_name: string;
@@ -92,7 +95,7 @@ const Home = () => {
   useEffect(() => {
     loadLatestServices();
     loadServiceTypes();
-  }, [isLoggedIn, user?.region_id]);
+  }, [isLoggedIn, user?.region_id, user?.offer_region?.id, user?.role_number]);
 
   useEffect(() => {
     const computeItemsPerView = () => {
@@ -142,10 +145,15 @@ const Home = () => {
   const loadLatestServices = async () => {
     try {
       setLoadingServices(true);
+      const offerId =
+        user && (user.role_number === 2 || user.role_number === 3) && user.offer_region?.id
+          ? String(user.offer_region.id)
+          : undefined;
+      const domicileId = user?.region_id ? String(user.region_id) : undefined;
       const response = await servicesAPI.getServices({
         page: 1,
         limit: 6,
-        region_id: user?.region_id ? String(user.region_id) : undefined
+        region_id: offerId || domicileId
       });
       setLatestServices(response.services);
     } catch (error) {
@@ -524,7 +532,7 @@ const Home = () => {
                               </div>
                               <div className="flex items-center gap-2 text-primary/60 bg-primary/5 px-3 py-1.5 rounded-xl border border-primary/10">
                                 <MapPin size={16} />
-                                <span className="text-xs font-bold">{service.comuna}</span>
+                                <span className="text-xs font-bold">{getServiceRegionDisplayName(service)}</span>
                               </div>
                             </div>
                           </CardContent>

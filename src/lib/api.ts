@@ -156,6 +156,8 @@ export const authAPI = {
         profile_image?: string | null;
         cv_url?: string | null;
         region_id?: string;
+        /** Región donde ofrece (servicio reciente); no es domicilio. Roles 2 y 3. */
+        offer_region?: { id: string; name: string } | null;
         kyc_status?: 'not_started' | 'pending' | 'verified' | 'rejected';
         kyc_completed?: boolean;
       };
@@ -187,6 +189,8 @@ export const authAPI = {
         comuna: string;
         profile_image?: string | null;
         role: string;
+        role_number?: number;
+        offer_region?: { id: string; name: string } | null;
       };
     }>(`/auth/user/${id}`, {
       method: 'GET',
@@ -322,6 +326,10 @@ export const servicesAPI = {
         description: string;
         price_range?: string;
         comuna: string;
+        region_id?: string;
+        region_name?: string;
+        offer_region?: { id: string; name: string } | null;
+        coverage_communes?: string[];
         phone?: string;
         status: string;
         created_at: string;
@@ -362,6 +370,8 @@ export const servicesAPI = {
         user_name: string;
         user_email: string;
         region_id?: string;
+        region_name?: string;
+        offer_region?: { id: string; name: string } | null;
         coverage_communes?: string[];
       };
     }>(`/services/${id}`, {
@@ -412,6 +422,8 @@ export const servicesAPI = {
         average_rating?: number;
         reviews_count?: number;
         region_id?: string;
+        region_name?: string;
+        offer_region?: { id: string; name: string } | null;
         coverage_communes?: string[];
       }>;
       stats: {

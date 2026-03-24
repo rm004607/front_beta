@@ -41,7 +41,8 @@ const Services = () => {
 
   const [searchTerm, setSearchTerm] = useState('');
   const [comunaFilter, setComunaFilter] = useState('all');
-  const [regionFilter, setRegionFilter] = useState(user?.region_id ? String(user.region_id) : 'all');
+  const [regionFilter, setRegionFilter] = useState('all');
+  const regionDefaultAppliedRef = useRef(false);
   const [typeFilter, setTypeFilter] = useState(searchParams.get('type_id') || 'all');
   const [serviceTypes, setServiceTypes] = useState<any[]>([]);
   const [services, setServices] = useState<any[]>([]);
@@ -72,6 +73,22 @@ const Services = () => {
   const [userComment, setUserComment] = useState('');
   const [isSubmittingReview, setIsSubmittingReview] = useState(false);
   const [reviewStats, setReviewStats] = useState<{ average_rating: number; total_reviews: number } | null>(null);
+
+  useEffect(() => {
+    if (!user) {
+      regionDefaultAppliedRef.current = false;
+      return;
+    }
+    if (regionDefaultAppliedRef.current) return;
+    const preferred =
+      (user.role_number === 2 || user.role_number === 3) && user.offer_region?.id
+        ? String(user.offer_region.id)
+        : user.region_id
+          ? String(user.region_id)
+          : 'all';
+    setRegionFilter(preferred);
+    regionDefaultAppliedRef.current = true;
+  }, [user]);
 
   useEffect(() => {
     loadServices();

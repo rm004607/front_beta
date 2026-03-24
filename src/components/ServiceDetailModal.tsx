@@ -2,13 +2,16 @@ import { Star, MapPin, MessageCircle, Sparkles } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { DialogTitle } from '@/components/ui/dialog';
-import { getServiceIcon, getServiceColor, isLightColor } from '@/lib/serviceUtils';
+import { getServiceIcon, getServiceColor, isLightColor, getServiceRegionDisplayName } from '@/lib/serviceUtils';
 
 export interface ServiceForDetail {
   id: string;
   service_name: string;
   description: string;
   comuna: string;
+  region_id?: string;
+  region_name?: string;
+  offer_region?: { id: string; name: string } | null;
   phone?: string;
   user_name: string;
   profile_image?: string;
@@ -81,9 +84,9 @@ export function ServiceDetailModalContent({ service, onClose, onOpenReviews, onW
               <div className="flex flex-col gap-1 bg-secondary/5 p-4 rounded-2xl border border-secondary/10">
                 <div className="flex items-center gap-2 text-secondary">
                   <MapPin size={18} />
-                  <span className="text-[11px] font-black uppercase tracking-widest">Base</span>
+                  <span className="text-[11px] font-black uppercase tracking-widest">Región de oferta</span>
                 </div>
-                <span className="font-bold text-sm ml-7">{service.comuna}</span>
+                <span className="font-bold text-sm ml-7">{getServiceRegionDisplayName(service)}</span>
               </div>
               <div className="flex flex-col gap-1 bg-primary/5 p-4 rounded-2xl border border-primary/10">
                 <div className="flex items-center gap-2 text-primary">
@@ -128,9 +131,9 @@ export function ServiceDetailModalContent({ service, onClose, onOpenReviews, onW
               <div className="flex flex-col gap-1 bg-secondary/5 p-4 rounded-2xl border border-secondary/10">
                 <div className="flex items-center gap-2 text-secondary">
                   <MapPin size={18} />
-                  <span className="text-[11px] font-black uppercase tracking-widest">Base</span>
+                  <span className="text-[11px] font-black uppercase tracking-widest">Región de oferta</span>
                 </div>
-                <span className="font-bold text-sm ml-7">{service.comuna}</span>
+                <span className="font-bold text-sm ml-7">{getServiceRegionDisplayName(service)}</span>
               </div>
               <div className="flex flex-col gap-1 bg-primary/5 p-4 rounded-2xl border border-primary/10">
                 <div className="flex items-center gap-2 text-primary">

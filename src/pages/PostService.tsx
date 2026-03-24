@@ -235,7 +235,7 @@ const PostService = () => {
         description: sanitizeInput(description, 2000),
         comuna: sanitizeInput(comuna, 50),
         phone: phone ? sanitizeInput(phone, 20) : undefined,
-        region_id: baseRegion,
+        region_id: coverageRegion || baseRegion,
         coverage_communes: coverageCommunes,
       });
 

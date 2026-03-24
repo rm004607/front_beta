@@ -1,4 +1,5 @@
 import React from 'react';
+import { chileData } from '@/lib/chile-data';
 import {
   Wrench,
   Lightbulb,
@@ -204,3 +205,30 @@ export const isLightColor = (color?: string) => {
     return false;
   }
 };
+
+/** Preferir datos del backend enriquecido (offer_region / region_name), luego region_id, luego comuna. */
+export function getServiceRegionDisplayName(service: {
+  offer_region?: { id?: string; name?: string } | null;
+  region_name?: string | null;
+  region_id?: string | number;
+  comuna?: string;
+}): string {
+  const fromOffer = service.offer_region?.name?.trim();
+  if (fromOffer) return fromOffer;
+  const named = service.region_name?.trim();
+  if (named) return named;
+  if (service.region_id != null && String(service.region_id) !== '') {
+    const r = chileData.find((x) => String(x.id) === String(service.region_id));
+    if (r?.name) return r.name;
+  }
+  return (service.comuna || '').trim();
+}
+
+export type OfferRegionRef = { id?: string; name?: string };
+
+/** Región de oferta del perfil (GET /auth/me), no el domicilio (region_id del usuario). */
+export function getUserOfferRegionDisplayName(user: {
+  offer_region?: OfferRegionRef | null;
+}): string {
+  return user.offer_region?.name?.trim() || '';
+}

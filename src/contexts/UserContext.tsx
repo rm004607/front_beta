@@ -16,6 +16,8 @@ export interface UserProfile {
   roles: UserRole[];
   role_number?: number;
   region_id?: string;
+  /** Región de oferta (último servicio activo); no confundir con region_id (domicilio). */
+  offer_region?: { id: string; name: string } | null;
   kyc_status?: 'not_started' | 'pending' | 'verified' | 'rejected';
   kyc_completed?: boolean;
   // Job seeker specific
@@ -153,6 +155,7 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
         roles: [roleMap[Number(dbUser.role_number)] || 'job-seeker'],
         role_number: Number(dbUser.role_number),
         region_id: dbUser.region_id,
+        offer_region: dbUser.offer_region ?? undefined,
         kyc_status: dbUser.kyc_status,
         kyc_completed: dbUser.kyc_completed,
       };
