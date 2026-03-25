@@ -55,7 +55,18 @@ async function request<T>(
       userMessage = errorData.error || 'Recurso no encontrado.';
     } else if (response.status === 400) {
       // Errores de validación del backend (estos sí pueden mostrarse)
-      userMessage = errorData.error || 'Datos inválidos. Por favor verifica la información.';
+      const detailMsg =
+        Array.isArray(errorData?.details) && errorData.details.length > 0
+          ? errorData.details
+              .map((d: { msg?: string; message?: string }) => d.msg || d.message)
+              .filter(Boolean)
+              .join(' · ')
+          : '';
+      userMessage =
+        detailMsg ||
+        errorData.error ||
+        errorData.message ||
+        'Datos inválidos. Por favor verifica la información.';
     } else if (response.status >= 500) {
       // Errores del servidor - NO revelar detalles técnicos
       userMessage = 'Ups, algo salió mal. Por favor intenta de nuevo.';
@@ -388,6 +399,8 @@ export const servicesAPI = {
     phone?: string;
     region_id?: string;
     coverage_communes?: string[];
+    service_type_ids?: string[];
+    custom_service_name?: string;
   }) => {
     return request<{
       message: string;

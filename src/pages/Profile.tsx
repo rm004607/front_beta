@@ -40,6 +40,7 @@ import { chileData } from '@/lib/chile-data';
 import {
   buildServiceRegionPayload,
   filterCommunesToRegion,
+  resolveOriginLocation,
 } from '@/lib/chile-region-helpers';
 import { getServiceRegionDisplayName, getUserOfferRegionDisplayName } from '@/lib/serviceUtils';
 
@@ -166,10 +167,19 @@ const Profile = () => {
 
     try {
       setIsSavingService(true);
+      const origin = resolveOriginLocation(
+        sanitizeInput(editServiceComuna, 50),
+        editServiceRegion
+      );
+      if ('error' in origin) {
+        toast.error(origin.error);
+        return;
+      }
+
       const { payload: loc, error: locError } = buildServiceRegionPayload(
         editCoveragePickRegion,
         editServiceCoverageCommunes,
-        editServiceRegion
+        origin.region_id
       );
       if (locError) {
         toast.error(locError);
@@ -177,7 +187,7 @@ const Profile = () => {
       }
 
       const response = await servicesAPI.updateService(editingService.id, {
-        comuna: sanitizeInput(editServiceComuna, 50),
+        comuna: origin.comuna,
         region_id: loc.region_id,
         coverage_communes: loc.coverage_communes,
       });

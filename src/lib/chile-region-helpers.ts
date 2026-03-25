@@ -1,19 +1,104 @@
 import { chileData } from '@/lib/chile-data';
 
+function normalizeLabel(s: string): string {
+  return s.normalize('NFC').trim();
+}
+
+function stripAccents(s: string): string {
+  return s.normalize('NFD').replace(/\p{M}/gu, '');
+}
+
+/** Misma comuna aunque varíe mayúsculas o espacios; útil vs backend que normaliza distinto. */
+export function communesMatch(a: string, b: string): boolean {
+  const x = normalizeLabel(a);
+  const y = normalizeLabel(b);
+  if (x === y) return true;
+  if (x.localeCompare(y, 'es', { sensitivity: 'accent' }) === 0) return true;
+  return stripAccents(x).toLowerCase() === stripAccents(y).toLowerCase();
+}
+
 export function getCommunesForRegion(regionId: string): string[] {
   return chileData.find((r) => String(r.id) === String(regionId))?.communes ?? [];
 }
 
+/**
+ * Devuelve el nombre exacto del catálogo (chile-data) para esa región.
+ * Evita 400 por diferencias Unicode o tildes vs el backend.
+ */
+export function canonicalizeCommuneInRegion(name: string, regionId: string): string | null {
+  const list = getCommunesForRegion(regionId);
+  if (!normalizeLabel(name)) return null;
+  for (const c of list) {
+    if (communesMatch(c, name)) return c;
+  }
+  return null;
+}
+
+/** Regiones cuyo listado incluye esta comuna (puede haber homónimos raros). */
+export function findRegionIdsContainingCommune(comuna: string): string[] {
+  const ids: string[] = [];
+  for (const reg of chileData) {
+    if (reg.communes.some((c) => communesMatch(c, comuna))) ids.push(reg.id);
+  }
+  return ids;
+}
+
+/**
+ * Comuna de origen + región base coherentes con el catálogo.
+ * `baseRegionId` puede venir vacío: se infiere por la comuna.
+ */
+export function resolveOriginLocation(
+  comunaRaw: string,
+  baseRegionId: string
+): { region_id: string; comuna: string } | { error: string } {
+  const trimmed = normalizeLabel(comunaRaw);
+  if (!trimmed) return { error: 'Indica una comuna de origen válida.' };
+
+  let rid = String(baseRegionId || '').trim();
+  if (rid) {
+    const canon = canonicalizeCommuneInRegion(trimmed, rid);
+    if (canon) return { region_id: rid, comuna: canon };
+  }
+
+  const candidates = findRegionIdsContainingCommune(trimmed);
+  if (candidates.length === 0) {
+    return { error: 'No reconocemos esa comuna. Elige la comuna desde el listado.' };
+  }
+  if (candidates.length === 1) {
+    const r = candidates[0];
+    const c = canonicalizeCommuneInRegion(trimmed, r);
+    if (!c) return { error: 'Comuna no válida para la región.' };
+    return { region_id: r, comuna: c };
+  }
+
+  if (rid && candidates.includes(rid)) {
+    const c = canonicalizeCommuneInRegion(trimmed, rid);
+    if (c) return { region_id: rid, comuna: c };
+  }
+
+  return {
+    error:
+      'Tu comuna aparece en más de una región en el catálogo. Usa “Cambiar ubicación” y elige región y comuna desde los selectores.',
+  };
+}
+
 export function communesBelongToRegion(communeNames: string[], regionId: string): boolean {
   if (communeNames.length === 0) return true;
-  const allowed = getCommunesForRegion(regionId);
-  return communeNames.every((c) => allowed.includes(c));
+  return communeNames.every((c) => canonicalizeCommuneInRegion(c, regionId) != null);
 }
 
 /** Quita comunas que no pertenecen a la región elegida (evita datos huérfanos al cambiar de región). */
 export function filterCommunesToRegion(communeNames: string[], regionId: string): string[] {
-  const allowed = new Set(getCommunesForRegion(regionId));
-  return communeNames.filter((c) => allowed.has(c));
+  const out: string[] = [];
+  const seen = new Set<string>();
+  for (const raw of communeNames) {
+    const canon = canonicalizeCommuneInRegion(raw, regionId);
+    if (canon && !seen.has(canon)) {
+      seen.add(canon);
+      out.push(canon);
+    }
+  }
+  return out;
 }
 
 /**
@@ -31,12 +116,12 @@ export function resolveRegionIdForCoverage(
   }
   if (coverageRegion) {
     const allowed = getCommunesForRegion(coverageRegion);
-    if (coverageCommunes.every((c) => allowed.includes(c))) {
+    if (coverageCommunes.every((c) => allowed.some((a) => communesMatch(a, c)))) {
       return coverageRegion;
     }
   }
   const matches = chileData.filter((reg) =>
-    coverageCommunes.every((c) => reg.communes.includes(c))
+    coverageCommunes.every((c) => reg.communes.some((a) => communesMatch(a, c)))
   );
   if (matches.length >= 1) return matches[0].id;
   return coverageRegion || fallbackRegion;

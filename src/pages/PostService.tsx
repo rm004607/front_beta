@@ -24,6 +24,7 @@ import { chileData } from '@/lib/chile-data';
 import {
   buildServiceRegionPayload,
   filterCommunesToRegion,
+  resolveOriginLocation,
 } from '@/lib/chile-region-helpers';
 import {
   Select,
@@ -232,10 +233,27 @@ const PostService = () => {
 
     setIsSubmitting(true);
     try {
+      const origin = resolveOriginLocation(sanitizeInput(comuna, 50), baseRegion);
+      if ('error' in origin) {
+        toast.error(origin.error);
+        return;
+      }
+
+      const serviceName =
+        customServiceName && customServiceName.trim() && customServiceName !== ' '
+          ? sanitizeInput(customServiceName.trim(), 100)
+          : selectedServiceTypeIds.length > 0
+            ? (serviceTypes.find((t) => String(t.id) === String(selectedServiceTypeIds[0]))?.name || '').trim()
+            : '';
+      if (!serviceName) {
+        toast.error('Selecciona un tipo de servicio o escribe un nombre personalizado');
+        return;
+      }
+
       const { payload: loc, error: locError } = buildServiceRegionPayload(
         coverageRegion,
         coverageCommunes,
-        baseRegion
+        origin.region_id
       );
       if (locError) {
         toast.error(locError);
@@ -243,11 +261,14 @@ const PostService = () => {
       }
 
       const response = await servicesAPI.createService({
-        // @ts-ignore - Backend expects service_type_ids and custom_service_name
+        service_name: serviceName,
         service_type_ids: selectedServiceTypeIds,
-        custom_service_name: customServiceName ? sanitizeInput(customServiceName, 100) : undefined,
+        custom_service_name:
+          customServiceName && customServiceName.trim() && customServiceName !== ' '
+            ? sanitizeInput(customServiceName.trim(), 100)
+            : undefined,
         description: sanitizeInput(description, 2000),
-        comuna: sanitizeInput(comuna, 50),
+        comuna: origin.comuna,
         phone: phone ? sanitizeInput(phone, 20) : undefined,
         region_id: loc.region_id,
         coverage_communes: loc.coverage_communes,
