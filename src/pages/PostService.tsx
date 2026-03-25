@@ -22,6 +22,10 @@ import {
 import PackagesModal from '@/components/PackagesModal';
 import { chileData } from '@/lib/chile-data';
 import {
+  buildServiceRegionPayload,
+  filterCommunesToRegion,
+} from '@/lib/chile-region-helpers';
+import {
   Select,
   SelectContent,
   SelectItem,
@@ -228,6 +232,16 @@ const PostService = () => {
 
     setIsSubmitting(true);
     try {
+      const { payload: loc, error: locError } = buildServiceRegionPayload(
+        coverageRegion,
+        coverageCommunes,
+        baseRegion
+      );
+      if (locError) {
+        toast.error(locError);
+        return;
+      }
+
       const response = await servicesAPI.createService({
         // @ts-ignore - Backend expects service_type_ids and custom_service_name
         service_type_ids: selectedServiceTypeIds,
@@ -235,8 +249,8 @@ const PostService = () => {
         description: sanitizeInput(description, 2000),
         comuna: sanitizeInput(comuna, 50),
         phone: phone ? sanitizeInput(phone, 20) : undefined,
-        region_id: coverageRegion || baseRegion,
-        coverage_communes: coverageCommunes,
+        region_id: loc.region_id,
+        coverage_communes: loc.coverage_communes,
       });
 
       toast.success(t('post_service.service_submitted'));
@@ -481,7 +495,15 @@ const PostService = () => {
                 <div className="space-y-4">
                   <div>
                     <Label htmlFor="coverageRegion" className="text-xs">{t('post_service.coverage_region_label')}</Label>
-                    <Select value={coverageRegion} onValueChange={setCoverageRegion}>
+                    <Select
+                      value={coverageRegion}
+                      onValueChange={(val) => {
+                        setCoverageRegion(val);
+                        setCoverageCommunes((prev) =>
+                          filterCommunesToRegion(prev, val)
+                        );
+                      }}
+                    >
                       <SelectTrigger id="coverageRegion" className="h-8">
                         <SelectValue placeholder={t('post_service.choose_region')} />
                       </SelectTrigger>
@@ -501,7 +523,7 @@ const PostService = () => {
                           {chileData.find(r => String(r.id) === String(coverageRegion))?.communes.map((c) => (
                             <div key={c} className="flex items-center space-x-2">
                               <Checkbox
-                                id={`cov-${c}`}
+                                id={`cov-${coverageRegion}-${c}`}
                                 checked={coverageCommunes.includes(c)}
                                 onCheckedChange={(checked) => {
                                   if (checked) {
@@ -511,7 +533,7 @@ const PostService = () => {
                                   }
                                 }}
                               />
-                              <label htmlFor={`cov-${c}`} className="text-sm cursor-pointer truncate">{c}</label>
+                              <label htmlFor={`cov-${coverageRegion}-${c}`} className="text-sm cursor-pointer truncate">{c}</label>
                             </div>
                           ))}
                         </div>

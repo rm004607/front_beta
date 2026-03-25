@@ -37,6 +37,10 @@ import {
   getValidationErrorMessage
 } from '@/lib/input-validator';
 import { chileData } from '@/lib/chile-data';
+import {
+  buildServiceRegionPayload,
+  filterCommunesToRegion,
+} from '@/lib/chile-region-helpers';
 import { getServiceRegionDisplayName, getUserOfferRegionDisplayName } from '@/lib/serviceUtils';
 
 interface Service {
@@ -114,7 +118,6 @@ const Profile = () => {
   const handleEditService = async (service: Service) => {
     setEditingService(service);
     setLoadingServiceDetail(true);
-    setEditCoveragePickRegion('');
     try {
       const { service: full } = await servicesAPI.getServiceById(service.id);
       const s = full as Service & { coverage_communes?: string[]; region_id?: string };
@@ -125,15 +128,27 @@ const Profile = () => {
         chileData.find((r) => r.communes.includes(comuna))?.id ||
         '';
       setEditServiceRegion(rid);
-      setEditServiceCoverageCommunes(
-        Array.isArray(s.coverage_communes) ? [...s.coverage_communes] : []
-      );
+      const cov = Array.isArray(s.coverage_communes) ? [...s.coverage_communes] : [];
+      setEditServiceCoverageCommunes(cov);
+      const pickRegion =
+        (s.region_id && String(s.region_id)) ||
+        (cov.length > 0
+          ? chileData.find((r) => cov.some((c) => r.communes.includes(c)))?.id
+          : '') ||
+        '';
+      setEditCoveragePickRegion(pickRegion ? String(pickRegion) : '');
     } catch {
       setEditServiceComuna(service.comuna);
       setEditServiceRegion(
         chileData.find((r) => r.communes.includes(service.comuna))?.id || ''
       );
-      setEditServiceCoverageCommunes(service.coverage_communes ? [...service.coverage_communes] : []);
+      const cov = service.coverage_communes ? [...service.coverage_communes] : [];
+      setEditServiceCoverageCommunes(cov);
+      const pickRegion =
+        (cov.length > 0
+          ? chileData.find((r) => cov.some((c) => r.communes.includes(c)))?.id
+          : '') || '';
+      setEditCoveragePickRegion(pickRegion ? String(pickRegion) : '');
     } finally {
       setLoadingServiceDetail(false);
     }
@@ -151,11 +166,20 @@ const Profile = () => {
 
     try {
       setIsSavingService(true);
+      const { payload: loc, error: locError } = buildServiceRegionPayload(
+        editCoveragePickRegion,
+        editServiceCoverageCommunes,
+        editServiceRegion
+      );
+      if (locError) {
+        toast.error(locError);
+        return;
+      }
+
       const response = await servicesAPI.updateService(editingService.id, {
         comuna: sanitizeInput(editServiceComuna, 50),
-        region_id: editServiceRegion,
-        coverage_communes:
-          editServiceCoverageCommunes.length > 0 ? editServiceCoverageCommunes : undefined,
+        region_id: loc.region_id,
+        coverage_communes: loc.coverage_communes,
       });
 
       const successMsg = response.message || 'Ubicación del servicio actualizada';
@@ -800,7 +824,12 @@ const Profile = () => {
                   <div className="space-y-2">
                     <Select
                       value={editCoveragePickRegion}
-                      onValueChange={setEditCoveragePickRegion}
+                      onValueChange={(val) => {
+                        setEditCoveragePickRegion(val);
+                        setEditServiceCoverageCommunes((prev) =>
+                          filterCommunesToRegion(prev, val)
+                        );
+                      }}
                       disabled={isSavingService}
                     >
                       <SelectTrigger className="rounded-xl">
@@ -822,7 +851,7 @@ const Profile = () => {
                             ?.communes.map((c) => (
                               <div key={c} className="flex items-center gap-2">
                                 <Checkbox
-                                  id={`cov-prof-${c}`}
+                                  id={`cov-prof-${editCoveragePickRegion}-${c}`}
                                   checked={editServiceCoverageCommunes.includes(c)}
                                   disabled={isSavingService}
                                   onCheckedChange={(checked) => {
@@ -835,7 +864,10 @@ const Profile = () => {
                                     }
                                   }}
                                 />
-                                <label htmlFor={`cov-prof-${c}`} className="text-xs cursor-pointer truncate">
+                                <label
+                                  htmlFor={`cov-prof-${editCoveragePickRegion}-${c}`}
+                                  className="text-xs cursor-pointer truncate"
+                                >
                                   {c}
                                 </label>
                               </div>
