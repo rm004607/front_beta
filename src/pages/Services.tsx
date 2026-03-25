@@ -33,7 +33,7 @@ import { ServiceDetail } from '@/components/ServiceDetail';
 import { ServiceDetailModalContent } from '@/components/ServiceDetailModal';
 
 const Services = () => {
-  const { user, isLoggedIn } = useUser();
+  const { user, isLoggedIn, isLoading: authLoading } = useUser();
   const { t, i18n } = useTranslation();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
@@ -43,6 +43,8 @@ const Services = () => {
   const [comunaFilter, setComunaFilter] = useState('all');
   const [regionFilter, setRegionFilter] = useState('all');
   const regionDefaultAppliedRef = useRef(false);
+  /** Evita mezclar defaults al cambiar de invitado ↔ sesión sin recargar */
+  const regionSeedKeyRef = useRef<string>('');
   const [typeFilter, setTypeFilter] = useState(searchParams.get('type_id') || 'all');
   const [serviceTypes, setServiceTypes] = useState<any[]>([]);
   const [services, setServices] = useState<any[]>([]);
@@ -54,6 +56,7 @@ const Services = () => {
     totalPages: 0,
   });
   const latestLoadRequestId = useRef(0);
+  const [listRefreshTick, setListRefreshTick] = useState(0);
 
   // Pago por contacto
   const [isPaidContactModalOpen, setIsPaidContactModalOpen] = useState(false);
@@ -75,24 +78,77 @@ const Services = () => {
   const [reviewStats, setReviewStats] = useState<{ average_rating: number; total_reviews: number } | null>(null);
 
   useEffect(() => {
-    if (!user) {
-      regionDefaultAppliedRef.current = false;
-      return;
-    }
-    if (regionDefaultAppliedRef.current) return;
-    const preferred =
-      (user.role_number === 2 || user.role_number === 3) && user.offer_region?.id
-        ? String(user.offer_region.id)
-        : user.region_id
-          ? String(user.region_id)
-          : 'all';
-    setRegionFilter(preferred);
-    regionDefaultAppliedRef.current = true;
-  }, [user]);
+    if (authLoading) return;
 
-  useEffect(() => {
-    loadServices();
-  }, [searchTerm, comunaFilter, regionFilter, typeFilter, pagination.page]);
+    const seedKey = `${user?.id ?? 'guest'}`;
+    if (regionSeedKeyRef.current !== seedKey) {
+      regionSeedKeyRef.current = seedKey;
+      regionDefaultAppliedRef.current = false;
+    }
+
+    let regionForApi = regionFilter;
+    if (!regionDefaultAppliedRef.current) {
+      regionDefaultAppliedRef.current = true;
+      const preferred =
+        user && (user.role_number === 2 || user.role_number === 3) && user.offer_region?.id
+          ? String(user.offer_region.id)
+          : user?.region_id
+            ? String(user.region_id)
+            : 'all';
+      regionForApi = preferred;
+      setRegionFilter(preferred);
+    }
+
+    let cancelled = false;
+    const requestId = ++latestLoadRequestId.current;
+    setLoading(true);
+
+    (async () => {
+      try {
+        const response = await servicesAPI.getServices({
+          search: searchTerm || undefined,
+          comuna: comunaFilter !== 'all' ? comunaFilter : undefined,
+          region_id: comunaFilter === 'all' && regionForApi !== 'all' ? regionForApi : undefined,
+          service_type_id: typeFilter !== 'all' ? typeFilter : undefined,
+          page: pagination.page,
+          limit: pagination.limit,
+        });
+
+        if (cancelled || requestId !== latestLoadRequestId.current) return;
+
+        setServices(response.services);
+        setPagination((prev) => ({
+          ...prev,
+          page: response.pagination.page,
+          total: response.pagination.total,
+          totalPages: response.pagination.totalPages,
+        }));
+      } catch (error) {
+        if (cancelled || requestId !== latestLoadRequestId.current) return;
+        toast.error(t('services.loading_error'));
+        console.error('Error loading services:', error);
+      } finally {
+        if (!cancelled && requestId === latestLoadRequestId.current) {
+          setLoading(false);
+        }
+      }
+    })();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [
+    authLoading,
+    user,
+    searchTerm,
+    comunaFilter,
+    regionFilter,
+    typeFilter,
+    pagination.page,
+    pagination.limit,
+    listRefreshTick,
+    t,
+  ]);
 
   // Cuando cambia un filtro (o búsqueda), siempre volvemos a la primera página.
   // Evita estados donde "faltan servicios" por seguir en página > 1.
@@ -156,42 +212,6 @@ const Services = () => {
     loadTypes();
   }, []);
 
-  const loadServices = async () => {
-    const requestId = ++latestLoadRequestId.current;
-    setLoading(true);
-    try {
-      const response = await servicesAPI.getServices({
-        search: searchTerm || undefined,
-        comuna: comunaFilter !== 'all' ? comunaFilter : undefined,
-        // Si hay una comuna seleccionada, no filtramos por región para permitir ver servicios de otras regiones que cubren esa comuna
-        region_id: comunaFilter === 'all' && regionFilter !== 'all' ? regionFilter : undefined,
-        service_type_id: typeFilter !== 'all' ? typeFilter : undefined,
-        page: pagination.page,
-        limit: pagination.limit,
-      });
-
-      // Evita que respuestas antiguas sobreescriban resultados más nuevos.
-      if (requestId !== latestLoadRequestId.current) return;
-
-      setServices(response.services);
-      setPagination((prev) => ({
-        ...prev,
-        page: response.pagination.page,
-        total: response.pagination.total,
-        totalPages: response.pagination.totalPages,
-      }));
-    } catch (error) {
-      if (requestId !== latestLoadRequestId.current) return;
-      toast.error(t('services.loading_error'));
-      console.error('Error loading services:', error);
-    } finally {
-      if (requestId === latestLoadRequestId.current) {
-        setLoading(false);
-      }
-    }
-  };
-
-
   const handleWhatsApp = (service: any) => {
     if (!service.phone) {
       toast.error(t('services.no_phone_msg'));
@@ -246,7 +266,7 @@ const Services = () => {
     try {
       await servicesAPI.deleteService(service.id);
       toast.success(t('services.delete_success'));
-      loadServices();
+      setListRefreshTick((n) => n + 1);
     } catch (error: any) {
       console.error('Error deleting service:', error);
       toast.error(error.message || t('services.delete_error'));
@@ -281,7 +301,7 @@ const Services = () => {
       // Recargar reseñas
       fetchReviews(selectedServiceForReviews.id);
       // Recargar servicios para actualizar el promedio en la lista principal
-      loadServices();
+      setListRefreshTick((n) => n + 1);
     } catch (error: any) {
       console.error('Error submitting review:', error);
       if (error?.status === 403) {

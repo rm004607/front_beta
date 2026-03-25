@@ -48,7 +48,7 @@ interface Service {
 }
 
 const Home = () => {
-  const { isLoggedIn, user } = useUser();
+  const { isLoggedIn, user, isLoading: authLoading } = useUser();
   const { t, i18n } = useTranslation();
   const [latestServices, setLatestServices] = useState<Service[]>([]);
   const [loadingServices, setLoadingServices] = useState(true);
@@ -59,6 +59,7 @@ const Home = () => {
 
   const categoriesViewportRef = useRef<HTMLDivElement>(null);
   const categoriesTrackRef = useRef<HTMLDivElement>(null);
+  const latestServicesRequestId = useRef(0);
   /** Pixels de scroll horizontal disponibles; 0 = no cabe carrusel, no animar */
   const [categoriesOverflowPx, setCategoriesOverflowPx] = useState(0);
 
@@ -93,9 +94,44 @@ const Home = () => {
   }, [loadingTypes, serviceTypes]);
 
   useEffect(() => {
-    loadLatestServices();
     loadServiceTypes();
-  }, [isLoggedIn, user?.region_id, user?.offer_region?.id, user?.role_number]);
+  }, []);
+
+  useEffect(() => {
+    if (authLoading) return;
+
+    let cancelled = false;
+    const requestId = ++latestServicesRequestId.current;
+    setLoadingServices(true);
+
+    (async () => {
+      try {
+        const offerId =
+          user && (user.role_number === 2 || user.role_number === 3) && user.offer_region?.id
+            ? String(user.offer_region.id)
+            : undefined;
+        const domicileId = user?.region_id ? String(user.region_id) : undefined;
+        const response = await servicesAPI.getServices({
+          page: 1,
+          limit: 6,
+          region_id: offerId || domicileId,
+        });
+        if (cancelled || requestId !== latestServicesRequestId.current) return;
+        setLatestServices(response.services);
+      } catch (error) {
+        if (cancelled || requestId !== latestServicesRequestId.current) return;
+        console.error('Error loading latest services:', error);
+      } finally {
+        if (!cancelled && requestId === latestServicesRequestId.current) {
+          setLoadingServices(false);
+        }
+      }
+    })();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [authLoading, isLoggedIn, user?.id, user?.region_id, user?.offer_region?.id, user?.role_number]);
 
   useEffect(() => {
     const computeItemsPerView = () => {
@@ -139,27 +175,6 @@ const Home = () => {
       console.error('Error loading service types:', error);
     } finally {
       setLoadingTypes(false);
-    }
-  };
-
-  const loadLatestServices = async () => {
-    try {
-      setLoadingServices(true);
-      const offerId =
-        user && (user.role_number === 2 || user.role_number === 3) && user.offer_region?.id
-          ? String(user.offer_region.id)
-          : undefined;
-      const domicileId = user?.region_id ? String(user.region_id) : undefined;
-      const response = await servicesAPI.getServices({
-        page: 1,
-        limit: 6,
-        region_id: offerId || domicileId
-      });
-      setLatestServices(response.services);
-    } catch (error) {
-      console.error('Error loading latest services:', error);
-    } finally {
-      setLoadingServices(false);
     }
   };
 
