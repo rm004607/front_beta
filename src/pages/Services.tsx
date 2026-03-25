@@ -31,6 +31,8 @@ import {
 import { ServiceCard } from '@/components/ServiceCard';
 import { ServiceDetail } from '@/components/ServiceDetail';
 import { ServiceDetailModalContent } from '@/components/ServiceDetailModal';
+import { useDebouncedValue } from '@/hooks/useDebouncedValue';
+import { normalizeSearchQuery } from '@/lib/searchQuery';
 
 const Services = () => {
   const { user, isLoggedIn, isLoading: authLoading } = useUser();
@@ -40,6 +42,8 @@ const Services = () => {
   const highlightId = searchParams.get('highlight');
 
   const [searchTerm, setSearchTerm] = useState('');
+  const debouncedSearchRaw = useDebouncedValue(searchTerm, 320);
+  const debouncedSearch = normalizeSearchQuery(debouncedSearchRaw) ?? '';
   const [comunaFilter, setComunaFilter] = useState('all');
   const [regionFilter, setRegionFilter] = useState('all');
   const regionDefaultAppliedRef = useRef(false);
@@ -106,7 +110,7 @@ const Services = () => {
     (async () => {
       try {
         const response = await servicesAPI.getServices({
-          search: searchTerm || undefined,
+          search: debouncedSearch || undefined,
           comuna: comunaFilter !== 'all' ? comunaFilter : undefined,
           region_id: comunaFilter === 'all' && regionForApi !== 'all' ? regionForApi : undefined,
           service_type_id: typeFilter !== 'all' ? typeFilter : undefined,
@@ -140,7 +144,7 @@ const Services = () => {
   }, [
     authLoading,
     user,
-    searchTerm,
+    debouncedSearch,
     comunaFilter,
     regionFilter,
     typeFilter,
@@ -154,7 +158,7 @@ const Services = () => {
   // Evita estados donde "faltan servicios" por seguir en página > 1.
   useEffect(() => {
     setPagination((prev) => (prev.page === 1 ? prev : { ...prev, page: 1 }));
-  }, [searchTerm, comunaFilter, regionFilter, typeFilter]);
+  }, [debouncedSearch, comunaFilter, regionFilter, typeFilter]);
 
   // Cargar precio dinámico y estado de pricing
   useEffect(() => {
@@ -350,7 +354,10 @@ const Services = () => {
               <div className="relative">
                 <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground" size={16} />
                 <Input
+                  type="search"
+                  enterKeyHint="search"
                   placeholder={t('services.search_placeholder')}
+                  aria-label={t('services.search_placeholder')}
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
                   className="pl-9 h-10 sm:h-11 text-sm bg-white/50"
