@@ -106,15 +106,10 @@ const Home = () => {
 
     (async () => {
       try {
-        const offerId =
-          user && (user.role_number === 2 || user.role_number === 3) && user.offer_region?.id
-            ? String(user.offer_region.id)
-            : undefined;
-        const domicileId = user?.region_id ? String(user.region_id) : undefined;
         const response = await servicesAPI.getServices({
           page: 1,
           limit: 6,
-          region_id: offerId || domicileId,
+          region_id: undefined,
         });
         if (cancelled || requestId !== latestServicesRequestId.current) return;
         setLatestServices(response.services);

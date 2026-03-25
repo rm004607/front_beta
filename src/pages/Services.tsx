@@ -35,7 +35,7 @@ import { useDebouncedValue } from '@/hooks/useDebouncedValue';
 import { normalizeSearchQuery } from '@/lib/searchQuery';
 
 const Services = () => {
-  const { user, isLoggedIn, isLoading: authLoading } = useUser();
+  const { user, isLoggedIn } = useUser();
   const { t, i18n } = useTranslation();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
@@ -46,9 +46,6 @@ const Services = () => {
   const debouncedSearch = normalizeSearchQuery(debouncedSearchRaw) ?? '';
   const [comunaFilter, setComunaFilter] = useState('all');
   const [regionFilter, setRegionFilter] = useState('all');
-  const regionDefaultAppliedRef = useRef(false);
-  /** Evita mezclar defaults al cambiar de invitado ↔ sesión sin recargar */
-  const regionSeedKeyRef = useRef<string>('');
   const [typeFilter, setTypeFilter] = useState(searchParams.get('type_id') || 'all');
   const [serviceTypes, setServiceTypes] = useState<any[]>([]);
   const [services, setServices] = useState<any[]>([]);
@@ -82,27 +79,6 @@ const Services = () => {
   const [reviewStats, setReviewStats] = useState<{ average_rating: number; total_reviews: number } | null>(null);
 
   useEffect(() => {
-    if (authLoading) return;
-
-    const seedKey = `${user?.id ?? 'guest'}`;
-    if (regionSeedKeyRef.current !== seedKey) {
-      regionSeedKeyRef.current = seedKey;
-      regionDefaultAppliedRef.current = false;
-    }
-
-    let regionForApi = regionFilter;
-    if (!regionDefaultAppliedRef.current) {
-      regionDefaultAppliedRef.current = true;
-      const preferred =
-        user && (user.role_number === 2 || user.role_number === 3) && user.offer_region?.id
-          ? String(user.offer_region.id)
-          : user?.region_id
-            ? String(user.region_id)
-            : 'all';
-      regionForApi = preferred;
-      setRegionFilter(preferred);
-    }
-
     let cancelled = false;
     const requestId = ++latestLoadRequestId.current;
     setLoading(true);
@@ -112,7 +88,7 @@ const Services = () => {
         const response = await servicesAPI.getServices({
           search: debouncedSearch || undefined,
           comuna: comunaFilter !== 'all' ? comunaFilter : undefined,
-          region_id: comunaFilter === 'all' && regionForApi !== 'all' ? regionForApi : undefined,
+          region_id: comunaFilter === 'all' && regionFilter !== 'all' ? regionFilter : undefined,
           service_type_id: typeFilter !== 'all' ? typeFilter : undefined,
           page: pagination.page,
           limit: pagination.limit,
@@ -142,7 +118,6 @@ const Services = () => {
       cancelled = true;
     };
   }, [
-    authLoading,
     user,
     debouncedSearch,
     comunaFilter,
