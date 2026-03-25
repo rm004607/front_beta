@@ -152,13 +152,13 @@ const Register = () => {
     if (value.length < 6) return false;
     const upperCount = (value.match(/[A-Z]/g) || []).length;
     const numberCount = (value.match(/[0-9]/g) || []).length;
-    return upperCount >= 1 && numberCount >= 3;
+    return upperCount >= 1 && numberCount >= 2;
   };
 
   const passwordChecks = {
     minLength: password.length >= 6,
     uppercase: (password.match(/[A-Z]/g) || []).length >= 1,
-    numbers: (password.match(/[0-9]/g) || []).length >= 3,
+    numbers: (password.match(/[0-9]/g) || []).length >= 2,
   };
 
   const checkRutExists = async (rutValue: string): Promise<boolean> => {
@@ -201,7 +201,7 @@ const Register = () => {
       }
 
       if (requiresPassword && !isStrongPassword(password)) {
-        toast.error('La contraseña debe tener al menos 6 caracteres, 1 mayúscula y 3 números');
+        toast.error('La contraseña debe tener al menos 6 caracteres, 1 mayúscula y 2 números');
         return;
       }
 
@@ -497,7 +497,7 @@ const Register = () => {
                         type={showPassword ? 'text' : 'password'}
                         value={password}
                         onChange={(e) => setPassword(e.target.value)}
-                        placeholder="Mínimo 6 caracteres, 1 mayúscula y 3 números"
+                        placeholder="Mínimo 6 caracteres, 1 mayúscula y 2 números"
                         className="pr-10"
                       />
                       <button
@@ -521,7 +521,7 @@ const Register = () => {
                       </div>
                       <div className={`flex items-center gap-2 text-xs ${passwordChecks.numbers ? 'text-green-600' : 'text-muted-foreground'}`}>
                         <CheckCircle2 size={14} className={passwordChecks.numbers ? 'opacity-100' : 'opacity-40'} />
-                        <span>Mínimo 3 números</span>
+                        <span>Mínimo 2 números</span>
                       </div>
                     </div>
                   </div>
