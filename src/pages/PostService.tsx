@@ -24,6 +24,7 @@ import { chileData } from '@/lib/chile-data';
 import {
   buildServiceRegionPayload,
   filterCommunesToRegion,
+  resolveComunaForOfferRegionApi,
   resolveOriginLocation,
 } from '@/lib/chile-region-helpers';
 import {
@@ -260,6 +261,21 @@ const PostService = () => {
         return;
       }
 
+      const comunaForApi = resolveComunaForOfferRegionApi(
+        origin.comuna,
+        loc.region_id,
+        loc.coverage_communes
+      );
+      if ('error' in comunaForApi) {
+        toast.error(comunaForApi.error);
+        return;
+      }
+      if (comunaForApi.usedCoverageFallback) {
+        toast.message(
+          'La comuna de origen no está en la región de oferta; usamos una comuna de tu cobertura para registrar el servicio.'
+        );
+      }
+
       const response = await servicesAPI.createService({
         service_name: serviceName,
         service_type_ids: selectedServiceTypeIds,
@@ -268,7 +284,7 @@ const PostService = () => {
             ? sanitizeInput(customServiceName.trim(), 100)
             : undefined,
         description: sanitizeInput(description, 2000),
-        comuna: origin.comuna,
+        comuna: comunaForApi.comuna,
         phone: phone ? sanitizeInput(phone, 20) : undefined,
         region_id: loc.region_id,
         coverage_communes: loc.coverage_communes,

@@ -39,6 +39,7 @@ import {
 import { chileData } from '@/lib/chile-data';
 import {
   buildServiceRegionPayload,
+  resolveComunaForOfferRegionApi,
   filterCommunesToRegion,
   resolveOriginLocation,
 } from '@/lib/chile-region-helpers';
@@ -186,8 +187,23 @@ const Profile = () => {
         return;
       }
 
+      const comunaForApi = resolveComunaForOfferRegionApi(
+        origin.comuna,
+        loc.region_id,
+        loc.coverage_communes
+      );
+      if ('error' in comunaForApi) {
+        toast.error(comunaForApi.error);
+        return;
+      }
+      if (comunaForApi.usedCoverageFallback) {
+        toast.message(
+          'La comuna de origen no está en la región de oferta; usamos una comuna de tu cobertura para guardar.'
+        );
+      }
+
       const response = await servicesAPI.updateService(editingService.id, {
-        comuna: origin.comuna,
+        comuna: comunaForApi.comuna,
         region_id: loc.region_id,
         coverage_communes: loc.coverage_communes,
       });

@@ -133,6 +133,34 @@ export type ServiceRegionPayload = {
 };
 
 /**
+ * El backend valida que `comuna` pertenezca a `region_id` (región de oferta).
+ * Si la comuna de origen/domicilio está en otra región, usamos una comuna de cobertura
+ * (misma región que region_id) para que el POST no falle.
+ */
+export function resolveComunaForOfferRegionApi(
+  originComunaCanonical: string,
+  offerRegionId: string,
+  coverageCommunesCanonical: string[] | undefined
+): { comuna: string; usedCoverageFallback: boolean } | { error: string } {
+  const rid = String(offerRegionId);
+  const inOffer = canonicalizeCommuneInRegion(originComunaCanonical, rid);
+  if (inOffer) {
+    return { comuna: inOffer, usedCoverageFallback: false };
+  }
+
+  if (coverageCommunesCanonical && coverageCommunesCanonical.length > 0) {
+    const first = coverageCommunesCanonical[0];
+    const canon = canonicalizeCommuneInRegion(first, rid) ?? first;
+    return { comuna: canon, usedCoverageFallback: true };
+  }
+
+  return {
+    error:
+      'Tu comuna de origen no está en la región donde ofreces el servicio. En “Zona de cobertura” marca al menos una comuna de esa región, o cambia la ubicación de origen.',
+  };
+}
+
+/**
  * Único punto para armar region_id + cobertura hacia el API.
  * Evita enviar comunas de una región con region_id de otra.
  */
