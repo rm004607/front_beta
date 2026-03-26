@@ -83,6 +83,7 @@ import {
   XCircle,
   MessageSquare,
   Star,
+  Gamepad2,
 } from 'lucide-react';
 
 type LucideIcon = React.ComponentType<{ className?: string; size?: number }>;
