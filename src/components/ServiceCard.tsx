@@ -16,7 +16,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { servicesAPI, configAPI } from '@/lib/api';
 import { toast } from 'sonner';
-import { getServiceIcon, getServiceColor, isLightColor, getServiceLocationDisplay } from '@/lib/serviceUtils';
+import { getServiceIcon, getServiceColor, isLightColor, getServiceRegionNameOnly } from '@/lib/serviceUtils';
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Label } from '@/components/ui/label';
@@ -123,7 +123,7 @@ export const ServiceCard = ({
                         <div className="flex items-center gap-2.5 bg-secondary/5 px-3 sm:px-4 py-2 rounded-xl sm:rounded-2xl border border-secondary/10 overflow-hidden flex-1">
                             <MapPin className="text-secondary shrink-0 w-3.5 h-3.5 sm:w-4 sm:h-4" />
                             <div className="flex flex-col min-w-0">
-                                <span className="text-[11px] sm:text-xs font-bold truncate">{getServiceLocationDisplay(service)}</span>
+                                <span className="text-[11px] sm:text-xs font-bold truncate">{getServiceRegionNameOnly(service) || '—'}</span>
                                 {service.coverage_communes && service.coverage_communes.length > 0 && (
                                     <span className="text-[8px] sm:text-[9px] text-secondary font-black uppercase tracking-tighter">
                                         + {service.coverage_communes.length} comunas (histórico)

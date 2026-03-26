@@ -23,7 +23,7 @@ import {
 } from '@/components/ui/dialog';
 import { useUser } from '@/contexts/UserContext';
 import { MapPin, Phone, Mail, Wrench, Building2, Trash2, FileText, Plus, Star, Users, ChevronRight, Loader2 } from 'lucide-react';
-import { servicesAPI, authAPI } from '@/lib/api';
+import { servicesAPI, authAPI, regionsAPI } from '@/lib/api';
 import { toast } from 'sonner';
 import {
   validatePhone,
@@ -34,9 +34,21 @@ import {
   sanitizeInput,
   getValidationErrorMessage
 } from '@/lib/input-validator';
-import { chileData } from '@/lib/chile-data';
 import { resolveOriginLocation } from '@/lib/chile-region-helpers';
 import { getServiceLocationDisplay, getUserOfferRegionDisplayName } from '@/lib/serviceUtils';
+import { loadRegionOptionsSorted, type RegionOption } from '@/lib/regions-catalog';
+import { catalogFetchUserMessage } from '@/lib/catalog-fetch-errors';
+
+function communesNamesFromApiResponse(
+  rid: string,
+  r: { region_id: number; communes: { name: string; region_id: number }[] }
+): string[] | null {
+  if (Number(r.region_id) !== Number(rid)) return null;
+  const names = r.communes
+    .filter((c) => Number(c.region_id) === Number(rid))
+    .map((c) => c.name);
+  return names.length > 0 ? names : null;
+}
 
 interface Service {
   id: string;
@@ -78,6 +90,22 @@ const Profile = () => {
   const [isSavingService, setIsSavingService] = useState(false);
 
   const [completeRegion, setCompleteRegion] = useState('');
+  const [apiRegions, setApiRegions] = useState<RegionOption[]>([]);
+  const [regionsLoading, setRegionsLoading] = useState(true);
+  const [regionsError, setRegionsError] = useState<string | null>(null);
+  const [regionsRetryKey, setRegionsRetryKey] = useState(0);
+  const [locCommunes, setLocCommunes] = useState<string[]>([]);
+  const [locCommunesLoading, setLocCommunesLoading] = useState(false);
+  const [locCommunesError, setLocCommunesError] = useState<string | null>(null);
+  const [locCommunesRetryKey, setLocCommunesRetryKey] = useState(0);
+  const [editServiceCommunes, setEditServiceCommunes] = useState<string[]>([]);
+  const [editServiceCommunesLoading, setEditServiceCommunesLoading] = useState(false);
+  const [editServiceCommunesError, setEditServiceCommunesError] = useState<string | null>(null);
+  const [editServiceCommunesRetryKey, setEditServiceCommunesRetryKey] = useState(0);
+  const [completeCommunes, setCompleteCommunes] = useState<string[]>([]);
+  const [completeCommunesLoading, setCompleteCommunesLoading] = useState(false);
+  const [completeCommunesError, setCompleteCommunesError] = useState<string | null>(null);
+  const [completeCommunesRetryKey, setCompleteCommunesRetryKey] = useState(0);
 
   const loadServices = async () => {
     try {
@@ -116,16 +144,10 @@ const Profile = () => {
       const s = full as Service & { coverage_communes?: string[]; region_id?: string };
       const comuna = s.comuna || service.comuna;
       setEditServiceComuna(comuna);
-      const rid =
-        s.region_id ||
-        chileData.find((r) => r.communes.includes(comuna))?.id ||
-        '';
-      setEditServiceRegion(rid);
+      setEditServiceRegion(s.region_id || '');
     } catch {
       setEditServiceComuna(service.comuna);
-      setEditServiceRegion(
-        chileData.find((r) => r.communes.includes(service.comuna))?.id || ''
-      );
+      setEditServiceRegion(service.region_id || '');
     } finally {
       setLoadingServiceDetail(false);
     }
@@ -333,6 +355,119 @@ const Profile = () => {
   // TODOS LOS HOOKS DEBEN ESTAR ANTES DE CUALQUIER RETURN CONDICIONAL
   // Esperar a que termine la carga antes de redirigir
   useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      setRegionsLoading(true);
+      setRegionsError(null);
+      try {
+        const list = await loadRegionOptionsSorted();
+        if (cancelled) return;
+        setApiRegions(list);
+        if (list.length === 0) {
+          setRegionsError('No se recibieron regiones desde el servidor.');
+        }
+      } catch (e) {
+        if (!cancelled) {
+          setApiRegions([]);
+          setRegionsError(catalogFetchUserMessage(e));
+        }
+      } finally {
+        if (!cancelled) setRegionsLoading(false);
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [regionsRetryKey]);
+
+  useEffect(() => {
+    if (!locRegion) {
+      setLocCommunes([]);
+      setLocCommunesError(null);
+      setLocCommunesLoading(false);
+      return;
+    }
+    let cancelled = false;
+    setLocCommunes([]);
+    setLocCommunesError(null);
+    setLocCommunesLoading(true);
+    (async () => {
+      try {
+        const r = await regionsAPI.getCommunesByRegion(String(locRegion));
+        if (cancelled) return;
+        const names = communesNamesFromApiResponse(String(locRegion), r);
+        if (names) setLocCommunes(names);
+        else setLocCommunesError('No se pudo leer el listado de comunas para esa región.');
+      } catch (e) {
+        if (!cancelled) setLocCommunesError(catalogFetchUserMessage(e));
+      } finally {
+        if (!cancelled) setLocCommunesLoading(false);
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [locRegion, locCommunesRetryKey]);
+
+  useEffect(() => {
+    if (!editServiceRegion) {
+      setEditServiceCommunes([]);
+      setEditServiceCommunesError(null);
+      setEditServiceCommunesLoading(false);
+      return;
+    }
+    let cancelled = false;
+    setEditServiceCommunes([]);
+    setEditServiceCommunesError(null);
+    setEditServiceCommunesLoading(true);
+    (async () => {
+      try {
+        const r = await regionsAPI.getCommunesByRegion(String(editServiceRegion));
+        if (cancelled) return;
+        const names = communesNamesFromApiResponse(String(editServiceRegion), r);
+        if (names) setEditServiceCommunes(names);
+        else setEditServiceCommunesError('No se pudo leer el listado de comunas para esa región.');
+      } catch (e) {
+        if (!cancelled) setEditServiceCommunesError(catalogFetchUserMessage(e));
+      } finally {
+        if (!cancelled) setEditServiceCommunesLoading(false);
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [editServiceRegion, editServiceCommunesRetryKey]);
+
+  useEffect(() => {
+    if (!completeRegion) {
+      setCompleteCommunes([]);
+      setCompleteCommunesError(null);
+      setCompleteCommunesLoading(false);
+      return;
+    }
+    let cancelled = false;
+    setCompleteCommunes([]);
+    setCompleteCommunesError(null);
+    setCompleteCommunesLoading(true);
+    (async () => {
+      try {
+        const r = await regionsAPI.getCommunesByRegion(String(completeRegion));
+        if (cancelled) return;
+        const names = communesNamesFromApiResponse(String(completeRegion), r);
+        if (names) setCompleteCommunes(names);
+        else setCompleteCommunesError('No se pudo leer el listado de comunas para esa región.');
+      } catch (e) {
+        if (!cancelled) setCompleteCommunesError(catalogFetchUserMessage(e));
+      } finally {
+        if (!cancelled) setCompleteCommunesLoading(false);
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [completeRegion, completeCommunesRetryKey]);
+
+  useEffect(() => {
     if (!isLoading && !isLoggedIn) {
       navigate('/registro');
     }
@@ -385,9 +520,10 @@ const Profile = () => {
   }
 
   const domicileRegionName = user.region_id
-    ? chileData.find((r) => String(r.id) === String(user.region_id))?.name
+    ? apiRegions.find((r) => String(r.id) === String(user.region_id))?.name
     : null;
   const offerRegionDisplay = getUserOfferRegionDisplayName(user);
+  const regionsCatalogUsable = !regionsLoading && !regionsError && apiRegions.length > 0;
 
   return (
     <div className="min-h-screen bg-muted/30 pb-16 lg:pb-24">
@@ -685,13 +821,13 @@ const Profile = () => {
                       setLocRegion(v);
                       setLocComuna('');
                     }}
-                    disabled={isSavingLocation}
+                    disabled={isSavingLocation || !regionsCatalogUsable}
                   >
                     <SelectTrigger className="mt-1 rounded-xl">
-                      <SelectValue placeholder="Región" />
+                      <SelectValue placeholder={regionsLoading ? 'Cargando regiones…' : 'Región'} />
                     </SelectTrigger>
                     <SelectContent>
-                      {chileData.map((reg) => (
+                      {apiRegions.map((reg) => (
                         <SelectItem key={reg.id} value={reg.id}>
                           {reg.name}
                         </SelectItem>
@@ -704,24 +840,37 @@ const Profile = () => {
                   <Select
                     value={locComuna}
                     onValueChange={setLocComuna}
-                    disabled={!locRegion || isSavingLocation}
+                    disabled={!locRegion || isSavingLocation || locCommunesLoading || !!locCommunesError}
                   >
                     <SelectTrigger className="mt-1 rounded-xl">
-                      <SelectValue placeholder="Comuna" />
+                      <SelectValue placeholder={locCommunesLoading ? 'Cargando comunas…' : 'Comuna'} />
                     </SelectTrigger>
                     <SelectContent>
-                      {locRegion &&
-                        chileData
-                          .find((r) => String(r.id) === String(locRegion))
-                          ?.communes.map((c) => (
-                            <SelectItem key={c} value={c}>
-                              {c}
-                            </SelectItem>
-                          ))}
+                      {locCommunes.map((c) => (
+                        <SelectItem key={c} value={c}>
+                          {c}
+                        </SelectItem>
+                      ))}
                     </SelectContent>
                   </Select>
+                  {locCommunesError && (
+                    <div className="mt-1 flex items-center justify-between gap-2">
+                      <p className="text-xs text-destructive">{locCommunesError}</p>
+                      <Button type="button" size="sm" variant="outline" onClick={() => setLocCommunesRetryKey((k) => k + 1)}>
+                        Reintentar
+                      </Button>
+                    </div>
+                  )}
                 </div>
               </div>
+              {regionsError && (
+                <div className="flex items-center justify-between gap-2">
+                  <p className="text-xs text-destructive">{regionsError}</p>
+                  <Button type="button" size="sm" variant="outline" onClick={() => setRegionsRetryKey((k) => k + 1)}>
+                    Reintentar
+                  </Button>
+                </div>
+              )}
             </div>
             <DialogFooter className="gap-2 sm:gap-0">
               <Button variant="outline" className="rounded-full" onClick={() => setLocationDialogOpen(false)} disabled={isSavingLocation}>
@@ -764,13 +913,13 @@ const Profile = () => {
                         setEditServiceRegion(v);
                         setEditServiceComuna('');
                       }}
-                      disabled={isSavingService}
+                      disabled={isSavingService || !regionsCatalogUsable}
                     >
                       <SelectTrigger className="rounded-xl">
-                        <SelectValue placeholder="Región" />
+                        <SelectValue placeholder={regionsLoading ? 'Cargando regiones…' : 'Región'} />
                       </SelectTrigger>
                       <SelectContent>
-                        {chileData.map((reg) => (
+                        {apiRegions.map((reg) => (
                           <SelectItem key={reg.id} value={reg.id}>
                             {reg.name}
                           </SelectItem>
@@ -780,23 +929,28 @@ const Profile = () => {
                     <Select
                       value={editServiceComuna}
                       onValueChange={setEditServiceComuna}
-                      disabled={!editServiceRegion || isSavingService}
+                      disabled={!editServiceRegion || isSavingService || editServiceCommunesLoading || !!editServiceCommunesError}
                     >
                       <SelectTrigger className="rounded-xl">
-                        <SelectValue placeholder="Comuna" />
+                        <SelectValue placeholder={editServiceCommunesLoading ? 'Cargando comunas…' : 'Comuna'} />
                       </SelectTrigger>
                       <SelectContent>
-                        {editServiceRegion &&
-                          chileData
-                            .find((r) => String(r.id) === String(editServiceRegion))
-                            ?.communes.map((c) => (
-                              <SelectItem key={c} value={c}>
-                                {c}
-                              </SelectItem>
-                            ))}
+                        {editServiceCommunes.map((c) => (
+                          <SelectItem key={c} value={c}>
+                            {c}
+                          </SelectItem>
+                        ))}
                       </SelectContent>
                     </Select>
                   </div>
+                  {editServiceCommunesError && (
+                    <div className="mt-1 flex items-center justify-between gap-2">
+                      <p className="text-xs text-destructive">{editServiceCommunesError}</p>
+                      <Button type="button" size="sm" variant="outline" onClick={() => setEditServiceCommunesRetryKey((k) => k + 1)}>
+                        Reintentar
+                      </Button>
+                    </div>
+                  )}
                 </div>
               </div>
             )}
@@ -874,12 +1028,12 @@ const Profile = () => {
                   <Select value={completeRegion} onValueChange={(val) => {
                     setCompleteRegion(val);
                     setCompleteComuna('');
-                  }} disabled={isCompletingProfile}>
+                  }} disabled={isCompletingProfile || !regionsCatalogUsable}>
                     <SelectTrigger id="complete-region">
-                      <SelectValue placeholder="Selecciona Región" />
+                      <SelectValue placeholder={regionsLoading ? 'Cargando regiones…' : 'Selecciona Región'} />
                     </SelectTrigger>
                     <SelectContent>
-                      {chileData.map((reg) => (
+                      {apiRegions.map((reg) => (
                         <SelectItem key={reg.id} value={reg.id}>{reg.name}</SelectItem>
                       ))}
                     </SelectContent>
@@ -887,16 +1041,24 @@ const Profile = () => {
                 </div>
                 <div>
                   <Label htmlFor="complete-comuna">Comuna</Label>
-                  <Select value={completeComuna} onValueChange={setCompleteComuna} disabled={!completeRegion || isCompletingProfile}>
+                  <Select value={completeComuna} onValueChange={setCompleteComuna} disabled={!completeRegion || isCompletingProfile || completeCommunesLoading || !!completeCommunesError}>
                     <SelectTrigger id="complete-comuna">
-                      <SelectValue placeholder="Selecciona Comuna" />
+                      <SelectValue placeholder={completeCommunesLoading ? 'Cargando comunas…' : 'Selecciona Comuna'} />
                     </SelectTrigger>
                     <SelectContent>
-                      {completeRegion && chileData.find(r => String(r.id) === String(completeRegion))?.communes.map((c) => (
+                      {completeCommunes.map((c) => (
                         <SelectItem key={c} value={c}>{c}</SelectItem>
                       ))}
                     </SelectContent>
                   </Select>
+                  {completeCommunesError && (
+                    <div className="mt-1 flex items-center justify-between gap-2">
+                      <p className="text-xs text-destructive">{completeCommunesError}</p>
+                      <Button type="button" size="sm" variant="outline" onClick={() => setCompleteCommunesRetryKey((k) => k + 1)}>
+                        Reintentar
+                      </Button>
+                    </div>
+                  )}
                 </div>
               </div>
             </div>
