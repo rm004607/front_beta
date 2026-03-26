@@ -206,12 +206,11 @@ export const isLightColor = (color?: string) => {
   }
 };
 
-/** Preferir datos del backend enriquecido (offer_region / region_name), luego region_id, luego comuna. */
-export function getServiceRegionDisplayName(service: {
+/** Nombre de región de oferta; no usa comuna como sustituto (útil para "Comuna · Región"). */
+export function getServiceRegionNameOnly(service: {
   offer_region?: { id?: string; name?: string } | null;
   region_name?: string | null;
   region_id?: string | number;
-  comuna?: string;
 }): string {
   const fromOffer = service.offer_region?.name?.trim();
   if (fromOffer) return fromOffer;
@@ -221,6 +220,36 @@ export function getServiceRegionDisplayName(service: {
     const r = chileData.find((x) => String(x.id) === String(service.region_id));
     if (r?.name) return r.name;
   }
+  return '';
+}
+
+/**
+ * Ubicación del servicio para mostrar en UI: comuna + región (producto sin multi-cobertura;
+ * con coverage_communes vacío en backend prima comuna y region_id).
+ */
+export function getServiceLocationDisplay(service: {
+  comuna?: string;
+  offer_region?: { id?: string; name?: string } | null;
+  region_name?: string | null;
+  region_id?: string | number;
+}): string {
+  const comuna = (service.comuna || '').trim();
+  const region = getServiceRegionNameOnly(service);
+  if (comuna && region) return `${comuna} · ${region}`;
+  if (comuna) return comuna;
+  if (region) return region;
+  return '—';
+}
+
+/** Preferir datos del backend enriquecido (offer_region / region_name), luego region_id, luego comuna. */
+export function getServiceRegionDisplayName(service: {
+  offer_region?: { id?: string; name?: string } | null;
+  region_name?: string | null;
+  region_id?: string | number;
+  comuna?: string;
+}): string {
+  const regionOnly = getServiceRegionNameOnly(service);
+  if (regionOnly) return regionOnly;
   return (service.comuna || '').trim();
 }
 

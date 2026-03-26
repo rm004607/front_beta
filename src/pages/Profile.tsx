@@ -6,8 +6,6 @@ import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { ScrollArea } from '@/components/ui/scroll-area';
-import { Checkbox } from '@/components/ui/checkbox';
 import {
   Select,
   SelectContent,
@@ -37,13 +35,8 @@ import {
   getValidationErrorMessage
 } from '@/lib/input-validator';
 import { chileData } from '@/lib/chile-data';
-import {
-  buildServiceRegionPayload,
-  resolveComunaForOfferRegionApi,
-  filterCommunesToRegion,
-  resolveOriginLocation,
-} from '@/lib/chile-region-helpers';
-import { getServiceRegionDisplayName, getUserOfferRegionDisplayName } from '@/lib/serviceUtils';
+import { resolveOriginLocation } from '@/lib/chile-region-helpers';
+import { getServiceLocationDisplay, getUserOfferRegionDisplayName } from '@/lib/serviceUtils';
 
 interface Service {
   id: string;
@@ -81,8 +74,6 @@ const Profile = () => {
   const [editingService, setEditingService] = useState<Service | null>(null);
   const [editServiceRegion, setEditServiceRegion] = useState('');
   const [editServiceComuna, setEditServiceComuna] = useState('');
-  const [editServiceCoverageCommunes, setEditServiceCoverageCommunes] = useState<string[]>([]);
-  const [editCoveragePickRegion, setEditCoveragePickRegion] = useState('');
   const [loadingServiceDetail, setLoadingServiceDetail] = useState(false);
   const [isSavingService, setIsSavingService] = useState(false);
 
@@ -130,27 +121,11 @@ const Profile = () => {
         chileData.find((r) => r.communes.includes(comuna))?.id ||
         '';
       setEditServiceRegion(rid);
-      const cov = Array.isArray(s.coverage_communes) ? [...s.coverage_communes] : [];
-      setEditServiceCoverageCommunes(cov);
-      const pickRegion =
-        (s.region_id && String(s.region_id)) ||
-        (cov.length > 0
-          ? chileData.find((r) => cov.some((c) => r.communes.includes(c)))?.id
-          : '') ||
-        '';
-      setEditCoveragePickRegion(pickRegion ? String(pickRegion) : '');
     } catch {
       setEditServiceComuna(service.comuna);
       setEditServiceRegion(
         chileData.find((r) => r.communes.includes(service.comuna))?.id || ''
       );
-      const cov = service.coverage_communes ? [...service.coverage_communes] : [];
-      setEditServiceCoverageCommunes(cov);
-      const pickRegion =
-        (cov.length > 0
-          ? chileData.find((r) => cov.some((c) => r.communes.includes(c)))?.id
-          : '') || '';
-      setEditCoveragePickRegion(pickRegion ? String(pickRegion) : '');
     } finally {
       setLoadingServiceDetail(false);
     }
@@ -168,6 +143,7 @@ const Profile = () => {
 
     try {
       setIsSavingService(true);
+
       const origin = resolveOriginLocation(
         sanitizeInput(editServiceComuna, 50),
         editServiceRegion
@@ -177,35 +153,10 @@ const Profile = () => {
         return;
       }
 
-      const { payload: loc, error: locError } = buildServiceRegionPayload(
-        editCoveragePickRegion,
-        editServiceCoverageCommunes,
-        origin.region_id
-      );
-      if (locError) {
-        toast.error(locError);
-        return;
-      }
-
-      const comunaForApi = resolveComunaForOfferRegionApi(
-        origin.comuna,
-        loc.region_id,
-        loc.coverage_communes
-      );
-      if ('error' in comunaForApi) {
-        toast.error(comunaForApi.error);
-        return;
-      }
-      if (comunaForApi.usedCoverageFallback) {
-        toast.message(
-          'La comuna de origen no está en la región de oferta; usamos una comuna de tu cobertura para guardar.'
-        );
-      }
-
       const response = await servicesAPI.updateService(editingService.id, {
-        comuna: comunaForApi.comuna,
-        region_id: loc.region_id,
-        coverage_communes: loc.coverage_communes,
+        comuna: origin.comuna,
+        region_id: origin.region_id,
+        coverage_communes: [],
       });
 
       const successMsg = response.message || 'Ubicación del servicio actualizada';
@@ -589,7 +540,7 @@ const Profile = () => {
               <div>
                 <h2 className="text-lg font-medium text-foreground lg:text-xl">Tus publicaciones</h2>
                 <p className="text-sm text-muted-foreground lg:text-base lg:mt-1">
-                  Solo puedes ajustar ubicación y zonas de desplazamiento.
+                  Ubicación del servicio: región y comuna de oferta (mismo criterio que el backend, sin lista de cobertura).
                 </p>
               </div>
               <Button
@@ -625,7 +576,7 @@ const Profile = () => {
                         <div className="min-w-0">
                           <p className="font-medium text-foreground truncate">{service.service_name}</p>
                           <p className="text-xs text-muted-foreground mt-0.5">
-                            {getServiceRegionDisplayName(service)} · {formatDate(service.created_at)}
+                            {getServiceLocationDisplay(service)} · {formatDate(service.created_at)}
                           </p>
                           <div className="mt-2 flex items-center gap-1.5 text-xs text-muted-foreground">
                             <Star className="h-3 w-3 fill-amber-400 text-amber-400" />
@@ -794,7 +745,9 @@ const Profile = () => {
               <DialogTitle className="text-lg font-medium">Ubicación del servicio</DialogTitle>
               <DialogDescription className="text-sm">
                 {editingService ? (
-                  <span className="text-muted-foreground">{editingService.service_name}</span>
+                  <span className="text-muted-foreground">
+                    {editingService.service_name}. La oferta se guarda como comuna + región; la cobertura múltiple quedó desactivada en producto.
+                  </span>
                 ) : null}
               </DialogDescription>
             </DialogHeader>
@@ -843,69 +796,6 @@ const Profile = () => {
                             ))}
                       </SelectContent>
                     </Select>
-                  </div>
-                </div>
-                <div>
-                  <p className="text-xs font-medium text-muted-foreground mb-2">Zonas de desplazamiento (opcional)</p>
-                  <div className="space-y-2">
-                    <Select
-                      value={editCoveragePickRegion}
-                      onValueChange={(val) => {
-                        setEditCoveragePickRegion(val);
-                        setEditServiceCoverageCommunes((prev) =>
-                          filterCommunesToRegion(prev, val)
-                        );
-                      }}
-                      disabled={isSavingService}
-                    >
-                      <SelectTrigger className="rounded-xl">
-                        <SelectValue placeholder="Elegir región para marcar comunas" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {chileData.map((reg) => (
-                          <SelectItem key={reg.id} value={reg.id}>
-                            {reg.name}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                    {editCoveragePickRegion && (
-                      <ScrollArea className="h-40 rounded-xl border bg-muted/20 p-2">
-                        <div className="grid grid-cols-2 gap-2 pr-2">
-                          {chileData
-                            .find((r) => String(r.id) === String(editCoveragePickRegion))
-                            ?.communes.map((c) => (
-                              <div key={c} className="flex items-center gap-2">
-                                <Checkbox
-                                  id={`cov-prof-${editCoveragePickRegion}-${c}`}
-                                  checked={editServiceCoverageCommunes.includes(c)}
-                                  disabled={isSavingService}
-                                  onCheckedChange={(checked) => {
-                                    if (checked) {
-                                      setEditServiceCoverageCommunes([...editServiceCoverageCommunes, c]);
-                                    } else {
-                                      setEditServiceCoverageCommunes(
-                                        editServiceCoverageCommunes.filter((x) => x !== c)
-                                      );
-                                    }
-                                  }}
-                                />
-                                <label
-                                  htmlFor={`cov-prof-${editCoveragePickRegion}-${c}`}
-                                  className="text-xs cursor-pointer truncate"
-                                >
-                                  {c}
-                                </label>
-                              </div>
-                            ))}
-                        </div>
-                      </ScrollArea>
-                    )}
-                    {editServiceCoverageCommunes.length > 0 && (
-                      <p className="text-[11px] text-muted-foreground">
-                        {editServiceCoverageCommunes.length} comuna(s) seleccionada(s)
-                      </p>
-                    )}
                   </div>
                 </div>
               </div>

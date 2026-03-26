@@ -9,9 +9,9 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Badge } from '@/components/ui/badge';
 import { useUser } from '@/contexts/UserContext';
 import { useTranslation } from 'react-i18next';
-import { Wrench, AlertCircle, MapPin, Edit, Sparkles, Loader2 } from 'lucide-react';
+import { Wrench, AlertCircle, MapPin, Edit, Sparkles, Loader2, X } from 'lucide-react';
 import { toast } from 'sonner';
-import { servicesAPI, packagesAPI, configAPI, aiAPI } from '@/lib/api';
+import { servicesAPI, packagesAPI, configAPI, aiAPI, regionsAPI } from '@/lib/api';
 import {
   isValidTextField,
   validatePhone,
@@ -20,13 +20,13 @@ import {
   getValidationErrorMessage
 } from '@/lib/input-validator';
 import PackagesModal from '@/components/PackagesModal';
-import { chileData } from '@/lib/chile-data';
 import {
-  buildServiceRegionPayload,
-  filterCommunesToRegion,
-  resolveComunaForOfferRegionApi,
   resolveOriginLocation,
+  buildServiceRegionPayload,
+  resolveComunaForOfferRegionApi,
 } from '@/lib/chile-region-helpers';
+import { loadRegionOptionsSorted, type RegionOption } from '@/lib/regions-catalog';
+import { catalogFetchUserMessage } from '@/lib/catalog-fetch-errors';
 import {
   Select,
   SelectContent,
@@ -36,7 +36,18 @@ import {
 } from "@/components/ui/select";
 import { Checkbox } from '@/components/ui/checkbox';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { X } from 'lucide-react';
+
+/** Solo filas cuya region_id coincide con la región pedida (evita datos cruzados si la BD responde mal). */
+function communesNamesFromApiResponse(
+  rid: string,
+  r: { region_id: number; communes: { name: string; region_id: number }[] }
+): string[] | null {
+  if (Number(r.region_id) !== Number(rid)) return null;
+  const names = r.communes
+    .filter((c) => Number(c.region_id) === Number(rid))
+    .map((c) => c.name);
+  return names.length > 0 ? names : null;
+}
 
 const PostService = () => {
   const { user, isLoggedIn } = useUser();
@@ -47,8 +58,22 @@ const PostService = () => {
   const [comuna, setComuna] = useState(user?.comuna || ''); // Comuna base
   const [baseRegion, setBaseRegion] = useState('');
   const [phone, setPhone] = useState(user?.phone || '');
-  const [coverageCommunes, setCoverageCommunes] = useState<string[]>([]);
+  const [baseCommunesCatalog, setBaseCommunesCatalog] = useState<string[]>([]);
   const [coverageRegion, setCoverageRegion] = useState('');
+  const [coverageCommunes, setCoverageCommunes] = useState<string[]>([]);
+  const [coverageCommunesCatalog, setCoverageCommunesCatalog] = useState<string[]>([]);
+  const latestBaseRegionRef = useRef('');
+  const latestCoverageRegionRef = useRef('');
+  const [apiRegions, setApiRegions] = useState<RegionOption[]>([]);
+  const [regionsLoading, setRegionsLoading] = useState(true);
+  const [regionsError, setRegionsError] = useState<string | null>(null);
+  const [regionsRetryKey, setRegionsRetryKey] = useState(0);
+  const [baseCommunesError, setBaseCommunesError] = useState<string | null>(null);
+  const [baseCommunesRetryKey, setBaseCommunesRetryKey] = useState(0);
+  const [coverageCommunesError, setCoverageCommunesError] = useState<string | null>(null);
+  const [coverageCommunesRetryKey, setCoverageCommunesRetryKey] = useState(0);
+  const [loadingBaseCommunes, setLoadingBaseCommunes] = useState(false);
+  const [loadingCoverageCommunes, setLoadingCoverageCommunes] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [packagesModalOpen, setPackagesModalOpen] = useState(false);
   const [editBaseLocation, setEditBaseLocation] = useState(false);
@@ -78,6 +103,34 @@ const PostService = () => {
     navigate('/registro');
     return null;
   }
+
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      setRegionsLoading(true);
+      setRegionsError(null);
+      try {
+        const list = await loadRegionOptionsSorted();
+        if (cancelled) return;
+        setApiRegions(list);
+        if (list.length === 0) {
+          setRegionsError(
+            'No recibimos regiones desde el servidor. Puede ser un fallo temporal; no asumimos que el catálogo esté vacío.'
+          );
+        }
+      } catch (e) {
+        if (!cancelled) {
+          setApiRegions([]);
+          setRegionsError(catalogFetchUserMessage(e));
+        }
+      } finally {
+        if (!cancelled) setRegionsLoading(false);
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [regionsRetryKey]);
 
   useEffect(() => {
     if (isLoggedIn && (user?.roles.includes('entrepreneur') || user?.role_number === 5)) {
@@ -114,9 +167,106 @@ const PostService = () => {
   useEffect(() => {
     if (user) {
       if (user.comuna) setComuna(user.comuna);
-      if (user.region_id) setBaseRegion(user.region_id);
+      if (user.region_id) {
+        setBaseRegion(user.region_id);
+        setCoverageRegion(user.region_id);
+      }
     }
   }, [user]);
+
+  latestBaseRegionRef.current = baseRegion;
+  latestCoverageRegionRef.current = coverageRegion;
+
+  const regionLabel = (id: string) => apiRegions.find((r) => r.id === String(id))?.name;
+
+  const regionsCatalogUsable = !regionsLoading && !regionsError && apiRegions.length > 0;
+
+  /** Solo datos del API: chile-data usa otros numéricos de región y rompe RM vs Aysén. */
+  const baseCommunesForUi = baseCommunesCatalog;
+
+  useEffect(() => {
+    if (!baseRegion) {
+      setBaseCommunesCatalog([]);
+      setLoadingBaseCommunes(false);
+      setBaseCommunesError(null);
+      return;
+    }
+    setBaseCommunesCatalog([]);
+    setBaseCommunesError(null);
+    setLoadingBaseCommunes(true);
+    let cancelled = false;
+    const rid = String(baseRegion);
+    (async () => {
+      try {
+        const r = await regionsAPI.getCommunesByRegion(rid);
+        if (cancelled || latestBaseRegionRef.current !== rid) return;
+        const names = communesNamesFromApiResponse(rid, r);
+        if (names) {
+          setBaseCommunesCatalog(names);
+        } else {
+          setBaseCommunesCatalog([]);
+          setBaseCommunesError(
+            'La respuesta de comunas no coincide con la región o está vacía. Reintenta o cambia de región.'
+          );
+        }
+      } catch (e) {
+        if (!cancelled && latestBaseRegionRef.current === rid) {
+          setBaseCommunesCatalog([]);
+          setBaseCommunesError(catalogFetchUserMessage(e));
+        }
+      } finally {
+        if (!cancelled && latestBaseRegionRef.current === rid) {
+          setLoadingBaseCommunes(false);
+        }
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [baseRegion, baseCommunesRetryKey]);
+
+  const coverageCommunesForUi = coverageCommunesCatalog;
+
+  useEffect(() => {
+    if (!coverageRegion) {
+      setCoverageCommunesCatalog([]);
+      setLoadingCoverageCommunes(false);
+      setCoverageCommunesError(null);
+      return;
+    }
+    setCoverageCommunesCatalog([]);
+    setCoverageCommunesError(null);
+    setLoadingCoverageCommunes(true);
+    let cancelled = false;
+    const rid = String(coverageRegion);
+    (async () => {
+      try {
+        const r = await regionsAPI.getCommunesByRegion(rid);
+        if (cancelled || latestCoverageRegionRef.current !== rid) return;
+        const names = communesNamesFromApiResponse(rid, r);
+        if (names) {
+          setCoverageCommunesCatalog(names);
+        } else {
+          setCoverageCommunesCatalog([]);
+          setCoverageCommunesError(
+            'La respuesta de comunas no coincide con la región o está vacía. Reintenta o cambia de región.'
+          );
+        }
+      } catch (e) {
+        if (!cancelled && latestCoverageRegionRef.current === rid) {
+          setCoverageCommunesCatalog([]);
+          setCoverageCommunesError(catalogFetchUserMessage(e));
+        }
+      } finally {
+        if (!cancelled && latestCoverageRegionRef.current === rid) {
+          setLoadingCoverageCommunes(false);
+        }
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [coverageRegion, coverageCommunesRetryKey]);
 
   const loadUserLimits = async () => {
     try {
@@ -251,29 +401,30 @@ const PostService = () => {
         return;
       }
 
-      const { payload: loc, error: locError } = buildServiceRegionPayload(
-        coverageRegion,
-        coverageCommunes,
-        origin.region_id
-      );
-      if (locError) {
-        toast.error(locError);
+      const hasCoverage = coverageCommunes.length > 0;
+      const regionBuild = hasCoverage
+        ? buildServiceRegionPayload(
+            coverageRegion || origin.region_id,
+            coverageCommunes,
+            origin.region_id
+          )
+        : buildServiceRegionPayload('', [], origin.region_id);
+
+      if (regionBuild.error) {
+        toast.error(regionBuild.error);
         return;
       }
 
-      const comunaForApi = resolveComunaForOfferRegionApi(
+      const { region_id: offerRegionId, coverage_communes: coveragePayload } = regionBuild.payload;
+
+      const comunaRes = resolveComunaForOfferRegionApi(
         origin.comuna,
-        loc.region_id,
-        loc.coverage_communes
+        offerRegionId,
+        coveragePayload
       );
-      if ('error' in comunaForApi) {
-        toast.error(comunaForApi.error);
+      if ('error' in comunaRes) {
+        toast.error(comunaRes.error);
         return;
-      }
-      if (comunaForApi.usedCoverageFallback) {
-        toast.message(
-          'La comuna de origen no está en la región de oferta; usamos una comuna de tu cobertura para registrar el servicio.'
-        );
       }
 
       const response = await servicesAPI.createService({
@@ -284,10 +435,10 @@ const PostService = () => {
             ? sanitizeInput(customServiceName.trim(), 100)
             : undefined,
         description: sanitizeInput(description, 2000),
-        comuna: comunaForApi.comuna,
+        comuna: comunaRes.comuna,
         phone: phone ? sanitizeInput(phone, 20) : undefined,
-        region_id: loc.region_id,
-        coverage_communes: loc.coverage_communes,
+        region_id: offerRegionId,
+        coverage_communes: coveragePayload ?? [],
       });
 
       toast.success(t('post_service.service_submitted'));
@@ -391,6 +542,30 @@ const PostService = () => {
               </Alert>
             )}
 
+            {regionsLoading && (
+              <div className="mb-6 flex items-center gap-2 text-sm text-muted-foreground">
+                <Loader2 className="h-4 w-4 animate-spin shrink-0" aria-hidden />
+                <span>Cargando catálogo de regiones…</span>
+              </div>
+            )}
+            {!regionsLoading && regionsError && (
+              <Alert variant="destructive" className="mb-6">
+                <AlertCircle className="h-4 w-4" />
+                <AlertDescription className="flex flex-wrap items-center gap-3">
+                  <span>{regionsError}</span>
+                  <Button
+                    type="button"
+                    size="sm"
+                    variant="outline"
+                    className="shrink-0 border-destructive/40"
+                    onClick={() => setRegionsRetryKey((k) => k + 1)}
+                  >
+                    Reintentar
+                  </Button>
+                </AlertDescription>
+              </Alert>
+            )}
+
             <form onSubmit={handleSubmit} className="space-y-6">
               <div className="space-y-4">
                 <Label>{t('post_service.service_label')}</Label>
@@ -449,6 +624,9 @@ const PostService = () => {
                   <div className="flex flex-col gap-1">
                     <Label className="text-base font-semibold">{t('post_service.origin_location')}</Label>
                     <p className="text-xs text-muted-foreground">{t('post_service.base_location_desc')}</p>
+                    <p className="text-[11px] text-muted-foreground/90 mt-1">
+                      Tu comuna y región de origen. Más abajo puedes marcar otras comunas de la misma región donde te desplazas.
+                    </p>
                   </div>
                   {!editBaseLocation && (
                     <Button
@@ -468,7 +646,9 @@ const PostService = () => {
                   <div className="flex items-center gap-2">
                     <Badge variant="outline" className="bg-background py-1.5 px-3 border-primary/20 flex items-center gap-2 text-sm">
                       <MapPin size={14} className="text-primary" />
-                      {baseRegion && chileData.find(r => r.id === baseRegion)?.name}
+                      {baseRegion &&
+                        (regionLabel(baseRegion) ??
+                          (regionsLoading ? '…' : baseRegion ? `Región ${baseRegion}` : ''))}
                       {baseRegion && ' - '}
                       {comuna || t('common.loading')}
                     </Badge>
@@ -477,15 +657,29 @@ const PostService = () => {
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2">
                     <div>
                       <Label htmlFor="baseRegion" className="text-xs">Región *</Label>
-                      <Select value={baseRegion} onValueChange={(val) => {
+                      <Select
+                        value={baseRegion}
+                        disabled={!regionsCatalogUsable}
+                        onValueChange={(val) => {
                         setBaseRegion(val);
                         setComuna('');
-                      }}>
+                        setCoverageRegion(val);
+                        setCoverageCommunes([]);
+                      }}
+                      >
                         <SelectTrigger id="baseRegion" className="h-9">
-                          <SelectValue placeholder={t('services.region_placeholder')} />
+                          <SelectValue
+                            placeholder={
+                              regionsLoading
+                                ? 'Cargando regiones…'
+                                : regionsError
+                                  ? 'Regiones no disponibles'
+                                  : t('services.region_placeholder')
+                            }
+                          />
                         </SelectTrigger>
                         <SelectContent>
-                          {chileData.map((reg) => (
+                          {apiRegions.map((reg) => (
                             <SelectItem key={reg.id} value={reg.id}>{reg.name}</SelectItem>
                           ))}
                         </SelectContent>
@@ -493,16 +687,51 @@ const PostService = () => {
                     </div>
                     <div>
                       <Label htmlFor="comuna" className="text-xs">{t('wall.comuna')} *</Label>
-                      <Select value={comuna} onValueChange={setComuna} disabled={!baseRegion}>
+                      <Select
+                        value={comuna}
+                        onValueChange={setComuna}
+                        disabled={
+                          !baseRegion ||
+                          loadingBaseCommunes ||
+                          !!baseCommunesError ||
+                          baseCommunesForUi.length === 0
+                        }
+                      >
                         <SelectTrigger id="comuna" className="h-9">
-                          <SelectValue placeholder={t('services.comuna_placeholder')} />
+                          <SelectValue
+                            placeholder={
+                              loadingBaseCommunes ? 'Cargando comunas…' : t('services.comuna_placeholder')
+                            }
+                          />
                         </SelectTrigger>
                         <SelectContent>
-                          {baseRegion && chileData.find(r => String(r.id) === String(baseRegion))?.communes.map((c) => (
+                          {baseRegion && baseCommunesForUi.map((c) => (
                             <SelectItem key={c} value={c}>{c}</SelectItem>
                           ))}
                         </SelectContent>
                       </Select>
+                      {loadingBaseCommunes && baseRegion && (
+                        <p className="text-xs text-muted-foreground mt-1.5 flex items-center gap-1.5">
+                          <Loader2 className="h-3 w-3 animate-spin shrink-0" aria-hidden />
+                          Cargando comunas de la región…
+                        </p>
+                      )}
+                      {baseCommunesError && (
+                        <Alert variant="destructive" className="mt-2 py-2">
+                          <AlertDescription className="flex flex-wrap items-center gap-2 text-sm">
+                            <span>{baseCommunesError}</span>
+                            <Button
+                              type="button"
+                              size="sm"
+                              variant="outline"
+                              className="shrink-0 h-7 text-xs border-destructive/40"
+                              onClick={() => setBaseCommunesRetryKey((k) => k + 1)}
+                            >
+                              Reintentar
+                            </Button>
+                          </AlertDescription>
+                        </Alert>
+                      )}
                     </div>
                     <div className="sm:col-span-2">
                       <Button
@@ -513,7 +742,11 @@ const PostService = () => {
                         onClick={() => {
                           setEditBaseLocation(false);
                           if (user?.comuna) setComuna(user.comuna);
-                          if (user?.region_id) setBaseRegion(user.region_id);
+                          if (user?.region_id) {
+                            setBaseRegion(user.region_id);
+                            setCoverageRegion(user.region_id);
+                            setCoverageCommunes([]);
+                          }
                         }}
                       >
                         {t('post_service.reset_location')}
@@ -523,90 +756,141 @@ const PostService = () => {
                 )}
               </div>
 
-              <div className="space-y-4 p-4 border rounded-lg bg-muted/30">
-                <div className="flex flex-col gap-1">
-                  <Label className="text-base font-semibold">{t('post_service.coverage_zone')}</Label>
-                  <p className="text-xs text-muted-foreground">{t('post_service.coverage_desc')}</p>
+              <div className="space-y-4 p-4 border rounded-xl bg-muted/30">
+                <div className="space-y-1">
+                  <Label className="text-base font-semibold">Zona de desplazamiento (opcional)</Label>
+                  <p className="text-xs text-muted-foreground">
+                    Marca las comunas adicionales donde atiendes dentro de la región. Si no marcas ninguna, solo se usa tu ubicación de origen.
+                  </p>
                 </div>
-
-                <div className="space-y-4">
-                  <div>
-                    <Label htmlFor="coverageRegion" className="text-xs">{t('post_service.coverage_region_label')}</Label>
-                    <Select
-                      value={coverageRegion}
-                      onValueChange={(val) => {
-                        setCoverageRegion(val);
-                        setCoverageCommunes((prev) =>
-                          filterCommunesToRegion(prev, val)
-                        );
-                      }}
-                    >
-                      <SelectTrigger id="coverageRegion" className="h-8">
-                        <SelectValue placeholder={t('post_service.choose_region')} />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {chileData.map((reg) => (
-                          <SelectItem key={reg.id} value={reg.id}>{reg.name}</SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-
-                  {coverageRegion && (
-                    <div className="space-y-2">
-                      <Label className="text-xs">{t('post_service.communes_in_region')}</Label>
-                      <ScrollArea className="h-48 border rounded-md p-2 bg-background">
-                        <div className="grid grid-cols-2 gap-2">
-                          {chileData.find(r => String(r.id) === String(coverageRegion))?.communes.map((c) => (
-                            <div key={c} className="flex items-center space-x-2">
-                              <Checkbox
-                                id={`cov-${coverageRegion}-${c}`}
-                                checked={coverageCommunes.includes(c)}
-                                onCheckedChange={(checked) => {
-                                  if (checked) {
-                                    setCoverageCommunes([...coverageCommunes, c]);
-                                  } else {
-                                    setCoverageCommunes(coverageCommunes.filter(item => item !== c));
-                                  }
-                                }}
-                              />
-                              <label htmlFor={`cov-${coverageRegion}-${c}`} className="text-sm cursor-pointer truncate">{c}</label>
-                            </div>
-                          ))}
-                        </div>
-                      </ScrollArea>
-                    </div>
-                  )}
-
-                  {coverageCommunes.length > 0 && (
-                    <div className="pt-2">
-                      <Label className="text-xs mb-2 block">{t('post_service.selected_communes', { count: coverageCommunes.length })}:</Label>
-                      <div className="flex flex-wrap gap-1">
-                        {coverageCommunes.map(c => (
-                          <Badge key={c} variant="secondary" className="pl-2 pr-1 h-6 flex items-center gap-1">
+                <div>
+                  <Label htmlFor="coverageRegion" className="text-xs">Región de cobertura</Label>
+                  <Select
+                    value={coverageRegion}
+                    disabled={!regionsCatalogUsable}
+                    onValueChange={(rid) => {
+                      setCoverageRegion(rid);
+                      setCoverageCommunes([]);
+                    }}
+                  >
+                    <SelectTrigger id="coverageRegion" className="h-9 mt-1">
+                      <SelectValue
+                        placeholder={
+                          regionsLoading
+                            ? 'Cargando regiones…'
+                            : regionsError
+                              ? 'Regiones no disponibles'
+                              : t('services.region_placeholder')
+                        }
+                      />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {apiRegions.map((reg) => (
+                        <SelectItem key={reg.id} value={reg.id}>{reg.name}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                {coverageRegion && (
+                  <>
+                    {coverageCommunesError && (
+                      <Alert variant="destructive" className="py-2">
+                        <AlertDescription className="flex flex-wrap items-center gap-2 text-sm">
+                          <span>{coverageCommunesError}</span>
+                          <Button
+                            type="button"
+                            size="sm"
+                            variant="outline"
+                            className="shrink-0 h-7 text-xs border-destructive/40"
+                            onClick={() => setCoverageCommunesRetryKey((k) => k + 1)}
+                          >
+                            Reintentar
+                          </Button>
+                        </AlertDescription>
+                      </Alert>
+                    )}
+                    {coverageCommunes.length > 0 && (
+                      <div className="flex flex-wrap gap-2">
+                        {coverageCommunes.map((c) => (
+                          <Badge
+                            key={c}
+                            variant="secondary"
+                            className="pl-2 pr-1 py-1 gap-1 font-normal"
+                          >
                             {c}
                             <button
                               type="button"
-                              onClick={() => setCoverageCommunes(coverageCommunes.filter(item => item !== c))}
-                              className="bg-muted-foreground/20 rounded-full p-0.5 hover:bg-muted-foreground/40"
+                              className="rounded-full p-0.5 hover:bg-muted"
+                              aria-label={`Quitar ${c}`}
+                              onClick={() =>
+                                setCoverageCommunes((prev) => prev.filter((x) => x !== c))
+                              }
                             >
-                              <X size={10} />
+                              <X className="h-3.5 w-3.5" />
                             </button>
                           </Badge>
                         ))}
-                        <Button
-                          type="button"
-                          variant="ghost"
-                          size="sm"
-                          className="h-6 text-[10px] text-destructive hover:text-destructive"
-                          onClick={() => setCoverageCommunes([])}
-                        >
-                          {t('post_service.clear_all')}
-                        </Button>
                       </div>
+                    )}
+                    <div className="flex flex-wrap items-center gap-2">
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        className="h-8 text-xs"
+                        disabled={
+                          loadingCoverageCommunes ||
+                          !!coverageCommunesError ||
+                          coverageCommunesForUi.length === 0
+                        }
+                        onClick={() => {
+                          if (coverageCommunes.length === coverageCommunesForUi.length) {
+                            setCoverageCommunes([]);
+                          } else {
+                            setCoverageCommunes([...coverageCommunesForUi]);
+                          }
+                        }}
+                      >
+                        {coverageCommunes.length === coverageCommunesForUi.length
+                          ? 'Quitar todas'
+                          : 'Seleccionar todas'}
+                      </Button>
                     </div>
-                  )}
-                </div>
+                    <ScrollArea className="h-[200px] rounded-md border p-3">
+                      <div className="space-y-2 pr-3">
+                        {loadingCoverageCommunes && (
+                          <div className="flex items-center gap-2 text-sm text-muted-foreground py-3">
+                            <Loader2 className="h-4 w-4 animate-spin shrink-0" aria-hidden />
+                            <span>Cargando comunas…</span>
+                          </div>
+                        )}
+                        {!loadingCoverageCommunes &&
+                          !coverageCommunesError &&
+                          coverageCommunesForUi.length === 0 && (
+                          <p className="text-sm text-muted-foreground py-2">
+                            No hay comunas para mostrar.
+                          </p>
+                        )}
+                        {coverageCommunesForUi.map((c) => (
+                          <label
+                            key={c}
+                            className="flex items-center gap-2 text-sm cursor-pointer"
+                          >
+                            <Checkbox
+                              checked={coverageCommunes.includes(c)}
+                              onCheckedChange={() => {
+                                setCoverageCommunes((prev) =>
+                                  prev.includes(c) ? prev.filter((x) => x !== c) : [...prev, c]
+                                );
+                              }}
+                            />
+                            <span>{c}</span>
+                          </label>
+                        ))}
+                      </div>
+                    </ScrollArea>
+                  </>
+                )}
               </div>
 
               <div>

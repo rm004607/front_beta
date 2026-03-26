@@ -12,6 +12,22 @@ interface RequestOptions extends RequestInit {
   skipAuth?: boolean;
 }
 
+/** Misma forma Unicode que el backend suele guardar (evita 400 por NFC vs NFD). */
+function normalizeCommuneFields<T extends { comuna?: string; coverage_communes?: string[] }>(
+  data: T
+): T {
+  const nfc = (s: string) => s.normalize('NFC').trim();
+  return {
+    ...data,
+    ...(data.comuna != null ? { comuna: nfc(data.comuna) } : {}),
+    ...(data.coverage_communes != null && data.coverage_communes.length > 0
+      ? { coverage_communes: data.coverage_communes.map(nfc) }
+      : data.coverage_communes != null
+        ? { coverage_communes: data.coverage_communes }
+        : {}),
+  };
+}
+
 // Helper para hacer peticiones
 async function request<T>(
   endpoint: string,
@@ -105,6 +121,21 @@ async function request<T>(
 
   return response.json();
 }
+
+/** Catálogo de regiones/comunas (misma fuente que valida POST /services en el backend). */
+export const regionsAPI = {
+  getRegions: async () =>
+    request<{ regions: { id: number; name: string }[]; source?: string }>('/api/regions', {
+      method: 'GET',
+      skipAuth: true,
+    }),
+  getCommunesByRegion: async (regionId: string) =>
+    request<{
+      region_id: number;
+      communes: { id: number; name: string; region_id: number }[];
+      source?: string;
+    }>(`/api/regions/${regionId}/communes`, { method: 'GET', skipAuth: true }),
+};
 
 // API de autenticación
 export const authAPI = {
@@ -402,6 +433,10 @@ export const servicesAPI = {
     service_type_ids?: string[];
     custom_service_name?: string;
   }) => {
+    const payload = normalizeCommuneFields({
+      ...data,
+      ...(data.region_id != null ? { region_id: String(data.region_id) } : {}),
+    });
     return request<{
       message: string;
       service: {
@@ -413,7 +448,7 @@ export const servicesAPI = {
       };
     }>('/services', {
       method: 'POST',
-      body: JSON.stringify(data),
+      body: JSON.stringify(payload),
     });
   },
 
@@ -461,9 +496,13 @@ export const servicesAPI = {
     coverage_communes?: string[];
     status?: 'active' | 'inactive' | 'suspended';
   }) => {
+    const payload = normalizeCommuneFields({
+      ...data,
+      ...(data.region_id != null ? { region_id: String(data.region_id) } : {}),
+    });
     return request<{ message: string; service?: any }>(`/services/${id}`, {
       method: 'PUT',
-      body: JSON.stringify(data),
+      body: JSON.stringify(payload),
     });
   },
 

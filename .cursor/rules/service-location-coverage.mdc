@@ -1,5 +1,5 @@
 ---
-description: Región y comunas de cobertura de servicios (evitar desalineación API)
+description: Ubicación del servicio (solo origen; sin cobertura multi-comuna en formularios)
 globs:
   - "**/PostService.tsx"
   - "**/Profile.tsx"
@@ -7,9 +7,8 @@ globs:
 alwaysApply: false
 ---
 
-# Cobertura de servicios (región + comunas)
+# Ubicación del servicio
 
-- **No** armar `region_id` y `coverage_communes` a mano en formularios. Usar siempre `buildServiceRegionPayload` desde `@/lib/chile-region-helpers`.
-- Al cambiar la región del selector de cobertura, filtrar comunas con `filterCommunesToRegion` (no dejar comunas “huérfanas” de otra región).
-- IDs de checkbox de cobertura deben incluir el `regionId` en el `id`/`htmlFor` para no colisionar entre regiones.
+- Publicar/editar servicio: **solo** región + comuna de **origen** (`resolveOriginLocation` + catálogo API `regionsAPI` cuando aplique). No hay bloque de “zona de cobertura” en el front.
+- Enviar `coverage_communes: []` en POST/PUT para dejar explícito “sin cobertura extendida” alineado con el backend.
 - Listados de servicios: no disparar `getServices` antes de conocer el estado de auth si eso provoca carreras; usar un solo efecto coherente con `latestLoadRequestId` donde aplique.

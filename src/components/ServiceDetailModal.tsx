@@ -2,7 +2,7 @@ import { Star, MapPin, MessageCircle, Sparkles } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { DialogTitle } from '@/components/ui/dialog';
-import { getServiceIcon, getServiceColor, isLightColor, getServiceRegionDisplayName } from '@/lib/serviceUtils';
+import { getServiceIcon, getServiceColor, isLightColor, getServiceLocationDisplay } from '@/lib/serviceUtils';
 
 export interface ServiceForDetail {
   id: string;
@@ -84,9 +84,9 @@ export function ServiceDetailModalContent({ service, onClose, onOpenReviews, onW
               <div className="flex flex-col gap-1 bg-secondary/5 p-4 rounded-2xl border border-secondary/10">
                 <div className="flex items-center gap-2 text-secondary">
                   <MapPin size={18} />
-                  <span className="text-[11px] font-black uppercase tracking-widest">Región de oferta</span>
+                  <span className="text-[11px] font-black uppercase tracking-widest">Ubicación</span>
                 </div>
-                <span className="font-bold text-sm ml-7">{getServiceRegionDisplayName(service)}</span>
+                <span className="font-bold text-sm ml-7 leading-snug">{getServiceLocationDisplay(service)}</span>
               </div>
               <div className="flex flex-col gap-1 bg-primary/5 p-4 rounded-2xl border border-primary/10">
                 <div className="flex items-center gap-2 text-primary">
@@ -131,9 +131,9 @@ export function ServiceDetailModalContent({ service, onClose, onOpenReviews, onW
               <div className="flex flex-col gap-1 bg-secondary/5 p-4 rounded-2xl border border-secondary/10">
                 <div className="flex items-center gap-2 text-secondary">
                   <MapPin size={18} />
-                  <span className="text-[11px] font-black uppercase tracking-widest">Región de oferta</span>
+                  <span className="text-[11px] font-black uppercase tracking-widest">Ubicación</span>
                 </div>
-                <span className="font-bold text-sm ml-7">{getServiceRegionDisplayName(service)}</span>
+                <span className="font-bold text-sm ml-7 leading-snug">{getServiceLocationDisplay(service)}</span>
               </div>
               <div className="flex flex-col gap-1 bg-primary/5 p-4 rounded-2xl border border-primary/10">
                 <div className="flex items-center gap-2 text-primary">
@@ -146,7 +146,7 @@ export function ServiceDetailModalContent({ service, onClose, onOpenReviews, onW
 
             {service.coverage_communes && service.coverage_communes.length > 0 && (
               <div className="bg-muted/30 p-6 rounded-[2rem] border border-border/40">
-                <h4 className="text-[11px] font-black uppercase tracking-[0.2em] text-muted-foreground mb-3 px-1">Zonas de Cobertura</h4>
+                <h4 className="text-[11px] font-black uppercase tracking-[0.2em] text-muted-foreground mb-3 px-1">Cobertura adicional (histórico)</h4>
                 <div className="flex flex-wrap gap-2">
                   {service.coverage_communes.map((commune, index) => (
                     <span key={index} className="bg-background px-3 py-1 rounded-lg border border-border text-xs font-bold text-foreground">

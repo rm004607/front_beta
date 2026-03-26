@@ -22,7 +22,7 @@ import { useTranslation } from 'react-i18next';
 import { servicesAPI, supportAPI } from '@/lib/api';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import logoFull from '/logo_nombre.webp';
-import { getServiceIcon, getServiceColor, isLightColor, getServiceRegionDisplayName } from '@/lib/serviceUtils';
+import { getServiceIcon, getServiceColor, isLightColor, getServiceLocationDisplay } from '@/lib/serviceUtils';
 import { toast } from 'sonner';
 import { Mail, Send } from 'lucide-react';
 import { cn } from '@/lib/utils';
@@ -542,7 +542,7 @@ const Home = () => {
                               </div>
                               <div className="flex items-center gap-2 text-primary/60 bg-primary/5 px-3 py-1.5 rounded-xl border border-primary/10">
                                 <MapPin size={16} />
-                                <span className="text-xs font-bold">{getServiceRegionDisplayName(service)}</span>
+                                <span className="text-xs font-bold">{getServiceLocationDisplay(service)}</span>
                               </div>
                             </div>
                           </CardContent>

@@ -1,5 +1,3 @@
-import { chileData } from '@/lib/chile-data';
-
 function normalizeLabel(s: string): string {
   return s.normalize('NFC').trim();
 }
@@ -8,7 +6,7 @@ function stripAccents(s: string): string {
   return s.normalize('NFD').replace(/\p{M}/gu, '');
 }
 
-/** Misma comuna aunque varíe mayúsculas o espacios; útil vs backend que normaliza distinto. */
+/** Misma comuna aunque varíe mayúsculas o espacios. */
 export function communesMatch(a: string, b: string): boolean {
   const x = normalizeLabel(a);
   const y = normalizeLabel(b);
@@ -17,114 +15,25 @@ export function communesMatch(a: string, b: string): boolean {
   return stripAccents(x).toLowerCase() === stripAccents(y).toLowerCase();
 }
 
-export function getCommunesForRegion(regionId: string): string[] {
-  return chileData.find((r) => String(r.id) === String(regionId))?.communes ?? [];
-}
-
 /**
- * Devuelve el nombre exacto del catálogo (chile-data) para esa región.
- * Evita 400 por diferencias Unicode o tildes vs el backend.
- */
-export function canonicalizeCommuneInRegion(name: string, regionId: string): string | null {
-  const list = getCommunesForRegion(regionId);
-  if (!normalizeLabel(name)) return null;
-  for (const c of list) {
-    if (communesMatch(c, name)) return c;
-  }
-  return null;
-}
-
-/** Regiones cuyo listado incluye esta comuna (puede haber homónimos raros). */
-export function findRegionIdsContainingCommune(comuna: string): string[] {
-  const ids: string[] = [];
-  for (const reg of chileData) {
-    if (reg.communes.some((c) => communesMatch(c, comuna))) ids.push(reg.id);
-  }
-  return ids;
-}
-
-/**
- * Comuna de origen + región base coherentes con el catálogo.
- * `baseRegionId` puede venir vacío: se infiere por la comuna.
+ * Ubicación de origen: la comuna no tiene que figurar en el catálogo de la región elegida.
+ * El usuario elige región y comuna en la UI; enviamos esos valores tal cual (normalizados NFC).
+ *
+ * @param _catalog reservado por compatibilidad con llamadas existentes; ya no se usa.
  */
 export function resolveOriginLocation(
   comunaRaw: string,
-  baseRegionId: string
+  baseRegionId: string,
+  _catalog?: Record<string, string[]>
 ): { region_id: string; comuna: string } | { error: string } {
   const trimmed = normalizeLabel(comunaRaw);
   if (!trimmed) return { error: 'Indica una comuna de origen válida.' };
 
-  let rid = String(baseRegionId || '').trim();
-  if (rid) {
-    const canon = canonicalizeCommuneInRegion(trimmed, rid);
-    if (canon) return { region_id: rid, comuna: canon };
+  const rid = String(baseRegionId || '').trim();
+  if (!rid) {
+    return { error: 'Selecciona una región.' };
   }
-
-  const candidates = findRegionIdsContainingCommune(trimmed);
-  if (candidates.length === 0) {
-    return { error: 'No reconocemos esa comuna. Elige la comuna desde el listado.' };
-  }
-  if (candidates.length === 1) {
-    const r = candidates[0];
-    const c = canonicalizeCommuneInRegion(trimmed, r);
-    if (!c) return { error: 'Comuna no válida para la región.' };
-    return { region_id: r, comuna: c };
-  }
-
-  if (rid && candidates.includes(rid)) {
-    const c = canonicalizeCommuneInRegion(trimmed, rid);
-    if (c) return { region_id: rid, comuna: c };
-  }
-
-  return {
-    error:
-      'Tu comuna aparece en más de una región en el catálogo. Usa “Cambiar ubicación” y elige región y comuna desde los selectores.',
-  };
-}
-
-export function communesBelongToRegion(communeNames: string[], regionId: string): boolean {
-  if (communeNames.length === 0) return true;
-  return communeNames.every((c) => canonicalizeCommuneInRegion(c, regionId) != null);
-}
-
-/** Quita comunas que no pertenecen a la región elegida (evita datos huérfanos al cambiar de región). */
-export function filterCommunesToRegion(communeNames: string[], regionId: string): string[] {
-  const out: string[] = [];
-  const seen = new Set<string>();
-  for (const raw of communeNames) {
-    const canon = canonicalizeCommuneInRegion(raw, regionId);
-    if (canon && !seen.has(canon)) {
-      seen.add(canon);
-      out.push(canon);
-    }
-  }
-  return out;
-}
-
-/**
- * region_id del servicio debe alinear con las comunas de cobertura.
- * Si hay cobertura y la región elegida contiene todas las comunas, usa esa.
- * Si no, intenta inferir la única región que contiene todas las comunas seleccionadas.
- */
-export function resolveRegionIdForCoverage(
-  coverageCommunes: string[],
-  coverageRegion: string,
-  fallbackRegion: string
-): string {
-  if (coverageCommunes.length === 0) {
-    return coverageRegion || fallbackRegion;
-  }
-  if (coverageRegion) {
-    const allowed = getCommunesForRegion(coverageRegion);
-    if (coverageCommunes.every((c) => allowed.some((a) => communesMatch(a, c)))) {
-      return coverageRegion;
-    }
-  }
-  const matches = chileData.filter((reg) =>
-    coverageCommunes.every((c) => reg.communes.some((a) => communesMatch(a, c)))
-  );
-  if (matches.length >= 1) return matches[0].id;
-  return coverageRegion || fallbackRegion;
+  return { region_id: rid, comuna: trimmed };
 }
 
 export type ServiceRegionPayload = {
@@ -133,68 +42,71 @@ export type ServiceRegionPayload = {
 };
 
 /**
- * El backend valida que `comuna` pertenezca a `region_id` (región de oferta).
- * Si la comuna de origen/domicilio está en otra región, usamos una comuna de cobertura
- * (misma región que region_id) para que el POST no falle.
+ * `comuna` del API: primera comuna de cobertura si hay lista; si no, comuna de origen.
+ * No se exige que pertenezcan al listado de la región de oferta.
  */
 export function resolveComunaForOfferRegionApi(
   originComunaCanonical: string,
-  offerRegionId: string,
-  coverageCommunesCanonical: string[] | undefined
+  _offerRegionId: string,
+  coverageCommunesCanonical: string[] | undefined,
+  _catalog?: Record<string, string[]>
 ): { comuna: string; usedCoverageFallback: boolean } | { error: string } {
-  const rid = String(offerRegionId);
-  const inOffer = canonicalizeCommuneInRegion(originComunaCanonical, rid);
-  if (inOffer) {
-    return { comuna: inOffer, usedCoverageFallback: false };
-  }
-
   if (coverageCommunesCanonical && coverageCommunesCanonical.length > 0) {
-    const first = coverageCommunesCanonical[0];
-    const canon = canonicalizeCommuneInRegion(first, rid) ?? first;
-    return { comuna: canon, usedCoverageFallback: true };
+    const first = normalizeLabel(coverageCommunesCanonical[0]);
+    if (!first) {
+      return { error: 'Indica al menos una comuna de cobertura válida.' };
+    }
+    const origin = normalizeLabel(originComunaCanonical);
+    const usedCoverageFallback = !origin || !communesMatch(first, origin);
+    return { comuna: first, usedCoverageFallback };
   }
-
-  return {
-    error:
-      'Tu comuna de origen no está en la región donde ofreces el servicio. En “Zona de cobertura” marca al menos una comuna de esa región, o cambia la ubicación de origen.',
-  };
+  const o = normalizeLabel(originComunaCanonical);
+  if (!o) {
+    return { error: 'Indica una comuna de origen válida.' };
+  }
+  return { comuna: o, usedCoverageFallback: false };
 }
 
 /**
- * Único punto para armar region_id + cobertura hacia el API.
- * Evita enviar comunas de una región con region_id de otra.
+ * Arma region_id + cobertura sin filtrar comunas por región (pueden mezclarse listados en UI).
  */
 export function buildServiceRegionPayload(
   coverageRegion: string,
   coverageCommunes: string[],
-  fallbackRegion: string
+  fallbackRegion: string,
+  _catalog?: Record<string, string[]>
 ): { payload: ServiceRegionPayload; error?: string } {
-  const cleaned =
-    coverageRegion.length > 0
-      ? filterCommunesToRegion(coverageCommunes, coverageRegion)
-      : [...coverageCommunes];
+  const normalized = [
+    ...new Set(coverageCommunes.map((c) => normalizeLabel(c)).filter(Boolean)),
+  ];
 
-  const region_id = resolveRegionIdForCoverage(cleaned, coverageRegion, fallbackRegion);
-
-  const aligned =
-    cleaned.length > 0 ? filterCommunesToRegion(cleaned, region_id) : [];
-
-  if (cleaned.length > 0 && aligned.length === 0) {
+  if (normalized.length === 0) {
+    const fb = String(fallbackRegion || '').trim();
+    if (!fb) {
+      return {
+        payload: { region_id: '', coverage_communes: undefined },
+        error: 'Falta la región de oferta.',
+      };
+    }
     return {
-      payload: { region_id: fallbackRegion, coverage_communes: undefined },
-      error:
-        'Las comunas de cobertura no coinciden con la región seleccionada. Elige de nuevo la región y marca las comunas.',
+      payload: { region_id: fb, coverage_communes: undefined },
     };
   }
 
-  if (import.meta.env.DEV && aligned.length > 0 && !communesBelongToRegion(aligned, region_id)) {
-    console.error('[buildServiceRegionPayload] Inconsistencia interna', { aligned, region_id });
+  const cr = String(coverageRegion || '').trim();
+  const fb = String(fallbackRegion || '').trim();
+  const region_id = cr || fb;
+  if (!region_id) {
+    return {
+      payload: { region_id: '', coverage_communes: undefined },
+      error: 'Falta la región de oferta.',
+    };
   }
 
   return {
     payload: {
       region_id,
-      coverage_communes: aligned.length > 0 ? aligned : undefined,
+      coverage_communes: normalized,
     },
   };
 }
