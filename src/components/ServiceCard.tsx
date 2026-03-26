@@ -1,25 +1,12 @@
 import {
-    Star, MapPin, MessageCircle, Edit, Trash2, ChevronRight,
-    Wrench, Lightbulb, ShieldCheck, Sparkles, Building2, Truck,
-    HeartPulse, Briefcase, Paintbrush, Hammer, Scissors, Camera,
-    Laptop, ShoppingBag, ChefHat, Music, Car, Home as HomeIcon, Phone,
-    HelpCircle, Plug, PaintRoller, Flame, Utensils, Dumbbell, GraduationCap,
-    Baby, Stethoscope, Globe, Database, Smartphone, Plane,
-    Gift, Trophy, Coffee, Wallet, Trees, PawPrint, Flower2,
-    Sun, Moon, Bike, Cpu, Mouse, Monitor, Cloud, Code,
-    Languages, Book, School, HardHat, Construction, Drill,
-    PlugZap, Waves, Zap, Ticket, Video, Mic, Smile, Gamepad2,
-    Brush, Wind, Pill, Activity, Apple, Bone, Gem, Key,
-    Anchor
+    Star, MapPin, MessageCircle, ChevronRight, Sparkles,
 } from 'lucide-react';
+import { memo } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { servicesAPI, configAPI } from '@/lib/api';
-import { toast } from 'sonner';
-import { getServiceIcon, getServiceColor, isLightColor, getServiceRegionNameOnly } from '@/lib/serviceUtils';
+import { getServiceIcon, getServiceRegionNameOnly } from '@/lib/serviceUtils';
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
-import { Label } from '@/components/ui/label';
 
 interface Service {
     id: string;
@@ -57,7 +44,7 @@ interface ServiceCardProps {
     onDelete?: (service: Service) => void;
 }
 
-export const ServiceCard = ({
+export const ServiceCard = memo(({
     service,
     highlightId,
     isSuperAdmin,
@@ -162,6 +149,8 @@ export const ServiceCard = ({
             </CardContent>
         </Card>
     );
-};
+});
+
+ServiceCard.displayName = 'ServiceCard';
 
 export default ServiceCard;

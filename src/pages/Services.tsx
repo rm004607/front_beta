@@ -3,15 +3,13 @@ import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { chileData } from '@/lib/chile-data';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
-import { MapPin, Search, MessageCircle, Loader2, Plus, TrendingUp, DollarSign, Star, Globe, Wrench, X } from 'lucide-react';
+import { MapPin, Search, MessageCircle, Loader2, Plus, Star, Globe, Wrench, X } from 'lucide-react';
 import { servicesAPI, flowAPI, configAPI, reviewsAPI } from '@/lib/api';
 import { toast } from 'sonner';
 import { useUser } from '@/contexts/UserContext';
 import { useTranslation } from 'react-i18next';
-import { Label } from '@/components/ui/label';
 import { CheckCircle } from 'lucide-react';
 import {
   Dialog,
@@ -57,6 +55,19 @@ const Services = () => {
     totalPages: 0,
   });
   const latestLoadRequestId = useRef(0);
+  const servicesCacheRef = useRef(
+    new Map<
+      string,
+      {
+        timestamp: number;
+        response: {
+          services: any[];
+          pagination: { page: number; total: number; totalPages: number };
+        };
+      }
+    >()
+  );
+  const SERVICES_CACHE_TTL_MS = 30_000;
   const [listRefreshTick, setListRefreshTick] = useState(0);
 
   // Pago por contacto
@@ -81,6 +92,32 @@ const Services = () => {
   useEffect(() => {
     let cancelled = false;
     const requestId = ++latestLoadRequestId.current;
+    const cacheKey = JSON.stringify({
+      search: debouncedSearch || '',
+      comuna: comunaFilter !== 'all' ? comunaFilter : '',
+      region_id: comunaFilter === 'all' && regionFilter !== 'all' ? regionFilter : '',
+      service_type_id: typeFilter !== 'all' ? typeFilter : '',
+      page: pagination.page,
+      limit: pagination.limit,
+    });
+    const cached = servicesCacheRef.current.get(cacheKey);
+    const hasFreshCache =
+      !!cached && Date.now() - cached.timestamp <= SERVICES_CACHE_TTL_MS;
+
+    if (hasFreshCache && cached) {
+      setServices(cached.response.services);
+      setPagination((prev) => ({
+        ...prev,
+        page: cached.response.pagination.page,
+        total: cached.response.pagination.total,
+        totalPages: cached.response.pagination.totalPages,
+      }));
+      setLoading(false);
+      return () => {
+        cancelled = true;
+      };
+    }
+
     setLoading(true);
 
     (async () => {
@@ -103,6 +140,17 @@ const Services = () => {
           total: response.pagination.total,
           totalPages: response.pagination.totalPages,
         }));
+        servicesCacheRef.current.set(cacheKey, {
+          timestamp: Date.now(),
+          response: {
+            services: response.services,
+            pagination: {
+              page: response.pagination.page,
+              total: response.pagination.total,
+              totalPages: response.pagination.totalPages,
+            },
+          },
+        });
       } catch (error) {
         if (cancelled || requestId !== latestLoadRequestId.current) return;
         toast.error(t('services.loading_error'));
@@ -128,6 +176,11 @@ const Services = () => {
     listRefreshTick,
     t,
   ]);
+
+  useEffect(() => {
+    // Invalida cache en acciones que cambian datos visibles (delete/review/etc).
+    servicesCacheRef.current.clear();
+  }, [listRefreshTick]);
 
   // Cuando cambia un filtro (o búsqueda), siempre volvemos a la primera página.
   // Evita estados donde "faltan servicios" por seguir en página > 1.
