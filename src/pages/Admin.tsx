@@ -646,6 +646,9 @@ const Admin = () => {
       case 'Bell': return <Bell size={size} className={className} />;
       case 'Navigation': return <Navigation size={size} className={className} />;
       case 'Anchor': return <Anchor size={size} className={className} />;
+      case 'Ship': return <Anchor size={size} className={className} />;
+      case 'Store': return <ShoppingBag size={size} className={className} />;
+      case 'Gamepad': return <Gamepad2 size={size} className={className} />;
       default: return <HelpCircle size={size} className={className} />;
     }
   };
@@ -1903,6 +1906,26 @@ const Admin = () => {
                           { name: 'Phone', icon: <Phone size={24} /> },
                           { name: 'Smile', icon: <Smile size={24} /> },
                           { name: 'Gamepad2', icon: <Gamepad2 size={24} /> },
+                          { name: 'Gamepad', icon: <Gamepad size={24} /> },
+                          { name: 'MapPin', icon: <MapPin size={24} /> },
+                          { name: 'Star', icon: <Star size={24} /> },
+                          { name: 'List', icon: <List size={24} /> },
+                          { name: 'Search', icon: <Search size={24} /> },
+                          { name: 'Settings', icon: <Settings size={24} /> },
+                          { name: 'Bell', icon: <Bell size={24} /> },
+                          { name: 'Navigation', icon: <Navigation size={24} /> },
+                          { name: 'FileText', icon: <FileText size={24} /> },
+                          { name: 'MessageSquare', icon: <MessageSquare size={24} /> },
+                          { name: 'Send', icon: <Send size={24} /> },
+                          { name: 'CheckCircle', icon: <CheckCircle size={24} /> },
+                          { name: 'AlertTriangle', icon: <AlertTriangle size={24} /> },
+                          { name: 'Crown', icon: <Crown size={24} /> },
+                          { name: 'Ban', icon: <Ban size={24} /> },
+                          { name: 'UserCheck', icon: <UserCheck size={24} /> },
+                          { name: 'UserX', icon: <UserX size={24} /> },
+                          { name: 'Edit', icon: <Edit size={24} /> },
+                          { name: 'XCircle', icon: <XCircle size={24} /> },
+                          { name: 'HelpCircle', icon: <HelpCircle size={24} /> },
                           { name: 'Plus', icon: <Plus size={24} /> },
                         ].map((item) => (
                           <button

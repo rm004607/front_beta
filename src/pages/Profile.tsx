@@ -5,6 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import {
   Select,
@@ -21,20 +22,27 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
+import { Checkbox } from '@/components/ui/checkbox';
+import { ScrollArea } from '@/components/ui/scroll-area';
 import { useUser } from '@/contexts/UserContext';
-import { MapPin, Phone, Mail, Wrench, Building2, Trash2, FileText, Plus, Star, Users, ChevronRight, Loader2 } from 'lucide-react';
+import { MapPin, Phone, Mail, Wrench, Building2, Trash2, FileText, Plus, Star, Users, ChevronRight, Loader2, X } from 'lucide-react';
 import { servicesAPI, authAPI, regionsAPI } from '@/lib/api';
 import { toast } from 'sonner';
 import {
   validatePhone,
   isValidPhone,
   isValidComuna,
+  isValidTextField,
   isValidRut,
   formatRut,
   sanitizeInput,
   getValidationErrorMessage
 } from '@/lib/input-validator';
-import { resolveOriginLocation } from '@/lib/chile-region-helpers';
+import {
+  resolveOriginLocation,
+  buildServiceRegionPayload,
+  resolveComunaForOfferRegionApi,
+} from '@/lib/chile-region-helpers';
 import { getServiceLocationDisplay, getUserOfferRegionDisplayName } from '@/lib/serviceUtils';
 import { loadRegionOptionsSorted, type RegionOption } from '@/lib/regions-catalog';
 import { catalogFetchUserMessage } from '@/lib/catalog-fetch-errors';
@@ -86,6 +94,8 @@ const Profile = () => {
   const [editingService, setEditingService] = useState<Service | null>(null);
   const [editServiceRegion, setEditServiceRegion] = useState('');
   const [editServiceComuna, setEditServiceComuna] = useState('');
+  const [editServiceDescription, setEditServiceDescription] = useState('');
+  const [editServiceCoverageCommunes, setEditServiceCoverageCommunes] = useState<string[]>([]);
   const [loadingServiceDetail, setLoadingServiceDetail] = useState(false);
   const [isSavingService, setIsSavingService] = useState(false);
 
@@ -138,6 +148,8 @@ const Profile = () => {
 
   const handleEditService = async (service: Service) => {
     setEditingService(service);
+    setEditServiceDescription(service.description || '');
+    setEditServiceCoverageCommunes(service.coverage_communes || []);
     setLoadingServiceDetail(true);
     try {
       const { service: full } = await servicesAPI.getServiceById(service.id);
@@ -145,9 +157,13 @@ const Profile = () => {
       const comuna = s.comuna || service.comuna;
       setEditServiceComuna(comuna);
       setEditServiceRegion(s.region_id || '');
+      setEditServiceDescription(s.description || service.description || '');
+      setEditServiceCoverageCommunes((s.coverage_communes || []).filter(Boolean));
     } catch {
       setEditServiceComuna(service.comuna);
       setEditServiceRegion(service.region_id || '');
+      setEditServiceDescription(service.description || '');
+      setEditServiceCoverageCommunes((service.coverage_communes || []).filter(Boolean));
     } finally {
       setLoadingServiceDetail(false);
     }
@@ -160,6 +176,10 @@ const Profile = () => {
     }
     if (!isValidComuna(editServiceComuna)) {
       toast.error('Comuna no válida');
+      return;
+    }
+    if (!isValidTextField(editServiceDescription, 2000)) {
+      toast.error('Descripción no válida');
       return;
     }
 
@@ -175,13 +195,35 @@ const Profile = () => {
         return;
       }
 
+      const regionBuild = buildServiceRegionPayload(
+        editServiceRegion,
+        editServiceCoverageCommunes,
+        origin.region_id
+      );
+      if (regionBuild.error) {
+        toast.error(regionBuild.error);
+        return;
+      }
+
+      const { region_id: offerRegionId, coverage_communes: coveragePayload } = regionBuild.payload;
+      const comunaRes = resolveComunaForOfferRegionApi(
+        origin.comuna,
+        offerRegionId,
+        coveragePayload
+      );
+      if ('error' in comunaRes) {
+        toast.error(comunaRes.error);
+        return;
+      }
+
       const response = await servicesAPI.updateService(editingService.id, {
-        comuna: origin.comuna,
-        region_id: origin.region_id,
-        coverage_communes: [],
+        description: sanitizeInput(editServiceDescription, 2000),
+        comuna: comunaRes.comuna,
+        region_id: offerRegionId,
+        coverage_communes: coveragePayload ?? [],
       });
 
-      const successMsg = response.message || 'Ubicación del servicio actualizada';
+      const successMsg = response.message || 'Servicio actualizado';
       toast.success(successMsg);
       setEditingService(null);
       loadServices();
@@ -741,7 +783,7 @@ const Profile = () => {
                           onClick={() => handleEditService(service)}
                           disabled={loadingServiceDetail && editingService?.id === service.id}
                         >
-                          Editar ubicación
+                          Editar servicio
                           <ChevronRight className="h-4 w-4 ml-0.5" />
                         </Button>
                         <Button
@@ -891,11 +933,11 @@ const Profile = () => {
         >
           <DialogContent className="w-[95vw] sm:max-w-lg max-h-[90vh] overflow-y-auto rounded-2xl">
             <DialogHeader>
-              <DialogTitle className="text-lg font-medium">Ubicación del servicio</DialogTitle>
+              <DialogTitle className="text-lg font-medium">Editar servicio</DialogTitle>
               <DialogDescription className="text-sm">
                 {editingService ? (
                   <span className="text-muted-foreground">
-                    {editingService.service_name}. La oferta se guarda como comuna + región; la cobertura múltiple quedó desactivada en producto.
+                    {editingService.service_name}. Puedes actualizar descripción, ubicación y comunas de cobertura.
                   </span>
                 ) : null}
               </DialogDescription>
@@ -912,6 +954,7 @@ const Profile = () => {
                       onValueChange={(v) => {
                         setEditServiceRegion(v);
                         setEditServiceComuna('');
+                        setEditServiceCoverageCommunes([]);
                       }}
                       disabled={isSavingService || !regionsCatalogUsable}
                     >
@@ -951,6 +994,84 @@ const Profile = () => {
                       </Button>
                     </div>
                   )}
+                </div>
+                <div>
+                  <Label className="text-xs font-medium text-muted-foreground mb-1 block">Descripción</Label>
+                  <Textarea
+                    value={editServiceDescription}
+                    onChange={(e) => setEditServiceDescription(e.target.value)}
+                    rows={4}
+                    disabled={isSavingService}
+                    placeholder="Describe tu servicio, experiencia y alcance."
+                    className="rounded-xl"
+                  />
+                </div>
+                <div>
+                  <p className="text-xs font-medium text-muted-foreground mb-1">
+                    Zona de desplazamiento (opcional)
+                  </p>
+                  {editServiceCoverageCommunes.length > 0 && (
+                    <div className="mb-2 flex flex-wrap gap-2">
+                      {editServiceCoverageCommunes.map((c) => (
+                        <Badge key={c} variant="secondary" className="gap-1 pl-2 pr-1 py-1 font-normal">
+                          {c}
+                          <button
+                            type="button"
+                            className="rounded-full p-0.5 hover:bg-muted"
+                            onClick={() =>
+                              setEditServiceCoverageCommunes((prev) => prev.filter((x) => x !== c))
+                            }
+                            aria-label={`Quitar ${c}`}
+                          >
+                            <X className="h-3.5 w-3.5" />
+                          </button>
+                        </Badge>
+                      ))}
+                    </div>
+                  )}
+                  <div className="mb-2">
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      disabled={editServiceCommunesLoading || editServiceCommunes.length === 0}
+                      onClick={() => {
+                        if (editServiceCoverageCommunes.length === editServiceCommunes.length) {
+                          setEditServiceCoverageCommunes([]);
+                        } else {
+                          setEditServiceCoverageCommunes([...editServiceCommunes]);
+                        }
+                      }}
+                    >
+                      {editServiceCoverageCommunes.length === editServiceCommunes.length
+                        ? 'Quitar todas'
+                        : 'Seleccionar todas'}
+                    </Button>
+                  </div>
+                  <ScrollArea className="h-[180px] rounded-md border p-3">
+                    <div className="space-y-2 pr-3">
+                      {editServiceCommunesLoading && (
+                        <p className="text-sm text-muted-foreground">Cargando comunas…</p>
+                      )}
+                      {!editServiceCommunesLoading && editServiceCommunes.length === 0 && (
+                        <p className="text-sm text-muted-foreground">No hay comunas para mostrar.</p>
+                      )}
+                      {editServiceCommunes.map((c) => (
+                        <label key={c} className="flex items-center gap-2 text-sm cursor-pointer">
+                          <Checkbox
+                            checked={editServiceCoverageCommunes.includes(c)}
+                            onCheckedChange={() => {
+                              setEditServiceCoverageCommunes((prev) =>
+                                prev.includes(c) ? prev.filter((x) => x !== c) : [...prev, c]
+                              );
+                            }}
+                            disabled={isSavingService}
+                          />
+                          <span>{c}</span>
+                        </label>
+                      ))}
+                    </div>
+                  </ScrollArea>
                 </div>
               </div>
             )}
