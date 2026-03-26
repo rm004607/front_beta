@@ -9,7 +9,7 @@ import { Alert, AlertTitle, AlertDescription } from '@/components/ui/alert';
 import { useUser } from '@/contexts/UserContext';
 import { ArrowRight, ArrowLeft, Eye, EyeOff, CheckCircle2 } from 'lucide-react';
 import { toast } from 'sonner';
-import { authAPI, kycAPI } from '@/lib/api';
+import { authAPI, kycAPI, regionsAPI } from '@/lib/api';
 import {
   isValidName,
   isValidPhone,
@@ -20,7 +20,6 @@ import {
   sanitizeInput,
   getValidationErrorMessage
 } from '@/lib/input-validator';
-import { chileData } from '@/lib/chile-data';
 import {
   Select,
   SelectContent,
@@ -29,6 +28,19 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import KYCVerification from '@/components/KYCVerification';
+import { loadRegionOptionsSorted, type RegionOption } from '@/lib/regions-catalog';
+import { catalogFetchUserMessage } from '@/lib/catalog-fetch-errors';
+
+function communesNamesFromApiResponse(
+  rid: string,
+  r: { region_id: number; communes: { name: string; region_id: number }[] }
+): string[] | null {
+  if (Number(r.region_id) !== Number(rid)) return null;
+  const names = r.communes
+    .filter((c) => Number(c.region_id) === Number(rid))
+    .map((c) => c.name);
+  return names.length > 0 ? names : null;
+}
 
 const Register = () => {
   const [errorMessage, setErrorMessage] = useState('');
@@ -62,6 +74,14 @@ const Register = () => {
   const [showTerms, setShowTerms] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [selectedRegion, setSelectedRegion] = useState('');
+  const [apiRegions, setApiRegions] = useState<RegionOption[]>([]);
+  const [regionsLoading, setRegionsLoading] = useState(true);
+  const [regionsError, setRegionsError] = useState<string | null>(null);
+  const [regionsRetryKey, setRegionsRetryKey] = useState(0);
+  const [regionCommunes, setRegionCommunes] = useState<string[]>([]);
+  const [communesLoading, setCommunesLoading] = useState(false);
+  const [communesError, setCommunesError] = useState<string | null>(null);
+  const [communesRetryKey, setCommunesRetryKey] = useState(0);
 
   // Persistir datos si viene de QR o Google
   // Función para decodificar JWT sin librerías externas
@@ -142,6 +162,59 @@ const Register = () => {
       setIsGoogleVerified(true);
     }
   }, [searchParams]);
+
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      setRegionsLoading(true);
+      setRegionsError(null);
+      try {
+        const list = await loadRegionOptionsSorted();
+        if (cancelled) return;
+        setApiRegions(list);
+        if (list.length === 0) setRegionsError('No se recibieron regiones desde el servidor.');
+      } catch (e) {
+        if (!cancelled) {
+          setApiRegions([]);
+          setRegionsError(catalogFetchUserMessage(e));
+        }
+      } finally {
+        if (!cancelled) setRegionsLoading(false);
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [regionsRetryKey]);
+
+  useEffect(() => {
+    if (!selectedRegion) {
+      setRegionCommunes([]);
+      setCommunesLoading(false);
+      setCommunesError(null);
+      return;
+    }
+    let cancelled = false;
+    setRegionCommunes([]);
+    setCommunesLoading(true);
+    setCommunesError(null);
+    (async () => {
+      try {
+        const r = await regionsAPI.getCommunesByRegion(String(selectedRegion));
+        if (cancelled) return;
+        const names = communesNamesFromApiResponse(String(selectedRegion), r);
+        if (names) setRegionCommunes(names);
+        else setCommunesError('No se pudo leer el listado de comunas para esa región.');
+      } catch (e) {
+        if (!cancelled) setCommunesError(catalogFetchUserMessage(e));
+      } finally {
+        if (!cancelled) setCommunesLoading(false);
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [selectedRegion, communesRetryKey]);
  
   const isGoogleFlow = !!searchParams.get('token') || isGoogleVerified;
   
@@ -547,29 +620,45 @@ const Register = () => {
                     <Select value={selectedRegion} onValueChange={(val) => {
                       setSelectedRegion(val);
                       setComuna(''); // Reset commune when region changes
-                    }}>
+                    }} disabled={regionsLoading || apiRegions.length === 0}>
                       <SelectTrigger id="region">
-                        <SelectValue placeholder="Selecciona Región" />
+                        <SelectValue placeholder={regionsLoading ? "Cargando regiones..." : "Selecciona Región"} />
                       </SelectTrigger>
                       <SelectContent>
-                        {chileData.map((reg) => (
+                        {apiRegions.map((reg) => (
                           <SelectItem key={reg.id} value={reg.id}>{reg.name}</SelectItem>
                         ))}
                       </SelectContent>
                     </Select>
+                    {regionsError && (
+                      <div className="mt-2 flex items-center justify-between gap-2">
+                        <p className="text-xs text-red-500">{regionsError}</p>
+                        <Button type="button" size="sm" variant="outline" onClick={() => setRegionsRetryKey((k) => k + 1)}>
+                          Reintentar
+                        </Button>
+                      </div>
+                    )}
                   </div>
                   <div>
                     <Label htmlFor="comuna">Comuna</Label>
-                    <Select value={comuna} onValueChange={setComuna} disabled={!selectedRegion}>
+                    <Select value={comuna} onValueChange={setComuna} disabled={!selectedRegion || communesLoading || !!communesError}>
                       <SelectTrigger id="comuna">
-                        <SelectValue placeholder="Selecciona Comuna" />
+                        <SelectValue placeholder={communesLoading ? "Cargando comunas..." : "Selecciona Comuna"} />
                       </SelectTrigger>
                       <SelectContent>
-                        {selectedRegion && chileData.find(r => r.id === selectedRegion)?.communes.map((c) => (
+                        {regionCommunes.map((c) => (
                           <SelectItem key={c} value={c}>{c}</SelectItem>
                         ))}
                       </SelectContent>
                     </Select>
+                    {communesError && (
+                      <div className="mt-2 flex items-center justify-between gap-2">
+                        <p className="text-xs text-red-500">{communesError}</p>
+                        <Button type="button" size="sm" variant="outline" onClick={() => setCommunesRetryKey((k) => k + 1)}>
+                          Reintentar
+                        </Button>
+                      </div>
+                    )}
                   </div>
                 </div>
                 <div className="space-y-3">
