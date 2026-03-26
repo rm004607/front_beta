@@ -107,6 +107,15 @@ import {
   Navigation,
   Anchor,
   Wind as WindIcon,
+  Calendar,
+  Clock3,
+  ClipboardList,
+  PenTool,
+  Megaphone,
+  Target,
+  Rocket,
+  Bot,
+  BadgeCheck,
 } from 'lucide-react';
 import { Switch } from '@/components/ui/switch';
 import { toast } from 'sonner';
@@ -570,8 +579,39 @@ const Admin = () => {
     }
   };
 
+  const normalizeIconKey = (value: string) => value.toLowerCase().replace(/[\s_-]/g, '');
+  const iconAliases: Record<string, string> = {
+    ship: 'Ship',
+    store: 'Store',
+    storefront: 'Store',
+    homeicon: 'Home',
+    house: 'Home',
+    building: 'Building2',
+    briefcasebusiness: 'Briefcase',
+    gamepad: 'Gamepad',
+    gamepad2: 'Gamepad2',
+    chat: 'MessageSquare',
+    message: 'MessageSquare',
+    messagecircle: 'MessageSquare',
+    shield: 'ShieldCheck',
+    help: 'HelpCircle',
+    helpcircle: 'HelpCircle',
+    map: 'MapPin',
+    mappin: 'MapPin',
+    location: 'MapPin',
+    cog: 'Settings',
+    check: 'CheckCircle',
+    warning: 'AlertTriangle',
+    file: 'FileText',
+    badgecheck: 'BadgeCheck',
+    clipboard: 'ClipboardList',
+    clock: 'Clock3',
+    calendar: 'Calendar',
+  };
+
   const IconRenderer = ({ name, size = 16, className = "" }: { name: string, size?: number, className?: string }) => {
-    switch (name) {
+    const canonical = iconAliases[normalizeIconKey(name)] || name;
+    switch (canonical) {
       case 'Wrench': return <Wrench size={size} className={className} />;
       case 'Lightbulb': return <Lightbulb size={size} className={className} />;
       case 'ShieldCheck': return <ShieldCheck size={size} className={className} />;
@@ -649,6 +689,15 @@ const Admin = () => {
       case 'Ship': return <Anchor size={size} className={className} />;
       case 'Store': return <ShoppingBag size={size} className={className} />;
       case 'Gamepad': return <Gamepad2 size={size} className={className} />;
+      case 'Calendar': return <Calendar size={size} className={className} />;
+      case 'Clock3': return <Clock3 size={size} className={className} />;
+      case 'ClipboardList': return <ClipboardList size={size} className={className} />;
+      case 'PenTool': return <PenTool size={size} className={className} />;
+      case 'Megaphone': return <Megaphone size={size} className={className} />;
+      case 'Target': return <Target size={size} className={className} />;
+      case 'Rocket': return <Rocket size={size} className={className} />;
+      case 'Bot': return <Bot size={size} className={className} />;
+      case 'BadgeCheck': return <BadgeCheck size={size} className={className} />;
       default: return <HelpCircle size={size} className={className} />;
     }
   };
@@ -1926,6 +1975,15 @@ const Admin = () => {
                           { name: 'Edit', icon: <Edit size={24} /> },
                           { name: 'XCircle', icon: <XCircle size={24} /> },
                           { name: 'HelpCircle', icon: <HelpCircle size={24} /> },
+                          { name: 'Calendar', icon: <Calendar size={24} /> },
+                          { name: 'Clock3', icon: <Clock3 size={24} /> },
+                          { name: 'ClipboardList', icon: <ClipboardList size={24} /> },
+                          { name: 'PenTool', icon: <PenTool size={24} /> },
+                          { name: 'Megaphone', icon: <Megaphone size={24} /> },
+                          { name: 'Target', icon: <Target size={24} /> },
+                          { name: 'Rocket', icon: <Rocket size={24} /> },
+                          { name: 'Bot', icon: <Bot size={24} /> },
+                          { name: 'BadgeCheck', icon: <BadgeCheck size={24} /> },
                           { name: 'Plus', icon: <Plus size={24} /> },
                         ].map((item) => (
                           <button

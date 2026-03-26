@@ -84,6 +84,15 @@ import {
   MessageSquare,
   Star,
   Gamepad2,
+  Calendar,
+  Clock3,
+  ClipboardList,
+  PenTool,
+  Megaphone,
+  Target,
+  Rocket,
+  Bot,
+  BadgeCheck,
 } from 'lucide-react';
 
 type LucideIcon = React.ComponentType<{ className?: string; size?: number }>;
@@ -175,7 +184,49 @@ const ICON_MAP: Record<string, LucideIcon> = {
   Star,
   Ship: Anchor,
   Gamepad: Gamepad2,
+  Calendar,
+  Clock3,
+  ClipboardList,
+  PenTool,
+  Megaphone,
+  Target,
+  Rocket,
+  Bot,
+  BadgeCheck,
 };
+
+const ICON_ALIASES: Record<string, string> = {
+  ship: 'Ship',
+  store: 'Store',
+  storefront: 'Store',
+  homeicon: 'Home',
+  house: 'Home',
+  building: 'Building2',
+  briefcasebusiness: 'Briefcase',
+  gamepad: 'Gamepad',
+  gamepad2: 'Gamepad2',
+  chat: 'MessageSquare',
+  message: 'MessageSquare',
+  messagecircle: 'MessageSquare',
+  shield: 'ShieldCheck',
+  help: 'HelpCircle',
+  helpcircle: 'HelpCircle',
+  map: 'MapPin',
+  mappin: 'MapPin',
+  location: 'MapPin',
+  cog: 'Settings',
+  check: 'CheckCircle',
+  warning: 'AlertTriangle',
+  file: 'FileText',
+  badgecheck: 'BadgeCheck',
+  clipboard: 'ClipboardList',
+  clock: 'Clock3',
+  calendar: 'Calendar',
+};
+
+function normalizeIconKey(value: string): string {
+  return value.toLowerCase().replace(/[\s_-]/g, '');
+}
 
 /**
  * Prioridad: type_icon / idicon del backend (PascalCase exacto).
@@ -184,7 +235,9 @@ const ICON_MAP: Record<string, LucideIcon> = {
 export const getServiceIcon = (name: string, iconId?: string, idicon?: string) => {
   const finalIconId = idicon || iconId;
   if (finalIconId && typeof finalIconId === 'string') {
-    const IconComponent = ICON_MAP[finalIconId];
+    const canonical =
+      ICON_ALIASES[normalizeIconKey(finalIconId)] || finalIconId;
+    const IconComponent = ICON_MAP[canonical];
     if (IconComponent) {
       return React.createElement(IconComponent);
     }
