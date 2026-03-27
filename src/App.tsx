@@ -27,7 +27,17 @@ import ScrollToTop from "./components/ScrollToTop";
 import { CountryGate } from "./components/CountryGate";
 
 
-const queryClient = new QueryClient();
+/** Dedup entre Strict Mode (doble mount) + defaults razonables; cada query puede sobreescribir staleTime. */
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      staleTime: 0,
+      gcTime: 1000 * 60 * 5,
+      refetchOnWindowFocus: false,
+      retry: 1,
+    },
+  },
+});
 
 const App = () => {
   return (

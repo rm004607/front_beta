@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { chileData } from '@/lib/chile-data';
 import { Button } from '@/components/ui/button';
@@ -6,6 +6,7 @@ import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { MapPin, Search, MessageCircle, Loader2, Plus, Star, Globe, Wrench, X } from 'lucide-react';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { servicesAPI, flowAPI, configAPI, reviewsAPI } from '@/lib/api';
 import { toast } from 'sonner';
 import { useUser } from '@/contexts/UserContext';
@@ -31,44 +32,29 @@ import { ServiceDetail } from '@/components/ServiceDetail';
 import { ServiceDetailModalContent } from '@/components/ServiceDetailModal';
 import { useDebouncedValue } from '@/hooks/useDebouncedValue';
 import { normalizeSearchQuery } from '@/lib/searchQuery';
+import { cn } from '@/lib/utils';
+
+/** Alineado con GET /services optimizado: no pedir páginas enormes (evita trabajo extra en backend). */
+const SERVICES_PAGE_SIZE = 24;
+const SEARCH_DEBOUNCE_MS = 400;
+const SERVICES_LIST_STALE_MS = 45_000;
 
 const Services = () => {
   const { user, isLoggedIn } = useUser();
   const { t, i18n } = useTranslation();
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
   const [searchParams] = useSearchParams();
   const highlightId = searchParams.get('highlight');
 
   const [searchTerm, setSearchTerm] = useState('');
-  const debouncedSearchRaw = useDebouncedValue(searchTerm, 320);
+  const debouncedSearchRaw = useDebouncedValue(searchTerm, SEARCH_DEBOUNCE_MS);
   const debouncedSearch = normalizeSearchQuery(debouncedSearchRaw) ?? '';
   const [comunaFilter, setComunaFilter] = useState('all');
   const [regionFilter, setRegionFilter] = useState('all');
   const [typeFilter, setTypeFilter] = useState(searchParams.get('type_id') || 'all');
   const [serviceTypes, setServiceTypes] = useState<any[]>([]);
-  const [services, setServices] = useState<any[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [pagination, setPagination] = useState({
-    page: 1,
-    limit: 9,
-    total: 0,
-    totalPages: 0,
-  });
-  const latestLoadRequestId = useRef(0);
-  const servicesCacheRef = useRef(
-    new Map<
-      string,
-      {
-        timestamp: number;
-        response: {
-          services: any[];
-          pagination: { page: number; total: number; totalPages: number };
-        };
-      }
-    >()
-  );
-  const SERVICES_CACHE_TTL_MS = 30_000;
-  const [listRefreshTick, setListRefreshTick] = useState(0);
+  const [page, setPage] = useState(1);
 
   // Pago por contacto
   const [isPaidContactModalOpen, setIsPaidContactModalOpen] = useState(false);
@@ -89,103 +75,53 @@ const Services = () => {
   const [isSubmittingReview, setIsSubmittingReview] = useState(false);
   const [reviewStats, setReviewStats] = useState<{ average_rating: number; total_reviews: number } | null>(null);
 
-  useEffect(() => {
-    let cancelled = false;
-    const requestId = ++latestLoadRequestId.current;
-    const cacheKey = JSON.stringify({
-      search: debouncedSearch || '',
-      comuna: comunaFilter !== 'all' ? comunaFilter : '',
-      region_id: comunaFilter === 'all' && regionFilter !== 'all' ? regionFilter : '',
-      service_type_id: typeFilter !== 'all' ? typeFilter : '',
-      page: pagination.page,
-      limit: pagination.limit,
-    });
-    const cached = servicesCacheRef.current.get(cacheKey);
-    const hasFreshCache =
-      !!cached && Date.now() - cached.timestamp <= SERVICES_CACHE_TTL_MS;
+  const servicesListQuery = useQuery({
+    queryKey: [
+      'services',
+      'list',
+      {
+        search: debouncedSearch || '',
+        comuna: comunaFilter !== 'all' ? comunaFilter : '',
+        region_id: comunaFilter === 'all' && regionFilter !== 'all' ? regionFilter : '',
+        service_type_id: typeFilter !== 'all' ? typeFilter : '',
+        page,
+        limit: SERVICES_PAGE_SIZE,
+      },
+    ],
+    queryFn: () =>
+      servicesAPI.getServices({
+        search: debouncedSearch || undefined,
+        comuna: comunaFilter !== 'all' ? comunaFilter : undefined,
+        region_id: comunaFilter === 'all' && regionFilter !== 'all' ? regionFilter : undefined,
+        service_type_id: typeFilter !== 'all' ? typeFilter : undefined,
+        page,
+        limit: SERVICES_PAGE_SIZE,
+      }),
+    staleTime: SERVICES_LIST_STALE_MS,
+    gcTime: 1000 * 60 * 5,
+    placeholderData: (previousData) => previousData,
+  });
 
-    if (hasFreshCache && cached) {
-      setServices(cached.response.services);
-      setPagination((prev) => ({
-        ...prev,
-        page: cached.response.pagination.page,
-        total: cached.response.pagination.total,
-        totalPages: cached.response.pagination.totalPages,
-      }));
-      setLoading(false);
-      return () => {
-        cancelled = true;
-      };
-    }
-
-    setLoading(true);
-
-    (async () => {
-      try {
-        const response = await servicesAPI.getServices({
-          search: debouncedSearch || undefined,
-          comuna: comunaFilter !== 'all' ? comunaFilter : undefined,
-          region_id: comunaFilter === 'all' && regionFilter !== 'all' ? regionFilter : undefined,
-          service_type_id: typeFilter !== 'all' ? typeFilter : undefined,
-          page: pagination.page,
-          limit: pagination.limit,
-        });
-
-        if (cancelled || requestId !== latestLoadRequestId.current) return;
-
-        setServices(response.services);
-        setPagination((prev) => ({
-          ...prev,
-          page: response.pagination.page,
-          total: response.pagination.total,
-          totalPages: response.pagination.totalPages,
-        }));
-        servicesCacheRef.current.set(cacheKey, {
-          timestamp: Date.now(),
-          response: {
-            services: response.services,
-            pagination: {
-              page: response.pagination.page,
-              total: response.pagination.total,
-              totalPages: response.pagination.totalPages,
-            },
-          },
-        });
-      } catch (error) {
-        if (cancelled || requestId !== latestLoadRequestId.current) return;
-        toast.error(t('services.loading_error'));
-        console.error('Error loading services:', error);
-      } finally {
-        if (!cancelled && requestId === latestLoadRequestId.current) {
-          setLoading(false);
-        }
-      }
-    })();
-
-    return () => {
-      cancelled = true;
-    };
-  }, [
-    user,
-    debouncedSearch,
-    comunaFilter,
-    regionFilter,
-    typeFilter,
-    pagination.page,
-    pagination.limit,
-    listRefreshTick,
-    t,
-  ]);
+  const services = servicesListQuery.data?.services ?? [];
+  const pagination = servicesListQuery.data?.pagination ?? {
+    page: 1,
+    limit: SERVICES_PAGE_SIZE,
+    total: 0,
+    totalPages: 0,
+  };
+  const isLoadingList = servicesListQuery.isLoading;
+  const isFetchingList = servicesListQuery.isFetching;
+  const showSkeleton = isLoadingList && !servicesListQuery.data;
 
   useEffect(() => {
-    // Invalida cache en acciones que cambian datos visibles (delete/review/etc).
-    servicesCacheRef.current.clear();
-  }, [listRefreshTick]);
+    if (!servicesListQuery.isError || !servicesListQuery.error) return;
+    toast.error(t('services.loading_error'));
+    console.error('Error loading services:', servicesListQuery.error);
+  }, [servicesListQuery.isError, servicesListQuery.error, t]);
 
-  // Cuando cambia un filtro (o búsqueda), siempre volvemos a la primera página.
-  // Evita estados donde "faltan servicios" por seguir en página > 1.
+  // Cuando cambia un filtro (o búsqueda), volvemos a la primera página.
   useEffect(() => {
-    setPagination((prev) => (prev.page === 1 ? prev : { ...prev, page: 1 }));
+    setPage(1);
   }, [debouncedSearch, comunaFilter, regionFilter, typeFilter]);
 
   // Cargar precio dinámico y estado de pricing
@@ -211,16 +147,16 @@ const Services = () => {
     const typeId = searchParams.get('type_id');
     if (typeId) {
       setTypeFilter(typeId);
-      setPagination(prev => ({ ...prev, page: 1 }));
+      setPage(1);
     } else {
       setTypeFilter('all');
-      setPagination(prev => ({ ...prev, page: 1 }));
+      setPage(1);
     }
   }, [searchParams]);
 
   // Efecto para scroll al elemento resaltado
   useEffect(() => {
-    if (highlightId && !loading && services.length > 0) {
+    if (highlightId && !isLoadingList && services.length > 0) {
       setTimeout(() => {
         const element = document.getElementById(`service-${highlightId}`);
         if (element) {
@@ -228,7 +164,7 @@ const Services = () => {
         }
       }, 500);
     }
-  }, [highlightId, loading, services]);
+  }, [highlightId, isLoadingList, services]);
 
 
   // Cargar tipos de servicios para mostrar nombres en filtros/badge
@@ -298,7 +234,7 @@ const Services = () => {
     try {
       await servicesAPI.deleteService(service.id);
       toast.success(t('services.delete_success'));
-      setListRefreshTick((n) => n + 1);
+      queryClient.invalidateQueries({ queryKey: ['services', 'list'] });
     } catch (error: any) {
       console.error('Error deleting service:', error);
       toast.error(error.message || t('services.delete_error'));
@@ -332,8 +268,7 @@ const Services = () => {
       setUserComment('');
       // Recargar reseñas
       fetchReviews(selectedServiceForReviews.id);
-      // Recargar servicios para actualizar el promedio en la lista principal
-      setListRefreshTick((n) => n + 1);
+      queryClient.invalidateQueries({ queryKey: ['services', 'list'] });
     } catch (error: any) {
       console.error('Error submitting review:', error);
       if (error?.status === 403) {
@@ -395,7 +330,7 @@ const Services = () => {
               <Select value={regionFilter} onValueChange={(val) => {
                 setRegionFilter(val);
                 setComunaFilter('all');
-                setPagination(prev => ({ ...prev, page: 1 }));
+                setPage(1);
               }}>
                 <SelectTrigger className="glass-card border-white/10 h-10 sm:h-11 text-sm bg-white/50">
                   <div className="flex items-center gap-2">
@@ -414,7 +349,7 @@ const Services = () => {
               {regionFilter !== 'all' && (
                 <Select value={comunaFilter} onValueChange={(val) => {
                   setComunaFilter(val);
-                  setPagination(prev => ({ ...prev, page: 1 }));
+                  setPage(1);
                 }}>
                   <SelectTrigger className="glass-card border-white/10 h-10 sm:h-11 text-sm bg-white/50">
                     <div className="flex items-center gap-2">
@@ -433,7 +368,7 @@ const Services = () => {
 
               <Select value={typeFilter} onValueChange={(val) => {
                 setTypeFilter(val);
-                setPagination(prev => ({ ...prev, page: 1 }));
+                setPage(1);
               }}>
                 <SelectTrigger className="glass-card border-white/10 h-10 sm:h-11 text-sm bg-white/50">
                   <div className="flex items-center gap-2">
@@ -474,7 +409,7 @@ const Services = () => {
                       setRegionFilter('all');
                       setSearchTerm('');
                       setTypeFilter('all');
-                      setPagination(prev => ({ ...prev, page: 1 }));
+                      setPage(1);
                     }}
                     className="text-xs text-muted-foreground hover:text-primary"
                   >
@@ -486,15 +421,38 @@ const Services = () => {
           </CardContent>
         </Card>
 
-        {/* Service Listings */}
-        {loading ? (
-          <div className="flex flex-col justify-center items-center py-12 gap-2">
-            <Loader2 className="animate-spin text-secondary" size={32} />
-            <p className="text-muted-foreground text-sm">{t('services.loading')}</p>
+        {/* Service Listings: skeleton solo en carga inicial; refetch sin tapar la lista */}
+        {isFetchingList && !showSkeleton && services.length > 0 && (
+          <div className="mb-3 flex items-center justify-center gap-2 text-xs text-muted-foreground" role="status" aria-live="polite">
+            <Loader2 className="h-3.5 w-3.5 animate-spin shrink-0 text-primary" aria-hidden />
+            {t('services.loading')}
+          </div>
+        )}
+
+        {showSkeleton ? (
+          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6" aria-busy="true" aria-label={t('services.loading')}>
+            {Array.from({ length: 12 }).map((_, i) => (
+              <div
+                key={i}
+                className="rounded-[2rem] border border-border/50 bg-muted/30 overflow-hidden animate-pulse"
+              >
+                <div className="aspect-[4/3] bg-muted/60" />
+                <div className="p-4 space-y-3">
+                  <div className="h-4 bg-muted/80 rounded w-3/4" />
+                  <div className="h-3 bg-muted/60 rounded w-full" />
+                  <div className="h-3 bg-muted/60 rounded w-1/2" />
+                </div>
+              </div>
+            ))}
           </div>
         ) : (
           <>
-            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <div
+              className={cn(
+                'grid md:grid-cols-2 lg:grid-cols-3 gap-6',
+                isFetchingList && services.length > 0 && 'opacity-[0.97]',
+              )}
+            >
               {services.map((service) => (
                 <ServiceCard
                   key={service.id}
@@ -510,7 +468,7 @@ const Services = () => {
               ))}
             </div>
 
-            {services.length === 0 && !loading && (
+            {services.length === 0 && !servicesListQuery.isFetching && (
               <div className="text-center py-12">
                 <p className="text-muted-foreground text-lg">{t('services.not_found')}</p>
               </div>
@@ -521,8 +479,8 @@ const Services = () => {
                 <Button
                   variant="outline"
                   size="sm"
-                  disabled={pagination.page <= 1}
-                  onClick={() => setPagination((prev) => ({ ...prev, page: prev.page - 1 }))}
+                  disabled={pagination.page <= 1 || servicesListQuery.isFetching}
+                  onClick={() => setPage((p) => Math.max(1, p - 1))}
                 >
                   Anterior
                 </Button>
@@ -532,8 +490,9 @@ const Services = () => {
                     key={pageNum}
                     variant={pageNum === pagination.page ? 'default' : 'outline'}
                     size="sm"
-                    onClick={() => setPagination((prev) => ({ ...prev, page: pageNum }))}
+                    onClick={() => setPage(pageNum)}
                     className="min-w-9"
+                    disabled={servicesListQuery.isFetching}
                   >
                     {pageNum}
                   </Button>
@@ -542,8 +501,8 @@ const Services = () => {
                 <Button
                   variant="outline"
                   size="sm"
-                  disabled={pagination.page >= pagination.totalPages}
-                  onClick={() => setPagination((prev) => ({ ...prev, page: prev.page + 1 }))}
+                  disabled={pagination.page >= pagination.totalPages || servicesListQuery.isFetching}
+                  onClick={() => setPage((p) => p + 1)}
                 >
                   Siguiente
                 </Button>
