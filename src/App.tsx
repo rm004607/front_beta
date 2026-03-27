@@ -12,6 +12,8 @@ import Register from "./pages/Register";
 import Login from "./pages/Login";
 import Services from "./pages/Services";
 import PostService from "./pages/PostService";
+import Products from "./pages/Products";
+import PostProduct from "./pages/PostProduct";
 import Profile from "./pages/Profile";
 import Admin from "./pages/Admin";
 import Support from "./pages/Support";
@@ -46,6 +48,8 @@ const App = () => {
                     <Route path="/login" element={<Login />} />
                     <Route path="/servicios" element={<Services />} />
                     <Route path="/servicios/publicar" element={<PostService />} />
+                    <Route path="/productos" element={<Products />} />
+                    <Route path="/productos/publicar" element={<PostProduct />} />
                     <Route path="/perfil" element={<Profile />} />
                     <Route path="/verificacion-biometrica" element={<VerificacionBiometrica />} />
                     <Route path="/admin" element={<Admin />} />

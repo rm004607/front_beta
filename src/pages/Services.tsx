@@ -554,7 +554,12 @@ const Services = () => {
 
         {/* Modal Detalles completos (un solo Dialog en la página) */}
         <Dialog open={!!detailService} onOpenChange={(open) => !open && setDetailService(null)}>
-          <DialogContent disableAnimation className="max-w-[820px] w-[95%] max-h-[90vh] overflow-y-auto rounded-[2rem] sm:rounded-[2.5rem] border border-border p-0 bg-card shadow-2xl">
+          <DialogContent
+            disableAnimation
+            aria-describedby={undefined}
+            className="max-w-[820px] w-[95%] max-h-[90vh] overflow-y-auto rounded-[2rem] sm:rounded-[2.5rem] border border-border p-0 bg-card shadow-2xl"
+          >
+            <DialogTitle className="sr-only">Detalle del servicio</DialogTitle>
             <DialogClose className="absolute top-4 right-4 z-[70] bg-black/50 hover:bg-black/70 text-white p-2 rounded-full backdrop-blur-md transition-all active:scale-95 border-0">
               <X size={20} />
               <span className="sr-only">Cerrar</span>
@@ -572,7 +577,8 @@ const Services = () => {
 
         {/* Modal de Reseñas */}
         <Dialog open={isReviewsModalOpen} onOpenChange={setIsReviewsModalOpen}>
-          <DialogContent className="w-[95vw] max-w-2xl max-h-[90vh] overflow-y-auto rounded-2xl p-4 sm:p-6">
+          <DialogContent aria-describedby={undefined} className="w-[95vw] max-w-2xl max-h-[90vh] overflow-y-auto rounded-2xl p-4 sm:p-6">
+            <DialogTitle className="sr-only">Reseñas del servicio</DialogTitle>
             <ServiceDetail
               service={selectedServiceForReviews}
               reviews={reviews}
@@ -595,7 +601,10 @@ const Services = () => {
         </Dialog>
         {/* Dialog de cobro por contacto WhatsApp */}
         <Dialog open={isPaidContactModalOpen} onOpenChange={setIsPaidContactModalOpen}>
-          <DialogContent className="w-[95vw] sm:max-w-md p-0 overflow-hidden border-none bg-transparent shadow-none rounded-2xl">
+          <DialogContent
+            aria-describedby={undefined}
+            className="w-[95vw] sm:max-w-md p-0 overflow-hidden border-none bg-transparent shadow-none rounded-2xl"
+          >
             <Card className="border-t-4 border-t-primary shadow-2xl">
               <CardHeader className="text-center pb-2">
                 <div className="mx-auto w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mb-4">

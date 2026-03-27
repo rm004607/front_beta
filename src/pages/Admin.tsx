@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { useUser } from '@/contexts/UserContext';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -116,10 +116,14 @@ import {
   Rocket,
   Bot,
   BadgeCheck,
+  Package2,
+  ArrowLeft,
+  LayoutDashboard,
 } from 'lucide-react';
 import { Switch } from '@/components/ui/switch';
 import { toast } from 'sonner';
 import { adminAPI, authAPI, configAPI, packagesAPI } from '@/lib/api';
+import { formatProductPrice } from '@/lib/productUtils';
 import {
   Dialog,
   DialogContent,
@@ -136,6 +140,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Alert, AlertDescription } from '@/components/ui/alert';
+import { cn } from '@/lib/utils';
 
 interface Post {
   id: string;
@@ -163,6 +168,21 @@ interface Service {
   price_range?: string;
   average_rating?: number;
   reviews_count?: number;
+}
+
+interface AdminProduct {
+  id: string;
+  title: string;
+  description: string;
+  comuna: string;
+  status: string;
+  created_at: string;
+  user_name: string;
+  user_email: string;
+  price?: number | null;
+  currency?: string;
+  product_status?: string;
+  cover_image_url?: string | null;
 }
 
 interface User {
@@ -215,6 +235,13 @@ const Admin = () => {
   const [rejectDialogOpen, setRejectDialogOpen] = useState(false);
   const [serviceToReject, setServiceToReject] = useState<Service | null>(null);
   const [rejectReason, setRejectReason] = useState('');
+
+  const [adminProducts, setAdminProducts] = useState<AdminProduct[]>([]);
+  const [loadingProducts, setLoadingProducts] = useState(false);
+  const [productFilters, setProductFilters] = useState({ comuna: '', status: 'pending' });
+  const [rejectProductDialogOpen, setRejectProductDialogOpen] = useState(false);
+  const [productToReject, setProductToReject] = useState<AdminProduct | null>(null);
+  const [rejectProductReason, setRejectProductReason] = useState('');
 
   // Estados para users (solo super-admin)
   const [users, setUsers] = useState<User[]>([]);
@@ -341,6 +368,23 @@ const Admin = () => {
       toast.error(error.message || 'Error al cargar servicios');
     } finally {
       setLoadingServices(false);
+    }
+  };
+
+  const loadProducts = async () => {
+    try {
+      setLoadingProducts(true);
+      const response = await adminAPI.getAllProducts({
+        comuna: productFilters.comuna || undefined,
+        status: productFilters.status !== 'all' ? productFilters.status : undefined,
+        limit: 50,
+      });
+      setAdminProducts(response.products);
+    } catch (error: any) {
+      console.error('Error loading products:', error);
+      toast.error(error.message || 'Error al cargar productos');
+    } finally {
+      setLoadingProducts(false);
     }
   };
 
@@ -576,6 +620,47 @@ const Admin = () => {
     } catch (error: any) {
       console.error('Error rejecting service:', error);
       toast.error(error.message || 'Error al rechazar el servicio');
+    }
+  };
+
+  const handleApproveProduct = async (id: string) => {
+    try {
+      await adminAPI.approveProduct(id);
+      toast.success('Producto aprobado y publicado');
+      loadProducts();
+      loadStats();
+    } catch (error: any) {
+      console.error('Error approving product:', error);
+      toast.error(error.message || 'Error al aprobar el producto');
+    }
+  };
+
+  const handleRejectProduct = async () => {
+    if (!productToReject) return;
+    try {
+      await adminAPI.rejectProduct(productToReject.id, rejectProductReason.trim() || undefined);
+      toast.success('Producto rechazado');
+      setRejectProductDialogOpen(false);
+      setProductToReject(null);
+      setRejectProductReason('');
+      loadProducts();
+      loadStats();
+    } catch (error: any) {
+      console.error('Error rejecting product:', error);
+      toast.error(error.message || 'Error al rechazar el producto');
+    }
+  };
+
+  const handleDeleteAdminProduct = async (id: string) => {
+    if (!confirm('¿Eliminar este producto de forma permanente?')) return;
+    try {
+      await adminAPI.deleteAdminProduct(id);
+      toast.success('Producto eliminado');
+      loadProducts();
+      loadStats();
+    } catch (error: any) {
+      console.error('Error deleting product:', error);
+      toast.error(error.message || 'Error al eliminar el producto');
     }
   };
 
@@ -1012,6 +1097,7 @@ const Admin = () => {
     switch (activeTab) {
       case 'datos': loadDatos(); break;
       case 'services': loadServices(); break;
+      case 'products': loadProducts(); break;
       case 'users': loadUsers(); break;
       case 'tickets': loadTickets(); break;
       case 'prices':
@@ -1047,59 +1133,120 @@ const Admin = () => {
 
   if (isInitialLoading) {
     return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
-        <div className="flex flex-col items-center gap-4">
-          <Loader2 className="h-12 w-12 text-primary animate-spin" />
-          <p className="text-muted-foreground font-medium animate-pulse">Cargando Panel de Control...</p>
+      <div className="min-h-screen bg-gradient-to-b from-background to-muted/30 flex items-center justify-center px-4">
+        <div className="flex flex-col items-center gap-4 max-w-sm text-center rounded-2xl border border-border/60 bg-card/80 p-8 shadow-lg backdrop-blur-sm">
+          <Loader2 className="h-12 w-12 text-primary animate-spin" aria-hidden />
+          <p className="text-muted-foreground font-medium">Cargando panel de control…</p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-background relative overflow-hidden pb-12">
+    <div className="min-h-screen bg-gradient-to-b from-background via-background to-muted/20 relative overflow-x-hidden pb-16 sm:pb-12">
       {/* Elementos decorativos de fondo */}
       <div className="absolute top-0 left-0 w-full h-full pointer-events-none">
         <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-primary/10 rounded-full blur-[120px]" />
         <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-secondary/10 rounded-full blur-[120px]" />
       </div>
 
-      <div className="container mx-auto px-2 sm:px-4 py-4 sm:py-8 relative z-10">
-        <div className="mb-6 sm:mb-8 p-4 sm:p-6 glass-card rounded-2xl sm:rounded-3xl border-primary/10">
-          <h1 className="text-2xl sm:text-4xl font-heading font-bold mb-2 bg-clip-text text-transparent bg-gradient-to-r from-primary to-secondary">
-            Panel de {isSuperAdmin ? 'Super Admin' : 'Administración'}
-          </h1>
-          <p className="text-sm sm:text-base text-muted-foreground">Gestiona el contenido, servicios y usuarios de la plataforma.</p>
+      <div className="max-w-7xl mx-auto px-3 sm:px-5 lg:px-8 py-5 sm:py-8 relative z-10">
+        {/* Encabezado */}
+        <div className="mb-6 sm:mb-8 p-4 sm:p-6 glass-card rounded-2xl sm:rounded-3xl border border-primary/15 shadow-sm">
+          <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
+            <div className="space-y-2 min-w-0">
+              <Link
+                to="/"
+                className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-primary transition-colors -mt-0.5"
+              >
+                <ArrowLeft className="h-4 w-4 shrink-0" aria-hidden />
+                Volver al inicio
+              </Link>
+              <div className="flex items-start gap-3">
+                <div className="mt-1 hidden sm:flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-primary/10 text-primary">
+                  <LayoutDashboard className="h-5 w-5" aria-hidden />
+                </div>
+                <div>
+                  <h1 className="text-2xl sm:text-3xl lg:text-4xl font-heading font-bold bg-clip-text text-transparent bg-gradient-to-r from-primary to-secondary leading-tight">
+                    Panel de {isSuperAdmin ? 'Super Admin' : 'Administración'}
+                  </h1>
+                  <p className="text-sm sm:text-base text-muted-foreground mt-1 max-w-2xl">
+                    Moderación, usuarios y configuración en un solo lugar. En móvil, desliza las pestañas horizontalmente.
+                  </p>
+                </div>
+              </div>
+            </div>
+            <div className="flex flex-wrap items-center gap-2 lg:justify-end shrink-0">
+              <Badge variant="secondary" className="rounded-full px-3 py-1 font-medium gap-1.5 border border-border/60">
+                <Shield className="h-3.5 w-3.5" aria-hidden />
+                {isSuperAdmin ? 'Super Admin' : 'Admin'}
+              </Badge>
+              {user?.name ? (
+                <span className="text-sm text-muted-foreground truncate max-w-[min(100%,14rem)]" title={user.name}>
+                  {user.name}
+                </span>
+              ) : null}
+            </div>
+          </div>
         </div>
 
         {/* Estadísticas */}
         {stats && (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-            <Card className="bg-card/40 backdrop-blur-md border-primary/10 group hover:border-primary/30 transition-all duration-300">
-              <CardHeader className="pb-2">
-                <CardTitle className="text-sm font-medium text-muted-foreground group-hover:text-primary transition-colors">Servicios Totales</CardTitle>
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 mb-6 sm:mb-8">
+            <Card className="bg-card/60 backdrop-blur-sm border-primary/15 shadow-sm rounded-2xl group hover:border-primary/35 transition-all duration-300">
+              <CardHeader className="pb-1 sm:pb-2 px-4 pt-4">
+                <CardTitle className="text-xs sm:text-sm font-medium text-muted-foreground group-hover:text-primary transition-colors leading-tight">
+                  Servicios totales
+                </CardTitle>
               </CardHeader>
-              <CardContent>
-                <div className="text-3xl font-bold">{stats.total_services || 0}</div>
+              <CardContent className="px-4 pb-4">
+                <div className="text-2xl sm:text-3xl font-bold tabular-nums">{stats.total_services ?? 0}</div>
               </CardContent>
             </Card>
-            <Card className="bg-card/40 backdrop-blur-md border-secondary/10 group hover:border-secondary/30 transition-all duration-300">
-              <CardHeader className="pb-2">
-                <CardTitle className="text-sm font-medium text-muted-foreground group-hover:text-secondary transition-colors">Servicios/Pymes Activos</CardTitle>
+            <Card className="bg-card/60 backdrop-blur-sm border-secondary/15 shadow-sm rounded-2xl group hover:border-secondary/35 transition-all duration-300">
+              <CardHeader className="pb-1 sm:pb-2 px-4 pt-4">
+                <CardTitle className="text-xs sm:text-sm font-medium text-muted-foreground group-hover:text-secondary transition-colors leading-tight">
+                  Servicios activos
+                </CardTitle>
               </CardHeader>
-              <CardContent>
-                <div className="text-3xl font-bold">{stats.active_services || 0}</div>
+              <CardContent className="px-4 pb-4">
+                <div className="text-2xl sm:text-3xl font-bold tabular-nums">{stats.active_services ?? 0}</div>
               </CardContent>
             </Card>
-            {isSuperAdmin && (
-              <Card className="bg-card/40 backdrop-blur-md border-amber-500/10 group hover:border-amber-500/30 transition-all duration-300">
-                <CardHeader className="pb-2">
-                  <CardTitle className="text-sm font-medium text-muted-foreground group-hover:text-amber-500 transition-colors">Usuarios</CardTitle>
+            {isSuperAdmin && stats.total_products != null && (
+              <Card className="bg-card/60 backdrop-blur-sm border-emerald-500/15 shadow-sm rounded-2xl group hover:border-emerald-500/35 transition-all duration-300">
+                <CardHeader className="pb-1 sm:pb-2 px-4 pt-4">
+                  <CardTitle className="text-xs sm:text-sm font-medium text-muted-foreground group-hover:text-emerald-600 transition-colors leading-tight flex items-center gap-1.5">
+                    <Package2 className="h-3.5 w-3.5 shrink-0" aria-hidden />
+                    Productos
+                  </CardTitle>
                 </CardHeader>
-                <CardContent>
-                  <div className="text-3xl font-bold">{stats.total_users || 0}</div>
-                  <p className="text-xs text-muted-foreground mt-1">
-                    Activos: {stats.active_users || 0} | Baneados: {stats.banned_users || 0}
+                <CardContent className="px-4 pb-4">
+                  <div className="text-2xl sm:text-3xl font-bold tabular-nums">{stats.total_products ?? 0}</div>
+                  {stats.active_products != null && (
+                    <p className="text-[10px] sm:text-xs text-muted-foreground mt-1 tabular-nums">
+                      Activos: {stats.active_products}
+                    </p>
+                  )}
+                </CardContent>
+              </Card>
+            )}
+            {isSuperAdmin && (
+              <Card
+                className={cn(
+                  'bg-card/60 backdrop-blur-sm border-amber-500/15 shadow-sm rounded-2xl group hover:border-amber-500/35 transition-all duration-300',
+                  stats.total_products == null && 'col-span-2 lg:col-span-1',
+                )}
+              >
+                <CardHeader className="pb-1 sm:pb-2 px-4 pt-4">
+                  <CardTitle className="text-xs sm:text-sm font-medium text-muted-foreground group-hover:text-amber-600 transition-colors leading-tight">
+                    Usuarios
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="px-4 pb-4">
+                  <div className="text-2xl sm:text-3xl font-bold tabular-nums">{stats.total_users ?? 0}</div>
+                  <p className="text-[10px] sm:text-xs text-muted-foreground mt-1 leading-snug">
+                    Activos: {stats.active_users ?? 0} · Baneados: {stats.banned_users ?? 0}
                   </p>
                 </CardContent>
               </Card>
@@ -1108,46 +1255,97 @@ const Admin = () => {
         )}
 
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-          <div className="w-full overflow-x-auto pb-2 scrollbar-hide">
-            <TabsList className={`flex w-max min-w-full h-auto mb-2 p-1 gap-1 glass-card border-white/5`}>
-              <TabsTrigger value="services" onClick={loadServices} className="flex items-center gap-2">
-                <Wrench size={16} />
+          <div className="sticky top-0 z-30 -mx-1 px-1 py-2 mb-4 sm:mb-5 rounded-2xl border border-border/50 bg-background/90 backdrop-blur-md shadow-sm sm:static sm:mx-0 sm:px-0 sm:py-0 sm:mb-6 sm:border-0 sm:bg-transparent sm:backdrop-blur-none sm:shadow-none">
+            <p className="sm:hidden text-xs text-muted-foreground mb-2 px-1">Desliza para ver todas las secciones</p>
+            <div className="w-full overflow-x-auto overflow-y-hidden pb-1 scrollbar-hide touch-pan-x">
+              <TabsList
+                className={cn(
+                  'flex w-max min-w-max sm:flex-wrap sm:w-full sm:min-w-0 h-auto p-1.5 gap-1 sm:gap-1.5',
+                  'rounded-xl border border-border/60 bg-muted/40 shadow-inner',
+                  'justify-start sm:justify-start',
+                )}
+              >
+              <TabsTrigger
+                value="services"
+                onClick={loadServices}
+                className="flex items-center gap-1.5 sm:gap-2 shrink-0 rounded-lg px-3 py-2.5 text-xs sm:text-sm data-[state=active]:bg-background data-[state=active]:shadow-md"
+              >
+                <Wrench className="h-3.5 w-3.5 sm:h-4 sm:w-4 shrink-0" />
                 Servicios
               </TabsTrigger>
-              <TabsTrigger value="datos" onClick={loadDatos} className="flex items-center gap-2">
-                <Lightbulb size={16} />
+              <TabsTrigger
+                value="products"
+                onClick={loadProducts}
+                className="flex items-center gap-1.5 sm:gap-2 shrink-0 rounded-lg px-3 py-2.5 text-xs sm:text-sm data-[state=active]:bg-background data-[state=active]:shadow-md"
+              >
+                <Package2 className="h-3.5 w-3.5 sm:h-4 sm:w-4 shrink-0" />
+                Productos
+              </TabsTrigger>
+              <TabsTrigger
+                value="datos"
+                onClick={loadDatos}
+                className="flex items-center gap-1.5 sm:gap-2 shrink-0 rounded-lg px-3 py-2.5 text-xs sm:text-sm data-[state=active]:bg-background data-[state=active]:shadow-md"
+              >
+                <Lightbulb className="h-3.5 w-3.5 sm:h-4 sm:w-4 shrink-0" />
                 Datos
               </TabsTrigger>
-              <TabsTrigger value="users" onClick={loadUsers} className="flex items-center gap-2">
-                <Users size={16} />
+              <TabsTrigger
+                value="users"
+                onClick={loadUsers}
+                className="flex items-center gap-1.5 sm:gap-2 shrink-0 rounded-lg px-3 py-2.5 text-xs sm:text-sm data-[state=active]:bg-background data-[state=active]:shadow-md"
+              >
+                <Users className="h-3.5 w-3.5 sm:h-4 sm:w-4 shrink-0" />
                 Usuarios
               </TabsTrigger>
-              <TabsTrigger value="tickets" onClick={loadTickets} className="flex items-center gap-2">
-                <HelpCircle size={16} />
+              <TabsTrigger
+                value="tickets"
+                onClick={loadTickets}
+                className="flex items-center gap-1.5 sm:gap-2 shrink-0 rounded-lg px-3 py-2.5 text-xs sm:text-sm data-[state=active]:bg-background data-[state=active]:shadow-md"
+              >
+                <HelpCircle className="h-3.5 w-3.5 sm:h-4 sm:w-4 shrink-0" />
                 Tickets
               </TabsTrigger>
-              <TabsTrigger value="catalog" onClick={() => { loadAdminServiceTypes(); loadServiceSuggestions(); }} className="flex items-center gap-2">
-                <List size={16} />
+              <TabsTrigger
+                value="catalog"
+                onClick={() => {
+                  loadAdminServiceTypes();
+                  loadServiceSuggestions();
+                }}
+                className="flex items-center gap-1.5 sm:gap-2 shrink-0 rounded-lg px-3 py-2.5 text-xs sm:text-sm data-[state=active]:bg-background data-[state=active]:shadow-md"
+              >
+                <List className="h-3.5 w-3.5 sm:h-4 sm:w-4 shrink-0" />
                 Catálogo
               </TabsTrigger>
               {isSuperAdmin && (
                 <>
-                  <TabsTrigger value="prices" onClick={() => { loadAdminConfig(); loadAdminPackages(); }} className="flex items-center gap-2">
-                    <RefreshCw size={16} />
+                  <TabsTrigger
+                    value="prices"
+                    onClick={() => {
+                      loadAdminConfig();
+                      loadAdminPackages();
+                    }}
+                    className="flex items-center gap-1.5 sm:gap-2 shrink-0 rounded-lg px-3 py-2.5 text-xs sm:text-sm data-[state=active]:bg-background data-[state=active]:shadow-md"
+                  >
+                    <RefreshCw className="h-3.5 w-3.5 sm:h-4 sm:w-4 shrink-0" />
                     Precios
                   </TabsTrigger>
-                  <TabsTrigger value="logs" onClick={loadLogs} className="flex items-center gap-2">
-                    <FileText size={16} />
+                  <TabsTrigger
+                    value="logs"
+                    onClick={loadLogs}
+                    className="flex items-center gap-1.5 sm:gap-2 shrink-0 rounded-lg px-3 py-2.5 text-xs sm:text-sm data-[state=active]:bg-background data-[state=active]:shadow-md"
+                  >
+                    <FileText className="h-3.5 w-3.5 sm:h-4 sm:w-4 shrink-0" />
                     Logs
                   </TabsTrigger>
                 </>
               )}
-            </TabsList>
+              </TabsList>
+            </div>
           </div>
 
           {/* Tab de Datos */}
-          <TabsContent value="datos">
-            <Card className="border-2">
+          <TabsContent value="datos" className="mt-4 sm:mt-6 outline-none focus-visible:outline-none">
+            <Card className="rounded-2xl border border-border/60 bg-card shadow-sm">
               <CardHeader>
                 <CardTitle>Recomendaciones de la Comunidad (Datos)</CardTitle>
                 <CardDescription>Visualiza los datos enviados por los vecinos a través del formulario de la página principal.</CardDescription>
@@ -1205,8 +1403,8 @@ const Admin = () => {
 
 
           {/* Tab de Servicios */}
-          <TabsContent value="services">
-            <Card className="border-2">
+          <TabsContent value="services" className="mt-4 sm:mt-6 outline-none focus-visible:outline-none">
+            <Card className="rounded-2xl border border-border/60 bg-card shadow-sm">
               <CardHeader>
                 <CardTitle>Servicios/Pymes</CardTitle>
                 <CardDescription>Gestiona todos los servicios. Los pendientes requieren aprobación antes de publicarse.</CardDescription>
@@ -1321,9 +1519,156 @@ const Admin = () => {
             </Card>
           </TabsContent>
 
+          {/* Tab de Productos (marketplace — moderación) */}
+          <TabsContent value="products" className="mt-4 sm:mt-6 outline-none focus-visible:outline-none">
+            <Card className="rounded-2xl border border-border/60 bg-card shadow-sm">
+              <CardHeader>
+                <CardTitle>Productos (marketplace)</CardTitle>
+                <CardDescription>
+                  Gestiona publicaciones de productos. Los pendientes requieren aprobación antes de verse en la vista pública.
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="mb-6 flex flex-col sm:flex-row gap-4">
+                  <Select
+                    value={productFilters.status}
+                    onValueChange={(value) => setProductFilters({ ...productFilters, status: value })}
+                  >
+                    <SelectTrigger className="w-full sm:w-56 glass-card border-white/10">
+                      <SelectValue placeholder="Estado" />
+                    </SelectTrigger>
+                    <SelectContent className="glass-card border-white/10 backdrop-blur-xl">
+                      <SelectItem value="all">🌐 Todos los estados</SelectItem>
+                      <SelectItem value="pending">⏳ Pendientes (Aprobación)</SelectItem>
+                      <SelectItem value="active">✅ Activos / Publicados</SelectItem>
+                      <SelectItem value="rejected">🛑 Rechazados</SelectItem>
+                      <SelectItem value="inactive">🌑 Inactivos</SelectItem>
+                      <SelectItem value="suspended">⚠️ Suspendidos</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <div className="relative flex-1">
+                    <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 text-primary/50" size={16} />
+                    <Input
+                      placeholder="Filtrar por comuna..."
+                      value={productFilters.comuna}
+                      onChange={(e) => setProductFilters({ ...productFilters, comuna: e.target.value })}
+                      className="pl-10 glass-card border-white/10"
+                    />
+                  </div>
+                  <Button onClick={loadProducts} className="bg-primary hover:bg-primary/90">
+                    Buscar
+                  </Button>
+                </div>
+
+                {loadingProducts ? (
+                  <div className="text-center py-8">
+                    <p className="text-muted-foreground">Cargando productos...</p>
+                  </div>
+                ) : adminProducts.length === 0 ? (
+                  <div className="text-center py-8">
+                    <p className="text-muted-foreground">No hay productos con ese filtro</p>
+                  </div>
+                ) : (
+                  <div className="space-y-4">
+                    {adminProducts.map((p) => {
+                      const st = p.status?.toLowerCase().trim() || '';
+                      return (
+                        <Card key={p.id} className={`border ${st === 'pending' ? 'border-amber-300 bg-amber-50/30' : ''}`}>
+                          <CardHeader>
+                            <div className="flex flex-col sm:flex-row justify-between items-start gap-3">
+                              <div className="flex gap-3 flex-1 min-w-0">
+                                {p.cover_image_url ? (
+                                  <div className="w-20 h-20 rounded-xl overflow-hidden border shrink-0 bg-muted">
+                                    <img src={p.cover_image_url} alt="" className="w-full h-full object-cover" />
+                                  </div>
+                                ) : null}
+                                <div className="min-w-0 flex-1">
+                                  <CardTitle className="text-lg line-clamp-2">{p.title}</CardTitle>
+                                  <CardDescription>
+                                    Por: {p.user_name} ({p.user_email}) — {p.comuna}
+                                  </CardDescription>
+                                  <CardDescription className="mt-1">{formatDate(p.created_at)}</CardDescription>
+                                </div>
+                              </div>
+                              <div className="flex flex-wrap items-center gap-2 justify-end w-full sm:w-auto">
+                                <Badge
+                                  className={
+                                    st === 'active'
+                                      ? 'bg-green-500 text-white border-green-600'
+                                      : st === 'pending'
+                                        ? 'bg-amber-500 text-white border-amber-600'
+                                        : st === 'rejected' || st === 'suspended'
+                                          ? 'bg-red-500 text-white border-red-600'
+                                          : 'bg-gray-500 text-white border-gray-600'
+                                  }
+                                >
+                                  {st === 'active'
+                                    ? '✅ Activo'
+                                    : st === 'pending'
+                                      ? '⏳ Pendiente'
+                                      : st === 'rejected' || st === 'suspended'
+                                        ? '❌ Bloqueado'
+                                        : p.status}
+                                </Badge>
+                                {(st === 'pending' || st === 'inactive') && (
+                                  <>
+                                    <Button
+                                      size="sm"
+                                      className="bg-green-600 hover:bg-green-700 text-white"
+                                      onClick={() => handleApproveProduct(p.id)}
+                                    >
+                                      <CheckCircle size={14} className="mr-1" />
+                                      Aprobar
+                                    </Button>
+                                    <Button
+                                      size="sm"
+                                      variant="outline"
+                                      className="border-red-300 text-red-600 hover:bg-red-50 shadow-sm"
+                                      onClick={() => {
+                                        setProductToReject(p);
+                                        setRejectProductReason('');
+                                        setRejectProductDialogOpen(true);
+                                      }}
+                                    >
+                                      <X size={14} className="mr-1" />
+                                      Rechazar
+                                    </Button>
+                                  </>
+                                )}
+                                <Button
+                                  variant="destructive"
+                                  size="sm"
+                                  onClick={() => handleDeleteAdminProduct(p.id)}
+                                >
+                                  <Trash2 size={14} className="mr-1" />
+                                  Eliminar
+                                </Button>
+                              </div>
+                            </div>
+                          </CardHeader>
+                          <CardContent>
+                            <p className="mb-2 text-sm line-clamp-4">{p.description}</p>
+                            <div className="flex flex-wrap gap-2 text-sm text-muted-foreground">
+                              <span>Precio: {formatProductPrice(p.price ?? null, p.currency ?? 'CLP')}</span>
+                              {p.product_status && (
+                                <Badge variant="outline" className="font-normal">
+                                  Estado artículo: {p.product_status}
+                                </Badge>
+                              )}
+                            </div>
+                          </CardContent>
+                        </Card>
+                      );
+                    })}
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          </TabsContent>
+
           {/* Tab de Usuarios (Admin puede ver y banear, Super Admin puede hacer todo) */}
-          <TabsContent value="users">
-            <Card className="border-2">
+          <TabsContent value="users" className="mt-4 sm:mt-6 outline-none focus-visible:outline-none">
+            <Card className="rounded-2xl border border-border/60 bg-card shadow-sm">
               <CardHeader>
                 <CardTitle>Usuarios</CardTitle>
                 <CardDescription>Gestiona usuarios, baneos y roles</CardDescription>
@@ -1491,8 +1836,8 @@ const Admin = () => {
           </TabsContent>
 
           {/* Tab de Tickets */}
-          <TabsContent value="tickets">
-            <Card className="border-2">
+          <TabsContent value="tickets" className="mt-4 sm:mt-6 outline-none focus-visible:outline-none">
+            <Card className="rounded-2xl border border-border/60 bg-card shadow-sm">
               <CardHeader>
                 <CardTitle>Tickets de Soporte</CardTitle>
                 <CardDescription>Gestiona los tickets de soporte de los usuarios</CardDescription>
@@ -1659,10 +2004,10 @@ const Admin = () => {
           </TabsContent>
 
           {/* Tab de Catálogo de Servicios */}
-          <TabsContent value="catalog" className="mt-6">
+          <TabsContent value="catalog" className="mt-4 sm:mt-6 outline-none focus-visible:outline-none">
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 pb-20">
               {/* Gestión de Categorías */}
-              <Card className="border-2 shadow-sm">
+              <Card className="rounded-2xl border border-border/60 bg-card shadow-sm">
                 <CardHeader className="flex flex-row items-center justify-between space-y-0">
                   <div className="space-y-1">
                     <CardTitle className="text-xl">Categorías de Servicios</CardTitle>
@@ -1732,7 +2077,7 @@ const Admin = () => {
               </Card>
 
               {/* Buzón de Sugerencias */}
-              <Card className="border-2 shadow-sm">
+              <Card className="rounded-2xl border border-border/60 bg-card shadow-sm">
                 <CardHeader className="space-y-1">
                   <CardTitle className="text-xl">Buzón de Sugerencias</CardTitle>
                   <CardDescription>Servicios sugeridos por usuarios ('Otro')</CardDescription>
@@ -2019,10 +2364,10 @@ const Admin = () => {
 
           {/* Tab de Precios y Paquetes */}
           {isSuperAdmin && (
-            <TabsContent value="prices">
+            <TabsContent value="prices" className="mt-4 sm:mt-6 outline-none focus-visible:outline-none">
               <div className="grid grid-cols-1 gap-6">
                 {/* Sección Configuración Global */}
-                <Card className="border-2">
+                <Card className="rounded-2xl border border-border/60 bg-card shadow-sm">
                   <CardHeader>
                     <CardTitle>Configuración Global</CardTitle>
                     <CardDescription>Ajustes generales de precios del sistema</CardDescription>
@@ -2079,7 +2424,7 @@ const Admin = () => {
                 </Card>
 
                 {/* Sección Paquetes */}
-                <Card className="border-2">
+                <Card className="rounded-2xl border border-border/60 bg-card shadow-sm">
                   <CardHeader>
                     <CardTitle>Gestión de Paquetes</CardTitle>
                     <CardDescription>Edita los precios y límites de los paquetes de publicación</CardDescription>
@@ -2144,8 +2489,8 @@ const Admin = () => {
 
           {/* Tab de Logs (Solo Super Admin) */}
           {isSuperAdmin && (
-            <TabsContent value="logs">
-              <Card className="border-2">
+            <TabsContent value="logs" className="mt-4 sm:mt-6 outline-none focus-visible:outline-none">
+              <Card className="rounded-2xl border border-border/60 bg-card shadow-sm">
                 <CardHeader>
                   <div className="flex justify-between items-center">
                     <div>
@@ -2797,6 +3142,36 @@ const Admin = () => {
               <Button variant="destructive" onClick={handleRejectService}>
                 <X size={16} className="mr-2" />
                 Confirmar Rechazo
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+
+        {/* Dialog para rechazar producto */}
+        <Dialog open={rejectProductDialogOpen} onOpenChange={setRejectProductDialogOpen}>
+          <DialogContent className="sm:max-w-md">
+            <DialogHeader>
+              <DialogTitle>Rechazar producto</DialogTitle>
+              <DialogDescription>
+                Rechazando: <strong>{productToReject?.title}</strong> de {productToReject?.user_name}
+              </DialogDescription>
+            </DialogHeader>
+            <div className="space-y-4 pt-4">
+              <div>
+                <Label>Motivo del rechazo (opcional)</Label>
+                <Textarea
+                  value={rejectProductReason}
+                  onChange={(e) => setRejectProductReason(e.target.value)}
+                  placeholder="Ej: La publicación no cumple con las políticas..."
+                  rows={3}
+                />
+              </div>
+            </div>
+            <DialogFooter>
+              <Button variant="outline" onClick={() => setRejectProductDialogOpen(false)}>Cancelar</Button>
+              <Button variant="destructive" onClick={handleRejectProduct}>
+                <X size={16} className="mr-2" />
+                Confirmar rechazo
               </Button>
             </DialogFooter>
           </DialogContent>

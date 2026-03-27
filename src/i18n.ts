@@ -7,6 +7,7 @@ const resources = {
         translation: {
             "nav": {
                 "services": "Servicios",
+                "products": "Productos",
                 "home": "Inicio",
                 "profile": "Mi Perfil",
                 "admin": "Admin",
@@ -169,6 +170,7 @@ const resources = {
         translation: {
             "nav": {
                 "services": "Services",
+                "products": "Products",
                 "home": "Home",
                 "profile": "My Profile",
                 "admin": "Admin",

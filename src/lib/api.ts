@@ -55,8 +55,11 @@ async function request<T>(
       errorData = { error: `Error ${response.status}: ${response.statusText}` };
     }
 
-    // Loguear detalles técnicos solo en desarrollo
-    if (import.meta.env.DEV) {
+    // En dev: no spamear consola con errores esperados (ej. login con credenciales incorrectas)
+    const isExpectedAuthFailure =
+      (endpoint === '/auth/login' && response.status === 401) ||
+      (endpoint === '/auth/register' && (response.status === 400 || response.status === 409));
+    if (import.meta.env.DEV && !isExpectedAuthFailure) {
       console.error(`API Error [${response.status}]:`, errorData);
     }
 
@@ -158,6 +161,7 @@ export const authAPI = {
     return request<{ ok: boolean; message: string; registration_id: string }>('/auth/register', {
       method: 'POST',
       body: JSON.stringify(data),
+      skipAuth: true,
     });
   },
 
@@ -174,6 +178,7 @@ export const authAPI = {
     }>('/auth/login', {
       method: 'POST',
       body: JSON.stringify(data),
+      skipAuth: true,
     });
 
     // El token ahora se guarda automáticamente en una cookie HttpOnly
@@ -553,6 +558,116 @@ export const servicesAPI = {
   },
 };
 
+// API de productos / marketplace
+export const productsAPI = {
+  getProducts: async (filters?: {
+    search?: string;
+    comuna?: string;
+    region_id?: string;
+    product_status?: string;
+    page?: number;
+    limit?: number;
+  }) => {
+    const params = new URLSearchParams();
+    if (filters?.search) params.append('search', filters.search);
+    if (filters?.comuna) params.append('comuna', filters.comuna);
+    if (filters?.region_id) params.append('region_id', filters.region_id);
+    if (filters?.product_status) params.append('product_status', filters.product_status);
+    if (filters?.page) params.append('page', filters.page.toString());
+    if (filters?.limit) params.append('limit', filters.limit.toString());
+
+    const queryString = params.toString();
+    return request<{
+      products: Array<{
+        id: string;
+        title: string;
+        description: string;
+        product_status: 'new' | 'used' | 'refurbished';
+        price?: number | null;
+        currency?: string;
+        comuna: string;
+        region_id?: string;
+        region_name?: string;
+        phone?: string;
+        status: string;
+        created_at: string;
+        updated_at?: string;
+        user_id: string;
+        user_name: string;
+        cover_image_url?: string | null;
+        images?: Array<{ id?: string; image_url: string; sort_order?: number }>;
+        average_rating?: number;
+        reviews_count?: number;
+      }>;
+      pagination: {
+        page: number;
+        limit: number;
+        total: number;
+        totalPages: number;
+      };
+    }>(`/products${queryString ? `?${queryString}` : ''}`, {
+      method: 'GET',
+      skipAuth: !localStorage.getItem('token'),
+    });
+  },
+
+  getProductById: async (id: string) => {
+    return request<{
+      product: {
+        id: string;
+        title: string;
+        description: string;
+        product_status: 'new' | 'used' | 'refurbished';
+        price?: number | null;
+        currency?: string;
+        comuna: string;
+        region_id?: string;
+        region_name?: string;
+        phone?: string;
+        status: string;
+        created_at: string;
+        updated_at?: string;
+        user_id: string;
+        user_name: string;
+        cover_image_url?: string | null;
+        images?: Array<{
+          id?: string;
+          image_url: string;
+          sort_order?: number;
+        }>;
+        average_rating?: number;
+        reviews_count?: number;
+      };
+    }>(`/products/${id}`, {
+      method: 'GET',
+      skipAuth: !localStorage.getItem('token'),
+    });
+  },
+
+  createProduct: async (formData: FormData) => {
+    return request<{
+      message: string;
+      product: { id: string; title: string; created_at?: string };
+    }>('/products', {
+      method: 'POST',
+      body: formData,
+    });
+  },
+
+  updateProduct: async (id: string, formData: FormData) => {
+    return request<{ message: string; product?: Record<string, unknown> }>(`/products/${id}`, {
+      method: 'PUT',
+      body: formData,
+    });
+  },
+
+  deleteProduct: async (id: string) => {
+    return request<{ message: string }>(`/products/${id}`, {
+      method: 'DELETE',
+    });
+  },
+};
+
 // API de posts del muro
 export const postsAPI = {
   // Listar posts (público, puede tener usuario autenticado)
@@ -897,6 +1012,68 @@ export const adminAPI = {
     });
   },
 
+  // ========== PRODUCTS (moderación — paridad con servicios) ==========
+  getAllProducts: async (filters?: {
+    comuna?: string;
+    status?: string;
+    page?: number;
+    limit?: number;
+  }) => {
+    const params = new URLSearchParams();
+    if (filters?.comuna) params.append('comuna', filters.comuna);
+    if (filters?.status) params.append('status', filters.status);
+    if (filters?.page) params.append('page', filters.page.toString());
+    if (filters?.limit) params.append('limit', filters.limit.toString());
+    const queryString = params.toString();
+    return request<{
+      products: Array<{
+        id: string;
+        title: string;
+        description: string;
+        price?: number | null;
+        currency?: string;
+        comuna: string;
+        region_id?: string;
+        region_name?: string;
+        product_status?: string;
+        status: string;
+        created_at: string;
+        updated_at?: string;
+        user_id: string;
+        user_name: string;
+        user_email: string;
+        cover_image_url?: string | null;
+      }>;
+      pagination: {
+        page: number;
+        limit: number;
+        total: number;
+        totalPages: number;
+      };
+    }>(`/admin/products${queryString ? `?${queryString}` : ''}`, {
+      method: 'GET',
+    });
+  },
+
+  deleteAdminProduct: async (id: string) => {
+    return request<{ message: string }>(`/admin/products/${id}`, {
+      method: 'DELETE',
+    });
+  },
+
+  approveProduct: async (id: string) => {
+    return request<{ message: string }>(`/admin/products/${id}/approve`, {
+      method: 'PUT',
+    });
+  },
+
+  rejectProduct: async (id: string, reason?: string) => {
+    return request<{ message: string }>(`/admin/products/${id}/reject`, {
+      method: 'PUT',
+      body: JSON.stringify({ reason }),
+    });
+  },
+
   // ========== USERS (Solo Super Admin) ==========
   getAllUsers: async (filters?: {
     role?: string;
@@ -1037,6 +1214,9 @@ export const adminAPI = {
         active_jobs?: number;
         total_services?: number;
         active_services?: number;
+        /** Si el backend los expone (marketplace) */
+        total_products?: number;
+        active_products?: number;
         total_users?: number;
         active_users?: number;
         banned_users?: number;
@@ -1504,6 +1684,49 @@ export const reviewsAPI = {
       method: 'DELETE',
     });
   },
+
+  getProductReviews: async (productId: string) => {
+    return request<{
+      reviews: Array<{
+        id: string;
+        product_id: string;
+        user_id: string;
+        user_name: string;
+        profile_image?: string | null;
+        rating: number;
+        comment: string;
+        created_at: string;
+      }>;
+      stats: {
+        average_rating: number;
+        total_reviews: number;
+      };
+    }>(`/products/${productId}/reviews`, {
+      method: 'GET',
+      skipAuth: !localStorage.getItem('token'),
+    });
+  },
+
+  createProductReview: async (productId: string, data: { rating: number; comment: string; guest_name?: string }) => {
+    return request<{
+      message: string;
+      review: {
+        id: string;
+        rating: number;
+        comment: string;
+        guest_name?: string;
+      };
+    }>(`/products/${productId}/reviews`, {
+      method: 'POST',
+      body: JSON.stringify(data),
+    });
+  },
+
+  deleteProductReview: async (reviewId: string) => {
+    return request<{ message: string }>(`/products/reviews/${reviewId}`, {
+      method: 'DELETE',
+    });
+  },
 };
 
 export const kycAPI = {
@@ -1599,6 +1822,18 @@ export const aiAPI = {
   },
 
   rewriteServiceDescription: async (description: string) => {
+    return request<{
+      message: string;
+      original: string;
+      suggestion: string;
+      changed: boolean;
+    }>('/api/ai/rewrite-description', {
+      method: 'POST',
+      body: JSON.stringify({ description }),
+    });
+  },
+
+  rewriteProductDescription: async (description: string) => {
     return request<{
       message: string;
       original: string;
