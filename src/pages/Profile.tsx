@@ -26,7 +26,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { useUser } from '@/contexts/UserContext';
 import { MapPin, Phone, Mail, Wrench, Building2, Trash2, FileText, Plus, Star, Users, ChevronRight, Loader2, X } from 'lucide-react';
-import { servicesAPI, authAPI, regionsAPI } from '@/lib/api';
+import { servicesAPI, authAPI, regionsAPI, adminAPI } from '@/lib/api';
 import { toast } from 'sonner';
 import {
   validatePhone,
@@ -46,6 +46,15 @@ import {
 import { getServiceLocationDisplay, getUserOfferRegionDisplayName } from '@/lib/serviceUtils';
 import { loadRegionOptionsSorted, type RegionOption } from '@/lib/regions-catalog';
 import { catalogFetchUserMessage } from '@/lib/catalog-fetch-errors';
+
+function sortProfileEditCatalogTypes<T extends { name: string; is_active?: boolean }>(types: T[]): T[] {
+  return [...types].sort((a, b) => {
+    const ac = a.is_active === false ? 1 : 0;
+    const bc = b.is_active === false ? 1 : 0;
+    if (ac !== bc) return ac - bc;
+    return a.name.localeCompare(b.name, 'es');
+  });
+}
 
 function communesNamesFromApiResponse(
   rid: string,
@@ -114,7 +123,9 @@ const Profile = () => {
   const [editServiceCommunesRetryKey, setEditServiceCommunesRetryKey] = useState(0);
   /** Solo super admin: editar categoría (tipo de servicio) */
   const [editServiceTypeIds, setEditServiceTypeIds] = useState<string[]>([]);
-  const [serviceTypesForEdit, setServiceTypesForEdit] = useState<Array<{ id: string; name: string }>>([]);
+  const [serviceTypesForEdit, setServiceTypesForEdit] = useState<
+    Array<{ id: string; name: string; is_active?: boolean }>
+  >([]);
   const [completeCommunes, setCompleteCommunes] = useState<string[]>([]);
   const [completeCommunesLoading, setCompleteCommunesLoading] = useState(false);
   const [completeCommunesError, setCompleteCommunesError] = useState<string | null>(null);
@@ -158,11 +169,36 @@ const Profile = () => {
     setLoadingServiceDetail(true);
     try {
       const isSuperAdmin = user?.role_number === 5;
-      const [detailRes, typesRes] = await Promise.all([
+
+      const loadSuperAdminCatalogTypesFresh = async () => {
+        try {
+          const r = await adminAPI.getAdminServiceTypes({ fresh: true });
+          return sortProfileEditCatalogTypes(
+            (r.types || []).map((t) => ({
+              id: String(t.id),
+              name: t.name,
+              is_active: t.is_active,
+            }))
+          );
+        } catch {
+          try {
+            const r = await servicesAPI.getServiceTypes({ onlyActive: true });
+            return sortProfileEditCatalogTypes(
+              (r.types || []).map((t) => ({
+                id: String(t.id),
+                name: t.name,
+                is_active: true,
+              }))
+            );
+          } catch {
+            return [];
+          }
+        }
+      };
+
+      const [detailRes, typesList] = await Promise.all([
         servicesAPI.getServiceById(service.id),
-        isSuperAdmin
-          ? servicesAPI.getServiceTypes({ onlyActive: true })
-          : Promise.resolve({ types: [] as Array<{ id: string; name: string }> }),
+        isSuperAdmin ? loadSuperAdminCatalogTypesFresh() : Promise.resolve([]),
       ]);
 
       const { service: full } = detailRes;
@@ -180,7 +216,7 @@ const Profile = () => {
       setEditServiceCoverageCommunes((s.coverage_communes || []).filter(Boolean));
 
       if (isSuperAdmin) {
-        const types = typesRes.types || [];
+        const types = typesList;
         setServiceTypesForEdit(types);
         let ids: string[] = [];
         if (Array.isArray(s.service_type_ids) && s.service_type_ids.length > 0) {
@@ -1016,12 +1052,13 @@ const Profile = () => {
                         {serviceTypesForEdit.map((t) => (
                           <SelectItem key={t.id} value={String(t.id)}>
                             {t.name}
+                            {t.is_active === false ? ' (inactiva)' : ''}
                           </SelectItem>
                         ))}
                       </SelectContent>
                     </Select>
                     <p className="text-[10px] text-muted-foreground mt-1">
-                      Solo super admin puede cambiar la categoría; el nombre del servicio se alineará al tipo elegido.
+                      El catálogo se carga al abrir el editor desde administración (sin caché) para reflejar cambios recientes.
                     </p>
                   </div>
                 )}

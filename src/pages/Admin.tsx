@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useUser } from '@/contexts/UserContext';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -218,6 +218,59 @@ interface Log {
   message: string;
 }
 
+function normalizeCatalogName(s: string): string {
+  return s
+    .trim()
+    .toLowerCase()
+    .normalize('NFD')
+    .replace(/\p{M}/gu, '');
+}
+
+type AdminServiceCountRow = { service_name: string; service_type_ids?: string[] };
+
+function buildCatalogServiceCounts(
+  types: Array<{ id: string; name: string }>,
+  services: AdminServiceCountRow[]
+): { byId: Record<string, number>; uncategorized: number } {
+  const byId: Record<string, number> = {};
+  for (const t of types) {
+    byId[t.id] = 0;
+  }
+
+  const nameToTypeId = new Map<string, string>();
+  for (const t of types) {
+    const key = normalizeCatalogName(t.name);
+    if (!nameToTypeId.has(key)) {
+      nameToTypeId.set(key, t.id);
+    }
+  }
+
+  let uncategorized = 0;
+
+  for (const s of services) {
+    const ids = Array.isArray(s.service_type_ids) ? s.service_type_ids.map(String) : [];
+    if (ids.length > 0) {
+      let anyHit = false;
+      for (const rawId of ids) {
+        if (Object.prototype.hasOwnProperty.call(byId, rawId)) {
+          byId[rawId]++;
+          anyHit = true;
+        }
+      }
+      if (!anyHit) uncategorized++;
+    } else {
+      const tid = nameToTypeId.get(normalizeCatalogName(s.service_name || ''));
+      if (tid) {
+        byId[tid]++;
+      } else {
+        uncategorized++;
+      }
+    }
+  }
+
+  return { byId, uncategorized };
+}
+
 const Admin = () => {
   const { user, isLoggedIn } = useUser();
   const navigate = useNavigate();
@@ -316,6 +369,13 @@ const Admin = () => {
   // Estados para Catálogo de Servicios
   const [catalogTypes, setCatalogTypes] = useState<any[]>([]);
   const [loadingCatalog, setLoadingCatalog] = useState(false);
+  const [catalogSearchQuery, setCatalogSearchQuery] = useState('');
+  const [catalogTypeServiceCounts, setCatalogTypeServiceCounts] = useState<Record<string, number>>({});
+  const [catalogUncategorizedCount, setCatalogUncategorizedCount] = useState(0);
+  const [catalogTotalServicesScanned, setCatalogTotalServicesScanned] = useState(0);
+  const [loadingCatalogCounts, setLoadingCatalogCounts] = useState(false);
+  /** Origen del contador de servicios por categoría (para textos de ayuda) */
+  const [catalogCountsSource, setCatalogCountsSource] = useState<'server' | 'client' | 'none'>('none');
   const [suggestions, setSuggestions] = useState<any[]>([]);
   const [loadingSuggestions, setLoadingSuggestions] = useState(false);
   const [typeDialogOpen, setTypeDialogOpen] = useState(false);
@@ -440,18 +500,89 @@ const Admin = () => {
     }
   };
 
-  const loadAdminServiceTypes = async () => {
+  const fetchAllAdminServicesForCatalogCounts = async (): Promise<AdminServiceCountRow[]> => {
+    const all: AdminServiceCountRow[] = [];
+    let page = 1;
+    const limit = 100;
+    for (let guard = 0; guard < 100; guard++) {
+      const res = await adminAPI.getAllServices({ page, limit });
+      for (const s of res.services) {
+        all.push({
+          service_name: s.service_name,
+          service_type_ids: s.service_type_ids,
+        });
+      }
+      if (page >= res.pagination.totalPages || res.pagination.totalPages === 0) break;
+      page += 1;
+    }
+    return all;
+  };
+
+  const loadAdminCatalogPanel = async () => {
+    setLoadingCatalog(true);
+    setLoadingCatalogCounts(true);
+    setCatalogTotalServicesScanned(0);
     try {
-      setLoadingCatalog(true);
       const response = await adminAPI.getAdminServiceTypes();
-      setCatalogTypes(response.types);
+      const types = response.types || [];
+      setCatalogTypes(types);
+
+      if (types.length === 0) {
+        setCatalogTypeServiceCounts({});
+        setCatalogUncategorizedCount(0);
+        setCatalogCountsSource('none');
+        return;
+      }
+
+      const serverCounts = types.every(
+        (t: { services_count?: number }) => typeof t.services_count === 'number'
+      );
+
+      if (serverCounts) {
+        const m: Record<string, number> = {};
+        let sum = 0;
+        for (const t of types) {
+          const c = t.services_count ?? 0;
+          m[t.id] = c;
+          sum += c;
+        }
+        setCatalogTypeServiceCounts(m);
+        setCatalogUncategorizedCount(0);
+        setCatalogTotalServicesScanned(sum);
+        setCatalogCountsSource('server');
+        return;
+      }
+
+      setCatalogCountsSource('client');
+      const services = await fetchAllAdminServicesForCatalogCounts();
+      setCatalogTotalServicesScanned(services.length);
+      const { byId, uncategorized } = buildCatalogServiceCounts(types, services);
+      setCatalogTypeServiceCounts(byId);
+      setCatalogUncategorizedCount(uncategorized);
     } catch (error: any) {
       console.error('Error loading service types:', error);
       toast.error(error.message || 'Error al cargar tipos de servicios');
+      setCatalogTypeServiceCounts({});
+      setCatalogUncategorizedCount(0);
+      setCatalogCountsSource('none');
     } finally {
       setLoadingCatalog(false);
+      setLoadingCatalogCounts(false);
     }
   };
+
+  const filteredCatalogTypes = useMemo(() => {
+    const q = catalogSearchQuery.trim().toLowerCase();
+    let list = catalogTypes;
+    if (q) {
+      list = catalogTypes.filter(
+        (t) =>
+          (t.name || '').toLowerCase().includes(q) ||
+          (t.description || '').toLowerCase().includes(q)
+      );
+    }
+    return [...list].sort((a, b) => (a.name || '').localeCompare(b.name || '', 'es'));
+  }, [catalogTypes, catalogSearchQuery]);
 
   const loadServiceSuggestions = async () => {
     try {
@@ -472,7 +603,7 @@ const Admin = () => {
       await adminAPI.processServiceSuggestion(id, action);
       toast.success(action === 'approve' ? 'Sugerencia aprobada' : 'Sugerencia rechazada');
       loadServiceSuggestions();
-      if (action === 'approve') loadAdminServiceTypes();
+      if (action === 'approve') loadAdminCatalogPanel();
     } catch (error: any) {
       console.error('Error processing suggestion:', error);
       toast.error(error.message || 'Error al procesar sugerencia');
@@ -496,7 +627,7 @@ const Admin = () => {
       }
       setTypeDialogOpen(false);
       // Recargar para sincronizar con el ID real y otros campos del backend
-      setTimeout(() => loadAdminServiceTypes(), 500);
+      setTimeout(() => loadAdminCatalogPanel(), 500);
     } catch (error: any) {
       console.error('Error saving service type:', error);
       toast.error(error.message || 'Error al guardar tipo de servicio');
@@ -524,7 +655,7 @@ const Admin = () => {
     try {
       await adminAPI.deleteServiceType(id);
       toast.success('Tipo de servicio eliminado');
-      loadAdminServiceTypes();
+      loadAdminCatalogPanel();
     } catch (error: any) {
       console.error('Error deleting service type:', error);
       toast.error(error.message || 'Error al eliminar tipo de servicio');
@@ -1308,7 +1439,7 @@ const Admin = () => {
               <TabsTrigger
                 value="catalog"
                 onClick={() => {
-                  loadAdminServiceTypes();
+                  loadAdminCatalogPanel();
                   loadServiceSuggestions();
                 }}
                 className="flex items-center gap-1.5 sm:gap-2 shrink-0 rounded-lg px-3 py-2.5 text-xs sm:text-sm data-[state=active]:bg-background data-[state=active]:shadow-md"
@@ -2007,71 +2138,255 @@ const Admin = () => {
           <TabsContent value="catalog" className="mt-4 sm:mt-6 outline-none focus-visible:outline-none">
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 pb-20">
               {/* Gestión de Categorías */}
-              <Card className="rounded-2xl border border-border/60 bg-card shadow-sm">
-                <CardHeader className="flex flex-row items-center justify-between space-y-0">
-                  <div className="space-y-1">
-                    <CardTitle className="text-xl">Categorías de Servicios</CardTitle>
-                    <CardDescription>Tipos de servicios oficiales del catálogo</CardDescription>
+              <Card className="rounded-2xl border border-border/60 bg-card shadow-sm overflow-hidden">
+                <CardHeader className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between sm:space-y-0 border-b border-border/50 bg-muted/20 pb-4">
+                  <div className="space-y-1 min-w-0">
+                    <CardTitle className="text-lg sm:text-xl">Categorías de servicios</CardTitle>
+                    <CardDescription className="text-xs sm:text-sm">
+                      Catálogo oficial. En escritorio verás tabla; en teléfono, tarjetas compactas.
+                    </CardDescription>
                   </div>
-                  <Button size="sm" onClick={() => {
-                    setSelectedType(null);
-                    setTypeForm({ name: '', description: '', icon: 'Wrench', is_active: true, color: '#1a73e8' });
-                    setTypeDialogOpen(true);
-                  }}>
+                  <Button
+                    size="sm"
+                    className="shrink-0 w-full sm:w-auto"
+                    onClick={() => {
+                      setSelectedType(null);
+                      setTypeForm({ name: '', description: '', icon: 'Wrench', is_active: true, color: '#1a73e8' });
+                      setTypeDialogOpen(true);
+                    }}
+                  >
                     <Plus size={16} className="mr-2" />
-                    Nuevo Tipo
+                    Nuevo tipo
                   </Button>
                 </CardHeader>
-                <CardContent>
+                <CardContent className="pt-4 sm:pt-5">
+                  <div className="relative mb-4">
+                    <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground pointer-events-none" />
+                    <Input
+                      value={catalogSearchQuery}
+                      onChange={(e) => setCatalogSearchQuery(e.target.value)}
+                      placeholder="Buscar por nombre o descripción…"
+                      className="h-11 rounded-xl pl-9 pr-3"
+                      disabled={loadingCatalog && catalogTypes.length === 0}
+                    />
+                  </div>
+
+                  {!loadingCatalog && catalogTypes.length > 0 && (
+                    <div className="mb-4 flex flex-col gap-2 rounded-xl border border-border/60 bg-muted/30 px-3 py-2.5 text-xs text-muted-foreground sm:flex-row sm:items-center sm:justify-between">
+                      <span>
+                        Mostrando <strong className="text-foreground">{filteredCatalogTypes.length}</strong> de{' '}
+                        <strong className="text-foreground">{catalogTypes.length}</strong> categorías
+                        {catalogSearchQuery.trim() ? ' (filtro activo)' : ''}
+                      </span>
+                      <span className="flex flex-wrap items-center gap-2">
+                        {loadingCatalogCounts ? (
+                          <span className="inline-flex items-center gap-1.5">
+                            <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                            Contando servicios…
+                          </span>
+                        ) : (
+                          <>
+                            <Badge variant="secondary" className="font-mono tabular-nums">
+                              {catalogTotalServicesScanned} servicios
+                            </Badge>
+                            {catalogCountsSource === 'client' && catalogUncategorizedCount > 0 && (
+                              <Badge variant="outline" className="text-[10px]">
+                                Sin categoría: {catalogUncategorizedCount}
+                              </Badge>
+                            )}
+                          </>
+                        )}
+                      </span>
+                    </div>
+                  )}
+
+                  {catalogCountsSource === 'client' && !loadingCatalogCounts && catalogTypes.length > 0 && (
+                    <p className="mb-3 text-[11px] leading-snug text-muted-foreground">
+                      Conteo calculado aquí: se agrupa por <code className="rounded bg-muted px-1">service_type_ids</code> si el
+                      listado admin los trae; si no, por coincidencia del nombre del servicio con el nombre de la categoría.
+                    </p>
+                  )}
+                  {catalogCountsSource === 'server' && (
+                    <p className="mb-3 text-[11px] text-muted-foreground">
+                      Cantidades de servicios provistas por el backend en cada categoría.
+                    </p>
+                  )}
+
                   {loadingCatalog ? (
                     <div className="space-y-2 py-4">
-                      {[1, 2, 3].map(i => <div key={i} className="h-16 w-full rounded-lg bg-muted animate-pulse" />)}
+                      {[1, 2, 3, 4].map((i) => (
+                        <div key={i} className="h-14 w-full rounded-lg bg-muted animate-pulse" />
+                      ))}
                     </div>
                   ) : catalogTypes.length === 0 ? (
                     <div className="text-center py-10 text-muted-foreground border-2 border-dashed rounded-xl">
                       No hay categorías configuradas
                     </div>
+                  ) : filteredCatalogTypes.length === 0 ? (
+                    <div className="text-center py-10 text-muted-foreground border-2 border-dashed rounded-xl">
+                      Ninguna categoría coincide con la búsqueda
+                    </div>
                   ) : (
-                    <div className="space-y-3 max-h-[600px] overflow-y-auto pr-2 scrollbar-thin">
-                      {catalogTypes.map((type) => (
-                        <div key={type.id} className={`flex items-center justify-between p-4 border rounded-xl bg-card hover:shadow-md transition-all duration-200 group ${!type.is_active ? 'opacity-60 grayscale-[0.5]' : ''}`}>
-                          <div className="flex items-center gap-4 flex-1 min-w-0">
+                    <>
+                      {/* Vista móvil: tarjetas */}
+                      <div className="max-h-[min(70vh,560px)] space-y-2 overflow-y-auto pr-1 md:hidden">
+                        {filteredCatalogTypes.map((type: any) => (
+                          <div
+                            key={type.id}
+                            className={`flex gap-3 rounded-xl border border-border/70 bg-card p-3 shadow-sm ${!type.is_active ? 'opacity-65 grayscale-[0.4]' : ''}`}
+                          >
                             <div
-                              key={`${type.id}-${type.icon}`}
-                              className={`w-12 h-12 rounded-xl flex items-center justify-center transition-all duration-300 ${isLightColor(type.color || '#1a73e8') ? 'text-black' : 'text-white'}`}
+                              className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-lg ${isLightColor(type.color || '#1a73e8') ? 'text-black' : 'text-white'}`}
                               style={{ backgroundColor: type.color || '#1a73e8' }}
                             >
-                              <IconRenderer name={type.icon || 'Wrench'} size={24} />
+                              <IconRenderer name={type.icon || 'Wrench'} size={22} />
                             </div>
-                            <div className="flex-1 min-w-0 mr-4">
-                              <div className="flex items-center gap-2">
-                                <p className="font-bold text-lg">{type.name}</p>
-                                {!type.is_active && <Badge variant="outline" className="text-[10px] h-4 px-1 bg-muted">Inactivo</Badge>}
+                            <div className="min-w-0 flex-1">
+                              <div className="flex items-start justify-between gap-2">
+                                <p className="font-semibold leading-tight text-sm">{type.name}</p>
+                                <div className="flex shrink-0 flex-col items-end gap-1">
+                                  {!type.is_active && (
+                                    <Badge variant="outline" className="h-5 px-1.5 text-[10px]">
+                                      Inactivo
+                                    </Badge>
+                                  )}
+                                  <Badge variant="secondary" className="font-mono text-[11px] tabular-nums">
+                                    {loadingCatalogCounts ? (
+                                      <Loader2 className="h-3 w-3 animate-spin" />
+                                    ) : (
+                                      <>{catalogTypeServiceCounts[type.id] ?? 0} srv.</>
+                                    )}
+                                  </Badge>
+                                </div>
                               </div>
-                              {type.description && <p className="text-sm text-muted-foreground line-clamp-1">{type.description}</p>}
+                              {type.description ? (
+                                <p className="mt-1 line-clamp-2 text-xs text-muted-foreground">{type.description}</p>
+                              ) : null}
+                              <div className="mt-2 flex justify-end gap-1">
+                                <Button
+                                  variant="outline"
+                                  size="sm"
+                                  className="h-8 rounded-lg px-2 text-xs"
+                                  title="Editar"
+                                  onClick={() => {
+                                    setSelectedType(type);
+                                    setTypeForm({
+                                      name: type.name,
+                                      description: type.description || '',
+                                      icon: type.icon || 'Wrench',
+                                      is_active: type.is_active,
+                                      color: type.color || '#1a73e8',
+                                    });
+                                    setTypeDialogOpen(true);
+                                  }}
+                                >
+                                  <Edit size={14} className="mr-1" />
+                                  Editar
+                                </Button>
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  className="h-8 rounded-lg px-2 text-destructive hover:bg-destructive/10"
+                                  onClick={() => handleDeleteServiceType(type.id)}
+                                >
+                                  <Trash2 size={14} />
+                                </Button>
+                              </div>
                             </div>
                           </div>
-                          <div className="flex gap-1 shrink-0">
-                            <Button variant="ghost" size="icon" className="h-10 w-10 hover:bg-primary/10 hover:text-primary rounded-full transition-all group-hover:scale-110" title="Editar Categoría" onClick={() => {
-                              setSelectedType(type);
-                              setTypeForm({
-                                name: type.name,
-                                description: type.description || '',
-                                icon: type.icon || 'Wrench',
-                                is_active: type.is_active,
-                                color: type.color || '#1a73e8'
-                              });
-                              setTypeDialogOpen(true);
-                            }}>
-                              <Edit size={18} />
-                            </Button>
-                            <Button variant="ghost" size="icon" className="h-10 w-10 text-destructive hover:text-destructive hover:bg-destructive/10 rounded-full transition-all" onClick={() => handleDeleteServiceType(type.id)}>
-                              <Trash2 size={18} />
-                            </Button>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
+                        ))}
+                      </div>
+
+                      {/* Vista escritorio: tabla */}
+                      <div className="hidden max-h-[min(70vh,640px)] overflow-auto rounded-xl border border-border/60 md:block">
+                        <table className="w-full min-w-[640px] caption-bottom text-sm">
+                          <thead className="sticky top-0 z-10 border-b border-border/60 bg-muted/90 backdrop-blur-sm">
+                            <tr className="text-left text-xs font-medium uppercase tracking-wide text-muted-foreground">
+                              <th className="px-3 py-3 pl-4">Categoría</th>
+                              <th className="hidden lg:table-cell px-3 py-3 max-w-[240px]">Descripción</th>
+                              <th className="px-3 py-3 w-[100px]">Estado</th>
+                              <th className="px-3 py-3 w-[110px] text-right">Servicios</th>
+                              <th className="px-3 py-3 pr-4 w-[120px] text-right">Acciones</th>
+                            </tr>
+                          </thead>
+                          <tbody className="divide-y divide-border/60">
+                            {filteredCatalogTypes.map((type: any) => (
+                              <tr
+                                key={type.id}
+                                className={`bg-card/80 transition-colors hover:bg-muted/40 ${!type.is_active ? 'opacity-70' : ''}`}
+                              >
+                                <td className="px-3 py-3 pl-4">
+                                  <div className="flex items-center gap-3">
+                                    <div
+                                      className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-lg ${isLightColor(type.color || '#1a73e8') ? 'text-black' : 'text-white'}`}
+                                      style={{ backgroundColor: type.color || '#1a73e8' }}
+                                    >
+                                      <IconRenderer name={type.icon || 'Wrench'} size={20} />
+                                    </div>
+                                    <span className="font-medium">{type.name}</span>
+                                  </div>
+                                </td>
+                                <td className="hidden lg:table-cell px-3 py-3 max-w-[280px]">
+                                  <span className="line-clamp-2 text-muted-foreground text-xs">
+                                    {type.description || '—'}
+                                  </span>
+                                </td>
+                                <td className="px-3 py-3">
+                                  {type.is_active ? (
+                                    <Badge className="bg-green-600/15 text-green-700 hover:bg-green-600/20 text-[10px]">
+                                      Activa
+                                    </Badge>
+                                  ) : (
+                                    <Badge variant="outline" className="text-[10px]">
+                                      Inactiva
+                                    </Badge>
+                                  )}
+                                </td>
+                                <td className="px-3 py-3 text-right tabular-nums">
+                                  {loadingCatalogCounts ? (
+                                    <Loader2 className="ml-auto h-4 w-4 animate-spin text-muted-foreground" />
+                                  ) : (
+                                    <span className="font-semibold">{catalogTypeServiceCounts[type.id] ?? 0}</span>
+                                  )}
+                                </td>
+                                <td className="px-3 py-3 pr-4 text-right">
+                                  <div className="inline-flex gap-1">
+                                    <Button
+                                      variant="ghost"
+                                      size="icon"
+                                      className="h-9 w-9 rounded-lg hover:bg-primary/10 hover:text-primary"
+                                      title="Editar"
+                                      onClick={() => {
+                                        setSelectedType(type);
+                                        setTypeForm({
+                                          name: type.name,
+                                          description: type.description || '',
+                                          icon: type.icon || 'Wrench',
+                                          is_active: type.is_active,
+                                          color: type.color || '#1a73e8',
+                                        });
+                                        setTypeDialogOpen(true);
+                                      }}
+                                    >
+                                      <Edit size={16} />
+                                    </Button>
+                                    <Button
+                                      variant="ghost"
+                                      size="icon"
+                                      className="h-9 w-9 rounded-lg text-destructive hover:bg-destructive/10"
+                                      title="Eliminar"
+                                      onClick={() => handleDeleteServiceType(type.id)}
+                                    >
+                                      <Trash2 size={16} />
+                                    </Button>
+                                  </div>
+                                </td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      </div>
+                    </>
                   )}
                 </CardContent>
               </Card>

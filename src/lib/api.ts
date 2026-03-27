@@ -921,6 +921,8 @@ export const adminAPI = {
         user_id: string;
         user_name: string;
         user_email: string;
+        /** Si el backend lo envía, el conteo por categoría es más preciso que por nombre */
+        service_type_ids?: string[];
       }>;
       pagination: {
         page: number;
@@ -940,7 +942,7 @@ export const adminAPI = {
   },
 
   // ========== SERVICE CATALOG (Super Admin) ==========
-  getAdminServiceTypes: async () => {
+  getAdminServiceTypes: async (opts?: { fresh?: boolean }) => {
     return request<{
       types: Array<{
         id: string;
@@ -950,9 +952,12 @@ export const adminAPI = {
         color?: string;
         is_active: boolean;
         created_at: string;
+        /** Opcional: si el backend lo implementa, se usa en lugar de contar en cliente */
+        services_count?: number;
       }>;
     }>('/admin/service-types', {
       method: 'GET',
+      ...(opts?.fresh ? { cache: 'no-store' as RequestCache } : {}),
     });
   },
 
