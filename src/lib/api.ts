@@ -420,6 +420,8 @@ export const servicesAPI = {
         region_name?: string;
         offer_region?: { id: string; name: string } | null;
         coverage_communes?: string[];
+        service_type_ids?: string[];
+        types?: Array<{ id: string; name?: string }>;
       };
     }>(`/services/${id}`, {
       method: 'GET',
@@ -499,6 +501,7 @@ export const servicesAPI = {
     phone?: string;
     region_id?: string;
     coverage_communes?: string[];
+    service_type_ids?: string[];
     status?: 'active' | 'inactive' | 'suspended';
   }) => {
     const payload = normalizeCommuneFields({

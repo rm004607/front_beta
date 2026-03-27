@@ -112,6 +112,9 @@ const Profile = () => {
   const [editServiceCommunesLoading, setEditServiceCommunesLoading] = useState(false);
   const [editServiceCommunesError, setEditServiceCommunesError] = useState<string | null>(null);
   const [editServiceCommunesRetryKey, setEditServiceCommunesRetryKey] = useState(0);
+  /** Solo super admin: editar categoría (tipo de servicio) */
+  const [editServiceTypeIds, setEditServiceTypeIds] = useState<string[]>([]);
+  const [serviceTypesForEdit, setServiceTypesForEdit] = useState<Array<{ id: string; name: string }>>([]);
   const [completeCommunes, setCompleteCommunes] = useState<string[]>([]);
   const [completeCommunesLoading, setCompleteCommunesLoading] = useState(false);
   const [completeCommunesError, setCompleteCommunesError] = useState<string | null>(null);
@@ -150,15 +153,46 @@ const Profile = () => {
     setEditingService(service);
     setEditServiceDescription(service.description || '');
     setEditServiceCoverageCommunes(service.coverage_communes || []);
+    setEditServiceTypeIds([]);
+    setServiceTypesForEdit([]);
     setLoadingServiceDetail(true);
     try {
-      const { service: full } = await servicesAPI.getServiceById(service.id);
-      const s = full as Service & { coverage_communes?: string[]; region_id?: string };
+      const isSuperAdmin = user?.role_number === 5;
+      const [detailRes, typesRes] = await Promise.all([
+        servicesAPI.getServiceById(service.id),
+        isSuperAdmin
+          ? servicesAPI.getServiceTypes({ onlyActive: true })
+          : Promise.resolve({ types: [] as Array<{ id: string; name: string }> }),
+      ]);
+
+      const { service: full } = detailRes;
+      const s = full as typeof full & {
+        coverage_communes?: string[];
+        region_id?: string;
+        service_type_ids?: string[];
+        types?: Array<{ id: string; name?: string }>;
+      };
+
       const comuna = s.comuna || service.comuna;
       setEditServiceComuna(comuna);
       setEditServiceRegion(s.region_id || '');
       setEditServiceDescription(s.description || service.description || '');
       setEditServiceCoverageCommunes((s.coverage_communes || []).filter(Boolean));
+
+      if (isSuperAdmin) {
+        const types = typesRes.types || [];
+        setServiceTypesForEdit(types);
+        let ids: string[] = [];
+        if (Array.isArray(s.service_type_ids) && s.service_type_ids.length > 0) {
+          ids = s.service_type_ids.map(String);
+        } else if (Array.isArray(s.types) && s.types.length > 0) {
+          ids = s.types.map((t) => String(t.id));
+        } else {
+          const match = types.find((t) => t.name === service.service_name);
+          if (match) ids = [String(match.id)];
+        }
+        setEditServiceTypeIds(ids);
+      }
     } catch {
       setEditServiceComuna(service.comuna);
       setEditServiceRegion(service.region_id || '');
@@ -180,6 +214,10 @@ const Profile = () => {
     }
     if (!isValidTextField(editServiceDescription, 2000)) {
       toast.error('Descripción no válida');
+      return;
+    }
+    if (user?.role_number === 5 && editServiceTypeIds.length === 0) {
+      toast.error('Selecciona una categoría');
       return;
     }
 
@@ -216,12 +254,22 @@ const Profile = () => {
         return;
       }
 
-      const response = await servicesAPI.updateService(editingService.id, {
+      const updatePayload: Parameters<typeof servicesAPI.updateService>[1] = {
         description: sanitizeInput(editServiceDescription, 2000),
         comuna: comunaRes.comuna,
         region_id: offerRegionId,
         coverage_communes: coveragePayload ?? [],
-      });
+      };
+
+      if (user?.role_number === 5 && editServiceTypeIds.length > 0) {
+        const selectedType = serviceTypesForEdit.find((t) => String(t.id) === String(editServiceTypeIds[0]));
+        if (selectedType?.name) {
+          updatePayload.service_name = sanitizeInput(selectedType.name, 140);
+        }
+        updatePayload.service_type_ids = editServiceTypeIds.map(String);
+      }
+
+      const response = await servicesAPI.updateService(editingService.id, updatePayload);
 
       const successMsg = response.message || 'Servicio actualizado';
       toast.success(successMsg);
@@ -937,7 +985,8 @@ const Profile = () => {
               <DialogDescription className="text-sm">
                 {editingService ? (
                   <span className="text-muted-foreground">
-                    {editingService.service_name}. Puedes actualizar descripción, ubicación y comunas de cobertura.
+                    {editingService.service_name}. Puedes actualizar descripción, ubicación y comunas de cobertura
+                    {user?.role_number === 5 ? ' (como super admin también la categoría).' : '.'}
                   </span>
                 ) : null}
               </DialogDescription>
@@ -946,6 +995,36 @@ const Profile = () => {
               <p className="py-8 text-center text-sm text-muted-foreground">Cargando datos…</p>
             ) : (
               <div className="space-y-5 py-2">
+                {user?.role_number === 5 && (
+                  <div>
+                    <Label htmlFor="edit-service-category" className="text-xs font-medium text-muted-foreground mb-1 block">
+                      Categoría
+                    </Label>
+                    <Select
+                      value={editServiceTypeIds[0] || ''}
+                      onValueChange={(v) => setEditServiceTypeIds(v ? [v] : [])}
+                      disabled={isSavingService || serviceTypesForEdit.length === 0}
+                    >
+                      <SelectTrigger id="edit-service-category" className="rounded-xl">
+                        <SelectValue
+                          placeholder={
+                            serviceTypesForEdit.length === 0 ? 'Sin tipos disponibles' : 'Selecciona categoría'
+                          }
+                        />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {serviceTypesForEdit.map((t) => (
+                          <SelectItem key={t.id} value={String(t.id)}>
+                            {t.name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <p className="text-[10px] text-muted-foreground mt-1">
+                      Solo super admin puede cambiar la categoría; el nombre del servicio se alineará al tipo elegido.
+                    </p>
+                  </div>
+                )}
                 <div>
                   <p className="text-xs font-medium text-muted-foreground mb-1">Origen (región y comuna)</p>
                   <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
