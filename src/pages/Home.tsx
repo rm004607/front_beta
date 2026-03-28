@@ -737,35 +737,24 @@ const Home = () => {
                     />
                   </video>
                   <div
-                    className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/35 to-black/20 pointer-events-none"
+                    className="pointer-events-none absolute inset-x-0 bottom-0 z-10 h-1/3 bg-gradient-to-t from-black/55 to-transparent"
                     aria-hidden
                   />
-                  <div className="absolute top-0 right-0 w-40 h-40 bg-white/10 rounded-bl-full translate-x-8 -translate-y-8 blur-2xl pointer-events-none" />
-                  <div className="absolute bottom-0 left-0 w-40 h-40 bg-secondary/20 rounded-tr-full -translate-x-8 translate-y-8 blur-2xl pointer-events-none" />
-
-                  <div className="relative z-10 flex flex-col items-center gap-6 max-w-lg px-6 py-10 text-center">
-                    <div className="flex items-center justify-center gap-3 flex-wrap">
-                      <h3 className="text-2xl sm:text-3xl md:text-4xl font-black text-white uppercase tracking-tight leading-tight drop-shadow-sm">
-                        Aquí para ti
-                      </h3>
-                      <Sparkles className="w-10 h-10 sm:w-12 sm:h-12 text-teal-300 shrink-0" strokeWidth={1.5} aria-hidden />
-                    </div>
-                    <div className="flex flex-col sm:flex-row sm:flex-wrap items-center justify-center gap-3 w-full">
-                      <a
-                        href="mailto:contacto@dameldato.com"
-                        className="inline-flex items-center justify-center rounded-full bg-pink-400 px-5 py-2.5 text-sm font-black text-white shadow-lg shadow-black/10 hover:bg-pink-500 transition-colors"
-                      >
-                        contacto@dameldato.com
-                      </a>
-                      <a
-                        href="https://www.dameldato.com"
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="inline-flex items-center justify-center rounded-full bg-pink-400 px-5 py-2.5 text-sm font-black text-white shadow-lg shadow-black/10 hover:bg-pink-500 transition-colors"
-                      >
-                        www.dameldato.com
-                      </a>
-                    </div>
+                  <div className="absolute bottom-0 left-0 right-0 z-10 flex flex-col items-center justify-end gap-3 px-4 pb-5 pt-10 sm:flex-row sm:flex-wrap sm:justify-center sm:pb-6">
+                    <a
+                      href="mailto:contacto@dameldato.com"
+                      className="inline-flex items-center justify-center rounded-full bg-pink-400 px-5 py-2.5 text-sm font-black text-white shadow-lg shadow-black/10 transition-colors hover:bg-pink-500"
+                    >
+                      contacto@dameldato.com
+                    </a>
+                    <a
+                      href="https://www.dameldato.com"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center justify-center rounded-full bg-pink-400 px-5 py-2.5 text-sm font-black text-white shadow-lg shadow-black/10 transition-colors hover:bg-pink-500"
+                    >
+                      www.dameldato.com
+                    </a>
                   </div>
                 </div>
               </div>
