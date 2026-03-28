@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, useLayoutEffect, useMemo, type CSSProperties } from 'react';
+import { useState, useEffect, useLayoutEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -25,8 +25,6 @@ import logoFull from '/logo_nombre.webp';
 import { getServiceIcon, getServiceColor, isLightColor, getServiceLocationDisplay } from '@/lib/serviceUtils';
 import { toast } from 'sonner';
 import { Mail, Send } from 'lucide-react';
-import { cn } from '@/lib/utils';
-
 interface Service {
   id: string;
   service_name: string;
@@ -57,41 +55,91 @@ const Home = () => {
   const [latestCarouselIndex, setLatestCarouselIndex] = useState(0);
   const [latestItemsPerView, setLatestItemsPerView] = useState(3);
 
-  const categoriesViewportRef = useRef<HTMLDivElement>(null);
-  const categoriesTrackRef = useRef<HTMLDivElement>(null);
   const latestServicesRequestId = useRef(0);
-  /** Pixels de scroll horizontal disponibles; 0 = no cabe carrusel, no animar */
-  const [categoriesOverflowPx, setCategoriesOverflowPx] = useState(0);
+  const latestCarouselIndexRef = useRef(0);
+  latestCarouselIndexRef.current = latestCarouselIndex;
+  const latestCarouselViewportRef = useRef<HTMLDivElement | null>(null);
+  const latestCarouselTrackRef = useRef<HTMLDivElement | null>(null);
 
-  const categoriesScrollDuration = useMemo(() => {
-    if (categoriesOverflowPx <= 0) return 32;
-    return Math.min(55, Math.max(18, categoriesOverflowPx / 28));
-  }, [categoriesOverflowPx]);
+  const syncLatestCarouselTransform = () => {
+    const track = latestCarouselTrackRef.current;
+    if (!track || latestServices.length === 0) return;
+    const i = Math.min(Math.max(0, latestCarouselIndexRef.current), track.children.length - 1);
+    const slide = track.children[i] as HTMLElement | undefined;
+    if (!slide) return;
+    track.style.transform = `translate3d(${-slide.offsetLeft}px,0,0)`;
+  };
 
   useLayoutEffect(() => {
-    if (loadingTypes || serviceTypes.length === 0) {
-      setCategoriesOverflowPx(0);
-      return;
-    }
+    if (loadingServices || latestServices.length === 0) return;
+    syncLatestCarouselTransform();
+  }, [latestCarouselIndex, latestItemsPerView, loadingServices, latestServices.length]);
 
-    const measure = () => {
-      const vp = categoriesViewportRef.current;
-      const track = categoriesTrackRef.current;
-      if (!vp || !track) return;
-      const dist = track.scrollWidth - vp.clientWidth;
-      setCategoriesOverflowPx(dist > 8 ? dist : 0);
-    };
-
-    measure();
-    const ro = new ResizeObserver(() => measure());
-    if (categoriesViewportRef.current) ro.observe(categoriesViewportRef.current);
-    if (categoriesTrackRef.current) ro.observe(categoriesTrackRef.current);
-    window.addEventListener('resize', measure);
+  useEffect(() => {
+    if (loadingServices || latestServices.length === 0) return;
+    const vp = latestCarouselViewportRef.current;
+    if (!vp) return;
+    const ro = new ResizeObserver(() => {
+      requestAnimationFrame(() => syncLatestCarouselTransform());
+    });
+    ro.observe(vp);
+    window.addEventListener('orientationchange', syncLatestCarouselTransform);
+    window.addEventListener('resize', syncLatestCarouselTransform);
     return () => {
       ro.disconnect();
-      window.removeEventListener('resize', measure);
+      window.removeEventListener('orientationchange', syncLatestCarouselTransform);
+      window.removeEventListener('resize', syncLatestCarouselTransform);
     };
-  }, [loadingTypes, serviceTypes]);
+  }, [loadingServices, latestServices.length]);
+
+  /** Carrusel categorías: movimiento por requestAnimationFrame (la animación CSS a veces no aplica por capas/prefers-reduced-motion) */
+  const categoriesTrackRef = useRef<HTMLDivElement | null>(null);
+  const categoriesMarqueePausedRef = useRef(false);
+  const categoriesMarqueeOffsetRef = useRef(0);
+  const categoriesMarqueeSpeedPxRef = useRef(52);
+
+  useEffect(() => {
+    const mq = window.matchMedia('(prefers-reduced-motion: reduce)');
+    const sync = () => {
+      categoriesMarqueeSpeedPxRef.current = mq.matches ? 16 : 52;
+    };
+    sync();
+    mq.addEventListener('change', sync);
+    return () => mq.removeEventListener('change', sync);
+  }, []);
+
+  useLayoutEffect(() => {
+    if (loadingTypes || serviceTypes.length === 0) return;
+    const el = categoriesTrackRef.current;
+    if (!el) return;
+
+    categoriesMarqueeOffsetRef.current = 0;
+    el.style.transform = 'translate3d(0,0,0)';
+
+    let rafId = 0;
+    let lastTs = 0;
+
+    const tick = (ts: number) => {
+      if (!lastTs) lastTs = ts;
+      const dt = Math.min((ts - lastTs) / 1000, 0.08);
+      lastTs = ts;
+
+      if (!categoriesMarqueePausedRef.current) {
+        const half = el.scrollWidth / 2;
+        if (half > 8) {
+          categoriesMarqueeOffsetRef.current += categoriesMarqueeSpeedPxRef.current * dt;
+          if (categoriesMarqueeOffsetRef.current >= half) {
+            categoriesMarqueeOffsetRef.current %= half;
+          }
+          el.style.transform = `translate3d(-${categoriesMarqueeOffsetRef.current}px,0,0)`;
+        }
+      }
+      rafId = requestAnimationFrame(tick);
+    };
+
+    rafId = requestAnimationFrame(tick);
+    return () => cancelAnimationFrame(rafId);
+  }, [loadingTypes, serviceTypes.length]);
 
   useEffect(() => {
     loadServiceTypes();
@@ -209,19 +257,16 @@ const Home = () => {
     }
   };
 
-  /** Tarjeta para el carrusel horizontal (1 fila, estilo limpio) */
+  /** Tarjeta carrusel: minimal (sin bloques de color por categoría) */
   const CategoryCarouselCard = ({ type }: { type: any }) => (
     <Link
       to={`/servicios?type_id=${type.id}`}
-      className="group/cat shrink-0 flex w-[132px] flex-col items-center justify-center rounded-2xl border border-border/60 bg-white px-3 py-4 shadow-sm transition-all duration-300 hover:border-primary/25 hover:shadow-md sm:w-[152px] sm:py-5"
+      className="group/cat shrink-0 flex w-[124px] flex-col items-center justify-center rounded-xl border border-border/50 bg-background/60 px-2.5 py-3.5 transition-colors duration-200 hover:border-border hover:bg-muted/25 sm:w-[142px] sm:py-4"
     >
-      <div
-        className={`mb-3 flex h-12 w-12 items-center justify-center rounded-xl shadow-sm transition-transform duration-300 group-hover/cat:scale-105 sm:h-14 sm:w-14 sm:rounded-2xl ${isLightColor(type.color || getServiceColor(type.name)) ? 'text-slate-900' : 'text-white'}`}
-        style={{ backgroundColor: type.color || getServiceColor(type.name) }}
-      >
+      <div className="mb-2 flex h-10 w-10 items-center justify-center rounded-lg border border-border/60 bg-muted/30 text-foreground/70 transition-transform duration-200 group-hover/cat:scale-[1.03] sm:mb-2.5 sm:h-11 sm:w-11">
         {getServiceIcon(type.name, type.icon, type.idicon)}
       </div>
-      <h3 className="text-center text-xs font-semibold leading-tight text-foreground transition-colors group-hover/cat:text-primary sm:text-sm">
+      <h3 className="text-center text-[11px] font-medium leading-snug text-muted-foreground transition-colors group-hover/cat:text-foreground sm:text-xs">
         {type.name}
       </h3>
     </Link>
@@ -354,59 +399,53 @@ const Home = () => {
             </p>
           </div>
 
-          <div className={cn('relative', categoriesOverflowPx > 0 && 'pause-home-categories')}>
+          <div
+            className="relative"
+            onMouseEnter={() => {
+              categoriesMarqueePausedRef.current = true;
+            }}
+            onMouseLeave={() => {
+              categoriesMarqueePausedRef.current = false;
+            }}
+          >
             {loadingTypes ? (
-              <div className="flex justify-center gap-4 overflow-hidden px-4 py-4">
-                {[1, 2, 3, 4, 5, 6].map((i) => (
+              <div className="flex justify-start gap-3 overflow-hidden px-4 py-4 sm:gap-4">
+                {[1, 2, 3, 4, 5, 6, 7, 8].map((i) => (
                   <div
                     key={i}
-                    className="h-[120px] w-[132px] shrink-0 rounded-2xl border border-border/50 bg-muted/50 animate-pulse sm:h-[136px] sm:w-[152px]"
+                    className="h-[104px] w-[124px] shrink-0 rounded-xl border border-border/40 bg-muted/30 animate-pulse sm:h-[112px] sm:w-[142px]"
                   />
                 ))}
               </div>
             ) : (
-              <div ref={categoriesViewportRef} className="relative overflow-hidden py-2">
-                {categoriesOverflowPx > 0 && (
-                  <>
-                    <div
-                      className="pointer-events-none absolute inset-y-0 left-0 z-[1] w-10 bg-gradient-to-r from-background to-transparent sm:w-16"
-                      aria-hidden
-                    />
-                    <div
-                      className="pointer-events-none absolute inset-y-0 right-0 z-[1] w-10 bg-gradient-to-l from-background to-transparent sm:w-16"
-                      aria-hidden
-                    />
-                  </>
-                )}
+              <div className="home-categories-marquee-viewport relative overflow-hidden py-2">
+                <div
+                  className="pointer-events-none absolute inset-y-0 left-0 z-[1] w-10 bg-gradient-to-r from-background to-transparent sm:w-16"
+                  aria-hidden
+                />
+                <div
+                  className="pointer-events-none absolute inset-y-0 right-0 z-[1] w-10 bg-gradient-to-l from-background to-transparent sm:w-16"
+                  aria-hidden
+                />
 
                 <div
                   ref={categoriesTrackRef}
-                  className={cn(
-                    'flex gap-4 sm:gap-5 md:gap-6',
-                    categoriesOverflowPx > 0
-                      ? 'home-categories-track--scroll w-max'
-                      : 'w-full flex-wrap justify-center'
-                  )}
-                  style={
-                    categoriesOverflowPx > 0
-                      ? ({
-                          ['--categories-shift' as string]: `-${categoriesOverflowPx}px`,
-                          ['--categories-duration' as string]: `${categoriesScrollDuration}s`,
-                        } as CSSProperties)
-                      : undefined
-                  }
+                  className="home-categories-marquee-track flex w-max flex-nowrap gap-3 will-change-transform sm:gap-4 md:gap-5"
                 >
                   {serviceTypes.map((type) => (
-                    <CategoryCarouselCard key={type.id} type={type} />
+                    <CategoryCarouselCard key={`${type.id}-a`} type={type} />
+                  ))}
+                  {serviceTypes.map((type) => (
+                    <CategoryCarouselCard key={`${type.id}-b`} type={type} />
                   ))}
                 </div>
               </div>
             )}
 
-            <div className="mt-8 flex justify-center">
-              <div className="rounded-full border border-border/60 bg-white/80 px-4 py-2 text-[10px] font-medium uppercase tracking-[0.18em] text-muted-foreground shadow-sm backdrop-blur-sm sm:text-[11px]">
-                Catálogo interactivo · Explora por categorías
-              </div>
+            <div className="mt-6 flex justify-center">
+              <p className="text-[10px] font-medium uppercase tracking-[0.2em] text-muted-foreground/70 sm:text-[11px]">
+                Catálogo · Explora por categorías
+              </p>
             </div>
           </div>
         </section>
@@ -452,18 +491,23 @@ const Home = () => {
       {/* Últimos Anuncios */}
       <section className="py-12 md:py-24 container mx-auto px-4">
         <div className="max-w-6xl mx-auto">
-          <div className="flex flex-col md:flex-row items-center justify-between mb-12 gap-6">
-            <div className="text-center md:text-left">
-              <h2 className="text-4xl font-heading font-extrabold flex items-center justify-center md:justify-start gap-4 animate-reveal">
-                <div className="bg-primary/15 p-3 rounded-2xl">
+          <div className="mb-12 flex flex-col items-center gap-6 text-center md:flex-row md:items-start md:justify-between md:text-left">
+            <div className="w-full max-w-xl md:max-w-none">
+              <h2 className="animate-reveal flex flex-col items-center gap-3 font-heading text-4xl font-extrabold sm:flex-row sm:gap-4 md:justify-start">
+                <div className="shrink-0 rounded-2xl bg-primary/15 p-3">
                   <Star className="text-primary" size={32} fill="currentColor" />
                 </div>
-                {t('home.new_talents')}
+                <span className="text-center leading-tight md:text-left">{t('home.new_talents')}</span>
               </h2>
-              <p className="text-muted-foreground mt-2">{t('home.new_talents_desc')}</p>
+              <p className="mx-auto mt-2 max-w-md text-muted-foreground md:mx-0 md:max-w-none">
+                {t('home.new_talents_desc')}
+              </p>
             </div>
-            <Link to="/servicios" className="animate-reveal delay-200">
-              <Button variant="outline" className="border-2 rounded-xl h-14 px-8 font-bold hover:bg-primary hover:text-white hover:border-primary transition-all">
+            <Link to="/servicios" className="animate-reveal delay-200 shrink-0">
+              <Button
+                variant="outline"
+                className="h-14 rounded-xl border-2 px-8 font-bold transition-all hover:border-primary hover:bg-primary hover:text-white"
+              >
                 {t('home.view_all')}
                 <ArrowRight size={18} className="ml-2" />
               </Button>
@@ -484,20 +528,25 @@ const Home = () => {
               </Link>
             </div>
           ) : (
-            <div className="relative">
-              <div className="overflow-hidden">
+            <div className="relative w-full">
+              <div
+                ref={latestCarouselViewportRef}
+                className="w-full overflow-hidden"
+              >
                 <div
-                  className="flex items-stretch gap-4 md:gap-8 transition-transform duration-700 ease-in-out will-change-transform"
-                  style={{
-                    transform: `translateX(-${latestCarouselIndex * (100 / Math.max(1, latestItemsPerView))}%)`,
-                  }}
+                  ref={latestCarouselTrackRef}
+                  className="flex w-full flex-nowrap items-stretch gap-0 transition-transform duration-700 ease-out will-change-transform md:gap-8"
                 >
                   {latestServices.map((service, i) => (
                     <div
                       key={service.id}
-                      className="min-w-0 flex-[0_0_100%] md:flex-[0_0_50%] lg:flex-[0_0_33.3333%] px-1 md:px-0"
+                      className="box-border flex min-h-0 min-w-0 w-full shrink-0 grow-0 basis-full flex-col items-stretch justify-center pl-2 pr-2 md:basis-1/2 md:pl-0 md:pr-0 lg:basis-1/3"
                     >
-                      <Link to={`/servicios`} className="animate-reveal block h-full w-full max-w-xl mx-auto" style={{ animationDelay: `${i * 50}ms` }}>
+                      <Link
+                        to={`/servicios`}
+                        className="animate-reveal mx-auto block h-full w-full max-w-lg md:max-w-none"
+                        style={{ animationDelay: `${i * 50}ms` }}
+                      >
                         <Card className="group h-full bg-white dark:bg-card/40 backdrop-blur-sm border-2 border-transparent hover:border-primary/30 hover:shadow-2xl hover:shadow-primary/5 transition-all duration-500 rounded-[2.5rem] overflow-hidden flex flex-col shadow-sm hover:-translate-y-1">
                           <CardHeader className="p-8 pb-5">
                             <div className="flex flex-col items-center text-center gap-4 mb-6">
@@ -553,7 +602,7 @@ const Home = () => {
                 </div>
               </div>
 
-              <div className="mt-6 flex items-center justify-center gap-2">
+              <div className="mt-6 flex w-full items-center justify-center gap-2 px-2">
                 {Array.from({ length: Math.max(1, latestServices.length - latestItemsPerView + 1) }).map((_, idx) => (
                   <button
                     key={idx}
