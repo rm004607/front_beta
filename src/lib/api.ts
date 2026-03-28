@@ -522,7 +522,7 @@ export const servicesAPI = {
   },
 
   // Obtener tipos de servicios (catálogo estructurado)
-  getServiceTypes: async (filters?: { onlyActive?: boolean }) => {
+  getServiceTypes: async (filters?: { onlyActive?: boolean; fresh?: boolean }) => {
     const params = new URLSearchParams();
     if (filters?.onlyActive) params.append('onlyActive', 'true');
     const queryString = params.toString();
@@ -534,9 +534,12 @@ export const servicesAPI = {
         description?: string;
         icon?: string;
         color?: string;
+        is_active?: boolean;
+        created_at?: string;
       }>;
     }>(`/services/types${queryString ? `?${queryString}` : ''}`, {
       method: 'GET',
+      ...(filters?.fresh ? { cache: 'no-store' as RequestCache } : {}),
     });
   },
 

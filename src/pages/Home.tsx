@@ -212,8 +212,16 @@ const Home = () => {
   const loadServiceTypes = async () => {
     try {
       setLoadingTypes(true);
-      const response = await servicesAPI.getServiceTypes({ onlyActive: true });
-      setServiceTypes(response.types);
+      /* Sin onlyActive: en admin las categorías nuevas a veces no entran con soloActive=true (o el listado queda cacheado).
+         En cliente ocultamos solo is_active === false si el backend lo envía. Orden: más recientes primero si hay created_at. */
+      const response = await servicesAPI.getServiceTypes({ fresh: true });
+      const raw = response.types || [];
+      const visible = raw.filter((t: { is_active?: boolean }) => t.is_active !== false);
+      const sorted = [...visible].sort((a: { created_at?: string }, b: { created_at?: string }) => {
+        if (!a.created_at || !b.created_at) return 0;
+        return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
+      });
+      setServiceTypes(sorted);
     } catch (error) {
       console.error('Error loading service types:', error);
     } finally {
