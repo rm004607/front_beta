@@ -612,11 +612,31 @@ const Admin = () => {
     }
   };
 
+  const openNewServiceTypeDialog = () => {
+    setSelectedType(null);
+    setTypeForm({ name: '', description: '', icon: 'Wrench', is_active: true, color: '#1a73e8' });
+    setTypeDialogOpen(true);
+  };
+
+  const openEditServiceTypeDialog = (type: any) => {
+    setSelectedType({ ...type, id: String(type.id) });
+    setTypeForm({
+      name: type.name != null ? String(type.name) : '',
+      description: type.description ?? '',
+      icon: type.icon || 'Wrench',
+      is_active: type.is_active !== false && type.is_active !== 0 && type.is_active !== '0',
+      color: type.color || '#1a73e8',
+    });
+    setTypeDialogOpen(true);
+  };
+
   const handleSaveServiceType = async () => {
     try {
       if (selectedType) {
-        await adminAPI.updateServiceType(selectedType.id, typeForm);
-        setCatalogTypes(prev => prev.map(t => t.id === selectedType.id ? { ...t, ...typeForm } : t));
+        await adminAPI.updateServiceType(String(selectedType.id), typeForm);
+        setCatalogTypes((prev) =>
+          prev.map((t) => (String(t.id) === String(selectedType.id) ? { ...t, ...typeForm } : t)),
+        );
         toast.success('Tipo de servicio actualizado');
       } else {
         const response = await adminAPI.createServiceType(typeForm);
@@ -653,7 +673,7 @@ const Admin = () => {
   const handleDeleteServiceType = async (id: string) => {
     if (!confirm('¿Estás seguro de eliminar este tipo de servicio?')) return;
     try {
-      await adminAPI.deleteServiceType(id);
+      await adminAPI.deleteServiceType(String(id));
       toast.success('Tipo de servicio eliminado');
       loadAdminCatalogPanel();
     } catch (error: any) {
@@ -2149,11 +2169,7 @@ const Admin = () => {
                   <Button
                     size="sm"
                     className="shrink-0 w-full sm:w-auto"
-                    onClick={() => {
-                      setSelectedType(null);
-                      setTypeForm({ name: '', description: '', icon: 'Wrench', is_active: true, color: '#1a73e8' });
-                      setTypeDialogOpen(true);
-                    }}
+                    onClick={openNewServiceTypeDialog}
                   >
                     <Plus size={16} className="mr-2" />
                     Nuevo tipo
@@ -2268,17 +2284,7 @@ const Admin = () => {
                                   size="sm"
                                   className="h-8 rounded-lg px-2 text-xs"
                                   title="Editar"
-                                  onClick={() => {
-                                    setSelectedType(type);
-                                    setTypeForm({
-                                      name: type.name,
-                                      description: type.description || '',
-                                      icon: type.icon || 'Wrench',
-                                      is_active: type.is_active,
-                                      color: type.color || '#1a73e8',
-                                    });
-                                    setTypeDialogOpen(true);
-                                  }}
+                                  onClick={() => openEditServiceTypeDialog(type)}
                                 >
                                   <Edit size={14} className="mr-1" />
                                   Editar
@@ -2356,17 +2362,7 @@ const Admin = () => {
                                       size="icon"
                                       className="h-9 w-9 rounded-lg hover:bg-primary/10 hover:text-primary"
                                       title="Editar"
-                                      onClick={() => {
-                                        setSelectedType(type);
-                                        setTypeForm({
-                                          name: type.name,
-                                          description: type.description || '',
-                                          icon: type.icon || 'Wrench',
-                                          is_active: type.is_active,
-                                          color: type.color || '#1a73e8',
-                                        });
-                                        setTypeDialogOpen(true);
-                                      }}
+                                      onClick={() => openEditServiceTypeDialog(type)}
                                     >
                                       <Edit size={16} />
                                     </Button>
@@ -2448,8 +2444,217 @@ const Admin = () => {
             </div>
           </TabsContent>
 
-          {/* Dialog para Editar/Crear Tipo de Servicio */}
-          <Dialog open={typeDialogOpen} onOpenChange={setTypeDialogOpen}>
+          {/* Tab de Precios y Paquetes */}
+          {isSuperAdmin && (
+            <TabsContent value="prices" className="mt-4 sm:mt-6 outline-none focus-visible:outline-none">
+              <div className="grid grid-cols-1 gap-6">
+                {/* Sección Configuración Global */}
+                <Card className="rounded-2xl border border-border/60 bg-card shadow-sm">
+                  <CardHeader>
+                    <CardTitle>Configuración Global</CardTitle>
+                    <CardDescription>Ajustes generales de precios del sistema</CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    {loadingConfig ? (
+                      <div className="text-center py-4">Cargando configuración...</div>
+                    ) : (
+                      <div className="space-y-4">
+                        {adminConfig
+                          .filter(config => ['WHATSAPP_CONTACT_PRICE', 'PRICING_ENABLED'].includes(config.key.trim().toUpperCase()))
+                          .map((config) => (
+                            <div key={config.key} className="flex flex-col sm:flex-row items-center justify-between p-6 border rounded-2xl bg-white shadow-sm border-gray-100 hover:shadow-md transition-all duration-300 gap-4 mb-4">
+                              <div className="flex-1">
+                                <p className={`font-black text-xl transition-all duration-300 ${config.key.trim().toUpperCase() === 'PRICING_ENABLED' && config.value !== 'true' ? 'text-primary animate-pulse' : 'text-black'}`}>
+                                  {config.key.trim().toUpperCase() === 'PRICING_ENABLED'
+                                    ? 'MODO TODO GRATUITO'
+                                    : (config.key.trim().toUpperCase() === 'WHATSAPP_CONTACT_PRICE' ? 'Precio Mensaje WhatsApp' : config.description || config.key)}
+                                </p>
+                                <p className="text-xs text-muted-foreground mt-1">
+                                  {config.key.trim().toUpperCase() === 'PRICING_ENABLED'
+                                    ? 'Activa para desactivar todos los pagos en el sistema.'
+                                    : 'Costo por cada contacto directo a través del muro o servicios.'}
+                                </p>
+                              </div>
+                              <div className="flex items-center gap-6">
+                                {config.key.trim().toUpperCase() === 'PRICING_ENABLED' ? (
+                                  <div className="flex items-center gap-3">
+                                    <span className={`text-sm font-medium ${config.value === 'true' ? 'text-primary' : 'text-slate-500'}`}>
+                                      {config.key.trim().toUpperCase() === 'PRICING_ENABLED' ? (config.value === 'true' ? 'MODO PAGO ACTIVADO' : 'MODO TODO GRATUITO ACTIVADO') : 'Activado'}
+                                    </span>
+                                    <Switch
+                                      checked={config.value === 'true' || config.value === '1' || config.value === 1}
+                                      onCheckedChange={handleTogglePricing}
+                                    />
+                                  </div>
+                                ) : (
+                                  <>
+                                    <span className="text-2xl font-black text-primary drop-shadow-sm">
+                                      {parseInt(config.value) ? new Intl.NumberFormat('es-CL', { style: 'currency', currency: 'CLP' }).format(parseInt(config.value)) : config.value}
+                                    </span>
+                                    <Button variant="outline" size="sm" onClick={() => openEditConfig(config)} className="glass-card hover:border-primary/50 transition-colors">
+                                      <Wrench size={14} className="mr-2" />
+                                      Editar
+                                    </Button>
+                                  </>
+                                )}
+                              </div>
+                            </div>
+                          ))}
+                      </div>
+                    )}
+                  </CardContent>
+                </Card>
+
+                {/* Sección Paquetes */}
+                <Card className="rounded-2xl border border-border/60 bg-card shadow-sm">
+                  <CardHeader>
+                    <CardTitle>Gestión de Paquetes</CardTitle>
+                    <CardDescription>Edita los precios y límites de los paquetes de publicación</CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    {loadingPackages ? (
+                      <div className="text-center py-4">Cargando paquetes...</div>
+                    ) : (
+                      <Tabs defaultValue="services-packages" className="w-full">
+                        <div className="w-full overflow-x-auto pb-2 scrollbar-hide">
+                          <TabsList className="flex w-max min-w-full h-auto mb-2 p-1 gap-1 glass-card border-white/5">
+                            <TabsTrigger value="services-packages">Servicios / Pymes</TabsTrigger>
+                            <TabsTrigger value="jobs-packages">Empleos</TabsTrigger>
+                          </TabsList>
+                        </div>
+
+                        <TabsContent value="services-packages" className="mt-4">
+                          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                            {adminPackages.services.map((pkg) => (
+                              <Card key={pkg.id} className="glass-card border-white/5 relative overflow-hidden group hover:border-primary/30 transition-all duration-300">
+                                <div className="absolute top-0 right-0 p-2">
+                                  <Badge className={pkg.is_active ? "bg-green-500/20 text-green-400 border-green-500/30" : "bg-red-500/20 text-red-400 border-red-500/30"}>
+                                    {pkg.is_active ? "Activo" : "Inactivo"}
+                                  </Badge>
+                                </div>
+                                <CardHeader className="pb-2">
+                                  <CardTitle className="text-base flex items-center gap-2">
+                                    <Crown className="w-4 h-4 text-primary" />
+                                    {pkg.name}
+                                  </CardTitle>
+                                  <CardDescription className="line-clamp-2 text-xs text-muted-foreground">{pkg.description}</CardDescription>
+                                </CardHeader>
+                                <CardContent>
+                                  <div className="space-y-3 mb-4 p-3 rounded-2xl bg-white/5 border border-white/5">
+                                    <div className="flex justify-between items-center text-sm">
+                                      <span className="text-muted-foreground">Precio:</span>
+                                      <span className="font-bold text-lg text-primary text-glow">
+                                        {new Intl.NumberFormat('es-CL', { style: 'currency', currency: 'CLP' }).format(pkg.price)}
+                                      </span>
+                                    </div>
+                                    <div className="flex justify-between items-center text-sm">
+                                      <span className="text-muted-foreground">Publicaciones:</span>
+                                      <span className="font-bold text-secondary">+{pkg.publications}</span>
+                                    </div>
+                                  </div>
+                                  <Button className="w-full glass-card border-white/10 hover:border-primary/50 transition-colors" variant="outline" size="sm" onClick={() => openEditPackage(pkg)}>
+                                    Editar Paquete
+                                  </Button>
+                                </CardContent>
+                              </Card>
+                            ))}
+                          </div>
+                        </TabsContent>
+
+                      </Tabs>
+                    )}
+                  </CardContent>
+                </Card>
+              </div>
+            </TabsContent>
+          )}
+
+          {/* Tab de Logs (Solo Super Admin) */}
+          {isSuperAdmin && (
+            <TabsContent value="logs" className="mt-4 sm:mt-6 outline-none focus-visible:outline-none">
+              <Card className="rounded-2xl border border-border/60 bg-card shadow-sm">
+                <CardHeader>
+                  <div className="flex justify-between items-center">
+                    <div>
+                      <CardTitle>Logs del Backend</CardTitle>
+                      <CardDescription>Visualiza los logs en tiempo real del servidor</CardDescription>
+                    </div>
+                    <div className="flex gap-2">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => setLogsAutoRefresh(!logsAutoRefresh)}
+                      >
+                        <RefreshCw size={16} className={`mr-2 ${logsAutoRefresh ? 'animate-spin' : ''}`} />
+                        {logsAutoRefresh ? 'Detener' : 'Auto-refresh'}
+                      </Button>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={loadLogs}
+                      >
+                        Actualizar
+                      </Button>
+                    </div>
+                  </div>
+                </CardHeader>
+                <CardContent>
+                  <div className="mb-4 flex gap-4">
+                    <Select value={logLevel} onValueChange={(value) => {
+                      setLogLevel(value);
+                      loadLogs();
+                    }}>
+                      <SelectTrigger className="w-40">
+                        <SelectValue placeholder="Nivel" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="all">Todos</SelectItem>
+                        <SelectItem value="error">Error</SelectItem>
+                        <SelectItem value="warn">Warning</SelectItem>
+                        <SelectItem value="info">Info</SelectItem>
+                        <SelectItem value="log">Log</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  {loadingLogs ? (
+                    <div className="text-center py-8">
+                      <p className="text-muted-foreground">Cargando logs...</p>
+                    </div>
+                  ) : logs.length === 0 ? (
+                    <div className="text-center py-8">
+                      <p className="text-muted-foreground">No hay logs</p>
+                    </div>
+                  ) : (
+                    <div className="space-y-2 max-h-[600px] overflow-y-auto">
+                      {logs.map((log) => (
+                        <div
+                          key={log.id}
+                          className={`p-3 rounded-lg border text-sm ${getLogLevelColor(log.level)}`}
+                        >
+                          <div className="flex items-center justify-between mb-1">
+                            <span className="font-semibold">{log.level.toUpperCase()}</span>
+                            <span className="text-xs opacity-70">{formatDate(log.timestamp)}</span>
+                          </div>
+                          <p className="text-xs font-mono whitespace-pre-wrap break-words">{log.message}</p>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+            </TabsContent>
+          )}
+        </Tabs>
+
+        {/* Dialog para Editar/Crear Tipo de Servicio (fuera de Tabs para evitar conflictos de foco con Radix) */}
+        <Dialog
+          open={typeDialogOpen}
+          onOpenChange={(open) => {
+            setTypeDialogOpen(open);
+            if (!open) setSelectedType(null);
+          }}
+        >
             <DialogContent className="sm:max-w-[800px] rounded-3xl border-2 p-0 overflow-hidden">
               <div className="grid grid-cols-1 md:grid-cols-2">
                 {/* Lateral Izquierdo: Información */}
@@ -2677,208 +2882,6 @@ const Admin = () => {
             </DialogContent>
           </Dialog>
 
-          {/* Tab de Precios y Paquetes */}
-          {isSuperAdmin && (
-            <TabsContent value="prices" className="mt-4 sm:mt-6 outline-none focus-visible:outline-none">
-              <div className="grid grid-cols-1 gap-6">
-                {/* Sección Configuración Global */}
-                <Card className="rounded-2xl border border-border/60 bg-card shadow-sm">
-                  <CardHeader>
-                    <CardTitle>Configuración Global</CardTitle>
-                    <CardDescription>Ajustes generales de precios del sistema</CardDescription>
-                  </CardHeader>
-                  <CardContent>
-                    {loadingConfig ? (
-                      <div className="text-center py-4">Cargando configuración...</div>
-                    ) : (
-                      <div className="space-y-4">
-                        {adminConfig
-                          .filter(config => ['WHATSAPP_CONTACT_PRICE', 'PRICING_ENABLED'].includes(config.key.trim().toUpperCase()))
-                          .map((config) => (
-                            <div key={config.key} className="flex flex-col sm:flex-row items-center justify-between p-6 border rounded-2xl bg-white shadow-sm border-gray-100 hover:shadow-md transition-all duration-300 gap-4 mb-4">
-                              <div className="flex-1">
-                                <p className={`font-black text-xl transition-all duration-300 ${config.key.trim().toUpperCase() === 'PRICING_ENABLED' && config.value !== 'true' ? 'text-primary animate-pulse' : 'text-black'}`}>
-                                  {config.key.trim().toUpperCase() === 'PRICING_ENABLED'
-                                    ? 'MODO TODO GRATUITO'
-                                    : (config.key.trim().toUpperCase() === 'WHATSAPP_CONTACT_PRICE' ? 'Precio Mensaje WhatsApp' : config.description || config.key)}
-                                </p>
-                                <p className="text-xs text-muted-foreground mt-1">
-                                  {config.key.trim().toUpperCase() === 'PRICING_ENABLED'
-                                    ? 'Activa para desactivar todos los pagos en el sistema.'
-                                    : 'Costo por cada contacto directo a través del muro o servicios.'}
-                                </p>
-                              </div>
-                              <div className="flex items-center gap-6">
-                                {config.key.trim().toUpperCase() === 'PRICING_ENABLED' ? (
-                                  <div className="flex items-center gap-3">
-                                    <span className={`text-sm font-medium ${config.value === 'true' ? 'text-primary' : 'text-slate-500'}`}>
-                                      {config.key.trim().toUpperCase() === 'PRICING_ENABLED' ? (config.value === 'true' ? 'MODO PAGO ACTIVADO' : 'MODO TODO GRATUITO ACTIVADO') : 'Activado'}
-                                    </span>
-                                    <Switch
-                                      checked={config.value === 'true' || config.value === '1' || config.value === 1}
-                                      onCheckedChange={handleTogglePricing}
-                                    />
-                                  </div>
-                                ) : (
-                                  <>
-                                    <span className="text-2xl font-black text-primary drop-shadow-sm">
-                                      {parseInt(config.value) ? new Intl.NumberFormat('es-CL', { style: 'currency', currency: 'CLP' }).format(parseInt(config.value)) : config.value}
-                                    </span>
-                                    <Button variant="outline" size="sm" onClick={() => openEditConfig(config)} className="glass-card hover:border-primary/50 transition-colors">
-                                      <Wrench size={14} className="mr-2" />
-                                      Editar
-                                    </Button>
-                                  </>
-                                )}
-                              </div>
-                            </div>
-                          ))}
-                      </div>
-                    )}
-                  </CardContent>
-                </Card>
-
-                {/* Sección Paquetes */}
-                <Card className="rounded-2xl border border-border/60 bg-card shadow-sm">
-                  <CardHeader>
-                    <CardTitle>Gestión de Paquetes</CardTitle>
-                    <CardDescription>Edita los precios y límites de los paquetes de publicación</CardDescription>
-                  </CardHeader>
-                  <CardContent>
-                    {loadingPackages ? (
-                      <div className="text-center py-4">Cargando paquetes...</div>
-                    ) : (
-                      <Tabs defaultValue="services-packages" className="w-full">
-                        <div className="w-full overflow-x-auto pb-2 scrollbar-hide">
-                          <TabsList className="flex w-max min-w-full h-auto mb-2 p-1 gap-1 glass-card border-white/5">
-                            <TabsTrigger value="services-packages">Servicios / Pymes</TabsTrigger>
-                            <TabsTrigger value="jobs-packages">Empleos</TabsTrigger>
-                          </TabsList>
-                        </div>
-
-                        <TabsContent value="services-packages" className="mt-4">
-                          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                            {adminPackages.services.map((pkg) => (
-                              <Card key={pkg.id} className="glass-card border-white/5 relative overflow-hidden group hover:border-primary/30 transition-all duration-300">
-                                <div className="absolute top-0 right-0 p-2">
-                                  <Badge className={pkg.is_active ? "bg-green-500/20 text-green-400 border-green-500/30" : "bg-red-500/20 text-red-400 border-red-500/30"}>
-                                    {pkg.is_active ? "Activo" : "Inactivo"}
-                                  </Badge>
-                                </div>
-                                <CardHeader className="pb-2">
-                                  <CardTitle className="text-base flex items-center gap-2">
-                                    <Crown className="w-4 h-4 text-primary" />
-                                    {pkg.name}
-                                  </CardTitle>
-                                  <CardDescription className="line-clamp-2 text-xs text-muted-foreground">{pkg.description}</CardDescription>
-                                </CardHeader>
-                                <CardContent>
-                                  <div className="space-y-3 mb-4 p-3 rounded-2xl bg-white/5 border border-white/5">
-                                    <div className="flex justify-between items-center text-sm">
-                                      <span className="text-muted-foreground">Precio:</span>
-                                      <span className="font-bold text-lg text-primary text-glow">
-                                        {new Intl.NumberFormat('es-CL', { style: 'currency', currency: 'CLP' }).format(pkg.price)}
-                                      </span>
-                                    </div>
-                                    <div className="flex justify-between items-center text-sm">
-                                      <span className="text-muted-foreground">Publicaciones:</span>
-                                      <span className="font-bold text-secondary">+{pkg.publications}</span>
-                                    </div>
-                                  </div>
-                                  <Button className="w-full glass-card border-white/10 hover:border-primary/50 transition-colors" variant="outline" size="sm" onClick={() => openEditPackage(pkg)}>
-                                    Editar Paquete
-                                  </Button>
-                                </CardContent>
-                              </Card>
-                            ))}
-                          </div>
-                        </TabsContent>
-
-                      </Tabs>
-                    )}
-                  </CardContent>
-                </Card>
-              </div>
-            </TabsContent>
-          )}
-
-          {/* Tab de Logs (Solo Super Admin) */}
-          {isSuperAdmin && (
-            <TabsContent value="logs" className="mt-4 sm:mt-6 outline-none focus-visible:outline-none">
-              <Card className="rounded-2xl border border-border/60 bg-card shadow-sm">
-                <CardHeader>
-                  <div className="flex justify-between items-center">
-                    <div>
-                      <CardTitle>Logs del Backend</CardTitle>
-                      <CardDescription>Visualiza los logs en tiempo real del servidor</CardDescription>
-                    </div>
-                    <div className="flex gap-2">
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => setLogsAutoRefresh(!logsAutoRefresh)}
-                      >
-                        <RefreshCw size={16} className={`mr-2 ${logsAutoRefresh ? 'animate-spin' : ''}`} />
-                        {logsAutoRefresh ? 'Detener' : 'Auto-refresh'}
-                      </Button>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={loadLogs}
-                      >
-                        Actualizar
-                      </Button>
-                    </div>
-                  </div>
-                </CardHeader>
-                <CardContent>
-                  <div className="mb-4 flex gap-4">
-                    <Select value={logLevel} onValueChange={(value) => {
-                      setLogLevel(value);
-                      loadLogs();
-                    }}>
-                      <SelectTrigger className="w-40">
-                        <SelectValue placeholder="Nivel" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="all">Todos</SelectItem>
-                        <SelectItem value="error">Error</SelectItem>
-                        <SelectItem value="warn">Warning</SelectItem>
-                        <SelectItem value="info">Info</SelectItem>
-                        <SelectItem value="log">Log</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-
-                  {loadingLogs ? (
-                    <div className="text-center py-8">
-                      <p className="text-muted-foreground">Cargando logs...</p>
-                    </div>
-                  ) : logs.length === 0 ? (
-                    <div className="text-center py-8">
-                      <p className="text-muted-foreground">No hay logs</p>
-                    </div>
-                  ) : (
-                    <div className="space-y-2 max-h-[600px] overflow-y-auto">
-                      {logs.map((log) => (
-                        <div
-                          key={log.id}
-                          className={`p-3 rounded-lg border text-sm ${getLogLevelColor(log.level)}`}
-                        >
-                          <div className="flex items-center justify-between mb-1">
-                            <span className="font-semibold">{log.level.toUpperCase()}</span>
-                            <span className="text-xs opacity-70">{formatDate(log.timestamp)}</span>
-                          </div>
-                          <p className="text-xs font-mono whitespace-pre-wrap break-words">{log.message}</p>
-                        </div>
-                      ))}
-                    </div>
-                  )}
-                </CardContent>
-              </Card>
-            </TabsContent>
-          )}
-        </Tabs>
 
         {/* Dialog para límites de publicaciones */}
         <Dialog open={publicationLimitsDialogOpen} onOpenChange={(open) => {
