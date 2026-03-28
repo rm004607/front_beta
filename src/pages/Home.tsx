@@ -721,7 +721,7 @@ const Home = () => {
 
             <div className="relative animate-reveal delay-300" style={{ transform: 'translateZ(0)', willChange: 'transform' }}>
               <div className="relative z-10 p-2 md:p-4 rounded-[2.5rem] md:rounded-[4rem] border border-primary/10 shadow-xl overflow-hidden bg-white group">
-                <div className="aspect-video rounded-[2rem] md:rounded-[3.2rem] overflow-hidden relative bg-black flex flex-col items-center justify-center min-h-[200px]">
+                <div className="relative aspect-video min-h-[200px] overflow-hidden rounded-[2rem] bg-black md:rounded-[3.2rem]">
                   <video
                     className="absolute inset-0 h-full w-full object-cover"
                     autoPlay
@@ -736,26 +736,6 @@ const Home = () => {
                       type="video/webm"
                     />
                   </video>
-                  <div
-                    className="pointer-events-none absolute inset-x-0 bottom-0 z-10 h-1/3 bg-gradient-to-t from-black/55 to-transparent"
-                    aria-hidden
-                  />
-                  <div className="absolute bottom-0 left-0 right-0 z-10 flex flex-col items-center justify-end gap-3 px-4 pb-5 pt-10 sm:flex-row sm:flex-wrap sm:justify-center sm:pb-6">
-                    <a
-                      href="mailto:contacto@dameldato.com"
-                      className="inline-flex items-center justify-center rounded-full bg-pink-400 px-5 py-2.5 text-sm font-black text-white shadow-lg shadow-black/10 transition-colors hover:bg-pink-500"
-                    >
-                      contacto@dameldato.com
-                    </a>
-                    <a
-                      href="https://www.dameldato.com"
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="inline-flex items-center justify-center rounded-full bg-pink-400 px-5 py-2.5 text-sm font-black text-white shadow-lg shadow-black/10 transition-colors hover:bg-pink-500"
-                    >
-                      www.dameldato.com
-                    </a>
-                  </div>
                 </div>
               </div>
 
