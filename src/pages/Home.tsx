@@ -702,7 +702,7 @@ const Home = () => {
         </div>
       </section>
 
-      {/* Nuestro Equipo - Video Section */}
+      {/* Nuestro Equipo - contacto */}
       <section className="py-12 md:py-24 relative overflow-hidden bg-slate-50">
         <div className="container mx-auto px-4">
           <div className="max-w-6xl mx-auto space-y-12">
@@ -720,25 +720,36 @@ const Home = () => {
             </div>
 
             <div className="relative animate-reveal delay-300" style={{ transform: 'translateZ(0)', willChange: 'transform' }}>
-              {/* Video Player Container - Removed glass-card (backdrop-blur) for performance */}
+              {/* Contacto del equipo en HTML (el video .webm tenía la URL mal escrita en el gráfico) */}
               <div className="relative z-10 p-2 md:p-4 rounded-[2.5rem] md:rounded-[4rem] border border-primary/10 shadow-xl overflow-hidden bg-white group">
-                <div className="aspect-video rounded-[2rem] md:rounded-[3.2rem] overflow-hidden bg-slate-900 relative">
-                  <video 
-                    className="w-full h-full object-cover pointer-events-none"
-                    poster="/logo_nombre.webp"
-                    autoPlay
-                    muted
-                    loop
-                    playsInline
-                    preload="metadata"
-                  >
-                    <source src="/Pink-and-Purple-Simple-Animated-Team-Profile-Introduction-Video.webm" type="video/webm" />
-                    <source src="/Pink and Purple Simple Animated Team Profile Introduction Video.mp4" type="video/mp4" />
-                    Tu navegador no soporta el video.
-                  </video>
-                  
-                  {/* Overlay decoration */}
-                  <div className="absolute inset-0 pointer-events-none bg-gradient-to-t from-black/20 to-transparent"></div>
+                <div className="aspect-video rounded-[2rem] md:rounded-[3.2rem] overflow-hidden relative bg-gradient-to-br from-primary via-primary to-indigo-700 flex flex-col items-center justify-center px-6 py-10 text-center">
+                  <div className="absolute top-0 right-0 w-40 h-40 bg-white/10 rounded-bl-full translate-x-8 -translate-y-8 blur-2xl pointer-events-none" />
+                  <div className="absolute bottom-0 left-0 w-40 h-40 bg-secondary/25 rounded-tr-full -translate-x-8 translate-y-8 blur-2xl pointer-events-none" />
+
+                  <div className="relative z-10 flex flex-col items-center gap-6 max-w-lg">
+                    <div className="flex items-center justify-center gap-3 flex-wrap">
+                      <h3 className="text-2xl sm:text-3xl md:text-4xl font-black text-white uppercase tracking-tight leading-tight">
+                        Aquí para ti
+                      </h3>
+                      <Sparkles className="w-10 h-10 sm:w-12 sm:h-12 text-teal-300 shrink-0" strokeWidth={1.5} aria-hidden />
+                    </div>
+                    <div className="flex flex-col sm:flex-row sm:flex-wrap items-center justify-center gap-3 w-full">
+                      <a
+                        href="mailto:contacto@dameldato.com"
+                        className="inline-flex items-center justify-center rounded-full bg-pink-400 px-5 py-2.5 text-sm font-black text-white shadow-lg shadow-black/10 hover:bg-pink-500 transition-colors"
+                      >
+                        contacto@dameldato.com
+                      </a>
+                      <a
+                        href="https://www.dameldato.com"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-flex items-center justify-center rounded-full bg-pink-400 px-5 py-2.5 text-sm font-black text-white shadow-lg shadow-black/10 hover:bg-pink-500 transition-colors"
+                      >
+                        www.dameldato.com
+                      </a>
+                    </div>
+                  </div>
                 </div>
               </div>
 
