@@ -1,4 +1,5 @@
-import { Star, MapPin, MessageCircle, Sparkles } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { Star, MapPin, MessageCircle, Sparkles, ChevronLeft, ChevronRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { DialogTitle } from '@/components/ui/dialog';
@@ -22,6 +23,7 @@ export interface ServiceForDetail {
   type_icon?: string;
   type_color?: string;
   idicon?: string;
+  image_urls?: string[];
 }
 
 interface ServiceDetailModalProps {
@@ -32,6 +34,13 @@ interface ServiceDetailModalProps {
 }
 
 export function ServiceDetailModalContent({ service, onClose, onOpenReviews, onWhatsApp }: ServiceDetailModalProps) {
+  const photoUrls = (service.image_urls ?? []).filter(Boolean);
+  const [photoIndex, setPhotoIndex] = useState(0);
+
+  useEffect(() => {
+    setPhotoIndex(0);
+  }, [service.id]);
+
   return (
     <div className="bg-white dark:bg-card rounded-[3rem] overflow-hidden shadow-2xl relative text-foreground">
       <div
@@ -162,6 +171,75 @@ export function ServiceDetailModalContent({ service, onClose, onOpenReviews, onW
                 * El precio se coordina directamente con el profesional
               </p>
             </div>
+
+            {photoUrls.length > 0 && (
+              <div className="bg-muted/30 p-5 sm:p-6 rounded-[2rem] border border-border/40">
+                <h4 className="text-[11px] font-black uppercase tracking-[0.2em] text-muted-foreground mb-4 px-1">Fotos del servicio</h4>
+                {photoUrls.length === 1 ? (
+                  <a
+                    href={photoUrls[0]}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="group/photo block w-full overflow-hidden rounded-2xl border border-border/50 bg-background/80 shadow-inner ring-1 ring-black/5"
+                  >
+                    <img
+                      src={photoUrls[0]}
+                      alt=""
+                      className="w-full max-h-[min(72vh,560px)] h-auto object-contain object-center transition-transform duration-300 group-hover/photo:scale-[1.01]"
+                      loading="lazy"
+                    />
+                  </a>
+                ) : (
+                  <div className="space-y-3">
+                    <div className="relative overflow-hidden rounded-2xl border border-border/50 bg-background/80 shadow-inner ring-1 ring-black/5">
+                      <img
+                        src={photoUrls[photoIndex]}
+                        alt=""
+                        className="w-full max-h-[min(72vh,560px)] h-auto object-contain object-center mx-auto block"
+                        loading="lazy"
+                      />
+                      {photoIndex > 0 && (
+                        <Button
+                          type="button"
+                          variant="secondary"
+                          size="icon"
+                          className="absolute left-2 top-1/2 z-10 h-10 w-10 -translate-y-1/2 rounded-full border border-border/60 bg-background/95 shadow-lg backdrop-blur-sm hover:bg-background"
+                          onClick={() => setPhotoIndex((i) => i - 1)}
+                          aria-label="Foto anterior"
+                        >
+                          <ChevronLeft className="h-6 w-6" />
+                        </Button>
+                      )}
+                      {photoIndex < photoUrls.length - 1 && (
+                        <Button
+                          type="button"
+                          variant="secondary"
+                          size="icon"
+                          className="absolute right-2 top-1/2 z-10 h-10 w-10 -translate-y-1/2 rounded-full border border-border/60 bg-background/95 shadow-lg backdrop-blur-sm hover:bg-background"
+                          onClick={() => setPhotoIndex((i) => i + 1)}
+                          aria-label="Foto siguiente"
+                        >
+                          <ChevronRight className="h-6 w-6" />
+                        </Button>
+                      )}
+                    </div>
+                    <div className="flex items-center justify-center gap-3 text-xs text-muted-foreground">
+                      <span className="font-semibold tabular-nums">
+                        {photoIndex + 1} / {photoUrls.length}
+                      </span>
+                      <a
+                        href={photoUrls[photoIndex]}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="font-bold text-primary underline-offset-2 hover:underline"
+                      >
+                        Abrir imagen
+                      </a>
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
           </div>
 
           <div className="grid grid-cols-2 gap-3 sm:gap-4 mt-8 sm:mt-10 md:hidden">

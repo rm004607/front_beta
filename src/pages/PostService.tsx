@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -9,7 +9,7 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Badge } from '@/components/ui/badge';
 import { useUser } from '@/contexts/UserContext';
 import { useTranslation } from 'react-i18next';
-import { Wrench, AlertCircle, MapPin, Edit, Sparkles, Loader2, X } from 'lucide-react';
+import { AlertCircle, MapPin, Edit, Sparkles, Loader2, X, ImagePlus } from 'lucide-react';
 import { toast } from 'sonner';
 import { servicesAPI, packagesAPI, configAPI, aiAPI, regionsAPI } from '@/lib/api';
 import {
@@ -98,6 +98,51 @@ const PostService = () => {
   const [showDescriptionSuggestion, setShowDescriptionSuggestion] = useState(false);
   const [aiError, setAiError] = useState<{ message: string; showRetryButton: boolean } | null>(null);
   const descriptionTextareaRef = useRef<HTMLTextAreaElement>(null);
+  const servicePhotoInputRef = useRef<HTMLInputElement>(null);
+  const [servicePhotos, setServicePhotos] = useState<File[]>([]);
+
+  const MAX_SERVICE_PHOTOS = 5;
+  const MAX_PHOTO_BYTES = 8 * 1024 * 1024;
+
+  const servicePhotoPreviewUrls = useMemo(
+    () => servicePhotos.map((f) => URL.createObjectURL(f)),
+    [servicePhotos]
+  );
+
+  useEffect(() => {
+    return () => {
+      servicePhotoPreviewUrls.forEach((u) => URL.revokeObjectURL(u));
+    };
+  }, [servicePhotoPreviewUrls]);
+
+  const addServicePhotos = (list: FileList | null) => {
+    if (!list?.length) return;
+    const incoming = Array.from(list).filter((f) => f.type.startsWith('image/'));
+    setServicePhotos((prev) => {
+      const next = [...prev];
+      let skippedOverLimit = false;
+      for (const f of incoming) {
+        if (next.length >= MAX_SERVICE_PHOTOS) {
+          skippedOverLimit = true;
+          break;
+        }
+        if (f.size > MAX_PHOTO_BYTES) {
+          toast.error(`«${f.name}» supera el máximo de 8 MB por imagen.`);
+          continue;
+        }
+        next.push(f);
+      }
+      if (skippedOverLimit) {
+        toast.error(`Solo puedes subir hasta ${MAX_SERVICE_PHOTOS} fotos por servicio.`);
+      }
+      return next;
+    });
+    if (servicePhotoInputRef.current) servicePhotoInputRef.current.value = '';
+  };
+
+  const removeServicePhoto = (index: number) => {
+    setServicePhotos((prev) => prev.filter((_, i) => i !== index));
+  };
 
   if (!isLoggedIn) {
     navigate('/registro');
@@ -427,19 +472,22 @@ const PostService = () => {
         return;
       }
 
-      const response = await servicesAPI.createService({
-        service_name: serviceName,
-        service_type_ids: selectedServiceTypeIds,
-        custom_service_name:
-          customServiceName && customServiceName.trim() && customServiceName !== ' '
-            ? sanitizeInput(customServiceName.trim(), 100)
-            : undefined,
-        description: sanitizeInput(description, 2000),
-        comuna: comunaRes.comuna,
-        phone: phone ? sanitizeInput(phone, 20) : undefined,
-        region_id: offerRegionId,
-        coverage_communes: coveragePayload ?? [],
-      });
+      const response = await servicesAPI.createService(
+        {
+          service_name: serviceName,
+          service_type_ids: selectedServiceTypeIds,
+          custom_service_name:
+            customServiceName && customServiceName.trim() && customServiceName !== ' '
+              ? sanitizeInput(customServiceName.trim(), 100)
+              : undefined,
+          description: sanitizeInput(description, 2000),
+          comuna: comunaRes.comuna,
+          phone: phone ? sanitizeInput(phone, 20) : undefined,
+          region_id: offerRegionId,
+          coverage_communes: coveragePayload ?? [],
+        },
+        servicePhotos.length > 0 ? { images: servicePhotos } : undefined
+      );
 
       toast.success(t('post_service.service_submitted'));
       await loadUserLimits(); // Actualizar lÃ­mites
@@ -507,15 +555,15 @@ const PostService = () => {
         <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-secondary/10 rounded-full blur-[120px]" />
       </div>
 
-      <div className="container mx-auto px-4 py-8 max-w-3xl relative z-10">
-        <Card className="glass-card border-white/5 shadow-2xl overflow-hidden">
-          <CardHeader className="text-center pb-2">
-            <CardTitle className="text-4xl font-heading font-bold bg-clip-text text-transparent bg-gradient-to-r from-primary to-secondary mb-2">
+      <div className="container relative z-10 mx-auto max-w-3xl px-4 py-8 lg:max-w-6xl">
+        <Card className="glass-card overflow-hidden border-white/5 shadow-2xl">
+          <CardHeader className="pb-2 text-center lg:px-10">
+            <CardTitle className="mb-2 bg-gradient-to-r from-primary to-secondary bg-clip-text font-heading text-3xl font-bold text-transparent sm:text-4xl">
               {t('post_service.title')}
             </CardTitle>
-            <CardDescription className="text-muted-foreground text-lg">{t('post_service.subtitle')}</CardDescription>
+            <CardDescription className="text-base text-muted-foreground sm:text-lg">{t('post_service.subtitle')}</CardDescription>
           </CardHeader>
-          <CardContent>
+          <CardContent className="lg:px-10">
             {/* Aviso de moderaciÃ³n */}
             <Alert className="mb-6 border-blue-200 bg-blue-50 text-blue-800">
               <AlertCircle className="h-4 w-4 text-blue-600" />
@@ -566,7 +614,10 @@ const PostService = () => {
               </Alert>
             )}
 
-            <form onSubmit={handleSubmit} className="space-y-6">
+            <form onSubmit={handleSubmit} className="space-y-8">
+              <div className="flex flex-col gap-8 lg:grid lg:grid-cols-2 lg:items-start lg:gap-10">
+                {/* Columna izquierda (móvil: orden 1) — tipo y ubicación */}
+                <div className="min-w-0 space-y-6">
               <div className="space-y-4">
                 <Label>{t('post_service.service_label')}</Label>
                 {loadingServiceTypes ? (
@@ -892,6 +943,59 @@ const PostService = () => {
                   </>
                 )}
               </div>
+                </div>
+
+                {/* Columna derecha (móvil: orden 2) — fotos, descripción, teléfono */}
+                <div className="min-w-0 space-y-6">
+              <div className="rounded-xl border border-dashed border-primary/20 bg-muted/15 p-4 sm:p-5 lg:border-primary/15">
+                <div className="mb-3 flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between">
+                  <Label className="text-base font-semibold">Fotos del servicio</Label>
+                  <span className="text-[11px] font-medium uppercase tracking-wide text-muted-foreground">
+                    Opcional · máx. {MAX_SERVICE_PHOTOS}
+                  </span>
+                </div>
+                <p className="mb-4 text-xs text-muted-foreground leading-relaxed">
+                  Sube hasta cinco imágenes para mostrar tu trabajo. Si no subes ninguna, el anuncio se verá como siempre. Formatos: JPG, PNG, WebP.
+                </p>
+                <input
+                  ref={servicePhotoInputRef}
+                  type="file"
+                  accept="image/jpeg,image/png,image/webp,image/gif"
+                  multiple
+                  className="sr-only"
+                  aria-hidden
+                  tabIndex={-1}
+                  onChange={(e) => addServicePhotos(e.target.files)}
+                />
+                <div className="grid grid-cols-3 gap-2 sm:grid-cols-5 lg:grid-cols-3">
+                  {servicePhotoPreviewUrls.map((url, idx) => (
+                    <div
+                      key={`${url}-${idx}`}
+                      className="group relative aspect-square overflow-hidden rounded-xl border border-border/60 bg-muted"
+                    >
+                      <img src={url} alt="" className="h-full w-full object-cover" />
+                      <button
+                        type="button"
+                        onClick={() => removeServicePhoto(idx)}
+                        className="absolute right-1 top-1 flex h-8 w-8 items-center justify-center rounded-full bg-black/60 text-white opacity-100 shadow-md transition hover:bg-black/80 lg:opacity-0 lg:group-hover:opacity-100"
+                        aria-label={`Quitar foto ${idx + 1}`}
+                      >
+                        <X className="h-4 w-4" />
+                      </button>
+                    </div>
+                  ))}
+                  {servicePhotos.length < MAX_SERVICE_PHOTOS && (
+                    <button
+                      type="button"
+                      onClick={() => servicePhotoInputRef.current?.click()}
+                      className="flex aspect-square min-h-[4.5rem] flex-col items-center justify-center gap-1 rounded-xl border-2 border-dashed border-primary/30 bg-background/80 text-primary transition hover:border-primary/50 hover:bg-primary/5 sm:min-h-0"
+                    >
+                      <ImagePlus className="h-6 w-6 sm:h-7 sm:w-7" strokeWidth={1.5} />
+                      <span className="px-1 text-center text-[10px] font-semibold leading-tight sm:text-xs">Añadir</span>
+                    </button>
+                  )}
+                </div>
+              </div>
 
               <div>
                 <Label htmlFor="description">{t('post_service.description_label')}</Label>
@@ -1004,14 +1108,16 @@ const PostService = () => {
                   {t('post_service.phone_desc')}
                 </p>
               </div>
+                </div>
+              </div>
 
-              <div className="flex gap-3 pt-4">
-                <Button type="button" variant="outline" onClick={() => navigate('/servicios')} className="flex-1">
+              <div className="flex flex-col gap-3 border-t border-border/50 pt-6 sm:flex-row sm:gap-4 lg:col-span-2">
+                <Button type="button" variant="outline" onClick={() => navigate('/servicios')} className="h-12 flex-1 sm:h-11">
                   {t('common.cancel')}
                 </Button>
                 <Button
                   type="submit"
-                  className="flex-1 bg-secondary hover:bg-secondary/90"
+                  className="h-12 flex-1 bg-secondary hover:bg-secondary/90 sm:h-11"
                   disabled={isSubmitting || !canPublish}
                 >
                   {isSubmitting ? t('wall.publishing') : t('services.publish_btn')}

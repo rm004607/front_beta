@@ -388,6 +388,8 @@ export const servicesAPI = {
         type_icon?: string;
         type_color?: string;
         idicon?: string;
+        /** URLs públicas de galería (orden: primera = portada en listados) */
+        image_urls?: string[];
       }>;
       pagination: {
         page: number;
@@ -422,28 +424,66 @@ export const servicesAPI = {
         coverage_communes?: string[];
         service_type_ids?: string[];
         types?: Array<{ id: string; name?: string }>;
+        image_urls?: string[];
       };
     }>(`/services/${id}`, {
       method: 'GET',
     });
   },
 
-  // Crear servicio (solo emprendedores o super-admin)
-  createService: async (data: {
-    service_name: string;
-    description: string;
-    price_range?: string;
-    comuna: string;
-    phone?: string;
-    region_id?: string;
-    coverage_communes?: string[];
-    service_type_ids?: string[];
-    custom_service_name?: string;
-  }) => {
+  // Crear servicio (solo emprendedores o super-admin). Con imágenes: multipart (máx. 5 en cliente).
+  createService: async (
+    data: {
+      service_name: string;
+      description: string;
+      price_range?: string;
+      comuna: string;
+      phone?: string;
+      region_id?: string;
+      coverage_communes?: string[];
+      service_type_ids?: string[];
+      custom_service_name?: string;
+    },
+    options?: { images?: File[] }
+  ) => {
     const payload = normalizeCommuneFields({
       ...data,
       ...(data.region_id != null ? { region_id: String(data.region_id) } : {}),
     });
+    const images = (options?.images || []).filter(Boolean).slice(0, 5);
+
+    if (images.length > 0) {
+      const fd = new FormData();
+      fd.append('service_name', payload.service_name);
+      fd.append('description', payload.description);
+      fd.append('comuna', payload.comuna);
+      if (payload.phone) fd.append('phone', payload.phone);
+      if (payload.region_id != null && payload.region_id !== '') {
+        fd.append('region_id', String(payload.region_id));
+      }
+      if (payload.price_range) fd.append('price_range', payload.price_range);
+      fd.append('coverage_communes', JSON.stringify(payload.coverage_communes ?? []));
+      fd.append('service_type_ids', JSON.stringify(payload.service_type_ids ?? []));
+      if (payload.custom_service_name) fd.append('custom_service_name', payload.custom_service_name);
+      for (const file of images) {
+        fd.append('images', file);
+      }
+      return request<{
+        message: string;
+        service: {
+          id: string;
+          service_name: string;
+          user_name: string;
+          comuna: string;
+          created_by_admin: boolean;
+          image_urls?: string[];
+        };
+      }>('/services', {
+        method: 'POST',
+        body: fd,
+      });
+    }
+
     return request<{
       message: string;
       service: {
@@ -452,6 +492,7 @@ export const servicesAPI = {
         user_name: string;
         comuna: string;
         created_by_admin: boolean;
+        image_urls?: string[];
       };
     }>('/services', {
       method: 'POST',
@@ -480,6 +521,7 @@ export const servicesAPI = {
         region_name?: string;
         offer_region?: { id: string; name: string } | null;
         coverage_communes?: string[];
+        image_urls?: string[];
       }>;
       stats: {
         total: number;

@@ -30,6 +30,8 @@ interface Service {
     type_icon?: string;
     type_color?: string;
     idicon?: string;
+    /** Galería pública (solo en detalle completo, no en la tarjeta) */
+    image_urls?: string[];
 }
 
 interface ServiceCardProps {
@@ -54,7 +56,6 @@ export const ServiceCard = memo(({
     onEdit,
     onDelete
 }: ServiceCardProps) => {
-
     return (
         <Card
             id={`service-${service.id}`}
