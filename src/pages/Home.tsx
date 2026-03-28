@@ -720,15 +720,32 @@ const Home = () => {
             </div>
 
             <div className="relative animate-reveal delay-300" style={{ transform: 'translateZ(0)', willChange: 'transform' }}>
-              {/* Contacto del equipo en HTML (el video .webm tenía la URL mal escrita en el gráfico) */}
               <div className="relative z-10 p-2 md:p-4 rounded-[2.5rem] md:rounded-[4rem] border border-primary/10 shadow-xl overflow-hidden bg-white group">
-                <div className="aspect-video rounded-[2rem] md:rounded-[3.2rem] overflow-hidden relative bg-gradient-to-br from-primary via-primary to-indigo-700 flex flex-col items-center justify-center px-6 py-10 text-center">
+                <div className="aspect-video rounded-[2rem] md:rounded-[3.2rem] overflow-hidden relative bg-black flex flex-col items-center justify-center min-h-[200px]">
+                  <video
+                    className="absolute inset-0 h-full w-full object-cover"
+                    autoPlay
+                    muted
+                    loop
+                    playsInline
+                    preload="auto"
+                    aria-label="Video presentación del equipo Dameldato"
+                  >
+                    <source
+                      src="/Pink-and-Purple-Simple-Animated-Team-Profile-Introduction-Video.webm"
+                      type="video/webm"
+                    />
+                  </video>
+                  <div
+                    className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/35 to-black/20 pointer-events-none"
+                    aria-hidden
+                  />
                   <div className="absolute top-0 right-0 w-40 h-40 bg-white/10 rounded-bl-full translate-x-8 -translate-y-8 blur-2xl pointer-events-none" />
-                  <div className="absolute bottom-0 left-0 w-40 h-40 bg-secondary/25 rounded-tr-full -translate-x-8 translate-y-8 blur-2xl pointer-events-none" />
+                  <div className="absolute bottom-0 left-0 w-40 h-40 bg-secondary/20 rounded-tr-full -translate-x-8 translate-y-8 blur-2xl pointer-events-none" />
 
-                  <div className="relative z-10 flex flex-col items-center gap-6 max-w-lg">
+                  <div className="relative z-10 flex flex-col items-center gap-6 max-w-lg px-6 py-10 text-center">
                     <div className="flex items-center justify-center gap-3 flex-wrap">
-                      <h3 className="text-2xl sm:text-3xl md:text-4xl font-black text-white uppercase tracking-tight leading-tight">
+                      <h3 className="text-2xl sm:text-3xl md:text-4xl font-black text-white uppercase tracking-tight leading-tight drop-shadow-sm">
                         Aquí para ti
                       </h3>
                       <Sparkles className="w-10 h-10 sm:w-12 sm:h-12 text-teal-300 shrink-0" strokeWidth={1.5} aria-hidden />
