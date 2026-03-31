@@ -321,14 +321,14 @@ const Admin = () => {
   // Estados para services
   const [services, setServices] = useState<Service[]>([]);
   const [loadingServices, setLoadingServices] = useState(false);
-  const [serviceFilters, setServiceFilters] = useState({ comuna: '', status: 'pending' });
+  const [serviceFilters, setServiceFilters] = useState({ comuna: '', status: 'all' });
   const [rejectDialogOpen, setRejectDialogOpen] = useState(false);
   const [serviceToReject, setServiceToReject] = useState<Service | null>(null);
   const [rejectReason, setRejectReason] = useState('');
 
   const [adminProducts, setAdminProducts] = useState<AdminProduct[]>([]);
   const [loadingProducts, setLoadingProducts] = useState(false);
-  const [productFilters, setProductFilters] = useState({ comuna: '', status: 'pending' });
+  const [productFilters, setProductFilters] = useState({ comuna: '', status: 'all' });
   const [rejectProductDialogOpen, setRejectProductDialogOpen] = useState(false);
   const [productToReject, setProductToReject] = useState<AdminProduct | null>(null);
   const [rejectProductReason, setRejectProductReason] = useState('');
@@ -1487,7 +1487,7 @@ const Admin = () => {
               <TabsList
                 className={cn(
                   'flex w-max min-w-max sm:flex-wrap sm:w-full sm:min-w-0 h-auto p-1.5 gap-1 sm:gap-1.5',
-                  'rounded-xl border border-border/60 bg-muted/40 shadow-inner',
+                  'rounded-xl border border-border/60 bg-gradient-to-r from-muted/60 via-muted/30 to-muted/60 shadow-inner',
                   'justify-start sm:justify-start',
                 )}
               >
@@ -1638,7 +1638,7 @@ const Admin = () => {
                 </CardDescription>
               </CardHeader>
               <CardContent>
-                <div className="mb-6 rounded-2xl border border-border/60 bg-muted/30 p-3 sm:p-4">
+                <div className="mb-6 rounded-2xl border border-border/60 bg-gradient-to-r from-muted/50 via-muted/20 to-muted/50 p-3 sm:p-4">
                   <div className="flex flex-col sm:flex-row gap-3 sm:gap-4">
                   <Select value={serviceFilters.status} onValueChange={(value) => setServiceFilters({ ...serviceFilters, status: value })}>
                     <SelectTrigger className="w-full sm:w-60 bg-background/70 border-border/60">
@@ -1665,6 +1665,16 @@ const Admin = () => {
                   <Button onClick={loadServices} className="bg-primary hover:bg-primary/90 sm:px-6">
                     Buscar
                   </Button>
+                  <Button
+                    variant="outline"
+                    onClick={() => {
+                      setServiceFilters({ comuna: '', status: 'all' });
+                      setTimeout(loadServices, 0);
+                    }}
+                    className="sm:px-6"
+                  >
+                    Limpiar
+                  </Button>
                   </div>
                 </div>
 
@@ -1673,8 +1683,24 @@ const Admin = () => {
                     <p className="text-muted-foreground">Cargando servicios...</p>
                   </div>
                 ) : services.length === 0 ? (
-                  <div className="text-center py-8">
-                    <p className="text-muted-foreground">No hay servicios con ese filtro</p>
+                  <div className="text-center py-10 px-4 rounded-2xl border border-dashed border-border/70 bg-muted/20">
+                    <div className="mx-auto mb-3 flex h-11 w-11 items-center justify-center rounded-full bg-primary/10 text-primary">
+                      <Sparkles className="h-5 w-5" />
+                    </div>
+                    <p className="font-semibold">No encontramos servicios con ese filtro</p>
+                    <p className="text-sm text-muted-foreground mt-1">
+                      Prueba cambiando el estado a "Todos los estados" o limpiando la comuna.
+                    </p>
+                    <Button
+                      variant="outline"
+                      className="mt-4"
+                      onClick={() => {
+                        setServiceFilters({ comuna: '', status: 'all' });
+                        setTimeout(loadServices, 0);
+                      }}
+                    >
+                      Ver todos los servicios
+                    </Button>
                   </div>
                 ) : (
                   <div className="grid grid-cols-1 xl:grid-cols-2 gap-4">
