@@ -218,6 +218,43 @@ interface Log {
   message: string;
 }
 
+const getServiceStatusConfig = (rawStatus?: string) => {
+  const status = String(rawStatus || '').toLowerCase().trim();
+  if (status === 'active') {
+    return {
+      badgeClass: 'bg-emerald-500/15 text-emerald-700 border-emerald-300 dark:text-emerald-300 dark:border-emerald-700',
+      cardClass: 'border-emerald-200/70 dark:border-emerald-900/60',
+      label: 'Activo',
+    };
+  }
+  if (status === 'pending') {
+    return {
+      badgeClass: 'bg-amber-500/15 text-amber-700 border-amber-300 dark:text-amber-300 dark:border-amber-700',
+      cardClass: 'border-amber-200/70 bg-amber-50/40 dark:bg-amber-950/20 dark:border-amber-900/60',
+      label: 'Pendiente',
+    };
+  }
+  if (status === 'rejected' || status === 'suspended') {
+    return {
+      badgeClass: 'bg-rose-500/15 text-rose-700 border-rose-300 dark:text-rose-300 dark:border-rose-700',
+      cardClass: 'border-rose-200/70 dark:border-rose-900/60',
+      label: 'Bloqueado',
+    };
+  }
+  if (status === 'inactive') {
+    return {
+      badgeClass: 'bg-slate-500/15 text-slate-700 border-slate-300 dark:text-slate-300 dark:border-slate-700',
+      cardClass: 'border-slate-200/70 dark:border-slate-800',
+      label: 'Inactivo',
+    };
+  }
+  return {
+    badgeClass: 'bg-muted text-muted-foreground border-border',
+    cardClass: 'border-border/60',
+    label: rawStatus || 'Desconocido',
+  };
+};
+
 function normalizeCatalogName(s: string): string {
   return s
     .trim()
@@ -1251,12 +1288,50 @@ const Admin = () => {
       case 'products': loadProducts(); break;
       case 'users': loadUsers(); break;
       case 'tickets': loadTickets(); break;
+      case 'catalog':
+        loadAdminCatalogPanel();
+        loadServiceSuggestions();
+        break;
       case 'prices':
         loadAdminConfig();
         loadAdminPackages();
         break;
       case 'logs': loadLogs(); break;
     }
+  }, [activeTab]);
+
+  useEffect(() => {
+    const refreshActiveTab = () => {
+      switch (activeTab) {
+        case 'datos': loadDatos(); break;
+        case 'services': loadServices(); break;
+        case 'products': loadProducts(); break;
+        case 'users': loadUsers(); break;
+        case 'tickets': loadTickets(); break;
+        case 'catalog':
+          loadAdminCatalogPanel();
+          loadServiceSuggestions();
+          break;
+        case 'prices':
+          loadAdminConfig();
+          loadAdminPackages();
+          break;
+        case 'logs': loadLogs(); break;
+      }
+    };
+
+    const onFocus = () => refreshActiveTab();
+    const onVisibility = () => {
+      if (document.visibilityState === 'visible') refreshActiveTab();
+    };
+
+    window.addEventListener('focus', onFocus);
+    document.addEventListener('visibilitychange', onVisibility);
+    return () => {
+      window.removeEventListener('focus', onFocus);
+      document.removeEventListener('visibilitychange', onVisibility);
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [activeTab]);
 
   // Auto-refresh de logs
@@ -1558,15 +1633,18 @@ const Admin = () => {
             <Card className="rounded-2xl border border-border/60 bg-card shadow-sm">
               <CardHeader>
                 <CardTitle>Servicios/Pymes</CardTitle>
-                <CardDescription>Gestiona todos los servicios. Los pendientes requieren aprobación antes de publicarse.</CardDescription>
+                <CardDescription>
+                  Gestiona todos los servicios con una vista optimizada para escritorio y teléfono.
+                </CardDescription>
               </CardHeader>
               <CardContent>
-                <div className="mb-6 flex flex-col sm:flex-row gap-4">
+                <div className="mb-6 rounded-2xl border border-border/60 bg-muted/30 p-3 sm:p-4">
+                  <div className="flex flex-col sm:flex-row gap-3 sm:gap-4">
                   <Select value={serviceFilters.status} onValueChange={(value) => setServiceFilters({ ...serviceFilters, status: value })}>
-                    <SelectTrigger className="w-full sm:w-56 glass-card border-white/10">
+                    <SelectTrigger className="w-full sm:w-60 bg-background/70 border-border/60">
                       <SelectValue placeholder="Estado" />
                     </SelectTrigger>
-                    <SelectContent className="glass-card border-white/10 backdrop-blur-xl">
+                    <SelectContent>
                       <SelectItem value="all">🌐 Todos los estados</SelectItem>
                       <SelectItem value="pending">⏳ Pendientes (Aprobación)</SelectItem>
                       <SelectItem value="active">✅ Activos / Publicados</SelectItem>
@@ -1581,10 +1659,13 @@ const Admin = () => {
                       placeholder="Filtrar por comuna..."
                       value={serviceFilters.comuna}
                       onChange={(e) => setServiceFilters({ ...serviceFilters, comuna: e.target.value })}
-                      className="pl-10 glass-card border-white/10"
+                      className="pl-10 bg-background/70 border-border/60"
                     />
                   </div>
-                  <Button onClick={loadServices} className="bg-primary hover:bg-primary/90">Buscar</Button>
+                  <Button onClick={loadServices} className="bg-primary hover:bg-primary/90 sm:px-6">
+                    Buscar
+                  </Button>
+                  </div>
                 </div>
 
                 {loadingServices ? (
@@ -1596,39 +1677,44 @@ const Admin = () => {
                     <p className="text-muted-foreground">No hay servicios con ese filtro</p>
                   </div>
                 ) : (
-                  <div className="space-y-4">
+                  <div className="grid grid-cols-1 xl:grid-cols-2 gap-4">
                     {services.map((service) => (
-                      <Card key={service.id} className={`border ${service.status === 'pending' ? 'border-amber-300 bg-amber-50/30' : ''}`}>
-                        <CardHeader>
-                          <div className="flex justify-between items-start gap-2">
+                      <Card
+                        key={service.id}
+                        className={cn(
+                          'rounded-2xl border shadow-sm transition-all duration-200 hover:shadow-md',
+                          getServiceStatusConfig(service.status).cardClass
+                        )}
+                      >
+                        <CardHeader className="pb-3">
+                          <div className="flex flex-col sm:flex-row justify-between items-start gap-3">
                             <div className="flex-1">
-                              <CardTitle className="text-lg">{service.service_name}</CardTitle>
-                              <CardDescription>
-                                Por: {service.user_name} ({service.user_email}) - {service.comuna}
-                              </CardDescription>
+                              <CardTitle className="text-base sm:text-lg leading-tight">
+                                {service.service_name || 'Servicio sin nombre'}
+                              </CardTitle>
                               <CardDescription className="mt-1">
+                                {service.user_name} ({service.user_email})
+                              </CardDescription>
+                              <CardDescription className="mt-1 flex items-center gap-1.5">
+                                <MapPin className="h-3.5 w-3.5" />
+                                {service.comuna || 'Sin comuna'}
+                              </CardDescription>
+                              <CardDescription className="mt-1 text-xs">
                                 {formatDate(service.created_at)}
                               </CardDescription>
                             </div>
-                            <div className="flex flex-wrap items-center gap-2 justify-end">
+                            <div className="flex flex-wrap items-center gap-2 w-full sm:w-auto">
                               <Badge
-                                className={
-                                  service.status?.toLowerCase().trim() === 'active' ? 'bg-green-500 text-white border-green-600' :
-                                    service.status?.toLowerCase().trim() === 'pending' ? 'bg-amber-500 text-white border-amber-600' :
-                                      (service.status?.toLowerCase().trim() === 'rejected' || service.status?.toLowerCase().trim() === 'suspended') ? 'bg-red-500 text-white border-red-600' :
-                                        'bg-gray-500 text-white border-gray-600'
-                                }
+                                variant="outline"
+                                className={cn('font-semibold', getServiceStatusConfig(service.status).badgeClass)}
                               >
-                                {service.status?.toLowerCase().trim() === 'active' ? '✅ Activo' :
-                                  service.status?.toLowerCase().trim() === 'pending' ? '⏳ Pendiente' :
-                                    (service.status?.toLowerCase().trim() === 'rejected' || service.status?.toLowerCase().trim() === 'suspended') ? '❌ Bloqueado' :
-                                      service.status}
+                                {getServiceStatusConfig(service.status).label}
                               </Badge>
-                              {(service.status?.toLowerCase().trim() === 'pending' || service.status?.toLowerCase().trim() === 'inactive') && (
+                              {(service.status?.toLowerCase().trim() === 'pending' || service.status?.toLowerCase().trim() === 'inactive') ? (
                                 <>
                                   <Button
                                     size="sm"
-                                    className="bg-green-600 hover:bg-green-700 text-white"
+                                    className="bg-emerald-600 hover:bg-emerald-700 text-white"
                                     onClick={() => handleApproveService(service.id)}
                                   >
                                     <CheckCircle size={14} className="mr-1" />
@@ -1637,14 +1723,14 @@ const Admin = () => {
                                   <Button
                                     size="sm"
                                     variant="outline"
-                                    className="border-red-300 text-red-600 hover:bg-red-50 shadow-sm"
+                                    className="border-rose-300 text-rose-700 hover:bg-rose-50 dark:text-rose-300 dark:border-rose-800"
                                     onClick={() => { setServiceToReject(service); setRejectReason(''); setRejectDialogOpen(true); }}
                                   >
                                     <X size={14} className="mr-1" />
                                     Rechazar
                                   </Button>
                                 </>
-                              )}
+                              ) : null}
                               <Button
                                 variant="destructive"
                                 size="sm"
@@ -1657,9 +1743,13 @@ const Admin = () => {
                           </div>
                         </CardHeader>
                         <CardContent>
-                          <p className="mb-2">{service.description}</p>
+                          <p className="text-sm leading-relaxed text-foreground/90 mb-3">
+                            {service.description || 'Sin descripción disponible.'}
+                          </p>
                           {service.price_range && (
-                            <p className="text-sm text-muted-foreground">Precio: {service.price_range}</p>
+                            <p className="text-sm text-muted-foreground bg-muted/50 rounded-lg px-3 py-2 inline-flex">
+                              Precio: {service.price_range}
+                            </p>
                           )}
                         </CardContent>
                       </Card>
