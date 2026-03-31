@@ -211,13 +211,6 @@ interface UserProfile {
   role: string;
 }
 
-interface Log {
-  id: number;
-  timestamp: string;
-  level: string;
-  message: string;
-}
-
 const getServiceStatusConfig = (rawStatus?: string) => {
   const status = String(rawStatus || '').toLowerCase().trim();
   if (status === 'active') {
@@ -338,11 +331,6 @@ const Admin = () => {
   const [loadingUsers, setLoadingUsers] = useState(false);
   const [userFilters, setUserFilters] = useState({ role: 'all', is_active: 'all', is_banned: 'all' });
 
-  // Estados para logs (solo super-admin)
-  const [logs, setLogs] = useState<Log[]>([]);
-  const [loadingLogs, setLoadingLogs] = useState(false);
-  const [logLevel, setLogLevel] = useState('all');
-  const [logsAutoRefresh, setLogsAutoRefresh] = useState(false);
   const [activeTab, setActiveTab] = useState('services');
   const [isInitialLoading, setIsInitialLoading] = useState(true);
 
@@ -500,23 +488,6 @@ const Admin = () => {
       toast.error(error.message || 'Error al cargar usuarios');
     } finally {
       setLoadingUsers(false);
-    }
-  };
-
-  const loadLogs = async () => {
-    if (!isSuperAdmin) return;
-    try {
-      setLoadingLogs(true);
-      const response = await adminAPI.getLogs({
-        limit: 200,
-        level: logLevel !== 'all' ? logLevel : undefined,
-      });
-      setLogs(response.logs);
-    } catch (error: any) {
-      console.error('Error loading logs:', error);
-      toast.error(error.message || 'Error al cargar logs');
-    } finally {
-      setLoadingLogs(false);
     }
   };
 
@@ -1165,19 +1136,6 @@ const Admin = () => {
     }
   };
 
-  const getLogLevelColor = (level: string) => {
-    switch (level) {
-      case 'error':
-        return 'text-red-500 bg-red-50';
-      case 'warn':
-        return 'text-accent bg-accent/10';
-      case 'info':
-        return 'text-blue-500 bg-blue-50';
-      default:
-        return 'text-gray-500 bg-gray-50';
-    }
-  };
-
   // Funciones para Precios y Configuración
   const loadAdminConfig = async () => {
     try {
@@ -1296,7 +1254,6 @@ const Admin = () => {
         loadAdminConfig();
         loadAdminPackages();
         break;
-      case 'logs': loadLogs(); break;
     }
   }, [activeTab]);
 
@@ -1316,7 +1273,6 @@ const Admin = () => {
           loadAdminConfig();
           loadAdminPackages();
           break;
-        case 'logs': loadLogs(); break;
       }
     };
 
@@ -1333,17 +1289,6 @@ const Admin = () => {
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [activeTab]);
-
-  // Auto-refresh de logs
-  useEffect(() => {
-    if (logsAutoRefresh) {
-      const interval = setInterval(() => {
-        loadLogs();
-      }, 2000);
-      return () => clearInterval(interval);
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [logsAutoRefresh, logLevel]); // loadLogs es estable y no necesita estar en deps
 
   // Verificar autenticación y permisos
   useEffect(() => {
@@ -1554,14 +1499,6 @@ const Admin = () => {
                   >
                     <RefreshCw className="h-3.5 w-3.5 sm:h-4 sm:w-4 shrink-0" />
                     Precios
-                  </TabsTrigger>
-                  <TabsTrigger
-                    value="logs"
-                    onClick={loadLogs}
-                    className="flex items-center gap-1.5 sm:gap-2 shrink-0 rounded-lg px-3 py-2.5 text-xs sm:text-sm data-[state=active]:bg-background data-[state=active]:shadow-md"
-                  >
-                    <FileText className="h-3.5 w-3.5 sm:h-4 sm:w-4 shrink-0" />
-                    Logs
                   </TabsTrigger>
                 </>
               )}
@@ -2685,82 +2622,6 @@ const Admin = () => {
             </TabsContent>
           )}
 
-          {/* Tab de Logs (Solo Super Admin) */}
-          {isSuperAdmin && (
-            <TabsContent value="logs" className="mt-4 sm:mt-6 outline-none focus-visible:outline-none">
-              <Card className="rounded-2xl border border-border/60 bg-card shadow-sm">
-                <CardHeader>
-                  <div className="flex justify-between items-center">
-                    <div>
-                      <CardTitle>Logs del Backend</CardTitle>
-                      <CardDescription>Visualiza los logs en tiempo real del servidor</CardDescription>
-                    </div>
-                    <div className="flex gap-2">
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => setLogsAutoRefresh(!logsAutoRefresh)}
-                      >
-                        <RefreshCw size={16} className={`mr-2 ${logsAutoRefresh ? 'animate-spin' : ''}`} />
-                        {logsAutoRefresh ? 'Detener' : 'Auto-refresh'}
-                      </Button>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={loadLogs}
-                      >
-                        Actualizar
-                      </Button>
-                    </div>
-                  </div>
-                </CardHeader>
-                <CardContent>
-                  <div className="mb-4 flex gap-4">
-                    <Select value={logLevel} onValueChange={(value) => {
-                      setLogLevel(value);
-                      loadLogs();
-                    }}>
-                      <SelectTrigger className="w-40">
-                        <SelectValue placeholder="Nivel" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="all">Todos</SelectItem>
-                        <SelectItem value="error">Error</SelectItem>
-                        <SelectItem value="warn">Warning</SelectItem>
-                        <SelectItem value="info">Info</SelectItem>
-                        <SelectItem value="log">Log</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-
-                  {loadingLogs ? (
-                    <div className="text-center py-8">
-                      <p className="text-muted-foreground">Cargando logs...</p>
-                    </div>
-                  ) : logs.length === 0 ? (
-                    <div className="text-center py-8">
-                      <p className="text-muted-foreground">No hay logs</p>
-                    </div>
-                  ) : (
-                    <div className="space-y-2 max-h-[600px] overflow-y-auto">
-                      {logs.map((log) => (
-                        <div
-                          key={log.id}
-                          className={`p-3 rounded-lg border text-sm ${getLogLevelColor(log.level)}`}
-                        >
-                          <div className="flex items-center justify-between mb-1">
-                            <span className="font-semibold">{log.level.toUpperCase()}</span>
-                            <span className="text-xs opacity-70">{formatDate(log.timestamp)}</span>
-                          </div>
-                          <p className="text-xs font-mono whitespace-pre-wrap break-words">{log.message}</p>
-                        </div>
-                      ))}
-                    </div>
-                  )}
-                </CardContent>
-              </Card>
-            </TabsContent>
-          )}
         </Tabs>
 
         {/* Dialog para Editar/Crear Tipo de Servicio (fuera de Tabs para evitar conflictos de foco con Radix) */}
