@@ -308,12 +308,13 @@ export function getServiceRegionNameOnly(service: {
 }): string {
   const fromOffer = service.offer_region?.name?.trim();
   if (fromOffer) return fromOffer;
-  const named = service.region_name?.trim();
-  if (named) return named;
+  // region_id del servicio = región elegida al publicar; region_name a veces viene del perfil/domicilio
   if (service.region_id != null && String(service.region_id) !== '') {
     const r = chileData.find((x) => String(x.id) === String(service.region_id));
     if (r?.name) return r.name;
   }
+  const named = service.region_name?.trim();
+  if (named) return named;
   return '';
 }
 
@@ -335,7 +336,7 @@ export function getServiceLocationDisplay(service: {
   return '—';
 }
 
-/** Preferir datos del backend enriquecido (offer_region / region_name), luego region_id, luego comuna. */
+/** offer_region, luego region_id (catálogo), luego region_name, luego comuna. */
 export function getServiceRegionDisplayName(service: {
   offer_region?: { id?: string; name?: string } | null;
   region_name?: string | null;
