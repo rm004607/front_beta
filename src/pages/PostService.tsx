@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useQueryClient } from '@tanstack/react-query';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -27,6 +28,7 @@ import {
 } from '@/lib/chile-region-helpers';
 import { loadRegionOptionsSorted, type RegionOption } from '@/lib/regions-catalog';
 import { catalogFetchUserMessage } from '@/lib/catalog-fetch-errors';
+import { invalidateServicesListQueries } from '@/lib/services-query';
 import {
   Select,
   SelectContent,
@@ -53,6 +55,7 @@ const PostService = () => {
   const { user, isLoggedIn } = useUser();
   const { t, i18n } = useTranslation();
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
   const [service, setService] = useState('');
   const [description, setDescription] = useState('');
   const [comuna, setComuna] = useState(user?.comuna || ''); // Comuna base
@@ -491,6 +494,7 @@ const PostService = () => {
 
       toast.success(t('post_service.service_submitted'));
       await loadUserLimits(); // Actualizar lÃ­mites
+      invalidateServicesListQueries(queryClient);
       navigate('/perfil');
     } catch (error: any) {
       const errorMessage = error instanceof Error ? error.message : t('post_service.publish_error');

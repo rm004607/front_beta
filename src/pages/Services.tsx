@@ -33,6 +33,7 @@ import { ServiceDetailModalContent } from '@/components/ServiceDetailModal';
 import { useDebouncedValue } from '@/hooks/useDebouncedValue';
 import { normalizeSearchQuery } from '@/lib/searchQuery';
 import { cn } from '@/lib/utils';
+import { invalidateServicesListQueries } from '@/lib/services-query';
 
 /** Alineado con GET /services optimizado: no pedir páginas enormes (evita trabajo extra en backend). */
 const SERVICES_PAGE_SIZE = 24;
@@ -234,7 +235,7 @@ const Services = () => {
     try {
       await servicesAPI.deleteService(service.id);
       toast.success(t('services.delete_success'));
-      queryClient.invalidateQueries({ queryKey: ['services', 'list'] });
+      invalidateServicesListQueries(queryClient);
     } catch (error: any) {
       console.error('Error deleting service:', error);
       toast.error(error.message || t('services.delete_error'));
@@ -268,7 +269,7 @@ const Services = () => {
       setUserComment('');
       // Recargar reseñas
       fetchReviews(selectedServiceForReviews.id);
-      queryClient.invalidateQueries({ queryKey: ['services', 'list'] });
+      invalidateServicesListQueries(queryClient);
     } catch (error: any) {
       console.error('Error submitting review:', error);
       if (error?.status === 403) {

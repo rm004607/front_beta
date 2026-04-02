@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
+import { useQueryClient } from '@tanstack/react-query';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -46,6 +47,7 @@ import {
 import { getServiceLocationDisplay, getUserOfferRegionDisplayName } from '@/lib/serviceUtils';
 import { loadRegionOptionsSorted, type RegionOption } from '@/lib/regions-catalog';
 import { catalogFetchUserMessage } from '@/lib/catalog-fetch-errors';
+import { invalidateServicesListQueries } from '@/lib/services-query';
 
 function sortProfileEditCatalogTypes<T extends { name: string; is_active?: boolean }>(types: T[]): T[] {
   return [...types].sort((a, b) => {
@@ -85,6 +87,7 @@ interface Service {
 const Profile = () => {
   const { user, isLoggedIn, isLoading, loadUser } = useUser();
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
   const [searchParams, setSearchParams] = useSearchParams();
   const [services, setServices] = useState<Service[]>([]);
   const [loadingServices, setLoadingServices] = useState(false);
@@ -310,6 +313,7 @@ const Profile = () => {
       const successMsg = response.message || 'Servicio actualizado';
       toast.success(successMsg);
       setEditingService(null);
+      invalidateServicesListQueries(queryClient);
       loadServices();
     } catch (error: any) {
       console.error('Error updating service:', error);

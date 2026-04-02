@@ -1,4 +1,5 @@
 import { useState, useEffect, useLayoutEffect, useRef } from 'react';
+import { useQuery } from '@tanstack/react-query';
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -48,14 +49,37 @@ interface Service {
 const Home = () => {
   const { isLoggedIn, user, isLoading: authLoading } = useUser();
   const { t, i18n } = useTranslation();
-  const [latestServices, setLatestServices] = useState<Service[]>([]);
-  const [loadingServices, setLoadingServices] = useState(true);
+  const homeServicesQuery = useQuery({
+    queryKey: [
+      'services',
+      'list',
+      {
+        home: true,
+        page: 1,
+        limit: 6,
+        viewer: user?.id ?? 'anon',
+        region_id: user?.region_id ?? '',
+        offer_region_id: user?.offer_region?.id ?? '',
+        role: user?.role_number ?? '',
+      },
+    ],
+    queryFn: () =>
+      servicesAPI.getServices({
+        page: 1,
+        limit: 6,
+        region_id: undefined,
+      }),
+    staleTime: 45_000,
+    gcTime: 1000 * 60 * 5,
+    enabled: !authLoading,
+  });
+  const latestServices = homeServicesQuery.data?.services ?? [];
+  const loadingServices = homeServicesQuery.isLoading && !homeServicesQuery.data;
   const [serviceTypes, setServiceTypes] = useState<any[]>([]);
   const [loadingTypes, setLoadingTypes] = useState(true);
   const [latestCarouselIndex, setLatestCarouselIndex] = useState(0);
   const [latestItemsPerView, setLatestItemsPerView] = useState(3);
 
-  const latestServicesRequestId = useRef(0);
   const latestCarouselIndexRef = useRef(0);
   latestCarouselIndexRef.current = latestCarouselIndex;
   const latestCarouselViewportRef = useRef<HTMLDivElement | null>(null);
@@ -144,37 +168,6 @@ const Home = () => {
   useEffect(() => {
     loadServiceTypes();
   }, []);
-
-  useEffect(() => {
-    if (authLoading) return;
-
-    let cancelled = false;
-    const requestId = ++latestServicesRequestId.current;
-    setLoadingServices(true);
-
-    (async () => {
-      try {
-        const response = await servicesAPI.getServices({
-          page: 1,
-          limit: 6,
-          region_id: undefined,
-        });
-        if (cancelled || requestId !== latestServicesRequestId.current) return;
-        setLatestServices(response.services);
-      } catch (error) {
-        if (cancelled || requestId !== latestServicesRequestId.current) return;
-        console.error('Error loading latest services:', error);
-      } finally {
-        if (!cancelled && requestId === latestServicesRequestId.current) {
-          setLoadingServices(false);
-        }
-      }
-    })();
-
-    return () => {
-      cancelled = true;
-    };
-  }, [authLoading, isLoggedIn, user?.id, user?.region_id, user?.offer_region?.id, user?.role_number]);
 
   useEffect(() => {
     const computeItemsPerView = () => {
