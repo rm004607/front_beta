@@ -330,13 +330,14 @@ const Home = () => {
 
               <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center lg:justify-start animate-reveal delay-300">
                 {!isLoggedIn ? (
-                  <Button 
-                    onClick={() => document.getElementById('entrepreneur-section')?.scrollIntoView({ behavior: 'smooth' })}
-                    size="lg" 
-                    className="bg-primary hover:bg-primary/90 text-primary-foreground font-bold px-5 py-5 xs:px-6 sm:px-8 sm:py-7 text-base sm:text-lg rounded-xl shadow-xl shadow-primary/20 transition-all hover:scale-105 active:scale-95 w-full sm:w-auto h-auto min-h-12"
-                  >
-                    {t('hero.offer_services_btn')}
-                  </Button>
+                  <Link to="/registro" className="w-full sm:w-auto">
+                    <Button
+                      size="lg"
+                      className="bg-primary hover:bg-primary/90 text-primary-foreground font-bold px-5 py-5 xs:px-6 sm:px-8 sm:py-7 text-base sm:text-lg rounded-xl shadow-xl shadow-primary/20 transition-all hover:scale-105 active:scale-95 w-full sm:w-auto h-auto min-h-12"
+                    >
+                      {t('hero.offer_services_btn')}
+                    </Button>
+                  </Link>
                 ) : (
                   <Link to="/servicios/publicar">
                     <Button size="lg" className="bg-primary hover:bg-primary/90 text-primary-foreground font-bold px-5 py-5 xs:px-6 sm:px-8 sm:py-7 text-base sm:text-lg rounded-xl shadow-xl shadow-primary/20 transition-all hover:scale-105 active:scale-95 w-full sm:w-auto h-auto min-h-12">
@@ -457,7 +458,7 @@ const Home = () => {
         <div className="container mx-auto px-4">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-5xl mx-auto">
             {/* Ofrecer Servicio */}
-            <Link to={isLoggedIn ? "/servicios/publicar" : "/servicios"} className="group animate-reveal delay-200">
+            <Link to={isLoggedIn ? "/servicios/publicar" : "/registro"} className="group animate-reveal delay-200">
               <div className="relative overflow-hidden bg-white dark:bg-card border-none rounded-[2.5rem] sm:rounded-[3.5rem] p-8 sm:p-10 hover:shadow-2xl transition-all duration-500 group-hover:-translate-y-2 h-full flex flex-col items-center lg:items-start text-center lg:text-left shadow-xl shadow-secondary/5">
                 <div className="absolute top-0 right-0 w-24 h-24 sm:w-32 sm:h-32 bg-secondary/10 rounded-bl-[80px] sm:rounded-bl-[100px] -z-0"></div>
                 <div className="bg-secondary w-14 h-14 sm:w-20 sm:h-20 rounded-xl sm:rounded-3xl flex items-center justify-center mb-5 sm:mb-8 shadow-xl shadow-secondary/20 group-hover:-rotate-12 transition-transform relative z-10">
@@ -773,7 +774,7 @@ const Home = () => {
                   </div>
                 </Link>
                 
-                <Link to="/login">
+                <Link to="/login?next=/servicios">
                   <div className="group bg-white/90 dark:bg-card p-5 xs:p-6 sm:p-8 rounded-2xl sm:rounded-3xl border border-border/50 hover:border-green-500/30 hover:shadow-xl transition-all cursor-pointer h-full flex flex-col items-center text-center">
                     <div className="w-12 h-12 xs:w-14 xs:h-14 sm:w-16 sm:h-16 bg-emerald-100 rounded-xl sm:rounded-2xl flex items-center justify-center text-emerald-600 mb-3 sm:mb-4 group-hover:scale-110 transition-transform shrink-0">
                       <Search className="w-6 h-6 sm:w-8 sm:h-8" strokeWidth={1.5} />

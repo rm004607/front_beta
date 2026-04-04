@@ -48,7 +48,12 @@ const Login = () => {
     try {
       await login(email, password);
       toast.success('¡Bienvenido de nuevo!');
-      navigate('/');
+      const next = searchParams.get('next');
+      const safeNext =
+        next && next.startsWith('/') && !next.startsWith('//') && !next.includes(':')
+          ? next
+          : null;
+      navigate(safeNext || '/');
     } catch (error: any) {
       // Verificar si el error contiene información de ban
       if (error.ban_info) {

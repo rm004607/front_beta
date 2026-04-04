@@ -752,7 +752,7 @@ const Register = () => {
                   onSuccess={async () => {
                     await loadUser();
                     toast.success('Cuenta creada exitosamente');
-                    navigate('/perfil', { replace: true });
+                    navigate('/servicios', { replace: true });
                   }}
                   onError={(msg) => {
                     toast.error(msg || 'No pudimos completar la verificación de identidad.');
