@@ -114,7 +114,7 @@ export const ServiceCard = memo(({
                                 <span className="text-[11px] sm:text-xs font-bold truncate">{getServiceRegionNameOnly(service) || '—'}</span>
                                 {service.coverage_communes && service.coverage_communes.length > 0 && (
                                     <span className="text-[8px] sm:text-[9px] text-secondary font-black uppercase tracking-tighter">
-                                        + {service.coverage_communes.length} comunas (histórico)
+                                        + {service.coverage_communes.length} comunas
                                     </span>
                                 )}
                             </div>
