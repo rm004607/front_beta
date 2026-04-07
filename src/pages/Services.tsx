@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -57,6 +57,7 @@ const Services = () => {
   const [typeFilter, setTypeFilter] = useState(searchParams.get('type_id') || 'all');
   const [serviceTypes, setServiceTypes] = useState<any[]>([]);
   const [page, setPage] = useState(1);
+  const hasMountedRef = useRef(false);
 
   /** IDs de región = PK del backend (`GET /api/regions`), no el ordinal de chile-data. */
   const [apiRegions, setApiRegions] = useState<RegionOption[]>([]);
@@ -131,6 +132,15 @@ const Services = () => {
   useEffect(() => {
     setPage(1);
   }, [debouncedSearch, comunaFilter, regionFilter, typeFilter]);
+
+  // Al cambiar de página, volver al inicio de la vista.
+  useEffect(() => {
+    if (!hasMountedRef.current) {
+      hasMountedRef.current = true;
+      return;
+    }
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }, [page]);
 
   // Cargar precio dinámico y estado de pricing
   useEffect(() => {
