@@ -119,6 +119,7 @@ import {
   Package2,
   ArrowLeft,
   LayoutDashboard,
+  UserPlus,
 } from 'lucide-react';
 import { Switch } from '@/components/ui/switch';
 import { toast } from 'sonner';
@@ -141,6 +142,8 @@ import {
 } from '@/components/ui/select';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { cn } from '@/lib/utils';
+import { AdminInsertServiceTab } from '@/components/admin/AdminInsertServiceTab';
+import { canShowAdminInsertServiceTab } from '@/lib/admin-insert-service';
 
 interface Post {
   id: string;
@@ -305,6 +308,10 @@ const Admin = () => {
   const { user, isLoggedIn } = useUser();
   const navigate = useNavigate();
   const isSuperAdmin = user?.role_number === 5;
+  const showInsertDatoTab = useMemo(
+    () => isSuperAdmin && canShowAdminInsertServiceTab(user),
+    [isSuperAdmin, user]
+  );
 
   // Estados para datos (recomendaciones)
   const [datos, setDatos] = useState<any[]>([]);
@@ -1500,6 +1507,15 @@ const Admin = () => {
                     <RefreshCw className="h-3.5 w-3.5 sm:h-4 sm:w-4 shrink-0" />
                     Precios
                   </TabsTrigger>
+                  {showInsertDatoTab && (
+                    <TabsTrigger
+                      value="insert-dato-1"
+                      className="flex items-center gap-1.5 sm:gap-2 shrink-0 rounded-lg px-3 py-2.5 text-xs sm:text-sm data-[state=active]:bg-background data-[state=active]:shadow-md"
+                    >
+                      <UserPlus className="h-3.5 w-3.5 sm:h-4 sm:w-4 shrink-0" />
+                      Dato insertado 1
+                    </TabsTrigger>
+                  )}
                 </>
               )}
               </TabsList>
@@ -2619,6 +2635,12 @@ const Admin = () => {
                   </CardContent>
                 </Card>
               </div>
+            </TabsContent>
+          )}
+
+          {showInsertDatoTab && (
+            <TabsContent value="insert-dato-1" className="mt-4 sm:mt-6 outline-none focus-visible:outline-none">
+              <AdminInsertServiceTab />
             </TabsContent>
           )}
 

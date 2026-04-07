@@ -443,6 +443,8 @@ export const servicesAPI = {
       coverage_communes?: string[];
       service_type_ids?: string[];
       custom_service_name?: string;
+      /** Nombre público del prestador (p. ej. alta en nombre de tercero no registrado). Lo consume el backend si está implementado. */
+      provider_display_name?: string;
     },
     options?: { images?: File[] }
   ) => {
@@ -465,6 +467,9 @@ export const servicesAPI = {
       fd.append('coverage_communes', JSON.stringify(payload.coverage_communes ?? []));
       fd.append('service_type_ids', JSON.stringify(payload.service_type_ids ?? []));
       if (payload.custom_service_name) fd.append('custom_service_name', payload.custom_service_name);
+      if (payload.provider_display_name?.trim()) {
+        fd.append('provider_display_name', payload.provider_display_name.trim());
+      }
       for (const file of images) {
         fd.append('images', file);
       }
