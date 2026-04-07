@@ -67,7 +67,7 @@ export default function VerificacionBiometrica() {
         await kycAPI.start(identityId);
         toast.success('Verificación enviada correctamente.');
         await loadUser();
-        navigate('/perfil', { replace: true });
+        navigate('/servicios', { replace: true });
       } catch (err: any) {
         const msg = err?.message || 'Error al completar la verificación. Intenta de nuevo.';
         setError(msg);
