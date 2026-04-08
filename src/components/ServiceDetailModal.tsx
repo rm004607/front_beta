@@ -50,7 +50,7 @@ export function ServiceDetailModalContent({ service, onClose, onOpenReviews, onW
         <div className="absolute inset-0 opacity-10 bg-[radial-gradient(circle_at_center,_white_1px,_transparent_1px)] bg-[length:24px_24px]" />
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-[280px_1fr] relative z-10">
+      <div className="grid grid-cols-1 md:grid-cols-[280px_1fr] md:items-start relative z-10">
         <div className="bg-muted/30 md:border-r border-border/40 flex flex-col">
           <div
             className="hidden md:block h-28 w-full relative -top-px -left-px -right-px rounded-tl-[3rem]"
@@ -180,22 +180,22 @@ export function ServiceDetailModalContent({ service, onClose, onOpenReviews, onW
                     href={photoUrls[0]}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="group/photo block w-full overflow-hidden rounded-2xl border border-border/50 bg-background/80 shadow-inner ring-1 ring-black/5"
+                    className="group/photo block w-full overflow-hidden rounded-2xl border border-border/50 bg-muted/40 ring-1 ring-black/5"
                   >
                     <img
                       src={photoUrls[0]}
                       alt=""
-                      className="w-full max-h-[min(72vh,560px)] h-auto object-contain object-center transition-transform duration-300 group-hover/photo:scale-[1.01]"
+                      className="block w-full h-auto max-h-[min(85vh,720px)] transition-transform duration-300 group-hover/photo:scale-[1.005]"
                       loading="lazy"
                     />
                   </a>
                 ) : (
                   <div className="space-y-3">
-                    <div className="relative overflow-hidden rounded-2xl border border-border/50 bg-background/80 shadow-inner ring-1 ring-black/5">
+                    <div className="relative overflow-hidden rounded-2xl border border-border/50 bg-muted/40 ring-1 ring-black/5">
                       <img
                         src={photoUrls[photoIndex]}
                         alt=""
-                        className="w-full max-h-[min(72vh,560px)] h-auto object-contain object-center mx-auto block"
+                        className="block w-full h-auto max-h-[min(85vh,720px)]"
                         loading="lazy"
                       />
                       {photoIndex > 0 && (
