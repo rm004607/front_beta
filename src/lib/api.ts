@@ -104,10 +104,6 @@ async function request<T>(
       if ('code' in errorData && typeof errorData.code === 'string') {
         errorObj.code = errorData.code;
       }
-      // Asegurar que si el server manda un mensaje específico, se mantenga
-      if ('error' in errorData && typeof errorData.error === 'string') {
-        errorObj.message = errorData.error;
-      }
     }
 
     errorObj.status = response.status;

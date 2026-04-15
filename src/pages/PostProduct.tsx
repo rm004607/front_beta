@@ -252,10 +252,12 @@ const PostProduct = () => {
       formData.append('product_status', productStatus);
       formData.append('description', sanitizeInput(description, 3000));
       formData.append('region_id', String(regionId));
-      formData.append('comuna', sanitizeInput(comuna, 50));
+      formData.append('comuna', sanitizeInput(comuna, 50).normalize('NFC'));
       if (phone.trim()) formData.append('phone', sanitizeInput(phone, 20));
-      if (price.trim()) formData.append('price', price.trim());
-      formData.append('currency', 'CLP');
+      if (price.trim()) {
+        formData.append('price', price.trim());
+        formData.append('currency', 'CLP');
+      }
       images.forEach((image) => {
         formData.append('images', image.file);
       });
