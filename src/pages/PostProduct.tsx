@@ -7,7 +7,7 @@ import { productsAPI, aiAPI, regionsAPI } from '@/lib/api';
 import { loadRegionOptionsSorted, type RegionOption } from '@/lib/regions-catalog';
 import { catalogFetchUserMessage } from '@/lib/catalog-fetch-errors';
 import { PRODUCT_STATUS_OPTIONS, formatProductPrice } from '@/lib/productUtils';
-import { isValidTextField, isValidPhone, validatePhone, sanitizeInput, getValidationErrorMessage } from '@/lib/input-validator';
+import { containsSQLInjection, isValidTextField, isValidPhone, validatePhone, sanitizeInput, getValidationErrorMessage } from '@/lib/input-validator';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
@@ -34,6 +34,11 @@ function communesNamesFromApiResponse(
 }
 
 const PostProduct = () => {
+  const TITLE_MIN_LENGTH = 5;
+  const TITLE_MAX_LENGTH = 140;
+  const DESCRIPTION_MIN_LENGTH = 20;
+  const DESCRIPTION_MAX_LENGTH = 3000;
+
   const navigate = useNavigate();
   const { user, isLoggedIn } = useUser();
 
@@ -57,6 +62,8 @@ const PostProduct = () => {
   const [improvingDescription, setImprovingDescription] = useState(false);
   const [suggestedDescription, setSuggestedDescription] = useState('');
   const [showDescriptionSuggestion, setShowDescriptionSuggestion] = useState(false);
+  const [titleError, setTitleError] = useState<string | null>(null);
+  const [descriptionError, setDescriptionError] = useState<string | null>(null);
   const descriptionTextareaRef = useRef<HTMLTextAreaElement>(null);
   const imagesRef = useRef<DraftImage[]>([]);
 
@@ -152,6 +159,14 @@ const PostProduct = () => {
   );
 
   const previewCover = images[0]?.previewUrl || null;
+  const titleTrimmed = title.trim();
+  const descriptionTrimmed = description.trim();
+  const titleLength = titleTrimmed.length;
+  const descriptionLength = descriptionTrimmed.length;
+  const titleHasDangerousChars = containsSQLInjection(titleTrimmed);
+  const descriptionHasDangerousChars = containsSQLInjection(descriptionTrimmed);
+  const isTitleLengthValid = titleLength >= TITLE_MIN_LENGTH && titleLength <= TITLE_MAX_LENGTH;
+  const isDescriptionLengthValid = descriptionLength >= DESCRIPTION_MIN_LENGTH && descriptionLength <= DESCRIPTION_MAX_LENGTH;
 
   const handleImagesSelected = (event: React.ChangeEvent<HTMLInputElement>) => {
     const selectedFiles = Array.from(event.target.files || []);
@@ -231,12 +246,24 @@ const PostProduct = () => {
       toast.error('Completa título, descripción, región, comuna y al menos una imagen.');
       return;
     }
+    if (titleLength < TITLE_MIN_LENGTH) {
+      setTitleError(`El título debe tener al menos ${TITLE_MIN_LENGTH} caracteres.`);
+      toast.error(`El título debe tener al menos ${TITLE_MIN_LENGTH} caracteres.`);
+      return;
+    }
+    if (descriptionLength < DESCRIPTION_MIN_LENGTH) {
+      setDescriptionError(`La descripción debe tener al menos ${DESCRIPTION_MIN_LENGTH} caracteres.`);
+      toast.error(`La descripción debe tener al menos ${DESCRIPTION_MIN_LENGTH} caracteres.`);
+      return;
+    }
     if (!isValidTextField(title, 140)) {
-      toast.error('El título contiene caracteres no permitidos.');
+      setTitleError('El título contiene caracteres no permitidos.');
+      toast.error('El título contiene caracteres no permitidos (campo: Título).');
       return;
     }
     if (!isValidTextField(description, 3000)) {
-      toast.error('La descripción contiene caracteres no permitidos.');
+      setDescriptionError('La descripción contiene caracteres no permitidos.');
+      toast.error('La descripción contiene caracteres no permitidos (campo: Descripción).');
       return;
     }
     if (phone && !isValidPhone(phone)) {
@@ -321,10 +348,39 @@ const PostProduct = () => {
                     <Input
                       id="product-title"
                       value={title}
-                      onChange={(e) => setTitle(e.target.value)}
+                      onChange={(e) => {
+                        const value = e.target.value;
+                        setTitle(value);
+                        const normalized = value.trim();
+                        if (!normalized) {
+                          setTitleError(null);
+                          return;
+                        }
+                        if (containsSQLInjection(normalized)) {
+                          setTitleError('Caracteres no permitidos en el título.');
+                          return;
+                        }
+                        if (normalized.length < TITLE_MIN_LENGTH) {
+                          setTitleError(`Mínimo ${TITLE_MIN_LENGTH} caracteres.`);
+                          return;
+                        }
+                        if (normalized.length > TITLE_MAX_LENGTH) {
+                          setTitleError(`Máximo ${TITLE_MAX_LENGTH} caracteres.`);
+                          return;
+                        }
+                        setTitleError(null);
+                      }}
                       placeholder="Ej: Bicicleta MTB aro 29, Torta de chocolate artesanal..."
                       className="mt-1"
                     />
+                    <div className="mt-1 flex items-center justify-between">
+                      <p className={`text-xs ${titleError ? 'text-red-500' : 'text-muted-foreground'}`}>
+                        {titleError || 'Usa un título claro y directo'}
+                      </p>
+                      <p className={`text-xs font-medium ${isTitleLengthValid && !titleHasDangerousChars ? 'text-green-600' : 'text-red-500'}`}>
+                        {titleLength}/{TITLE_MAX_LENGTH} (mín. {TITLE_MIN_LENGTH})
+                      </p>
+                    </div>
                   </div>
                   <div>
                     <Label htmlFor="product-status">Estado del producto *</Label>
@@ -412,19 +468,46 @@ const PostProduct = () => {
                     id="product-description"
                     value={description}
                     onChange={(e) => {
-                      setDescription(e.target.value);
+                      const value = e.target.value;
+                      setDescription(value);
                       if (showDescriptionSuggestion) setShowDescriptionSuggestion(false);
+                      const normalized = value.trim();
+                      if (!normalized) {
+                        setDescriptionError(null);
+                        return;
+                      }
+                      if (containsSQLInjection(normalized)) {
+                        setDescriptionError('Caracteres no permitidos en la descripción.');
+                        return;
+                      }
+                      if (normalized.length < DESCRIPTION_MIN_LENGTH) {
+                        setDescriptionError(`Mínimo ${DESCRIPTION_MIN_LENGTH} caracteres.`);
+                        return;
+                      }
+                      if (normalized.length > DESCRIPTION_MAX_LENGTH) {
+                        setDescriptionError(`Máximo ${DESCRIPTION_MAX_LENGTH} caracteres.`);
+                        return;
+                      }
+                      setDescriptionError(null);
                     }}
                     placeholder="Describe el producto, su estado, medidas, sabor, detalles importantes, etc."
                     rows={6}
                     className="mt-1"
                   />
+                  <div className="mt-1 flex items-center justify-between">
+                    <p className={`text-xs ${descriptionError ? 'text-red-500' : 'text-muted-foreground'}`}>
+                      {descriptionError || 'Describe estado, medidas y detalles importantes'}
+                    </p>
+                    <p className={`text-xs font-medium ${isDescriptionLengthValid && !descriptionHasDangerousChars ? 'text-green-600' : 'text-red-500'}`}>
+                      {descriptionLength}/{DESCRIPTION_MAX_LENGTH} (mín. {DESCRIPTION_MIN_LENGTH})
+                    </p>
+                  </div>
                   <Button
                     type="button"
                     variant="default"
                     className="mt-3 border-0 bg-gradient-to-r from-cyan-500 via-sky-500 to-indigo-500 text-white shadow-md shadow-sky-500/30"
                     onClick={handleImproveDescription}
-                    disabled={improvingDescription || description.trim().length < 20}
+                    disabled={improvingDescription || description.trim().length < DESCRIPTION_MIN_LENGTH}
                   >
                     {improvingDescription ? (
                       <>
