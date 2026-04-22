@@ -28,8 +28,8 @@ export const CountryGate = () => {
         let data = await response.json();
 
         if (data.error || data.reason === 'RateLimited') {
-          // Fallback to ip-api.com
-          response = await fetch('http://ip-api.com/json');
+          // Fallback to ip-api.com (HTTPS to avoid mixed-content failures)
+          response = await fetch('https://ip-api.com/json');
           data = await response.json();
           
           if (data.status === 'success') {

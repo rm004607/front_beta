@@ -497,7 +497,16 @@ const PostService = () => {
       invalidateServicesListQueries(queryClient);
       navigate('/perfil');
     } catch (error: any) {
-      const errorMessage = error instanceof Error ? error.message : t('post_service.publish_error');
+      const isNetworkError =
+        error?.code === 'NETWORK_ERROR' ||
+        error?.status === 0 ||
+        (typeof error?.message === 'string' &&
+          error.message.toLowerCase().includes('failed to fetch'));
+      const errorMessage = isNetworkError
+        ? 'No logramos conectar para publicar el servicio. Revisa tu conexión y vuelve a intentar.'
+        : error instanceof Error
+          ? error.message
+          : t('post_service.publish_error');
 
       // Si el error indica que requiere pago, abrir modal de paquetes
       if ((error.requires_payment || error.status === 403) && pricingEnabled) {
@@ -507,6 +516,15 @@ const PostService = () => {
         toast.error(errorMessage);
       } else {
         toast.error(errorMessage);
+      }
+
+      if (import.meta.env.DEV) {
+        console.error('PostService submit error:', {
+          code: error?.code,
+          status: error?.status,
+          message: error?.message,
+          cause: error?.cause,
+        });
       }
     } finally {
       setIsSubmitting(false);

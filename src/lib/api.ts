@@ -40,11 +40,26 @@ async function request<T>(
     ...options.headers,
   };
 
-  const response = await fetch(`${API_BASE_URL}${endpoint}`, {
-    ...options,
-    headers,
-    credentials: 'include', // Incluir cookies en todas las peticiones (requiere CORS configurado correctamente)
-  });
+  let response: Response;
+  try {
+    response = await fetch(`${API_BASE_URL}${endpoint}`, {
+      ...options,
+      headers,
+      credentials: 'include', // Incluir cookies en todas las peticiones (requiere CORS configurado correctamente)
+    });
+  } catch (error) {
+    // Error de red/CORS/DNS/SSL (no hubo respuesta HTTP)
+    const networkError = new Error(
+      'No pudimos conectar con el servidor. Revisa tu conexión e inténtalo nuevamente.'
+    ) as Error & { status?: number; code?: string; cause?: unknown };
+    networkError.status = 0;
+    networkError.code = 'NETWORK_ERROR';
+    networkError.cause = error;
+    if (import.meta.env.DEV) {
+      console.error('Network error calling API:', { endpoint, error });
+    }
+    throw networkError;
+  }
 
   if (!response.ok) {
     // Intentar parsear el error, pero si falla, usar un error genérico

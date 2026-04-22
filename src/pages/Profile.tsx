@@ -604,7 +604,7 @@ const Profile = () => {
   }, [isLoading, isLoggedIn, navigate]);
 
   // Detectar si hay campos faltantes
-  const hasMissingFields = user && (!user.phone || !user.comuna);
+  const hasMissingFields = user && (!user.phone || !user.comuna || !user.region_id);
 
   // Manejar query param para abrir modal de completar perfil
   useEffect(() => {
