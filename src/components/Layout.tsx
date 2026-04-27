@@ -22,14 +22,9 @@ interface LayoutProps {
 
 const Layout = ({ children }: LayoutProps) => {
   const { user, isLoggedIn, logout } = useUser();
-  const { t, i18n } = useTranslation();
+  const { t } = useTranslation();
   const location = useLocation();
   const hideChrome = location.pathname.startsWith('/verificacion-biometrica');
-
-  const toggleLanguage = () => {
-    const newLang = i18n.language === 'es' ? 'en' : 'es';
-    i18n.changeLanguage(newLang);
-  };
 
   const isActive = (path: string) => location.pathname === path;
 
@@ -75,15 +70,6 @@ const Layout = ({ children }: LayoutProps) => {
               </nav>
 
               <div className="flex items-center gap-2 sm:gap-3">
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={toggleLanguage}
-                  className="px-2 font-bold text-xs hover:bg-primary/10"
-                >
-                  {i18n.language === 'es' ? 'EN' : 'ES'}
-                </Button>
-
                 {/* Desktop auth/actions */}
                 <div className="hidden md:flex items-center gap-3">
                   {isLoggedIn ? (
