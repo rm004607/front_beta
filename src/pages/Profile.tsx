@@ -26,7 +26,7 @@ import {
 import { Checkbox } from '@/components/ui/checkbox';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { useUser } from '@/contexts/UserContext';
-import { MapPin, Phone, Mail, Wrench, Building2, Trash2, FileText, Plus, Star, Users, ChevronRight, Loader2, X } from 'lucide-react';
+import { MapPin, Phone, Mail, Wrench, Building2, Trash2, FileText, Plus, Star, Users, ChevronRight, Loader2, X, Pencil } from 'lucide-react';
 import { servicesAPI, authAPI, regionsAPI, adminAPI } from '@/lib/api';
 import { toast } from 'sonner';
 import {
@@ -98,6 +98,9 @@ const Profile = () => {
   const [phoneDialogOpen, setPhoneDialogOpen] = useState(false);
   const [editPhoneValue, setEditPhoneValue] = useState('');
   const [isSavingPhone, setIsSavingPhone] = useState(false);
+  const [nameDialogOpen, setNameDialogOpen] = useState(false);
+  const [editNameValue, setEditNameValue] = useState('');
+  const [isSavingName, setIsSavingName] = useState(false);
   const [showCompleteProfileDialog, setShowCompleteProfileDialog] = useState(false);
   const [completePhone, setCompletePhone] = useState('');
   const [completeRut, setCompleteRut] = useState('');
@@ -370,6 +373,43 @@ const Profile = () => {
     if (!user) return;
     setEditPhoneValue(user.phone || '');
     setPhoneDialogOpen(true);
+  };
+
+  const openNameDialog = () => {
+    if (!user) return;
+    setEditNameValue(user.name || '');
+    setNameDialogOpen(true);
+  };
+
+  const handleSaveName = async () => {
+    if (!user) return;
+    const trimmed = editNameValue.trim();
+    if (!trimmed) {
+      toast.error('Ingresa un nombre');
+      return;
+    }
+    if (!isValidTextField(trimmed, 100)) {
+      toast.error('Nombre no válido');
+      return;
+    }
+    if (trimmed === user.name) {
+      setNameDialogOpen(false);
+      return;
+    }
+    try {
+      setIsSavingName(true);
+      await authAPI.updateProfile({
+        name: sanitizeInput(trimmed, 100),
+      });
+      await loadUser();
+      setNameDialogOpen(false);
+      toast.success('Nombre actualizado');
+    } catch (error: any) {
+      console.error('Error updating name:', error);
+      toast.error(error.message || 'No se pudo actualizar el nombre');
+    } finally {
+      setIsSavingName(false);
+    }
   };
 
   const handleSavePhone = async () => {
@@ -707,6 +747,15 @@ const Profile = () => {
               <h2 className="text-xl font-medium text-foreground text-center lg:text-2xl lg:font-normal">
                 {user.name}
               </h2>
+              <Button
+                type="button"
+                variant="link"
+                className="h-auto p-0 mt-1 text-sm font-normal text-primary"
+                onClick={openNameDialog}
+              >
+                <Pencil className="h-3.5 w-3.5 mr-1" />
+                Editar nombre
+              </Button>
               <div className="mt-2 flex flex-wrap justify-center gap-1.5 lg:justify-start lg:gap-2">
                 {user.roles.map((role) => (
                   <span
@@ -928,6 +977,43 @@ const Profile = () => {
               </Button>
               <Button className="rounded-full" onClick={handleSavePhone} disabled={isSavingPhone}>
                 {isSavingPhone ? 'Guardando…' : 'Guardar'}
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+
+        <Dialog open={nameDialogOpen} onOpenChange={setNameDialogOpen}>
+          <DialogContent className="w-[95vw] sm:max-w-md rounded-2xl border shadow-lg">
+            <DialogHeader>
+              <DialogTitle className="text-lg font-medium">Cambiar nombre</DialogTitle>
+              <DialogDescription className="text-sm text-muted-foreground">
+                Actualiza tu nombre visible en la plataforma.
+              </DialogDescription>
+            </DialogHeader>
+            <div className="space-y-2 py-2">
+              <Label htmlFor="profile-name-edit" className="text-xs text-muted-foreground">
+                Nombre completo
+              </Label>
+              <Input
+                id="profile-name-edit"
+                value={editNameValue}
+                onChange={(e) => setEditNameValue(e.target.value)}
+                placeholder="Tu nombre"
+                disabled={isSavingName}
+                className="rounded-xl"
+              />
+            </div>
+            <DialogFooter className="gap-2 sm:gap-0">
+              <Button
+                variant="outline"
+                className="rounded-full"
+                onClick={() => setNameDialogOpen(false)}
+                disabled={isSavingName}
+              >
+                Cancelar
+              </Button>
+              <Button className="rounded-full" onClick={handleSaveName} disabled={isSavingName}>
+                {isSavingName ? 'Guardando…' : 'Guardar'}
               </Button>
             </DialogFooter>
           </DialogContent>

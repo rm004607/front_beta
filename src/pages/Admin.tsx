@@ -123,7 +123,7 @@ import {
 } from 'lucide-react';
 import { Switch } from '@/components/ui/switch';
 import { toast } from 'sonner';
-import { adminAPI, authAPI, configAPI, packagesAPI } from '@/lib/api';
+import { adminAPI, authAPI, configAPI, packagesAPI, servicesAPI } from '@/lib/api';
 import { formatProductPrice } from '@/lib/productUtils';
 import {
   Dialog,
@@ -164,6 +164,8 @@ interface Service {
   service_name: string;
   description: string;
   comuna: string;
+  region_id?: string;
+  phone?: string;
   status: string;
   created_at: string;
   user_name: string;
@@ -171,6 +173,7 @@ interface Service {
   price_range?: string;
   average_rating?: number;
   reviews_count?: number;
+  image_urls?: string[];
 }
 
 interface AdminProduct {
@@ -325,6 +328,19 @@ const Admin = () => {
   const [rejectDialogOpen, setRejectDialogOpen] = useState(false);
   const [serviceToReject, setServiceToReject] = useState<Service | null>(null);
   const [rejectReason, setRejectReason] = useState('');
+  const [editServiceDialogOpen, setEditServiceDialogOpen] = useState(false);
+  const [editingService, setEditingService] = useState<Service | null>(null);
+  const [savingServiceEdit, setSavingServiceEdit] = useState(false);
+  const [newServiceImages, setNewServiceImages] = useState<File[]>([]);
+  const [serviceEditForm, setServiceEditForm] = useState({
+    service_name: '',
+    description: '',
+    comuna: '',
+    phone: '',
+    price_range: '',
+    status: 'active',
+  });
+  const [serviceEditImages, setServiceEditImages] = useState<string[]>([]);
 
   const [adminProducts, setAdminProducts] = useState<AdminProduct[]>([]);
   const [loadingProducts, setLoadingProducts] = useState(false);
@@ -786,6 +802,84 @@ const Admin = () => {
     } catch (error: any) {
       console.error('Error rejecting service:', error);
       toast.error(error.message || 'Error al rechazar el servicio');
+    }
+  };
+
+  const handleOpenEditService = async (service: Service) => {
+    const normalizeEditableStatus = (raw?: string) => {
+      const normalized = String(raw || '').toLowerCase().trim();
+      return normalized === 'inactive' || normalized === 'suspended' ? normalized : 'active';
+    };
+    setEditingService(service);
+    setServiceEditForm({
+      service_name: service.service_name || '',
+      description: service.description || '',
+      comuna: service.comuna || '',
+      phone: service.phone || '',
+      price_range: service.price_range || '',
+      status: normalizeEditableStatus(service.status),
+    });
+    setServiceEditImages(service.image_urls || []);
+    setNewServiceImages([]);
+    setEditServiceDialogOpen(true);
+
+    try {
+      const detail = await servicesAPI.getServiceById(service.id);
+      const full = detail.service;
+      setServiceEditForm({
+        service_name: full.service_name || '',
+        description: full.description || '',
+        comuna: full.comuna || '',
+        phone: full.phone || '',
+        price_range: full.price_range || '',
+        status: normalizeEditableStatus(full.status),
+      });
+      setServiceEditImages(full.image_urls || []);
+    } catch (error) {
+      console.error('Error loading full service detail:', error);
+    }
+  };
+
+  const handleSaveServiceEdit = async () => {
+    if (!editingService) return;
+    if (!serviceEditForm.service_name.trim() || !serviceEditForm.description.trim() || !serviceEditForm.comuna.trim()) {
+      toast.error('Nombre del servicio, descripción y comuna son obligatorios');
+      return;
+    }
+    try {
+      setSavingServiceEdit(true);
+      const payload = {
+        service_name: serviceEditForm.service_name.trim(),
+        description: serviceEditForm.description.trim(),
+        comuna: serviceEditForm.comuna.trim(),
+        phone: serviceEditForm.phone.trim() || undefined,
+        price_range: serviceEditForm.price_range.trim() || undefined,
+        status: (serviceEditForm.status || 'active') as 'active' | 'inactive' | 'suspended',
+        keep_image_urls: serviceEditImages,
+      };
+
+      if (newServiceImages.length > 0 || serviceEditImages.length > 0) {
+        await servicesAPI.updateServiceWithImages(editingService.id, payload, {
+          images: newServiceImages,
+        });
+      } else {
+        await servicesAPI.updateService(editingService.id, payload);
+      }
+
+      toast.success('Servicio actualizado');
+      setEditServiceDialogOpen(false);
+      setEditingService(null);
+      setNewServiceImages([]);
+      loadServices();
+      loadStats();
+    } catch (error: any) {
+      console.error('Error updating service from admin:', error);
+      toast.error(
+        error.message ||
+          'No se pudo actualizar el servicio. Si el backend aun no soporta edicion de fotos, usa el prompt que te dejare.'
+      );
+    } finally {
+      setSavingServiceEdit(false);
     }
   };
 
@@ -1710,6 +1804,14 @@ const Admin = () => {
                                   </Button>
                                 </>
                               ) : null}
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => handleOpenEditService(service)}
+                              >
+                                <Edit size={14} className="mr-1" />
+                                Editar
+                              </Button>
                               <Button
                                 variant="destructive"
                                 size="sm"
@@ -3427,6 +3529,158 @@ const Admin = () => {
             <DialogFooter>
               <Button variant="outline" onClick={() => setPackageDialogOpen(false)}>Cancelar</Button>
               <Button onClick={handleUpdatePackage}>Guardar Cambios</Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+
+        <Dialog
+          open={editServiceDialogOpen}
+          onOpenChange={(open) => {
+            if (savingServiceEdit) return;
+            setEditServiceDialogOpen(open);
+            if (!open) {
+              setEditingService(null);
+              setNewServiceImages([]);
+            }
+          }}
+        >
+          <DialogContent className="sm:max-w-2xl max-h-[90vh] overflow-y-auto">
+            <DialogHeader>
+              <DialogTitle>Editar servicio</DialogTitle>
+              <DialogDescription>
+                Modifica nombre, descripcion, comuna, telefono, precio, estado y fotos del servicio.
+              </DialogDescription>
+            </DialogHeader>
+            <div className="space-y-4 pt-2">
+              <div>
+                <Label>Nombre del servicio</Label>
+                <Input
+                  value={serviceEditForm.service_name}
+                  onChange={(e) => setServiceEditForm((prev) => ({ ...prev, service_name: e.target.value }))}
+                  placeholder="Ej: Gasfiteria 24/7"
+                  disabled={savingServiceEdit}
+                />
+              </div>
+              <div>
+                <Label>Descripcion</Label>
+                <Textarea
+                  value={serviceEditForm.description}
+                  onChange={(e) => setServiceEditForm((prev) => ({ ...prev, description: e.target.value }))}
+                  rows={4}
+                  disabled={savingServiceEdit}
+                />
+              </div>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div>
+                  <Label>Comuna</Label>
+                  <Input
+                    value={serviceEditForm.comuna}
+                    onChange={(e) => setServiceEditForm((prev) => ({ ...prev, comuna: e.target.value }))}
+                    disabled={savingServiceEdit}
+                  />
+                </div>
+                <div>
+                  <Label>Telefono</Label>
+                  <Input
+                    value={serviceEditForm.phone}
+                    onChange={(e) => setServiceEditForm((prev) => ({ ...prev, phone: e.target.value }))}
+                    placeholder="+56 9 1234 5678"
+                    disabled={savingServiceEdit}
+                  />
+                </div>
+              </div>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div>
+                  <Label>Precio referencial</Label>
+                  <Input
+                    value={serviceEditForm.price_range}
+                    onChange={(e) => setServiceEditForm((prev) => ({ ...prev, price_range: e.target.value }))}
+                    placeholder="Desde $20.000"
+                    disabled={savingServiceEdit}
+                  />
+                </div>
+                <div>
+                  <Label>Estado</Label>
+                  <Select
+                    value={serviceEditForm.status}
+                    onValueChange={(value) => setServiceEditForm((prev) => ({ ...prev, status: value }))}
+                    disabled={savingServiceEdit}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Estado" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="active">Activo</SelectItem>
+                      <SelectItem value="inactive">Inactivo</SelectItem>
+                      <SelectItem value="suspended">Suspendido</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <Label>Fotos actuales</Label>
+                {serviceEditImages.length === 0 ? (
+                  <p className="text-sm text-muted-foreground">Este servicio no tiene fotos guardadas.</p>
+                ) : (
+                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                    {serviceEditImages.map((url) => (
+                      <div key={url} className="relative rounded-lg overflow-hidden border">
+                        <img src={url} alt="service" className="w-full h-24 object-cover" />
+                        <Button
+                          type="button"
+                          variant="destructive"
+                          size="icon"
+                          className="absolute top-1 right-1 h-7 w-7"
+                          onClick={() => setServiceEditImages((prev) => prev.filter((x) => x !== url))}
+                          disabled={savingServiceEdit}
+                        >
+                          <X size={14} />
+                        </Button>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="admin-service-images">Agregar fotos nuevas (maximo 5)</Label>
+                <Input
+                  id="admin-service-images"
+                  type="file"
+                  accept="image/*"
+                  multiple
+                  disabled={savingServiceEdit}
+                  onChange={(e) => {
+                    const files = Array.from(e.target.files || []).slice(0, 5);
+                    setNewServiceImages(files);
+                  }}
+                />
+                {newServiceImages.length > 0 && (
+                  <p className="text-xs text-muted-foreground">
+                    {newServiceImages.length} archivo(s) listo(s) para subir.
+                  </p>
+                )}
+              </div>
+            </div>
+            <DialogFooter>
+              <Button
+                variant="outline"
+                onClick={() => setEditServiceDialogOpen(false)}
+                disabled={savingServiceEdit}
+              >
+                Cancelar
+              </Button>
+              <Button onClick={handleSaveServiceEdit} disabled={savingServiceEdit}>
+                {savingServiceEdit ? (
+                  <>
+                    <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                    Guardando...
+                  </>
+                ) : (
+                  'Guardar cambios'
+                )}
+              </Button>
             </DialogFooter>
           </DialogContent>
         </Dialog>

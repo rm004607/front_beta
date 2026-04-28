@@ -572,6 +572,57 @@ export const servicesAPI = {
     });
   },
 
+  // Actualizar servicio con imágenes (usa multipart/form-data)
+  updateServiceWithImages: async (
+    id: string,
+    data: {
+      service_name?: string;
+      description?: string;
+      price_range?: string;
+      comuna?: string;
+      phone?: string;
+      region_id?: string;
+      coverage_communes?: string[];
+      service_type_ids?: string[];
+      status?: 'active' | 'inactive' | 'suspended';
+      keep_image_urls?: string[];
+    },
+    options?: { images?: File[] }
+  ) => {
+    const payload = normalizeCommuneFields({
+      ...data,
+      ...(data.region_id != null ? { region_id: String(data.region_id) } : {}),
+    });
+
+    const fd = new FormData();
+    if (payload.service_name != null) fd.append('service_name', payload.service_name);
+    if (payload.description != null) fd.append('description', payload.description);
+    if (payload.price_range != null) fd.append('price_range', payload.price_range);
+    if (payload.comuna != null) fd.append('comuna', payload.comuna);
+    if (payload.phone != null) fd.append('phone', payload.phone);
+    if (payload.region_id != null) fd.append('region_id', String(payload.region_id));
+    if (payload.status != null) fd.append('status', payload.status);
+    if (payload.coverage_communes != null) {
+      fd.append('coverage_communes', JSON.stringify(payload.coverage_communes));
+    }
+    if (payload.service_type_ids != null) {
+      fd.append('service_type_ids', JSON.stringify(payload.service_type_ids));
+    }
+    if (payload.keep_image_urls != null) {
+      fd.append('keep_image_urls', JSON.stringify(payload.keep_image_urls));
+    }
+
+    const images = (options?.images || []).filter(Boolean).slice(0, 5);
+    for (const file of images) {
+      fd.append('images', file);
+    }
+
+    return request<{ message: string; service?: any }>(`/services/${id}`, {
+      method: 'PUT',
+      body: fd,
+    });
+  },
+
   // Eliminar servicio (solo emprendedores o super-admin)
   deleteService: async (id: string) => {
     return request<{ message: string }>(`/services/${id}`, {
@@ -982,6 +1033,7 @@ export const adminAPI = {
         user_id: string;
         user_name: string;
         user_email: string;
+        image_urls?: string[];
         /** Si el backend lo envía, el conteo por categoría es más preciso que por nombre */
         service_type_ids?: string[];
       }>;
