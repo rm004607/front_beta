@@ -120,6 +120,7 @@ import {
   ArrowLeft,
   LayoutDashboard,
   UserPlus,
+  MessageCircle,
 } from 'lucide-react';
 import { Switch } from '@/components/ui/switch';
 import { toast } from 'sonner';
@@ -1464,66 +1465,173 @@ const Admin = () => {
 
         {/* Estadísticas */}
         {stats && (
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 mb-6 sm:mb-8">
-            <Card className="bg-card/60 backdrop-blur-sm border-primary/15 shadow-sm rounded-2xl group hover:border-primary/35 transition-all duration-300">
-              <CardHeader className="pb-1 sm:pb-2 px-4 pt-4">
-                <CardTitle className="text-xs sm:text-sm font-medium text-muted-foreground group-hover:text-primary transition-colors leading-tight">
-                  Servicios totales
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="px-4 pb-4">
-                <div className="text-2xl sm:text-3xl font-bold tabular-nums">{stats.total_services ?? 0}</div>
-              </CardContent>
-            </Card>
-            <Card className="bg-card/60 backdrop-blur-sm border-secondary/15 shadow-sm rounded-2xl group hover:border-secondary/35 transition-all duration-300">
-              <CardHeader className="pb-1 sm:pb-2 px-4 pt-4">
-                <CardTitle className="text-xs sm:text-sm font-medium text-muted-foreground group-hover:text-secondary transition-colors leading-tight">
-                  Servicios activos
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="px-4 pb-4">
-                <div className="text-2xl sm:text-3xl font-bold tabular-nums">{stats.active_services ?? 0}</div>
-              </CardContent>
-            </Card>
-            {isSuperAdmin && stats.total_products != null && (
-              <Card className="bg-card/60 backdrop-blur-sm border-emerald-500/15 shadow-sm rounded-2xl group hover:border-emerald-500/35 transition-all duration-300">
+          <>
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 mb-6 sm:mb-8">
+              <Card className="bg-card/60 backdrop-blur-sm border-primary/15 shadow-sm rounded-2xl group hover:border-primary/35 transition-all duration-300">
                 <CardHeader className="pb-1 sm:pb-2 px-4 pt-4">
-                  <CardTitle className="text-xs sm:text-sm font-medium text-muted-foreground group-hover:text-emerald-600 transition-colors leading-tight flex items-center gap-1.5">
-                    <Package2 className="h-3.5 w-3.5 shrink-0" aria-hidden />
-                    Productos
+                  <CardTitle className="text-xs sm:text-sm font-medium text-muted-foreground group-hover:text-primary transition-colors leading-tight">
+                    Servicios totales
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="px-4 pb-4">
-                  <div className="text-2xl sm:text-3xl font-bold tabular-nums">{stats.total_products ?? 0}</div>
-                  {stats.active_products != null && (
-                    <p className="text-[10px] sm:text-xs text-muted-foreground mt-1 tabular-nums">
-                      Activos: {stats.active_products}
+                  <div className="text-2xl sm:text-3xl font-bold tabular-nums">{stats.total_services ?? 0}</div>
+                </CardContent>
+              </Card>
+              <Card className="bg-card/60 backdrop-blur-sm border-secondary/15 shadow-sm rounded-2xl group hover:border-secondary/35 transition-all duration-300">
+                <CardHeader className="pb-1 sm:pb-2 px-4 pt-4">
+                  <CardTitle className="text-xs sm:text-sm font-medium text-muted-foreground group-hover:text-secondary transition-colors leading-tight">
+                    Servicios activos
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="px-4 pb-4">
+                  <div className="text-2xl sm:text-3xl font-bold tabular-nums">{stats.active_services ?? 0}</div>
+                </CardContent>
+              </Card>
+              {isSuperAdmin && stats.total_products != null && (
+                <>
+                  <Card className="bg-card/60 backdrop-blur-sm border-emerald-500/15 shadow-sm rounded-2xl group hover:border-emerald-500/35 transition-all duration-300">
+                    <CardHeader className="pb-1 sm:pb-2 px-4 pt-4">
+                      <CardTitle className="text-xs sm:text-sm font-medium text-muted-foreground group-hover:text-emerald-600 transition-colors leading-tight flex items-center gap-1.5">
+                        <Package2 className="h-3.5 w-3.5 shrink-0" aria-hidden />
+                        Productos totales
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent className="px-4 pb-4">
+                      <div className="text-2xl sm:text-3xl font-bold tabular-nums">{stats.total_products ?? 0}</div>
+                    </CardContent>
+                  </Card>
+                  <Card className="bg-card/60 backdrop-blur-sm border-emerald-500/15 shadow-sm rounded-2xl group hover:border-emerald-500/35 transition-all duration-300">
+                    <CardHeader className="pb-1 sm:pb-2 px-4 pt-4">
+                      <CardTitle className="text-xs sm:text-sm font-medium text-muted-foreground group-hover:text-emerald-600 transition-colors leading-tight flex items-center gap-1.5">
+                        <Package2 className="h-3.5 w-3.5 shrink-0" aria-hidden />
+                        Productos activos
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent className="px-4 pb-4">
+                      <div className="text-2xl sm:text-3xl font-bold tabular-nums">{stats.active_products ?? 0}</div>
+                    </CardContent>
+                  </Card>
+                </>
+              )}
+              <Card className="bg-card/60 backdrop-blur-sm border-green-500/15 shadow-sm rounded-2xl group hover:border-green-500/35 transition-all duration-300">
+                <CardHeader className="pb-1 sm:pb-2 px-4 pt-4">
+                  <CardTitle className="text-xs sm:text-sm font-medium text-muted-foreground group-hover:text-green-600 transition-colors leading-tight flex items-center gap-1.5">
+                    <MessageCircle className="h-3.5 w-3.5 shrink-0" aria-hidden />
+                    Interacciones botón WhatsApp
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="px-4 pb-4">
+                  <div className="text-2xl sm:text-3xl font-bold tabular-nums">{stats.whatsapp_button_interactions ?? 0}</div>
+                </CardContent>
+              </Card>
+              <Card className="bg-card/60 backdrop-blur-sm border-violet-500/15 shadow-sm rounded-2xl group hover:border-violet-500/35 transition-all duration-300">
+                <CardHeader className="pb-1 sm:pb-2 px-4 pt-4">
+                  <CardTitle className="text-xs sm:text-sm font-medium text-muted-foreground group-hover:text-violet-600 transition-colors leading-tight flex items-center gap-1.5">
+                    <Star className="h-3.5 w-3.5 shrink-0" aria-hidden />
+                    Reseñas totales
+                    {(stats.service_reviews_count != null || stats.product_reviews_count != null) && (
+                      <span
+                        className="inline-flex items-center text-muted-foreground"
+                        title={
+                          stats.service_reviews_count != null || stats.product_reviews_count != null
+                            ? `Servicios: ${stats.service_reviews_count ?? '—'} · Productos: ${stats.product_reviews_count ?? '—'}`
+                            : undefined
+                        }
+                      >
+                        <HelpCircle className="h-3.5 w-3.5 shrink-0 ml-0.5" aria-hidden />
+                      </span>
+                    )}
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="px-4 pb-4">
+                  <div className="text-2xl sm:text-3xl font-bold tabular-nums">{stats.total_reviews ?? 0}</div>
+                  {(stats.service_reviews_count != null || stats.product_reviews_count != null) && (
+                    <p className="text-[10px] sm:text-xs text-muted-foreground mt-1 tabular-nums leading-snug">
+                      Servicios: {stats.service_reviews_count ?? '—'} · Productos: {stats.product_reviews_count ?? '—'}
                     </p>
                   )}
                 </CardContent>
               </Card>
-            )}
-            {isSuperAdmin && (
-              <Card
-                className={cn(
-                  'bg-card/60 backdrop-blur-sm border-amber-500/15 shadow-sm rounded-2xl group hover:border-amber-500/35 transition-all duration-300',
-                  stats.total_products == null && 'col-span-2 lg:col-span-1',
-                )}
-              >
-                <CardHeader className="pb-1 sm:pb-2 px-4 pt-4">
-                  <CardTitle className="text-xs sm:text-sm font-medium text-muted-foreground group-hover:text-amber-600 transition-colors leading-tight">
-                    Usuarios
-                  </CardTitle>
+              {isSuperAdmin && (
+                <Card className="bg-card/60 backdrop-blur-sm border-amber-500/15 shadow-sm rounded-2xl group hover:border-amber-500/35 transition-all duration-300">
+                  <CardHeader className="pb-1 sm:pb-2 px-4 pt-4">
+                    <CardTitle className="text-xs sm:text-sm font-medium text-muted-foreground group-hover:text-amber-600 transition-colors leading-tight">
+                      Usuarios
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="px-4 pb-4">
+                    <div className="text-2xl sm:text-3xl font-bold tabular-nums">{stats.total_users ?? 0}</div>
+                    <p className="text-[10px] sm:text-xs text-muted-foreground mt-1 leading-snug">
+                      Activos: {stats.active_users ?? 0} · Baneados: {stats.banned_users ?? 0}
+                    </p>
+                  </CardContent>
+                </Card>
+              )}
+            </div>
+
+            {isSuperAdmin && Object.prototype.hasOwnProperty.call(stats, 'featured_services') && (
+              <Card className="bg-card/60 backdrop-blur-sm border-primary/15 shadow-sm rounded-2xl mb-6 sm:mb-8">
+                <CardHeader className="pb-2 sm:pb-3">
+                  <div className="flex flex-col gap-1 sm:flex-row sm:items-start sm:justify-between">
+                    <div className="min-w-0">
+                      <CardTitle className="text-base sm:text-lg">Servicios destacados</CardTitle>
+                      <CardDescription className="flex items-start gap-1.5 mt-1">
+                        <span className="min-w-0">
+                          Ranking según criterios del backend (volumen y reseñas favorables).
+                        </span>
+                        {stats.featured_services_criteria?.description_es ? (
+                          <span
+                            className="shrink-0 inline-flex text-muted-foreground"
+                            title={stats.featured_services_criteria.description_es}
+                          >
+                            <HelpCircle className="h-4 w-4" aria-hidden />
+                          </span>
+                        ) : null}
+                      </CardDescription>
+                    </div>
+                  </div>
                 </CardHeader>
-                <CardContent className="px-4 pb-4">
-                  <div className="text-2xl sm:text-3xl font-bold tabular-nums">{stats.total_users ?? 0}</div>
-                  <p className="text-[10px] sm:text-xs text-muted-foreground mt-1 leading-snug">
-                    Activos: {stats.active_users ?? 0} · Baneados: {stats.banned_users ?? 0}
-                  </p>
+                <CardContent className="pt-0">
+                  {!Array.isArray(stats.featured_services) || stats.featured_services.length === 0 ? (
+                    <p className="text-sm text-muted-foreground py-6 text-center rounded-xl border border-dashed border-border/70 bg-muted/20">
+                      Aún no hay servicios que cumplan los criterios de destacado.
+                    </p>
+                  ) : (
+                    <div className="overflow-x-auto rounded-xl border border-border/60">
+                      <table className="w-full text-left text-xs sm:text-sm">
+                        <thead className="bg-muted/50 text-muted-foreground">
+                          <tr>
+                            <th className="px-3 py-2 font-medium">Servicio</th>
+                            <th className="px-3 py-2 font-medium tabular-nums">Rating</th>
+                            <th className="px-3 py-2 font-medium tabular-nums">Reseñas</th>
+                            <th className="px-3 py-2 font-medium tabular-nums hidden sm:table-cell">Buenas (4–5★)</th>
+                            <th className="px-3 py-2 font-medium tabular-nums hidden md:table-cell">Score</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {stats.featured_services.map((row, idx) => (
+                            <tr key={idx} className="border-t border-border/50 hover:bg-muted/30">
+                              <td className="px-3 py-2 font-medium text-foreground max-w-[10rem] sm:max-w-none truncate sm:whitespace-normal">
+                                {row.service_name ?? '—'}
+                              </td>
+                              <td className="px-3 py-2 tabular-nums">
+                                {row.avg_rating != null ? Number(row.avg_rating).toFixed(1) : '—'}
+                              </td>
+                              <td className="px-3 py-2 tabular-nums">{row.review_count ?? '—'}</td>
+                              <td className="px-3 py-2 tabular-nums hidden sm:table-cell">{row.good_reviews_count ?? '—'}</td>
+                              <td className="px-3 py-2 tabular-nums hidden md:table-cell">
+                                {row.featured_score != null ? Number(row.featured_score).toFixed(2) : '—'}
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  )}
                 </CardContent>
               </Card>
             )}
-          </div>
+          </>
         )}
 
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">

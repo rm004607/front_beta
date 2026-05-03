@@ -6,7 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { MapPin, Search, MessageCircle, Loader2, Plus, Star, Globe, Wrench, X } from 'lucide-react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { servicesAPI, flowAPI, configAPI, reviewsAPI, regionsAPI } from '@/lib/api';
+import { servicesAPI, flowAPI, configAPI, reviewsAPI, regionsAPI, trackWhatsAppInteraction } from '@/lib/api';
 import { loadRegionOptionsSorted, type RegionOption } from '@/lib/regions-catalog';
 import { catalogFetchUserMessage } from '@/lib/catalog-fetch-errors';
 import { toast } from 'sonner';
@@ -271,6 +271,7 @@ const Services = () => {
     if (!pricingEnabled) {
       const cleanPhone = service.phone.replace(/\D/g, '');
       const message = `Hola, te contacto por tu servicio "${service.service_name}" en Dameldato.`;
+      trackWhatsAppInteraction({ serviceId: String(service.id) });
       window.open(`https://wa.me/${cleanPhone}?text=${encodeURIComponent(message)}`, '_blank');
       return;
     }

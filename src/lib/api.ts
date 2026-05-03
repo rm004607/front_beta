@@ -1338,10 +1338,24 @@ export const adminAPI = {
         /** Si el backend los expone (marketplace) */
         total_products?: number;
         active_products?: number;
+        whatsapp_button_interactions?: number;
+        total_reviews?: number;
+        service_reviews_count?: number;
+        product_reviews_count?: number;
         total_users?: number;
         active_users?: number;
         banned_users?: number;
         total_companies?: number;
+        featured_services?: Array<{
+          service_name?: string;
+          avg_rating?: number;
+          review_count?: number;
+          good_reviews_count?: number;
+          featured_score?: number;
+        }>;
+        featured_services_criteria?: {
+          description_es?: string;
+        };
       };
     }>('/admin/stats', {
       method: 'GET',
@@ -1564,6 +1578,11 @@ export const flowAPI = {
       publicationsAdded: number;
       targetName?: string;
       targetPhone?: string;
+      /** Si el backend las envía, para tracking POST /api/support/track-whatsapp */
+      serviceId?: string;
+      productId?: string;
+      targetUserId?: string;
+      userId?: string;
       createdAt: string;
       completedAt: string | null;
     }>(`/api/flow/payment/${token}`, {
@@ -1705,6 +1724,14 @@ export const supportAPI = {
     });
   },
 
+  /** Registra clic en WhatsApp (servicio, producto o usuario). No bloquear UX si falla. */
+  trackWhatsApp: async (data: { serviceId?: string; productId?: string; userId?: string }) => {
+    return request<{ ok?: boolean; message?: string }>('/api/support/track-whatsapp', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    });
+  },
+
   getMyTickets: async () => {
     return request<{
       tickets: Array<{
@@ -1721,6 +1748,11 @@ export const supportAPI = {
       method: 'GET',
     });
   },
+};
+
+/** Fire-and-forget: no bloquea la apertura de WhatsApp si el backend falla. */
+export const trackWhatsAppInteraction = (payload: { serviceId?: string; productId?: string; userId?: string }) => {
+  void supportAPI.trackWhatsApp(payload).catch(() => {});
 };
 
 // API de IA y recomendaciones
