@@ -367,6 +367,8 @@ export const servicesAPI = {
     service_type_id?: string;
     page?: number;
     limit?: number;
+    /** Si el backend lo implementa: orden global antes de paginar (p. ej. rating). */
+    sort?: string;
   }) => {
     const params = new URLSearchParams();
     if (filters?.search) params.append('search', filters.search);
@@ -375,6 +377,7 @@ export const servicesAPI = {
     if (filters?.service_type_id) params.append('service_type_id', filters.service_type_id);
     if (filters?.page) params.append('page', filters.page.toString());
     if (filters?.limit) params.append('limit', filters.limit.toString());
+    if (filters?.sort) params.append('sort', filters.sort);
 
     const queryString = params.toString();
     return request<{
@@ -1034,6 +1037,8 @@ export const adminAPI = {
         user_name: string;
         user_email: string;
         image_urls?: string[];
+        average_rating?: number;
+        reviews_count?: number;
         /** Si el backend lo envía, el conteo por categoría es más preciso que por nombre */
         service_type_ids?: string[];
       }>;

@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useMemo } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -35,6 +35,7 @@ import { useDebouncedValue } from '@/hooks/useDebouncedValue';
 import { normalizeSearchQuery } from '@/lib/searchQuery';
 import { cn } from '@/lib/utils';
 import { invalidateServicesListQueries } from '@/lib/services-query';
+import { sortServicesByReviewQuality } from '@/lib/service-list-sort';
 
 /** Alineado con GET /services optimizado: no pedir páginas enormes (evita trabajo extra en backend). */
 const SERVICES_PAGE_SIZE = 24;
@@ -95,6 +96,7 @@ const Services = () => {
         service_type_id: typeFilter !== 'all' ? typeFilter : '',
         page,
         limit: SERVICES_PAGE_SIZE,
+        sort: 'rating',
       },
     ],
     queryFn: () =>
@@ -105,13 +107,15 @@ const Services = () => {
         service_type_id: typeFilter !== 'all' ? typeFilter : undefined,
         page,
         limit: SERVICES_PAGE_SIZE,
+        sort: 'rating',
       }),
     staleTime: SERVICES_LIST_STALE_MS,
     gcTime: 1000 * 60 * 5,
     placeholderData: (previousData) => previousData,
   });
 
-  const services = servicesListQuery.data?.services ?? [];
+  const servicesRaw = servicesListQuery.data?.services ?? [];
+  const services = useMemo(() => sortServicesByReviewQuality(servicesRaw), [servicesRaw]);
   const pagination = servicesListQuery.data?.pagination ?? {
     page: 1,
     limit: SERVICES_PAGE_SIZE,

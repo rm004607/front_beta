@@ -177,6 +177,52 @@ interface Service {
   image_urls?: string[];
 }
 
+function AdminServiceActionBar({
+  service,
+  onApprove,
+  onReject,
+  onEdit,
+  onDelete,
+}: {
+  service: Service;
+  onApprove: (id: string) => void;
+  onReject: (s: Service) => void;
+  onEdit: (s: Service) => void;
+  onDelete: (id: string) => void;
+}) {
+  const st = service.status?.toLowerCase().trim() || '';
+  const canModerate = st === 'pending' || st === 'inactive';
+  return (
+    <div className="flex flex-wrap items-center gap-2">
+      {canModerate ? (
+        <>
+          <Button size="sm" className="bg-emerald-600 hover:bg-emerald-700 text-white h-8 px-2.5 sm:px-3" onClick={() => onApprove(service.id)}>
+            <CheckCircle size={14} className="sm:mr-1" />
+            <span className="hidden sm:inline">Aprobar</span>
+          </Button>
+          <Button
+            size="sm"
+            variant="outline"
+            className="h-8 px-2.5 sm:px-3 border-rose-300 text-rose-700 hover:bg-rose-50 dark:text-rose-300 dark:border-rose-800"
+            onClick={() => onReject(service)}
+          >
+            <X size={14} className="sm:mr-1" />
+            <span className="hidden sm:inline">Rechazar</span>
+          </Button>
+        </>
+      ) : null}
+      <Button variant="outline" size="sm" className="h-8 px-2.5 sm:px-3" onClick={() => onEdit(service)}>
+        <Edit size={14} className="sm:mr-1" />
+        <span className="hidden sm:inline">Editar</span>
+      </Button>
+      <Button variant="destructive" size="sm" className="h-8 px-2.5 sm:px-3" onClick={() => onDelete(service.id)}>
+        <Trash2 size={14} className="sm:mr-1" />
+        <span className="hidden sm:inline">Eliminar</span>
+      </Button>
+    </div>
+  );
+}
+
 interface AdminProduct {
   id: string;
   title: string;
@@ -1785,166 +1831,244 @@ const Admin = () => {
 
           {/* Tab de Servicios */}
           <TabsContent value="services" className="mt-4 sm:mt-6 outline-none focus-visible:outline-none">
-            <Card className="rounded-2xl border border-border/60 bg-card shadow-sm">
-              <CardHeader>
-                <CardTitle>Servicios/Pymes</CardTitle>
-                <CardDescription>
-                  Gestiona todos los servicios con una vista optimizada para escritorio y teléfono.
+            <Card className="rounded-2xl border border-border/60 bg-card shadow-sm overflow-hidden">
+              <CardHeader className="border-b border-border/60 bg-muted/20 px-4 py-4 sm:px-6 sm:py-5">
+                <CardTitle className="text-lg sm:text-xl">Servicios / Pymes</CardTitle>
+                <CardDescription className="text-xs sm:text-sm mt-1">
+                  En teléfono: tarjetas con acciones compactas. En escritorio: tabla para revisar más filas de un vistazo.
                 </CardDescription>
               </CardHeader>
-              <CardContent>
-                <div className="mb-6 rounded-2xl border border-border/60 bg-gradient-to-r from-muted/50 via-muted/20 to-muted/50 p-3 sm:p-4">
-                  <div className="flex flex-col sm:flex-row gap-3 sm:gap-4">
-                  <Select value={serviceFilters.status} onValueChange={(value) => setServiceFilters({ ...serviceFilters, status: value })}>
-                    <SelectTrigger className="w-full sm:w-60 bg-background/70 border-border/60">
-                      <SelectValue placeholder="Estado" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="all">🌐 Todos los estados</SelectItem>
-                      <SelectItem value="pending">⏳ Pendientes (Aprobación)</SelectItem>
-                      <SelectItem value="active">✅ Activos / Publicados</SelectItem>
-                      <SelectItem value="rejected">🛑 Bloqueados / Rechazados</SelectItem>
-                      <SelectItem value="inactive">🌑 Inactivos (X)</SelectItem>
-                      <SelectItem value="suspended">⚠️ Suspendidos</SelectItem>
-                    </SelectContent>
-                  </Select>
-                  <div className="relative flex-1">
-                    <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 text-primary/50" size={16} />
-                    <Input
-                      placeholder="Filtrar por comuna..."
-                      value={serviceFilters.comuna}
-                      onChange={(e) => setServiceFilters({ ...serviceFilters, comuna: e.target.value })}
-                      className="pl-10 bg-background/70 border-border/60"
-                    />
-                  </div>
-                  <Button onClick={loadServices} className="bg-primary hover:bg-primary/90 sm:px-6">
-                    Buscar
-                  </Button>
-                  <Button
-                    variant="outline"
-                    onClick={() => {
-                      setServiceFilters({ comuna: '', status: 'all' });
-                      setTimeout(loadServices, 0);
-                    }}
-                    className="sm:px-6"
-                  >
-                    Limpiar
-                  </Button>
+              <CardContent className="p-0 sm:p-0">
+                <div className="border-b border-border/60 bg-gradient-to-r from-muted/40 via-muted/15 to-muted/40 p-3 sm:p-4">
+                  <div className="flex flex-col gap-3 lg:flex-row lg:flex-wrap lg:items-end">
+                    <div className="w-full lg:w-52 shrink-0">
+                      <Label className="text-[10px] uppercase tracking-wide text-muted-foreground mb-1.5 block lg:hidden">
+                        Estado
+                      </Label>
+                      <Select
+                        value={serviceFilters.status}
+                        onValueChange={(value) => setServiceFilters({ ...serviceFilters, status: value })}
+                      >
+                        <SelectTrigger className="w-full bg-background/80 border-border/60 h-10 sm:h-11">
+                          <SelectValue placeholder="Estado" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="all">🌐 Todos los estados</SelectItem>
+                          <SelectItem value="pending">⏳ Pendientes (Aprobación)</SelectItem>
+                          <SelectItem value="active">✅ Activos / Publicados</SelectItem>
+                          <SelectItem value="rejected">🛑 Bloqueados / Rechazados</SelectItem>
+                          <SelectItem value="inactive">🌑 Inactivos (X)</SelectItem>
+                          <SelectItem value="suspended">⚠️ Suspendidos</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div className="relative flex-1 min-w-0 lg:min-w-[12rem]">
+                      <Label className="text-[10px] uppercase tracking-wide text-muted-foreground mb-1.5 block lg:hidden">
+                        Comuna
+                      </Label>
+                      <div className="relative">
+                        <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 text-primary/50 pointer-events-none" size={16} />
+                        <Input
+                          placeholder="Filtrar por comuna..."
+                          value={serviceFilters.comuna}
+                          onChange={(e) => setServiceFilters({ ...serviceFilters, comuna: e.target.value })}
+                          className="pl-10 bg-background/80 border-border/60 h-10 sm:h-11"
+                        />
+                      </div>
+                    </div>
+                    <div className="flex gap-2 w-full lg:w-auto shrink-0">
+                      <Button onClick={loadServices} className="flex-1 lg:flex-none bg-primary hover:bg-primary/90 h-10 sm:h-11 px-6">
+                        Buscar
+                      </Button>
+                      <Button
+                        variant="outline"
+                        className="flex-1 lg:flex-none h-10 sm:h-11 px-6"
+                        onClick={() => {
+                          setServiceFilters({ comuna: '', status: 'all' });
+                          setTimeout(loadServices, 0);
+                        }}
+                      >
+                        Limpiar
+                      </Button>
+                    </div>
                   </div>
                 </div>
 
-                {loadingServices ? (
-                  <div className="text-center py-8">
-                    <p className="text-muted-foreground">Cargando servicios...</p>
-                  </div>
-                ) : services.length === 0 ? (
-                  <div className="text-center py-10 px-4 rounded-2xl border border-dashed border-border/70 bg-muted/20">
-                    <div className="mx-auto mb-3 flex h-11 w-11 items-center justify-center rounded-full bg-primary/10 text-primary">
-                      <Sparkles className="h-5 w-5" />
+                <div className="p-3 sm:p-4 lg:p-6">
+                  {loadingServices ? (
+                    <div className="text-center py-12">
+                      <Loader2 className="h-8 w-8 animate-spin text-primary mx-auto mb-2" aria-hidden />
+                      <p className="text-muted-foreground text-sm">Cargando servicios…</p>
                     </div>
-                    <p className="font-semibold">No encontramos servicios con ese filtro</p>
-                    <p className="text-sm text-muted-foreground mt-1">
-                      Prueba cambiando el estado a "Todos los estados" o limpiando la comuna.
-                    </p>
-                    <Button
-                      variant="outline"
-                      className="mt-4"
-                      onClick={() => {
-                        setServiceFilters({ comuna: '', status: 'all' });
-                        setTimeout(loadServices, 0);
-                      }}
-                    >
-                      Ver todos los servicios
-                    </Button>
-                  </div>
-                ) : (
-                  <div className="grid grid-cols-1 xl:grid-cols-2 gap-4">
-                    {services.map((service) => (
-                      <Card
-                        key={service.id}
-                        className={cn(
-                          'rounded-2xl border shadow-sm transition-all duration-200 hover:shadow-md',
-                          getServiceStatusConfig(service.status).cardClass
-                        )}
+                  ) : services.length === 0 ? (
+                    <div className="text-center py-10 px-4 rounded-2xl border border-dashed border-border/70 bg-muted/20">
+                      <div className="mx-auto mb-3 flex h-11 w-11 items-center justify-center rounded-full bg-primary/10 text-primary">
+                        <Sparkles className="h-5 w-5" />
+                      </div>
+                      <p className="font-semibold">No encontramos servicios con ese filtro</p>
+                      <p className="text-sm text-muted-foreground mt-1">
+                        Prueba cambiando el estado o limpiando la comuna.
+                      </p>
+                      <Button
+                        variant="outline"
+                        className="mt-4"
+                        onClick={() => {
+                          setServiceFilters({ comuna: '', status: 'all' });
+                          setTimeout(loadServices, 0);
+                        }}
                       >
-                        <CardHeader className="pb-3">
-                          <div className="flex flex-col sm:flex-row justify-between items-start gap-3">
-                            <div className="flex-1">
-                              <CardTitle className="text-base sm:text-lg leading-tight">
-                                {service.service_name || 'Servicio sin nombre'}
-                              </CardTitle>
-                              <CardDescription className="mt-1">
-                                {service.user_name} ({service.user_email})
+                        Ver todos los servicios
+                      </Button>
+                    </div>
+                  ) : (
+                    <>
+                      {/* Vista móvil / tablet */}
+                      <div className="lg:hidden space-y-3 sm:space-y-4">
+                        {services.map((service) => (
+                          <Card
+                            key={service.id}
+                            className={cn(
+                              'rounded-2xl border shadow-sm transition-all duration-200 hover:shadow-md overflow-hidden',
+                              getServiceStatusConfig(service.status).cardClass
+                            )}
+                          >
+                            <CardHeader className="pb-2 px-4 pt-4 space-y-2">
+                              <div className="flex items-start justify-between gap-2">
+                                <CardTitle className="text-base leading-snug pr-2">
+                                  {service.service_name || 'Servicio sin nombre'}
+                                </CardTitle>
+                                <Badge
+                                  variant="outline"
+                                  className={cn('shrink-0 font-semibold text-[10px]', getServiceStatusConfig(service.status).badgeClass)}
+                                >
+                                  {getServiceStatusConfig(service.status).label}
+                                </Badge>
+                              </div>
+                              <CardDescription className="text-xs leading-relaxed">
+                                {service.user_name}
+                                <span className="text-muted-foreground/80"> · </span>
+                                <span className="break-all">{service.user_email}</span>
                               </CardDescription>
-                              <CardDescription className="mt-1 flex items-center gap-1.5">
-                                <MapPin className="h-3.5 w-3.5" />
-                                {service.comuna || 'Sin comuna'}
-                              </CardDescription>
-                              <CardDescription className="mt-1 text-xs">
-                                {formatDate(service.created_at)}
-                              </CardDescription>
-                            </div>
-                            <div className="flex flex-wrap items-center gap-2 w-full sm:w-auto">
-                              <Badge
-                                variant="outline"
-                                className={cn('font-semibold', getServiceStatusConfig(service.status).badgeClass)}
-                              >
-                                {getServiceStatusConfig(service.status).label}
-                              </Badge>
-                              {(service.status?.toLowerCase().trim() === 'pending' || service.status?.toLowerCase().trim() === 'inactive') ? (
-                                <>
-                                  <Button
-                                    size="sm"
-                                    className="bg-emerald-600 hover:bg-emerald-700 text-white"
-                                    onClick={() => handleApproveService(service.id)}
-                                  >
-                                    <CheckCircle size={14} className="mr-1" />
-                                    Aprobar
-                                  </Button>
-                                  <Button
-                                    size="sm"
-                                    variant="outline"
-                                    className="border-rose-300 text-rose-700 hover:bg-rose-50 dark:text-rose-300 dark:border-rose-800"
-                                    onClick={() => { setServiceToReject(service); setRejectReason(''); setRejectDialogOpen(true); }}
-                                  >
-                                    <X size={14} className="mr-1" />
-                                    Rechazar
-                                  </Button>
-                                </>
+                              <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-muted-foreground">
+                                <span className="inline-flex items-center gap-1">
+                                  <MapPin className="h-3.5 w-3.5 shrink-0" />
+                                  {service.comuna || 'Sin comuna'}
+                                </span>
+                                <span>{formatDate(service.created_at)}</span>
+                                {(service.average_rating != null && Number(service.average_rating) > 0) || (service.reviews_count ?? 0) > 0 ? (
+                                  <span className="inline-flex items-center gap-1 text-amber-700 dark:text-amber-400">
+                                    <Star className="h-3.5 w-3.5 fill-amber-400 text-amber-400" />
+                                    {Number(service.average_rating || 0).toFixed(1)} ({service.reviews_count ?? 0})
+                                  </span>
+                                ) : null}
+                              </div>
+                            </CardHeader>
+                            <CardContent className="px-4 pb-4 space-y-3">
+                              <p className="text-sm text-foreground/90 line-clamp-3">{service.description || 'Sin descripción.'}</p>
+                              {service.price_range ? (
+                                <p className="text-xs text-muted-foreground bg-muted/50 rounded-lg px-2.5 py-1.5 inline-block">
+                                  Precio: {service.price_range}
+                                </p>
                               ) : null}
-                              <Button
-                                variant="outline"
-                                size="sm"
-                                onClick={() => handleOpenEditService(service)}
-                              >
-                                <Edit size={14} className="mr-1" />
-                                Editar
-                              </Button>
-                              <Button
-                                variant="destructive"
-                                size="sm"
-                                onClick={() => handleDeleteService(service.id)}
-                              >
-                                <Trash2 size={14} className="mr-1" />
-                                Eliminar
-                              </Button>
-                            </div>
-                          </div>
-                        </CardHeader>
-                        <CardContent>
-                          <p className="text-sm leading-relaxed text-foreground/90 mb-3">
-                            {service.description || 'Sin descripción disponible.'}
-                          </p>
-                          {service.price_range && (
-                            <p className="text-sm text-muted-foreground bg-muted/50 rounded-lg px-3 py-2 inline-flex">
-                              Precio: {service.price_range}
-                            </p>
-                          )}
-                        </CardContent>
-                      </Card>
-                    ))}
-                  </div>
-                )}
+                              <AdminServiceActionBar
+                                service={service}
+                                onApprove={handleApproveService}
+                                onReject={(s) => {
+                                  setServiceToReject(s);
+                                  setRejectReason('');
+                                  setRejectDialogOpen(true);
+                                }}
+                                onEdit={handleOpenEditService}
+                                onDelete={handleDeleteService}
+                              />
+                            </CardContent>
+                          </Card>
+                        ))}
+                      </div>
+
+                      {/* Vista escritorio */}
+                      <div className="hidden lg:block rounded-xl border border-border/60 overflow-hidden bg-card">
+                        <div className="overflow-x-auto">
+                          <table className="w-full text-sm min-w-[720px]">
+                            <thead className="bg-muted/50 text-muted-foreground border-b border-border/60">
+                              <tr>
+                                <th className="text-left font-medium px-4 py-3 w-[22%]">Servicio</th>
+                                <th className="text-left font-medium px-3 py-3 w-[14%]">Publica</th>
+                                <th className="text-left font-medium px-3 py-3 w-[12%]">Comuna</th>
+                                <th className="text-left font-medium px-3 py-3 w-[8%]">Estado</th>
+                                <th className="text-left font-medium px-3 py-3 w-[10%]">Reseñas</th>
+                                <th className="text-left font-medium px-3 py-3 w-[12%]">Fecha</th>
+                                <th className="text-right font-medium px-4 py-3 w-[22%]">Acciones</th>
+                              </tr>
+                            </thead>
+                            <tbody>
+                              {services.map((service) => (
+                                <tr
+                                  key={service.id}
+                                  className="border-b border-border/50 last:border-0 hover:bg-muted/30 transition-colors"
+                                >
+                                  <td className="px-4 py-3 align-top">
+                                    <div className="font-semibold text-foreground leading-snug line-clamp-2">
+                                      {service.service_name || '—'}
+                                    </div>
+                                    <p className="text-xs text-muted-foreground mt-1 line-clamp-2">
+                                      {service.description || 'Sin descripción.'}
+                                    </p>
+                                    {service.price_range ? (
+                                      <p className="text-[11px] text-muted-foreground mt-1.5 tabular-nums">{service.price_range}</p>
+                                    ) : null}
+                                  </td>
+                                  <td className="px-3 py-3 align-top">
+                                    <div className="font-medium text-foreground line-clamp-1">{service.user_name}</div>
+                                    <div className="text-xs text-muted-foreground break-all line-clamp-2">{service.user_email}</div>
+                                  </td>
+                                  <td className="px-3 py-3 align-top text-muted-foreground">{service.comuna || '—'}</td>
+                                  <td className="px-3 py-3 align-top">
+                                    <Badge
+                                      variant="outline"
+                                      className={cn('font-semibold text-[10px]', getServiceStatusConfig(service.status).badgeClass)}
+                                    >
+                                      {getServiceStatusConfig(service.status).label}
+                                    </Badge>
+                                  </td>
+                                  <td className="px-3 py-3 align-top tabular-nums">
+                                    {(service.average_rating != null && Number(service.average_rating) > 0) || (service.reviews_count ?? 0) > 0 ? (
+                                      <span className="inline-flex items-center gap-1 text-amber-700 dark:text-amber-400">
+                                        <Star className="h-3.5 w-3.5 fill-amber-400 text-amber-400 shrink-0" />
+                                        {Number(service.average_rating || 0).toFixed(1)}
+                                        <span className="text-muted-foreground font-normal">({service.reviews_count ?? 0})</span>
+                                      </span>
+                                    ) : (
+                                      <span className="text-muted-foreground">—</span>
+                                    )}
+                                  </td>
+                                  <td className="px-3 py-3 align-top text-xs text-muted-foreground whitespace-nowrap">
+                                    {formatDate(service.created_at)}
+                                  </td>
+                                  <td className="px-4 py-3 align-top text-right">
+                                    <div className="flex flex-wrap justify-end gap-1.5">
+                                      <AdminServiceActionBar
+                                        service={service}
+                                        onApprove={handleApproveService}
+                                        onReject={(s) => {
+                                          setServiceToReject(s);
+                                          setRejectReason('');
+                                          setRejectDialogOpen(true);
+                                        }}
+                                        onEdit={handleOpenEditService}
+                                        onDelete={handleDeleteService}
+                                      />
+                                    </div>
+                                  </td>
+                                </tr>
+                              ))}
+                            </tbody>
+                          </table>
+                        </div>
+                      </div>
+                    </>
+                  )}
+                </div>
               </CardContent>
             </Card>
           </TabsContent>
