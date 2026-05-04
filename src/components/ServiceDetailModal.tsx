@@ -1,5 +1,5 @@
-import { useState } from 'react';
-import { Star, MapPin, MessageCircle, Sparkles, Share2 } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { Star, MapPin, MessageCircle, Sparkles, Share2, ChevronLeft, ChevronRight } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
@@ -29,6 +29,7 @@ export interface ServiceForDetail {
   type_color?: string;
   idicon?: string;
   provider_kyc_status?: string;
+  image_urls?: string[];
 }
 
 interface ServiceDetailModalProps {
@@ -41,6 +42,12 @@ interface ServiceDetailModalProps {
 export function ServiceDetailModalContent({ service, onClose, onOpenReviews, onWhatsApp }: ServiceDetailModalProps) {
   const [shareOpen, setShareOpen] = useState(false);
   const shareUrl = `${window.location.origin}/perfil/${service.user_id}/${toSlug(service.user_name)}`;
+  const photoUrls = (service.image_urls ?? []).filter(Boolean);
+  const [photoIndex, setPhotoIndex] = useState(0);
+
+  useEffect(() => {
+    setPhotoIndex(0);
+  }, [service.id]);
 
   return (
     <div className="bg-white dark:bg-card rounded-[3rem] overflow-hidden shadow-2xl relative text-foreground">
@@ -51,7 +58,7 @@ export function ServiceDetailModalContent({ service, onClose, onOpenReviews, onW
         <div className="absolute inset-0 opacity-10 bg-[radial-gradient(circle_at_center,_white_1px,_transparent_1px)] bg-[length:24px_24px]" />
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-[280px_1fr] relative z-10">
+      <div className="grid grid-cols-1 md:grid-cols-[280px_1fr] md:items-start relative z-10">
         <div className="bg-muted/30 md:border-r border-border/40 flex flex-col">
           <div
             className="hidden md:block h-28 w-full relative -top-px -left-px -right-px rounded-tl-[3rem]"
@@ -186,7 +193,7 @@ export function ServiceDetailModalContent({ service, onClose, onOpenReviews, onW
 
             {service.coverage_communes && service.coverage_communes.length > 0 && (
               <div className="bg-muted/30 p-6 rounded-[2rem] border border-border/40">
-                <h4 className="text-[11px] font-black uppercase tracking-[0.2em] text-muted-foreground mb-3 px-1">Cobertura adicional (histórico)</h4>
+                <h4 className="text-[11px] font-black uppercase tracking-[0.2em] text-muted-foreground mb-3 px-1">Cobertura adicional</h4>
                 <div className="flex flex-wrap gap-2">
                   {service.coverage_communes.map((commune, index) => (
                     <span key={index} className="bg-background px-3 py-1 rounded-lg border border-border text-xs font-bold text-foreground">
@@ -202,6 +209,75 @@ export function ServiceDetailModalContent({ service, onClose, onOpenReviews, onW
                 * El precio se coordina directamente con el profesional
               </p>
             </div>
+
+            {photoUrls.length > 0 && (
+              <div className="bg-muted/30 p-5 sm:p-6 rounded-[2rem] border border-border/40">
+                <h4 className="text-[11px] font-black uppercase tracking-[0.2em] text-muted-foreground mb-4 px-1">Fotos del servicio</h4>
+                {photoUrls.length === 1 ? (
+                  <a
+                    href={photoUrls[0]}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="group/photo block w-full overflow-hidden rounded-2xl border border-border/50 bg-muted/40 ring-1 ring-black/5"
+                  >
+                    <img
+                      src={photoUrls[0]}
+                      alt=""
+                      className="block w-full h-auto max-h-[min(85vh,720px)] transition-transform duration-300 group-hover/photo:scale-[1.005]"
+                      loading="lazy"
+                    />
+                  </a>
+                ) : (
+                  <div className="space-y-3">
+                    <div className="relative overflow-hidden rounded-2xl border border-border/50 bg-muted/40 ring-1 ring-black/5">
+                      <img
+                        src={photoUrls[photoIndex]}
+                        alt=""
+                        className="block w-full h-auto max-h-[min(85vh,720px)]"
+                        loading="lazy"
+                      />
+                      {photoIndex > 0 && (
+                        <Button
+                          type="button"
+                          variant="secondary"
+                          size="icon"
+                          className="absolute left-2 top-1/2 z-10 h-10 w-10 -translate-y-1/2 rounded-full border border-border/60 bg-background/95 shadow-lg backdrop-blur-sm hover:bg-background"
+                          onClick={() => setPhotoIndex((i) => i - 1)}
+                          aria-label="Foto anterior"
+                        >
+                          <ChevronLeft className="h-6 w-6" />
+                        </Button>
+                      )}
+                      {photoIndex < photoUrls.length - 1 && (
+                        <Button
+                          type="button"
+                          variant="secondary"
+                          size="icon"
+                          className="absolute right-2 top-1/2 z-10 h-10 w-10 -translate-y-1/2 rounded-full border border-border/60 bg-background/95 shadow-lg backdrop-blur-sm hover:bg-background"
+                          onClick={() => setPhotoIndex((i) => i + 1)}
+                          aria-label="Foto siguiente"
+                        >
+                          <ChevronRight className="h-6 w-6" />
+                        </Button>
+                      )}
+                    </div>
+                    <div className="flex items-center justify-center gap-3 text-xs text-muted-foreground">
+                      <span className="font-semibold tabular-nums">
+                        {photoIndex + 1} / {photoUrls.length}
+                      </span>
+                      <a
+                        href={photoUrls[photoIndex]}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="font-bold text-primary underline-offset-2 hover:underline"
+                      >
+                        Abrir imagen
+                      </a>
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
           </div>
 
           <div className="grid grid-cols-2 gap-3 sm:gap-4 mt-8 sm:mt-10 md:hidden">

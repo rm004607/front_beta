@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
-import { flowAPI } from '@/lib/api';
+import { flowAPI, trackWhatsAppInteraction } from '@/lib/api';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { CheckCircle, XCircle, Loader2 } from 'lucide-react';
@@ -63,6 +63,16 @@ const FlowCallback = () => {
             const whatsappPhone = cleanPhone.startsWith('56') ? `+${cleanPhone}` : `+56${cleanPhone}`;
             const message = `Hola ${paymentDetails.targetName || ''}, contacté contigo a través de Dameldato.`;
             const encodedMessage = encodeURIComponent(message);
+            const p = paymentDetails as {
+                serviceId?: string;
+                productId?: string;
+                targetUserId?: string;
+                userId?: string;
+            };
+            if (p.serviceId) trackWhatsAppInteraction({ serviceId: String(p.serviceId) });
+            else if (p.productId) trackWhatsAppInteraction({ productId: String(p.productId) });
+            else if (p.targetUserId) trackWhatsAppInteraction({ userId: String(p.targetUserId) });
+            else if (p.userId) trackWhatsAppInteraction({ userId: String(p.userId) });
             window.open(`https://wa.me/${whatsappPhone}?text=${encodedMessage}`, '_blank');
             navigate('/wall');
         } else if (paymentDetails?.packageType === 'services') {

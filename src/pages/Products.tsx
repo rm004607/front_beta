@@ -11,7 +11,7 @@ import { toast } from 'sonner';
 import { useUser } from '@/contexts/UserContext';
 import { useDebouncedValue } from '@/hooks/useDebouncedValue';
 import { normalizeSearchQuery } from '@/lib/searchQuery';
-import { productsAPI, reviewsAPI, regionsAPI } from '@/lib/api';
+import { productsAPI, reviewsAPI, regionsAPI, trackWhatsAppInteraction } from '@/lib/api';
 import { ProductCard, type ProductCardItem } from '@/components/ProductCard';
 import { ProductDetailModalContent, type ProductForDetail } from '@/components/ProductDetailModal';
 import { ProductReviewsDialog } from '@/components/ProductReviewsDialog';
@@ -216,6 +216,7 @@ const Products = () => {
     }
     const cleanPhone = product.phone.replace(/\D/g, '');
     const message = `Hola, te contacto por tu producto "${product.title}" en Dameldato.`;
+    trackWhatsAppInteraction({ productId: String(product.id) });
     window.open(`https://wa.me/${cleanPhone}?text=${encodeURIComponent(message)}`, '_blank');
   };
 

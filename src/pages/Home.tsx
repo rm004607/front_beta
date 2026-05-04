@@ -1,4 +1,5 @@
 import { useState, useEffect, useLayoutEffect, useRef, useCallback } from 'react';
+import { useQuery } from '@tanstack/react-query';
 import { Link, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -59,14 +60,38 @@ const Home = () => {
     const q = heroSearch.trim();
     navigate(q ? `/servicios?search=${encodeURIComponent(q)}` : '/servicios');
   }, [heroSearch, navigate]);
-  const [latestServices, setLatestServices] = useState<Service[]>([]);
-  const [loadingServices, setLoadingServices] = useState(true);
+
+  const homeServicesQuery = useQuery({
+    queryKey: [
+      'services',
+      'list',
+      {
+        home: true,
+        page: 1,
+        limit: 6,
+        viewer: user?.id ?? 'anon',
+        region_id: user?.region_id ?? '',
+        offer_region_id: user?.offer_region?.id ?? '',
+        role: user?.role_number ?? '',
+      },
+    ],
+    queryFn: () =>
+      servicesAPI.getServices({
+        page: 1,
+        limit: 6,
+        region_id: undefined,
+      }),
+    staleTime: 45_000,
+    gcTime: 1000 * 60 * 5,
+    enabled: !authLoading,
+  });
+  const latestServices = homeServicesQuery.data?.services ?? [];
+  const loadingServices = homeServicesQuery.isLoading && !homeServicesQuery.data;
   const [serviceTypes, setServiceTypes] = useState<any[]>([]);
   const [loadingTypes, setLoadingTypes] = useState(true);
   const [latestCarouselIndex, setLatestCarouselIndex] = useState(0);
   const [latestItemsPerView, setLatestItemsPerView] = useState(3);
 
-  const latestServicesRequestId = useRef(0);
   const latestCarouselIndexRef = useRef(0);
   latestCarouselIndexRef.current = latestCarouselIndex;
   const latestCarouselViewportRef = useRef<HTMLDivElement | null>(null);
@@ -157,37 +182,6 @@ const Home = () => {
   }, []);
 
   useEffect(() => {
-    if (authLoading) return;
-
-    let cancelled = false;
-    const requestId = ++latestServicesRequestId.current;
-    setLoadingServices(true);
-
-    (async () => {
-      try {
-        const response = await servicesAPI.getServices({
-          page: 1,
-          limit: 6,
-          region_id: undefined,
-        });
-        if (cancelled || requestId !== latestServicesRequestId.current) return;
-        setLatestServices(response.services);
-      } catch (error) {
-        if (cancelled || requestId !== latestServicesRequestId.current) return;
-        console.error('Error loading latest services:', error);
-      } finally {
-        if (!cancelled && requestId === latestServicesRequestId.current) {
-          setLoadingServices(false);
-        }
-      }
-    })();
-
-    return () => {
-      cancelled = true;
-    };
-  }, [authLoading, isLoggedIn, user?.id, user?.region_id, user?.offer_region?.id, user?.role_number]);
-
-  useEffect(() => {
     const computeItemsPerView = () => {
       if (typeof window === 'undefined') return 3;
       const w = window.innerWidth;
@@ -223,8 +217,16 @@ const Home = () => {
   const loadServiceTypes = async () => {
     try {
       setLoadingTypes(true);
-      const response = await servicesAPI.getServiceTypes({ onlyActive: true });
-      setServiceTypes(response.types);
+      /* Sin onlyActive: en admin las categorías nuevas a veces no entran con soloActive=true (o el listado queda cacheado).
+         En cliente ocultamos solo is_active === false si el backend lo envía. Orden: más recientes primero si hay created_at. */
+      const response = await servicesAPI.getServiceTypes({ fresh: true });
+      const raw = response.types || [];
+      const visible = raw.filter((t: { is_active?: boolean }) => t.is_active !== false);
+      const sorted = [...visible].sort((a: { created_at?: string }, b: { created_at?: string }) => {
+        if (!a.created_at || !b.created_at) return 0;
+        return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
+      });
+      setServiceTypes(sorted);
     } catch (error) {
       console.error('Error loading service types:', error);
     } finally {
@@ -359,13 +361,14 @@ const Home = () => {
 
               <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center animate-reveal delay-300">
                 {!isLoggedIn ? (
-                  <Button
-                    onClick={() => document.getElementById('entrepreneur-section')?.scrollIntoView({ behavior: 'smooth' })}
-                    size="lg"
-                    className="bg-primary hover:bg-primary/90 text-primary-foreground font-bold px-5 py-5 xs:px-6 sm:px-8 sm:py-7 text-base sm:text-lg rounded-xl shadow-xl shadow-primary/20 transition-all hover:scale-105 active:scale-95 w-full sm:w-auto h-auto min-h-12"
-                  >
-                    {t('hero.offer_services_btn')}
-                  </Button>
+                  <Link to="/registro" className="w-full sm:w-auto">
+                    <Button
+                      size="lg"
+                      className="bg-primary hover:bg-primary/90 text-primary-foreground font-bold px-5 py-5 xs:px-6 sm:px-8 sm:py-7 text-base sm:text-lg rounded-xl shadow-xl shadow-primary/20 transition-all hover:scale-105 active:scale-95 w-full sm:w-auto h-auto min-h-12"
+                    >
+                      {t('hero.offer_services_btn')}
+                    </Button>
+                  </Link>
                 ) : (
                   <Link to="/servicios/publicar">
                     <Button size="lg" className="bg-primary hover:bg-primary/90 text-primary-foreground font-bold px-5 py-5 xs:px-6 sm:px-8 sm:py-7 text-base sm:text-lg rounded-xl shadow-xl shadow-primary/20 transition-all hover:scale-105 active:scale-95 w-full sm:w-auto h-auto min-h-12">
@@ -464,7 +467,7 @@ const Home = () => {
         <div className="container mx-auto px-4">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-5xl mx-auto">
             {/* Ofrecer Servicio */}
-            <Link to={isLoggedIn ? "/servicios/publicar" : "/servicios"} className="group animate-reveal delay-200">
+            <Link to={isLoggedIn ? "/servicios/publicar" : "/registro"} className="group animate-reveal delay-200">
               <div className="relative overflow-hidden bg-white dark:bg-card border-none rounded-[2.5rem] sm:rounded-[3.5rem] p-8 sm:p-10 hover:shadow-2xl transition-all duration-500 group-hover:-translate-y-2 h-full flex flex-col items-center lg:items-start text-center lg:text-left shadow-xl shadow-secondary/5">
                 <div className="absolute top-0 right-0 w-24 h-24 sm:w-32 sm:h-32 bg-secondary/10 rounded-bl-[80px] sm:rounded-bl-[100px] -z-0"></div>
                 <div className="bg-secondary w-14 h-14 sm:w-20 sm:h-20 rounded-xl sm:rounded-3xl flex items-center justify-center mb-5 sm:mb-8 shadow-xl shadow-secondary/20 group-hover:-rotate-12 transition-transform relative z-10">
@@ -731,25 +734,22 @@ const Home = () => {
             </div>
 
             <div className="relative animate-reveal delay-300" style={{ transform: 'translateZ(0)', willChange: 'transform' }}>
-              {/* Contacto del equipo en HTML (el video .webm tenía la URL mal escrita en el gráfico) */}
               <div className="relative z-10 p-2 md:p-4 rounded-[2.5rem] md:rounded-[4rem] border border-primary/10 shadow-xl overflow-hidden bg-white group">
-                <div className="aspect-video rounded-[2rem] md:rounded-[3.2rem] overflow-hidden bg-slate-900 relative">
-                  <video 
-                    className="w-full h-full object-cover pointer-events-none"
-                    poster="/logo_nombre.webp"
+                <div className="relative aspect-video min-h-[200px] overflow-hidden rounded-[2rem] bg-black md:rounded-[3.2rem]">
+                  <video
+                    className="absolute inset-0 h-full w-full object-cover"
                     autoPlay
                     muted
                     loop
                     playsInline
-                    preload="metadata"
+                    preload="auto"
+                    aria-label="Video presentación del equipo Dameldato"
                   >
-                    <source src="/Pink-and-Purple-Simple-Animated-Team-Profile-Introduction-Video.webm" type="video/webm" />
-                    <source src="/Pink and Purple Simple Animated Team Profile Introduction Video.mp4" type="video/mp4" />
-                    Tu navegador no soporta el video.
+                    <source
+                      src="/Pink-and-Purple-Simple-Animated-Team-Profile-Introduction-Video.webm"
+                      type="video/webm"
+                    />
                   </video>
-                  
-                  {/* Overlay decoration */}
-                  <div className="absolute inset-0 pointer-events-none bg-gradient-to-t from-black/20 to-transparent"></div>
                 </div>
               </div>
 
@@ -786,7 +786,7 @@ const Home = () => {
                   </div>
                 </Link>
                 
-                <Link to="/login">
+                <Link to="/login?next=/servicios">
                   <div className="group bg-white/90 dark:bg-card p-5 xs:p-6 sm:p-8 rounded-2xl sm:rounded-3xl border border-border/50 hover:border-green-500/30 hover:shadow-xl transition-all cursor-pointer h-full flex flex-col items-center text-center">
                     <div className="w-12 h-12 xs:w-14 xs:h-14 sm:w-16 sm:h-16 bg-emerald-100 rounded-xl sm:rounded-2xl flex items-center justify-center text-emerald-600 mb-3 sm:mb-4 group-hover:scale-110 transition-transform shrink-0">
                       <Search className="w-6 h-6 sm:w-8 sm:h-8" strokeWidth={1.5} />

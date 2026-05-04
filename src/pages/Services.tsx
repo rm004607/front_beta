@@ -1,13 +1,14 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef, useMemo } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
-import { chileData } from '@/lib/chile-data';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { MapPin, Search, MessageCircle, Loader2, Plus, Star, Globe, Wrench, X } from 'lucide-react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { servicesAPI, flowAPI, configAPI, reviewsAPI } from '@/lib/api';
+import { servicesAPI, flowAPI, configAPI, reviewsAPI, regionsAPI, trackWhatsAppInteraction } from '@/lib/api';
+import { loadRegionOptionsSorted, type RegionOption } from '@/lib/regions-catalog';
+import { catalogFetchUserMessage } from '@/lib/catalog-fetch-errors';
 import { toast } from 'sonner';
 import { useUser } from '@/contexts/UserContext';
 import { useTranslation } from 'react-i18next';
@@ -33,6 +34,8 @@ import { ServiceDetailModalContent } from '@/components/ServiceDetailModal';
 import { useDebouncedValue } from '@/hooks/useDebouncedValue';
 import { normalizeSearchQuery } from '@/lib/searchQuery';
 import { cn } from '@/lib/utils';
+import { invalidateServicesListQueries } from '@/lib/services-query';
+import { sortServicesByReviewQuality } from '@/lib/service-list-sort';
 
 /** Alineado con GET /services optimizado: no pedir páginas enormes (evita trabajo extra en backend). */
 const SERVICES_PAGE_SIZE = 24;
@@ -55,6 +58,13 @@ const Services = () => {
   const [typeFilter, setTypeFilter] = useState(searchParams.get('type_id') || 'all');
   const [serviceTypes, setServiceTypes] = useState<any[]>([]);
   const [page, setPage] = useState(1);
+  const hasMountedRef = useRef(false);
+
+  /** IDs de región = PK del backend (`GET /api/regions`), no el ordinal de chile-data. */
+  const [apiRegions, setApiRegions] = useState<RegionOption[]>([]);
+  const [regionsCatalogLoading, setRegionsCatalogLoading] = useState(true);
+  const [filterCommuneNames, setFilterCommuneNames] = useState<string[]>([]);
+  const [communesLoading, setCommunesLoading] = useState(false);
 
   // Pago por contacto
   const [isPaidContactModalOpen, setIsPaidContactModalOpen] = useState(false);
@@ -82,27 +92,30 @@ const Services = () => {
       {
         search: debouncedSearch || '',
         comuna: comunaFilter !== 'all' ? comunaFilter : '',
-        region_id: comunaFilter === 'all' && regionFilter !== 'all' ? regionFilter : '',
+        region_id: regionFilter !== 'all' ? regionFilter : '',
         service_type_id: typeFilter !== 'all' ? typeFilter : '',
         page,
         limit: SERVICES_PAGE_SIZE,
+        sort: 'rating',
       },
     ],
     queryFn: () =>
       servicesAPI.getServices({
         search: debouncedSearch || undefined,
         comuna: comunaFilter !== 'all' ? comunaFilter : undefined,
-        region_id: comunaFilter === 'all' && regionFilter !== 'all' ? regionFilter : undefined,
+        region_id: regionFilter !== 'all' ? regionFilter : undefined,
         service_type_id: typeFilter !== 'all' ? typeFilter : undefined,
         page,
         limit: SERVICES_PAGE_SIZE,
+        sort: 'rating',
       }),
     staleTime: SERVICES_LIST_STALE_MS,
     gcTime: 1000 * 60 * 5,
     placeholderData: (previousData) => previousData,
   });
 
-  const services = servicesListQuery.data?.services ?? [];
+  const servicesRaw = servicesListQuery.data?.services ?? [];
+  const services = useMemo(() => sortServicesByReviewQuality(servicesRaw), [servicesRaw]);
   const pagination = servicesListQuery.data?.pagination ?? {
     page: 1,
     limit: SERVICES_PAGE_SIZE,
@@ -123,6 +136,15 @@ const Services = () => {
   useEffect(() => {
     setPage(1);
   }, [debouncedSearch, comunaFilter, regionFilter, typeFilter]);
+
+  // Al cambiar de página, volver al inicio de la vista.
+  useEffect(() => {
+    if (!hasMountedRef.current) {
+      hasMountedRef.current = true;
+      return;
+    }
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }, [page]);
 
   // Cargar precio dinámico y estado de pricing
   useEffect(() => {
@@ -180,6 +202,61 @@ const Services = () => {
     loadTypes();
   }, []);
 
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      try {
+        setRegionsCatalogLoading(true);
+        const list = await loadRegionOptionsSorted();
+        if (!cancelled) setApiRegions(list);
+      } catch (err) {
+        console.error('Error loading regions catalog:', err);
+        if (!cancelled) {
+          toast.error(catalogFetchUserMessage(err));
+          setApiRegions([]);
+        }
+      } finally {
+        if (!cancelled) setRegionsCatalogLoading(false);
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  useEffect(() => {
+    if (regionFilter === 'all') {
+      setFilterCommuneNames([]);
+      setCommunesLoading(false);
+      return;
+    }
+    let cancelled = false;
+    (async () => {
+      setCommunesLoading(true);
+      try {
+        const res = await regionsAPI.getCommunesByRegion(regionFilter);
+        if (cancelled) return;
+        const rid = Number(res.region_id);
+        const names = (res.communes ?? [])
+          .filter((c) => Number(c.region_id) === rid)
+          .map((c) => c.name)
+          .sort((a, b) => a.localeCompare(b, 'es', { sensitivity: 'base' }));
+        setFilterCommuneNames(names);
+      } catch (err) {
+        console.error('Error loading communes for filter:', err);
+        if (!cancelled) {
+          setFilterCommuneNames([]);
+          toast.error(catalogFetchUserMessage(err));
+        }
+      } finally {
+        if (!cancelled) setCommunesLoading(false);
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [regionFilter]);
+
   const handleWhatsApp = (service: any) => {
     if (!service.phone) {
       toast.error(t('services.no_phone_msg'));
@@ -198,6 +275,7 @@ const Services = () => {
     if (!pricingEnabled) {
       const cleanPhone = service.phone.replace(/\D/g, '');
       const message = `Hola, te contacto por tu servicio "${service.service_name}" en Dameldato.`;
+      trackWhatsAppInteraction({ serviceId: String(service.id) });
       window.open(`https://wa.me/${cleanPhone}?text=${encodeURIComponent(message)}`, '_blank');
       return;
     }
@@ -234,7 +312,7 @@ const Services = () => {
     try {
       await servicesAPI.deleteService(service.id);
       toast.success(t('services.delete_success'));
-      queryClient.invalidateQueries({ queryKey: ['services', 'list'] });
+      invalidateServicesListQueries(queryClient);
     } catch (error: any) {
       console.error('Error deleting service:', error);
       toast.error(error.message || t('services.delete_error'));
@@ -268,7 +346,7 @@ const Services = () => {
       setUserComment('');
       // Recargar reseñas
       fetchReviews(selectedServiceForReviews.id);
-      queryClient.invalidateQueries({ queryKey: ['services', 'list'] });
+      invalidateServicesListQueries(queryClient);
     } catch (error: any) {
       console.error('Error submitting review:', error);
       if (error?.status === 403) {
@@ -327,39 +405,47 @@ const Services = () => {
                 />
               </div>
 
-              <Select value={regionFilter} onValueChange={(val) => {
-                setRegionFilter(val);
-                setComunaFilter('all');
-                setPage(1);
-              }}>
+              <Select
+                value={regionFilter}
+                disabled={regionsCatalogLoading}
+                onValueChange={(val) => {
+                  setRegionFilter(val);
+                  setComunaFilter('all');
+                  setPage(1);
+                }}
+              >
                 <SelectTrigger className="glass-card border-white/10 h-10 sm:h-11 text-sm bg-white/50">
                   <div className="flex items-center gap-2">
                     <Globe size={14} className="text-secondary" />
-                    <SelectValue placeholder={t('services.region_placeholder')} />
+                    <SelectValue placeholder={regionsCatalogLoading ? '…' : t('services.region_placeholder')} />
                   </div>
                 </SelectTrigger>
                 <SelectContent className="glass-card border-white/10 backdrop-blur-xl">
                   <SelectItem value="all">{t('services.all_regions')}</SelectItem>
-                  {chileData.map((reg) => (
+                  {apiRegions.map((reg) => (
                     <SelectItem key={reg.id} value={reg.id}>{reg.name}</SelectItem>
                   ))}
                 </SelectContent>
               </Select>
 
               {regionFilter !== 'all' && (
-                <Select value={comunaFilter} onValueChange={(val) => {
-                  setComunaFilter(val);
-                  setPage(1);
-                }}>
+                <Select
+                  value={comunaFilter}
+                  disabled={communesLoading}
+                  onValueChange={(val) => {
+                    setComunaFilter(val);
+                    setPage(1);
+                  }}
+                >
                   <SelectTrigger className="glass-card border-white/10 h-10 sm:h-11 text-sm bg-white/50">
                     <div className="flex items-center gap-2">
                       <MapPin size={14} className="text-primary" />
-                      <SelectValue placeholder={t('services.comuna_placeholder')} />
+                      <SelectValue placeholder={communesLoading ? '…' : t('services.comuna_placeholder')} />
                     </div>
                   </SelectTrigger>
                   <SelectContent className="glass-card border-white/10 backdrop-blur-xl">
                     <SelectItem value="all">{t('services.all_comunas')}</SelectItem>
-                    {chileData.find(r => String(r.id) === String(regionFilter))?.communes.map(c => (
+                    {filterCommuneNames.map((c) => (
                       <SelectItem key={c} value={c}>{c}</SelectItem>
                     ))}
                   </SelectContent>

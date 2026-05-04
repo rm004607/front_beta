@@ -300,7 +300,10 @@ export const isLightColor = (color?: string) => {
   }
 };
 
-/** Nombre de región de oferta; no usa comuna como sustituto (útil para "Comuna · Región"). */
+/**
+ * Nombre de región para UI (listado/detalle). Prioriza siempre la respuesta enriquecida del API;
+ * el catálogo local (`chileData`) solo como respaldo si el backend no envía nombre.
+ */
 export function getServiceRegionNameOnly(service: {
   offer_region?: { id?: string; name?: string } | null;
   region_name?: string | null;
@@ -335,7 +338,7 @@ export function getServiceLocationDisplay(service: {
   return '—';
 }
 
-/** Preferir datos del backend enriquecido (offer_region / region_name), luego region_id, luego comuna. */
+/** offer_region.name, region_name (API), luego comuna si no hay región. */
 export function getServiceRegionDisplayName(service: {
   offer_region?: { id?: string; name?: string } | null;
   region_name?: string | null;

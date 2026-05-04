@@ -139,13 +139,15 @@ const Register = () => {
 
       const savedComuna = localStorage.getItem('reg_comuna');
       if (savedComuna && !comuna) setComuna(savedComuna);
+      const savedRegion = localStorage.getItem('reg_region');
+      if (savedRegion && !selectedRegion) setSelectedRegion(savedRegion);
 
       // Si cargamos algo de localStorage, también marcamos como prefilled
-      if (savedName || savedEmail || savedComuna) {
+      if (savedName || savedEmail || savedComuna || savedRegion) {
         hasPrefilled.current = true;
       }
     }
-  }, [user, searchParams]); // Reducimos dependencias para evitar bucles de reset
+  }, [user, searchParams, comuna, selectedRegion, name, email]); // Reducimos dependencias para evitar bucles de reset
 
   // Detect Google redirect: token in URL → go to step 2 (role selection); user is not in DB yet if google_registration_pending
   useEffect(() => {
@@ -320,6 +322,7 @@ const Register = () => {
       localStorage.setItem('reg_email', email);
       localStorage.setItem('reg_phone', phone);
       localStorage.setItem('reg_comuna', comuna);
+      localStorage.setItem('reg_region', selectedRegion);
 
       // Paso 2: (pasa directamente a validarse como emprendedor al enviar info basica)
       await registerWithRole();
@@ -752,7 +755,7 @@ const Register = () => {
                   onSuccess={async () => {
                     await loadUser();
                     toast.success('Cuenta creada exitosamente');
-                    navigate('/perfil', { replace: true });
+                    navigate('/servicios', { replace: true });
                   }}
                   onError={(msg) => {
                     toast.error(msg || 'No pudimos completar la verificación de identidad.');

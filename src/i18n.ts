@@ -142,6 +142,7 @@ const resources = {
                 "privacy": "Privacidad"
             },
             "common": {
+                "language_name": "Español",
                 "cancel": "Cancelar",
                 "save": "Guardar",
                 "edit": "Editar",
@@ -171,6 +172,7 @@ i18n
         resources,
         lng: 'es',
         fallbackLng: 'es',
+        supportedLngs: ['es'],
         interpolation: {
             escapeValue: false,
         }

@@ -119,10 +119,12 @@ import {
   Package2,
   ArrowLeft,
   LayoutDashboard,
+  UserPlus,
+  MessageCircle,
 } from 'lucide-react';
 import { Switch } from '@/components/ui/switch';
 import { toast } from 'sonner';
-import { adminAPI, authAPI, configAPI, packagesAPI } from '@/lib/api';
+import { adminAPI, authAPI, configAPI, packagesAPI, servicesAPI } from '@/lib/api';
 import { formatProductPrice } from '@/lib/productUtils';
 import {
   Dialog,
@@ -141,6 +143,8 @@ import {
 } from '@/components/ui/select';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { cn } from '@/lib/utils';
+import { AdminInsertServiceTab } from '@/components/admin/AdminInsertServiceTab';
+import { canShowAdminInsertServiceTab } from '@/lib/admin-insert-service';
 
 interface Post {
   id: string;
@@ -161,6 +165,8 @@ interface Service {
   service_name: string;
   description: string;
   comuna: string;
+  region_id?: string;
+  phone?: string;
   status: string;
   created_at: string;
   user_name: string;
@@ -168,6 +174,53 @@ interface Service {
   price_range?: string;
   average_rating?: number;
   reviews_count?: number;
+  image_urls?: string[];
+}
+
+function AdminServiceActionBar({
+  service,
+  onApprove,
+  onReject,
+  onEdit,
+  onDelete,
+}: {
+  service: Service;
+  onApprove: (id: string) => void;
+  onReject: (s: Service) => void;
+  onEdit: (s: Service) => void;
+  onDelete: (id: string) => void;
+}) {
+  const st = service.status?.toLowerCase().trim() || '';
+  const canModerate = st === 'pending' || st === 'inactive';
+  return (
+    <div className="flex flex-wrap items-center gap-2">
+      {canModerate ? (
+        <>
+          <Button size="sm" className="bg-emerald-600 hover:bg-emerald-700 text-white h-8 px-2.5 sm:px-3" onClick={() => onApprove(service.id)}>
+            <CheckCircle size={14} className="sm:mr-1" />
+            <span className="hidden sm:inline">Aprobar</span>
+          </Button>
+          <Button
+            size="sm"
+            variant="outline"
+            className="h-8 px-2.5 sm:px-3 border-rose-300 text-rose-700 hover:bg-rose-50 dark:text-rose-300 dark:border-rose-800"
+            onClick={() => onReject(service)}
+          >
+            <X size={14} className="sm:mr-1" />
+            <span className="hidden sm:inline">Rechazar</span>
+          </Button>
+        </>
+      ) : null}
+      <Button variant="outline" size="sm" className="h-8 px-2.5 sm:px-3" onClick={() => onEdit(service)}>
+        <Edit size={14} className="sm:mr-1" />
+        <span className="hidden sm:inline">Editar</span>
+      </Button>
+      <Button variant="destructive" size="sm" className="h-8 px-2.5 sm:px-3" onClick={() => onDelete(service.id)}>
+        <Trash2 size={14} className="sm:mr-1" />
+        <span className="hidden sm:inline">Eliminar</span>
+      </Button>
+    </div>
+  );
 }
 
 interface AdminProduct {
@@ -211,12 +264,42 @@ interface UserProfile {
   role: string;
 }
 
-interface Log {
-  id: number;
-  timestamp: string;
-  level: string;
-  message: string;
-}
+const getServiceStatusConfig = (rawStatus?: string) => {
+  const status = String(rawStatus || '').toLowerCase().trim();
+  if (status === 'active') {
+    return {
+      badgeClass: 'bg-emerald-500/15 text-emerald-700 border-emerald-300 dark:text-emerald-300 dark:border-emerald-700',
+      cardClass: 'border-emerald-200/70 dark:border-emerald-900/60',
+      label: 'Activo',
+    };
+  }
+  if (status === 'pending') {
+    return {
+      badgeClass: 'bg-amber-500/15 text-amber-700 border-amber-300 dark:text-amber-300 dark:border-amber-700',
+      cardClass: 'border-amber-200/70 bg-amber-50/40 dark:bg-amber-950/20 dark:border-amber-900/60',
+      label: 'Pendiente',
+    };
+  }
+  if (status === 'rejected' || status === 'suspended') {
+    return {
+      badgeClass: 'bg-rose-500/15 text-rose-700 border-rose-300 dark:text-rose-300 dark:border-rose-700',
+      cardClass: 'border-rose-200/70 dark:border-rose-900/60',
+      label: 'Bloqueado',
+    };
+  }
+  if (status === 'inactive') {
+    return {
+      badgeClass: 'bg-slate-500/15 text-slate-700 border-slate-300 dark:text-slate-300 dark:border-slate-700',
+      cardClass: 'border-slate-200/70 dark:border-slate-800',
+      label: 'Inactivo',
+    };
+  }
+  return {
+    badgeClass: 'bg-muted text-muted-foreground border-border',
+    cardClass: 'border-border/60',
+    label: rawStatus || 'Desconocido',
+  };
+};
 
 function normalizeCatalogName(s: string): string {
   return s
@@ -275,6 +358,10 @@ const Admin = () => {
   const { user, isLoggedIn } = useUser();
   const navigate = useNavigate();
   const isSuperAdmin = user?.role_number === 5;
+  const showInsertDatoTab = useMemo(
+    () => isSuperAdmin && canShowAdminInsertServiceTab(user),
+    [isSuperAdmin, user]
+  );
 
   // Estados para datos (recomendaciones)
   const [datos, setDatos] = useState<any[]>([]);
@@ -284,14 +371,27 @@ const Admin = () => {
   // Estados para services
   const [services, setServices] = useState<Service[]>([]);
   const [loadingServices, setLoadingServices] = useState(false);
-  const [serviceFilters, setServiceFilters] = useState({ comuna: '', status: 'pending' });
+  const [serviceFilters, setServiceFilters] = useState({ comuna: '', status: 'all' });
   const [rejectDialogOpen, setRejectDialogOpen] = useState(false);
   const [serviceToReject, setServiceToReject] = useState<Service | null>(null);
   const [rejectReason, setRejectReason] = useState('');
+  const [editServiceDialogOpen, setEditServiceDialogOpen] = useState(false);
+  const [editingService, setEditingService] = useState<Service | null>(null);
+  const [savingServiceEdit, setSavingServiceEdit] = useState(false);
+  const [newServiceImages, setNewServiceImages] = useState<File[]>([]);
+  const [serviceEditForm, setServiceEditForm] = useState({
+    service_name: '',
+    description: '',
+    comuna: '',
+    phone: '',
+    price_range: '',
+    status: 'active',
+  });
+  const [serviceEditImages, setServiceEditImages] = useState<string[]>([]);
 
   const [adminProducts, setAdminProducts] = useState<AdminProduct[]>([]);
   const [loadingProducts, setLoadingProducts] = useState(false);
-  const [productFilters, setProductFilters] = useState({ comuna: '', status: 'pending' });
+  const [productFilters, setProductFilters] = useState({ comuna: '', status: 'all' });
   const [rejectProductDialogOpen, setRejectProductDialogOpen] = useState(false);
   const [productToReject, setProductToReject] = useState<AdminProduct | null>(null);
   const [rejectProductReason, setRejectProductReason] = useState('');
@@ -301,11 +401,6 @@ const Admin = () => {
   const [loadingUsers, setLoadingUsers] = useState(false);
   const [userFilters, setUserFilters] = useState({ role: 'all', is_active: 'all', is_banned: 'all' });
 
-  // Estados para logs (solo super-admin)
-  const [logs, setLogs] = useState<Log[]>([]);
-  const [loadingLogs, setLoadingLogs] = useState(false);
-  const [logLevel, setLogLevel] = useState('all');
-  const [logsAutoRefresh, setLogsAutoRefresh] = useState(false);
   const [activeTab, setActiveTab] = useState('services');
   const [isInitialLoading, setIsInitialLoading] = useState(true);
 
@@ -466,23 +561,6 @@ const Admin = () => {
     }
   };
 
-  const loadLogs = async () => {
-    if (!isSuperAdmin) return;
-    try {
-      setLoadingLogs(true);
-      const response = await adminAPI.getLogs({
-        limit: 200,
-        level: logLevel !== 'all' ? logLevel : undefined,
-      });
-      setLogs(response.logs);
-    } catch (error: any) {
-      console.error('Error loading logs:', error);
-      toast.error(error.message || 'Error al cargar logs');
-    } finally {
-      setLoadingLogs(false);
-    }
-  };
-
   const loadTickets = async () => {
     try {
       setLoadingTickets(true);
@@ -612,11 +690,31 @@ const Admin = () => {
     }
   };
 
+  const openNewServiceTypeDialog = () => {
+    setSelectedType(null);
+    setTypeForm({ name: '', description: '', icon: 'Wrench', is_active: true, color: '#1a73e8' });
+    setTypeDialogOpen(true);
+  };
+
+  const openEditServiceTypeDialog = (type: any) => {
+    setSelectedType({ ...type, id: String(type.id) });
+    setTypeForm({
+      name: type.name != null ? String(type.name) : '',
+      description: type.description ?? '',
+      icon: type.icon || 'Wrench',
+      is_active: type.is_active !== false && type.is_active !== 0 && type.is_active !== '0',
+      color: type.color || '#1a73e8',
+    });
+    setTypeDialogOpen(true);
+  };
+
   const handleSaveServiceType = async () => {
     try {
       if (selectedType) {
-        await adminAPI.updateServiceType(selectedType.id, typeForm);
-        setCatalogTypes(prev => prev.map(t => t.id === selectedType.id ? { ...t, ...typeForm } : t));
+        await adminAPI.updateServiceType(String(selectedType.id), typeForm);
+        setCatalogTypes((prev) =>
+          prev.map((t) => (String(t.id) === String(selectedType.id) ? { ...t, ...typeForm } : t)),
+        );
         toast.success('Tipo de servicio actualizado');
       } else {
         const response = await adminAPI.createServiceType(typeForm);
@@ -653,7 +751,7 @@ const Admin = () => {
   const handleDeleteServiceType = async (id: string) => {
     if (!confirm('¿Estás seguro de eliminar este tipo de servicio?')) return;
     try {
-      await adminAPI.deleteServiceType(id);
+      await adminAPI.deleteServiceType(String(id));
       toast.success('Tipo de servicio eliminado');
       loadAdminCatalogPanel();
     } catch (error: any) {
@@ -751,6 +849,84 @@ const Admin = () => {
     } catch (error: any) {
       console.error('Error rejecting service:', error);
       toast.error(error.message || 'Error al rechazar el servicio');
+    }
+  };
+
+  const handleOpenEditService = async (service: Service) => {
+    const normalizeEditableStatus = (raw?: string) => {
+      const normalized = String(raw || '').toLowerCase().trim();
+      return normalized === 'inactive' || normalized === 'suspended' ? normalized : 'active';
+    };
+    setEditingService(service);
+    setServiceEditForm({
+      service_name: service.service_name || '',
+      description: service.description || '',
+      comuna: service.comuna || '',
+      phone: service.phone || '',
+      price_range: service.price_range || '',
+      status: normalizeEditableStatus(service.status),
+    });
+    setServiceEditImages(service.image_urls || []);
+    setNewServiceImages([]);
+    setEditServiceDialogOpen(true);
+
+    try {
+      const detail = await servicesAPI.getServiceById(service.id);
+      const full = detail.service;
+      setServiceEditForm({
+        service_name: full.service_name || '',
+        description: full.description || '',
+        comuna: full.comuna || '',
+        phone: full.phone || '',
+        price_range: full.price_range || '',
+        status: normalizeEditableStatus(full.status),
+      });
+      setServiceEditImages(full.image_urls || []);
+    } catch (error) {
+      console.error('Error loading full service detail:', error);
+    }
+  };
+
+  const handleSaveServiceEdit = async () => {
+    if (!editingService) return;
+    if (!serviceEditForm.service_name.trim() || !serviceEditForm.description.trim() || !serviceEditForm.comuna.trim()) {
+      toast.error('Nombre del servicio, descripción y comuna son obligatorios');
+      return;
+    }
+    try {
+      setSavingServiceEdit(true);
+      const payload = {
+        service_name: serviceEditForm.service_name.trim(),
+        description: serviceEditForm.description.trim(),
+        comuna: serviceEditForm.comuna.trim(),
+        phone: serviceEditForm.phone.trim() || undefined,
+        price_range: serviceEditForm.price_range.trim() || undefined,
+        status: (serviceEditForm.status || 'active') as 'active' | 'inactive' | 'suspended',
+        keep_image_urls: serviceEditImages,
+      };
+
+      if (newServiceImages.length > 0 || serviceEditImages.length > 0) {
+        await servicesAPI.updateServiceWithImages(editingService.id, payload, {
+          images: newServiceImages,
+        });
+      } else {
+        await servicesAPI.updateService(editingService.id, payload);
+      }
+
+      toast.success('Servicio actualizado');
+      setEditServiceDialogOpen(false);
+      setEditingService(null);
+      setNewServiceImages([]);
+      loadServices();
+      loadStats();
+    } catch (error: any) {
+      console.error('Error updating service from admin:', error);
+      toast.error(
+        error.message ||
+          'No se pudo actualizar el servicio. Si el backend aun no soporta edicion de fotos, usa el prompt que te dejare.'
+      );
+    } finally {
+      setSavingServiceEdit(false);
     }
   };
 
@@ -1108,19 +1284,6 @@ const Admin = () => {
     }
   };
 
-  const getLogLevelColor = (level: string) => {
-    switch (level) {
-      case 'error':
-        return 'text-red-500 bg-red-50';
-      case 'warn':
-        return 'text-accent bg-accent/10';
-      case 'info':
-        return 'text-blue-500 bg-blue-50';
-      default:
-        return 'text-gray-500 bg-gray-50';
-    }
-  };
-
   // Funciones para Precios y Configuración
   const loadAdminConfig = async () => {
     try {
@@ -1231,24 +1394,49 @@ const Admin = () => {
       case 'products': loadProducts(); break;
       case 'users': loadUsers(); break;
       case 'tickets': loadTickets(); break;
+      case 'catalog':
+        loadAdminCatalogPanel();
+        loadServiceSuggestions();
+        break;
       case 'prices':
         loadAdminConfig();
         loadAdminPackages();
         break;
-      case 'logs': loadLogs(); break;
     }
   }, [activeTab]);
 
-  // Auto-refresh de logs
   useEffect(() => {
-    if (logsAutoRefresh) {
-      const interval = setInterval(() => {
-        loadLogs();
-      }, 2000);
-      return () => clearInterval(interval);
-    }
+    const refreshActiveTab = () => {
+      switch (activeTab) {
+        case 'datos': loadDatos(); break;
+        case 'services': loadServices(); break;
+        case 'products': loadProducts(); break;
+        case 'users': loadUsers(); break;
+        case 'tickets': loadTickets(); break;
+        case 'catalog':
+          loadAdminCatalogPanel();
+          loadServiceSuggestions();
+          break;
+        case 'prices':
+          loadAdminConfig();
+          loadAdminPackages();
+          break;
+      }
+    };
+
+    const onFocus = () => refreshActiveTab();
+    const onVisibility = () => {
+      if (document.visibilityState === 'visible') refreshActiveTab();
+    };
+
+    window.addEventListener('focus', onFocus);
+    document.addEventListener('visibilitychange', onVisibility);
+    return () => {
+      window.removeEventListener('focus', onFocus);
+      document.removeEventListener('visibilitychange', onVisibility);
+    };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [logsAutoRefresh, logLevel]); // loadLogs es estable y no necesita estar en deps
+  }, [activeTab]);
 
   // Verificar autenticación y permisos
   useEffect(() => {
@@ -1323,66 +1511,173 @@ const Admin = () => {
 
         {/* Estadísticas */}
         {stats && (
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 mb-6 sm:mb-8">
-            <Card className="bg-card/60 backdrop-blur-sm border-primary/15 shadow-sm rounded-2xl group hover:border-primary/35 transition-all duration-300">
-              <CardHeader className="pb-1 sm:pb-2 px-4 pt-4">
-                <CardTitle className="text-xs sm:text-sm font-medium text-muted-foreground group-hover:text-primary transition-colors leading-tight">
-                  Servicios totales
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="px-4 pb-4">
-                <div className="text-2xl sm:text-3xl font-bold tabular-nums">{stats.total_services ?? 0}</div>
-              </CardContent>
-            </Card>
-            <Card className="bg-card/60 backdrop-blur-sm border-secondary/15 shadow-sm rounded-2xl group hover:border-secondary/35 transition-all duration-300">
-              <CardHeader className="pb-1 sm:pb-2 px-4 pt-4">
-                <CardTitle className="text-xs sm:text-sm font-medium text-muted-foreground group-hover:text-secondary transition-colors leading-tight">
-                  Servicios activos
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="px-4 pb-4">
-                <div className="text-2xl sm:text-3xl font-bold tabular-nums">{stats.active_services ?? 0}</div>
-              </CardContent>
-            </Card>
-            {isSuperAdmin && stats.total_products != null && (
-              <Card className="bg-card/60 backdrop-blur-sm border-emerald-500/15 shadow-sm rounded-2xl group hover:border-emerald-500/35 transition-all duration-300">
+          <>
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 mb-6 sm:mb-8">
+              <Card className="bg-card/60 backdrop-blur-sm border-primary/15 shadow-sm rounded-2xl group hover:border-primary/35 transition-all duration-300">
                 <CardHeader className="pb-1 sm:pb-2 px-4 pt-4">
-                  <CardTitle className="text-xs sm:text-sm font-medium text-muted-foreground group-hover:text-emerald-600 transition-colors leading-tight flex items-center gap-1.5">
-                    <Package2 className="h-3.5 w-3.5 shrink-0" aria-hidden />
-                    Productos
+                  <CardTitle className="text-xs sm:text-sm font-medium text-muted-foreground group-hover:text-primary transition-colors leading-tight">
+                    Servicios totales
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="px-4 pb-4">
-                  <div className="text-2xl sm:text-3xl font-bold tabular-nums">{stats.total_products ?? 0}</div>
-                  {stats.active_products != null && (
-                    <p className="text-[10px] sm:text-xs text-muted-foreground mt-1 tabular-nums">
-                      Activos: {stats.active_products}
+                  <div className="text-2xl sm:text-3xl font-bold tabular-nums">{stats.total_services ?? 0}</div>
+                </CardContent>
+              </Card>
+              <Card className="bg-card/60 backdrop-blur-sm border-secondary/15 shadow-sm rounded-2xl group hover:border-secondary/35 transition-all duration-300">
+                <CardHeader className="pb-1 sm:pb-2 px-4 pt-4">
+                  <CardTitle className="text-xs sm:text-sm font-medium text-muted-foreground group-hover:text-secondary transition-colors leading-tight">
+                    Servicios activos
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="px-4 pb-4">
+                  <div className="text-2xl sm:text-3xl font-bold tabular-nums">{stats.active_services ?? 0}</div>
+                </CardContent>
+              </Card>
+              {isSuperAdmin && stats.total_products != null && (
+                <>
+                  <Card className="bg-card/60 backdrop-blur-sm border-emerald-500/15 shadow-sm rounded-2xl group hover:border-emerald-500/35 transition-all duration-300">
+                    <CardHeader className="pb-1 sm:pb-2 px-4 pt-4">
+                      <CardTitle className="text-xs sm:text-sm font-medium text-muted-foreground group-hover:text-emerald-600 transition-colors leading-tight flex items-center gap-1.5">
+                        <Package2 className="h-3.5 w-3.5 shrink-0" aria-hidden />
+                        Productos totales
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent className="px-4 pb-4">
+                      <div className="text-2xl sm:text-3xl font-bold tabular-nums">{stats.total_products ?? 0}</div>
+                    </CardContent>
+                  </Card>
+                  <Card className="bg-card/60 backdrop-blur-sm border-emerald-500/15 shadow-sm rounded-2xl group hover:border-emerald-500/35 transition-all duration-300">
+                    <CardHeader className="pb-1 sm:pb-2 px-4 pt-4">
+                      <CardTitle className="text-xs sm:text-sm font-medium text-muted-foreground group-hover:text-emerald-600 transition-colors leading-tight flex items-center gap-1.5">
+                        <Package2 className="h-3.5 w-3.5 shrink-0" aria-hidden />
+                        Productos activos
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent className="px-4 pb-4">
+                      <div className="text-2xl sm:text-3xl font-bold tabular-nums">{stats.active_products ?? 0}</div>
+                    </CardContent>
+                  </Card>
+                </>
+              )}
+              <Card className="bg-card/60 backdrop-blur-sm border-green-500/15 shadow-sm rounded-2xl group hover:border-green-500/35 transition-all duration-300">
+                <CardHeader className="pb-1 sm:pb-2 px-4 pt-4">
+                  <CardTitle className="text-xs sm:text-sm font-medium text-muted-foreground group-hover:text-green-600 transition-colors leading-tight flex items-center gap-1.5">
+                    <MessageCircle className="h-3.5 w-3.5 shrink-0" aria-hidden />
+                    Interacciones botón WhatsApp
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="px-4 pb-4">
+                  <div className="text-2xl sm:text-3xl font-bold tabular-nums">{stats.whatsapp_button_interactions ?? 0}</div>
+                </CardContent>
+              </Card>
+              <Card className="bg-card/60 backdrop-blur-sm border-violet-500/15 shadow-sm rounded-2xl group hover:border-violet-500/35 transition-all duration-300">
+                <CardHeader className="pb-1 sm:pb-2 px-4 pt-4">
+                  <CardTitle className="text-xs sm:text-sm font-medium text-muted-foreground group-hover:text-violet-600 transition-colors leading-tight flex items-center gap-1.5">
+                    <Star className="h-3.5 w-3.5 shrink-0" aria-hidden />
+                    Reseñas totales
+                    {(stats.service_reviews_count != null || stats.product_reviews_count != null) && (
+                      <span
+                        className="inline-flex items-center text-muted-foreground"
+                        title={
+                          stats.service_reviews_count != null || stats.product_reviews_count != null
+                            ? `Servicios: ${stats.service_reviews_count ?? '—'} · Productos: ${stats.product_reviews_count ?? '—'}`
+                            : undefined
+                        }
+                      >
+                        <HelpCircle className="h-3.5 w-3.5 shrink-0 ml-0.5" aria-hidden />
+                      </span>
+                    )}
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="px-4 pb-4">
+                  <div className="text-2xl sm:text-3xl font-bold tabular-nums">{stats.total_reviews ?? 0}</div>
+                  {(stats.service_reviews_count != null || stats.product_reviews_count != null) && (
+                    <p className="text-[10px] sm:text-xs text-muted-foreground mt-1 tabular-nums leading-snug">
+                      Servicios: {stats.service_reviews_count ?? '—'} · Productos: {stats.product_reviews_count ?? '—'}
                     </p>
                   )}
                 </CardContent>
               </Card>
-            )}
-            {isSuperAdmin && (
-              <Card
-                className={cn(
-                  'bg-card/60 backdrop-blur-sm border-amber-500/15 shadow-sm rounded-2xl group hover:border-amber-500/35 transition-all duration-300',
-                  stats.total_products == null && 'col-span-2 lg:col-span-1',
-                )}
-              >
-                <CardHeader className="pb-1 sm:pb-2 px-4 pt-4">
-                  <CardTitle className="text-xs sm:text-sm font-medium text-muted-foreground group-hover:text-amber-600 transition-colors leading-tight">
-                    Usuarios
-                  </CardTitle>
+              {isSuperAdmin && (
+                <Card className="bg-card/60 backdrop-blur-sm border-amber-500/15 shadow-sm rounded-2xl group hover:border-amber-500/35 transition-all duration-300">
+                  <CardHeader className="pb-1 sm:pb-2 px-4 pt-4">
+                    <CardTitle className="text-xs sm:text-sm font-medium text-muted-foreground group-hover:text-amber-600 transition-colors leading-tight">
+                      Usuarios
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="px-4 pb-4">
+                    <div className="text-2xl sm:text-3xl font-bold tabular-nums">{stats.total_users ?? 0}</div>
+                    <p className="text-[10px] sm:text-xs text-muted-foreground mt-1 leading-snug">
+                      Activos: {stats.active_users ?? 0} · Baneados: {stats.banned_users ?? 0}
+                    </p>
+                  </CardContent>
+                </Card>
+              )}
+            </div>
+
+            {isSuperAdmin && Object.prototype.hasOwnProperty.call(stats, 'featured_services') && (
+              <Card className="bg-card/60 backdrop-blur-sm border-primary/15 shadow-sm rounded-2xl mb-6 sm:mb-8">
+                <CardHeader className="pb-2 sm:pb-3">
+                  <div className="flex flex-col gap-1 sm:flex-row sm:items-start sm:justify-between">
+                    <div className="min-w-0">
+                      <CardTitle className="text-base sm:text-lg">Servicios destacados</CardTitle>
+                      <CardDescription className="flex items-start gap-1.5 mt-1">
+                        <span className="min-w-0">
+                          Ranking según criterios del backend (volumen y reseñas favorables).
+                        </span>
+                        {stats.featured_services_criteria?.description_es ? (
+                          <span
+                            className="shrink-0 inline-flex text-muted-foreground"
+                            title={stats.featured_services_criteria.description_es}
+                          >
+                            <HelpCircle className="h-4 w-4" aria-hidden />
+                          </span>
+                        ) : null}
+                      </CardDescription>
+                    </div>
+                  </div>
                 </CardHeader>
-                <CardContent className="px-4 pb-4">
-                  <div className="text-2xl sm:text-3xl font-bold tabular-nums">{stats.total_users ?? 0}</div>
-                  <p className="text-[10px] sm:text-xs text-muted-foreground mt-1 leading-snug">
-                    Activos: {stats.active_users ?? 0} · Baneados: {stats.banned_users ?? 0}
-                  </p>
+                <CardContent className="pt-0">
+                  {!Array.isArray(stats.featured_services) || stats.featured_services.length === 0 ? (
+                    <p className="text-sm text-muted-foreground py-6 text-center rounded-xl border border-dashed border-border/70 bg-muted/20">
+                      Aún no hay servicios que cumplan los criterios de destacado.
+                    </p>
+                  ) : (
+                    <div className="overflow-x-auto rounded-xl border border-border/60">
+                      <table className="w-full text-left text-xs sm:text-sm">
+                        <thead className="bg-muted/50 text-muted-foreground">
+                          <tr>
+                            <th className="px-3 py-2 font-medium">Servicio</th>
+                            <th className="px-3 py-2 font-medium tabular-nums">Rating</th>
+                            <th className="px-3 py-2 font-medium tabular-nums">Reseñas</th>
+                            <th className="px-3 py-2 font-medium tabular-nums hidden sm:table-cell">Buenas (4–5★)</th>
+                            <th className="px-3 py-2 font-medium tabular-nums hidden md:table-cell">Score</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {stats.featured_services.map((row, idx) => (
+                            <tr key={idx} className="border-t border-border/50 hover:bg-muted/30">
+                              <td className="px-3 py-2 font-medium text-foreground max-w-[10rem] sm:max-w-none truncate sm:whitespace-normal">
+                                {row.service_name ?? '—'}
+                              </td>
+                              <td className="px-3 py-2 tabular-nums">
+                                {row.avg_rating != null ? Number(row.avg_rating).toFixed(1) : '—'}
+                              </td>
+                              <td className="px-3 py-2 tabular-nums">{row.review_count ?? '—'}</td>
+                              <td className="px-3 py-2 tabular-nums hidden sm:table-cell">{row.good_reviews_count ?? '—'}</td>
+                              <td className="px-3 py-2 tabular-nums hidden md:table-cell">
+                                {row.featured_score != null ? Number(row.featured_score).toFixed(2) : '—'}
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  )}
                 </CardContent>
               </Card>
             )}
-          </div>
+          </>
         )}
 
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
@@ -1392,7 +1687,7 @@ const Admin = () => {
               <TabsList
                 className={cn(
                   'flex w-max min-w-max sm:flex-wrap sm:w-full sm:min-w-0 h-auto p-1.5 gap-1 sm:gap-1.5',
-                  'rounded-xl border border-border/60 bg-muted/40 shadow-inner',
+                  'rounded-xl border border-border/60 bg-gradient-to-r from-muted/60 via-muted/30 to-muted/60 shadow-inner',
                   'justify-start sm:justify-start',
                 )}
               >
@@ -1460,14 +1755,15 @@ const Admin = () => {
                     <RefreshCw className="h-3.5 w-3.5 sm:h-4 sm:w-4 shrink-0" />
                     Precios
                   </TabsTrigger>
-                  <TabsTrigger
-                    value="logs"
-                    onClick={loadLogs}
-                    className="flex items-center gap-1.5 sm:gap-2 shrink-0 rounded-lg px-3 py-2.5 text-xs sm:text-sm data-[state=active]:bg-background data-[state=active]:shadow-md"
-                  >
-                    <FileText className="h-3.5 w-3.5 sm:h-4 sm:w-4 shrink-0" />
-                    Logs
-                  </TabsTrigger>
+                  {showInsertDatoTab && (
+                    <TabsTrigger
+                      value="insert-dato-1"
+                      className="flex items-center gap-1.5 sm:gap-2 shrink-0 rounded-lg px-3 py-2.5 text-xs sm:text-sm data-[state=active]:bg-background data-[state=active]:shadow-md"
+                    >
+                      <UserPlus className="h-3.5 w-3.5 sm:h-4 sm:w-4 shrink-0" />
+                      Dato insertado 1
+                    </TabsTrigger>
+                  )}
                 </>
               )}
               </TabsList>
@@ -1535,117 +1831,244 @@ const Admin = () => {
 
           {/* Tab de Servicios */}
           <TabsContent value="services" className="mt-4 sm:mt-6 outline-none focus-visible:outline-none">
-            <Card className="rounded-2xl border border-border/60 bg-card shadow-sm">
-              <CardHeader>
-                <CardTitle>Servicios/Pymes</CardTitle>
-                <CardDescription>Gestiona todos los servicios. Los pendientes requieren aprobación antes de publicarse.</CardDescription>
+            <Card className="rounded-2xl border border-border/60 bg-card shadow-sm overflow-hidden">
+              <CardHeader className="border-b border-border/60 bg-muted/20 px-4 py-4 sm:px-6 sm:py-5">
+                <CardTitle className="text-lg sm:text-xl">Servicios / Pymes</CardTitle>
+                <CardDescription className="text-xs sm:text-sm mt-1">
+                  En teléfono: tarjetas con acciones compactas. En escritorio: tabla para revisar más filas de un vistazo.
+                </CardDescription>
               </CardHeader>
-              <CardContent>
-                <div className="mb-6 flex flex-col sm:flex-row gap-4">
-                  <Select value={serviceFilters.status} onValueChange={(value) => setServiceFilters({ ...serviceFilters, status: value })}>
-                    <SelectTrigger className="w-full sm:w-56 glass-card border-white/10">
-                      <SelectValue placeholder="Estado" />
-                    </SelectTrigger>
-                    <SelectContent className="glass-card border-white/10 backdrop-blur-xl">
-                      <SelectItem value="all">🌐 Todos los estados</SelectItem>
-                      <SelectItem value="pending">⏳ Pendientes (Aprobación)</SelectItem>
-                      <SelectItem value="active">✅ Activos / Publicados</SelectItem>
-                      <SelectItem value="rejected">🛑 Bloqueados / Rechazados</SelectItem>
-                      <SelectItem value="inactive">🌑 Inactivos (X)</SelectItem>
-                      <SelectItem value="suspended">⚠️ Suspendidos</SelectItem>
-                    </SelectContent>
-                  </Select>
-                  <div className="relative flex-1">
-                    <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 text-primary/50" size={16} />
-                    <Input
-                      placeholder="Filtrar por comuna..."
-                      value={serviceFilters.comuna}
-                      onChange={(e) => setServiceFilters({ ...serviceFilters, comuna: e.target.value })}
-                      className="pl-10 glass-card border-white/10"
-                    />
+              <CardContent className="p-0 sm:p-0">
+                <div className="border-b border-border/60 bg-gradient-to-r from-muted/40 via-muted/15 to-muted/40 p-3 sm:p-4">
+                  <div className="flex flex-col gap-3 lg:flex-row lg:flex-wrap lg:items-end">
+                    <div className="w-full lg:w-52 shrink-0">
+                      <Label className="text-[10px] uppercase tracking-wide text-muted-foreground mb-1.5 block lg:hidden">
+                        Estado
+                      </Label>
+                      <Select
+                        value={serviceFilters.status}
+                        onValueChange={(value) => setServiceFilters({ ...serviceFilters, status: value })}
+                      >
+                        <SelectTrigger className="w-full bg-background/80 border-border/60 h-10 sm:h-11">
+                          <SelectValue placeholder="Estado" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="all">🌐 Todos los estados</SelectItem>
+                          <SelectItem value="pending">⏳ Pendientes (Aprobación)</SelectItem>
+                          <SelectItem value="active">✅ Activos / Publicados</SelectItem>
+                          <SelectItem value="rejected">🛑 Bloqueados / Rechazados</SelectItem>
+                          <SelectItem value="inactive">🌑 Inactivos (X)</SelectItem>
+                          <SelectItem value="suspended">⚠️ Suspendidos</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div className="relative flex-1 min-w-0 lg:min-w-[12rem]">
+                      <Label className="text-[10px] uppercase tracking-wide text-muted-foreground mb-1.5 block lg:hidden">
+                        Comuna
+                      </Label>
+                      <div className="relative">
+                        <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 text-primary/50 pointer-events-none" size={16} />
+                        <Input
+                          placeholder="Filtrar por comuna..."
+                          value={serviceFilters.comuna}
+                          onChange={(e) => setServiceFilters({ ...serviceFilters, comuna: e.target.value })}
+                          className="pl-10 bg-background/80 border-border/60 h-10 sm:h-11"
+                        />
+                      </div>
+                    </div>
+                    <div className="flex gap-2 w-full lg:w-auto shrink-0">
+                      <Button onClick={loadServices} className="flex-1 lg:flex-none bg-primary hover:bg-primary/90 h-10 sm:h-11 px-6">
+                        Buscar
+                      </Button>
+                      <Button
+                        variant="outline"
+                        className="flex-1 lg:flex-none h-10 sm:h-11 px-6"
+                        onClick={() => {
+                          setServiceFilters({ comuna: '', status: 'all' });
+                          setTimeout(loadServices, 0);
+                        }}
+                      >
+                        Limpiar
+                      </Button>
+                    </div>
                   </div>
-                  <Button onClick={loadServices} className="bg-primary hover:bg-primary/90">Buscar</Button>
                 </div>
 
-                {loadingServices ? (
-                  <div className="text-center py-8">
-                    <p className="text-muted-foreground">Cargando servicios...</p>
-                  </div>
-                ) : services.length === 0 ? (
-                  <div className="text-center py-8">
-                    <p className="text-muted-foreground">No hay servicios con ese filtro</p>
-                  </div>
-                ) : (
-                  <div className="space-y-4">
-                    {services.map((service) => (
-                      <Card key={service.id} className={`border ${service.status === 'pending' ? 'border-amber-300 bg-amber-50/30' : ''}`}>
-                        <CardHeader>
-                          <div className="flex justify-between items-start gap-2">
-                            <div className="flex-1">
-                              <CardTitle className="text-lg">{service.service_name}</CardTitle>
-                              <CardDescription>
-                                Por: {service.user_name} ({service.user_email}) - {service.comuna}
+                <div className="p-3 sm:p-4 lg:p-6">
+                  {loadingServices ? (
+                    <div className="text-center py-12">
+                      <Loader2 className="h-8 w-8 animate-spin text-primary mx-auto mb-2" aria-hidden />
+                      <p className="text-muted-foreground text-sm">Cargando servicios…</p>
+                    </div>
+                  ) : services.length === 0 ? (
+                    <div className="text-center py-10 px-4 rounded-2xl border border-dashed border-border/70 bg-muted/20">
+                      <div className="mx-auto mb-3 flex h-11 w-11 items-center justify-center rounded-full bg-primary/10 text-primary">
+                        <Sparkles className="h-5 w-5" />
+                      </div>
+                      <p className="font-semibold">No encontramos servicios con ese filtro</p>
+                      <p className="text-sm text-muted-foreground mt-1">
+                        Prueba cambiando el estado o limpiando la comuna.
+                      </p>
+                      <Button
+                        variant="outline"
+                        className="mt-4"
+                        onClick={() => {
+                          setServiceFilters({ comuna: '', status: 'all' });
+                          setTimeout(loadServices, 0);
+                        }}
+                      >
+                        Ver todos los servicios
+                      </Button>
+                    </div>
+                  ) : (
+                    <>
+                      {/* Vista móvil / tablet */}
+                      <div className="lg:hidden space-y-3 sm:space-y-4">
+                        {services.map((service) => (
+                          <Card
+                            key={service.id}
+                            className={cn(
+                              'rounded-2xl border shadow-sm transition-all duration-200 hover:shadow-md overflow-hidden',
+                              getServiceStatusConfig(service.status).cardClass
+                            )}
+                          >
+                            <CardHeader className="pb-2 px-4 pt-4 space-y-2">
+                              <div className="flex items-start justify-between gap-2">
+                                <CardTitle className="text-base leading-snug pr-2">
+                                  {service.service_name || 'Servicio sin nombre'}
+                                </CardTitle>
+                                <Badge
+                                  variant="outline"
+                                  className={cn('shrink-0 font-semibold text-[10px]', getServiceStatusConfig(service.status).badgeClass)}
+                                >
+                                  {getServiceStatusConfig(service.status).label}
+                                </Badge>
+                              </div>
+                              <CardDescription className="text-xs leading-relaxed">
+                                {service.user_name}
+                                <span className="text-muted-foreground/80"> · </span>
+                                <span className="break-all">{service.user_email}</span>
                               </CardDescription>
-                              <CardDescription className="mt-1">
-                                {formatDate(service.created_at)}
-                              </CardDescription>
-                            </div>
-                            <div className="flex flex-wrap items-center gap-2 justify-end">
-                              <Badge
-                                className={
-                                  service.status?.toLowerCase().trim() === 'active' ? 'bg-green-500 text-white border-green-600' :
-                                    service.status?.toLowerCase().trim() === 'pending' ? 'bg-amber-500 text-white border-amber-600' :
-                                      (service.status?.toLowerCase().trim() === 'rejected' || service.status?.toLowerCase().trim() === 'suspended') ? 'bg-red-500 text-white border-red-600' :
-                                        'bg-gray-500 text-white border-gray-600'
-                                }
-                              >
-                                {service.status?.toLowerCase().trim() === 'active' ? '✅ Activo' :
-                                  service.status?.toLowerCase().trim() === 'pending' ? '⏳ Pendiente' :
-                                    (service.status?.toLowerCase().trim() === 'rejected' || service.status?.toLowerCase().trim() === 'suspended') ? '❌ Bloqueado' :
-                                      service.status}
-                              </Badge>
-                              {(service.status?.toLowerCase().trim() === 'pending' || service.status?.toLowerCase().trim() === 'inactive') && (
-                                <>
-                                  <Button
-                                    size="sm"
-                                    className="bg-green-600 hover:bg-green-700 text-white"
-                                    onClick={() => handleApproveService(service.id)}
-                                  >
-                                    <CheckCircle size={14} className="mr-1" />
-                                    Aprobar
-                                  </Button>
-                                  <Button
-                                    size="sm"
-                                    variant="outline"
-                                    className="border-red-300 text-red-600 hover:bg-red-50 shadow-sm"
-                                    onClick={() => { setServiceToReject(service); setRejectReason(''); setRejectDialogOpen(true); }}
-                                  >
-                                    <X size={14} className="mr-1" />
-                                    Rechazar
-                                  </Button>
-                                </>
-                              )}
-                              <Button
-                                variant="destructive"
-                                size="sm"
-                                onClick={() => handleDeleteService(service.id)}
-                              >
-                                <Trash2 size={14} className="mr-1" />
-                                Eliminar
-                              </Button>
-                            </div>
-                          </div>
-                        </CardHeader>
-                        <CardContent>
-                          <p className="mb-2">{service.description}</p>
-                          {service.price_range && (
-                            <p className="text-sm text-muted-foreground">Precio: {service.price_range}</p>
-                          )}
-                        </CardContent>
-                      </Card>
-                    ))}
-                  </div>
-                )}
+                              <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-muted-foreground">
+                                <span className="inline-flex items-center gap-1">
+                                  <MapPin className="h-3.5 w-3.5 shrink-0" />
+                                  {service.comuna || 'Sin comuna'}
+                                </span>
+                                <span>{formatDate(service.created_at)}</span>
+                                {(service.average_rating != null && Number(service.average_rating) > 0) || (service.reviews_count ?? 0) > 0 ? (
+                                  <span className="inline-flex items-center gap-1 text-amber-700 dark:text-amber-400">
+                                    <Star className="h-3.5 w-3.5 fill-amber-400 text-amber-400" />
+                                    {Number(service.average_rating || 0).toFixed(1)} ({service.reviews_count ?? 0})
+                                  </span>
+                                ) : null}
+                              </div>
+                            </CardHeader>
+                            <CardContent className="px-4 pb-4 space-y-3">
+                              <p className="text-sm text-foreground/90 line-clamp-3">{service.description || 'Sin descripción.'}</p>
+                              {service.price_range ? (
+                                <p className="text-xs text-muted-foreground bg-muted/50 rounded-lg px-2.5 py-1.5 inline-block">
+                                  Precio: {service.price_range}
+                                </p>
+                              ) : null}
+                              <AdminServiceActionBar
+                                service={service}
+                                onApprove={handleApproveService}
+                                onReject={(s) => {
+                                  setServiceToReject(s);
+                                  setRejectReason('');
+                                  setRejectDialogOpen(true);
+                                }}
+                                onEdit={handleOpenEditService}
+                                onDelete={handleDeleteService}
+                              />
+                            </CardContent>
+                          </Card>
+                        ))}
+                      </div>
+
+                      {/* Vista escritorio */}
+                      <div className="hidden lg:block rounded-xl border border-border/60 overflow-hidden bg-card">
+                        <div className="overflow-x-auto">
+                          <table className="w-full text-sm min-w-[720px]">
+                            <thead className="bg-muted/50 text-muted-foreground border-b border-border/60">
+                              <tr>
+                                <th className="text-left font-medium px-4 py-3 w-[22%]">Servicio</th>
+                                <th className="text-left font-medium px-3 py-3 w-[14%]">Publica</th>
+                                <th className="text-left font-medium px-3 py-3 w-[12%]">Comuna</th>
+                                <th className="text-left font-medium px-3 py-3 w-[8%]">Estado</th>
+                                <th className="text-left font-medium px-3 py-3 w-[10%]">Reseñas</th>
+                                <th className="text-left font-medium px-3 py-3 w-[12%]">Fecha</th>
+                                <th className="text-right font-medium px-4 py-3 w-[22%]">Acciones</th>
+                              </tr>
+                            </thead>
+                            <tbody>
+                              {services.map((service) => (
+                                <tr
+                                  key={service.id}
+                                  className="border-b border-border/50 last:border-0 hover:bg-muted/30 transition-colors"
+                                >
+                                  <td className="px-4 py-3 align-top">
+                                    <div className="font-semibold text-foreground leading-snug line-clamp-2">
+                                      {service.service_name || '—'}
+                                    </div>
+                                    <p className="text-xs text-muted-foreground mt-1 line-clamp-2">
+                                      {service.description || 'Sin descripción.'}
+                                    </p>
+                                    {service.price_range ? (
+                                      <p className="text-[11px] text-muted-foreground mt-1.5 tabular-nums">{service.price_range}</p>
+                                    ) : null}
+                                  </td>
+                                  <td className="px-3 py-3 align-top">
+                                    <div className="font-medium text-foreground line-clamp-1">{service.user_name}</div>
+                                    <div className="text-xs text-muted-foreground break-all line-clamp-2">{service.user_email}</div>
+                                  </td>
+                                  <td className="px-3 py-3 align-top text-muted-foreground">{service.comuna || '—'}</td>
+                                  <td className="px-3 py-3 align-top">
+                                    <Badge
+                                      variant="outline"
+                                      className={cn('font-semibold text-[10px]', getServiceStatusConfig(service.status).badgeClass)}
+                                    >
+                                      {getServiceStatusConfig(service.status).label}
+                                    </Badge>
+                                  </td>
+                                  <td className="px-3 py-3 align-top tabular-nums">
+                                    {(service.average_rating != null && Number(service.average_rating) > 0) || (service.reviews_count ?? 0) > 0 ? (
+                                      <span className="inline-flex items-center gap-1 text-amber-700 dark:text-amber-400">
+                                        <Star className="h-3.5 w-3.5 fill-amber-400 text-amber-400 shrink-0" />
+                                        {Number(service.average_rating || 0).toFixed(1)}
+                                        <span className="text-muted-foreground font-normal">({service.reviews_count ?? 0})</span>
+                                      </span>
+                                    ) : (
+                                      <span className="text-muted-foreground">—</span>
+                                    )}
+                                  </td>
+                                  <td className="px-3 py-3 align-top text-xs text-muted-foreground whitespace-nowrap">
+                                    {formatDate(service.created_at)}
+                                  </td>
+                                  <td className="px-4 py-3 align-top text-right">
+                                    <div className="flex flex-wrap justify-end gap-1.5">
+                                      <AdminServiceActionBar
+                                        service={service}
+                                        onApprove={handleApproveService}
+                                        onReject={(s) => {
+                                          setServiceToReject(s);
+                                          setRejectReason('');
+                                          setRejectDialogOpen(true);
+                                        }}
+                                        onEdit={handleOpenEditService}
+                                        onDelete={handleDeleteService}
+                                      />
+                                    </div>
+                                  </td>
+                                </tr>
+                              ))}
+                            </tbody>
+                          </table>
+                        </div>
+                      </div>
+                    </>
+                  )}
+                </div>
               </CardContent>
             </Card>
           </TabsContent>
@@ -2149,11 +2572,7 @@ const Admin = () => {
                   <Button
                     size="sm"
                     className="shrink-0 w-full sm:w-auto"
-                    onClick={() => {
-                      setSelectedType(null);
-                      setTypeForm({ name: '', description: '', icon: 'Wrench', is_active: true, color: '#1a73e8' });
-                      setTypeDialogOpen(true);
-                    }}
+                    onClick={openNewServiceTypeDialog}
                   >
                     <Plus size={16} className="mr-2" />
                     Nuevo tipo
@@ -2268,17 +2687,7 @@ const Admin = () => {
                                   size="sm"
                                   className="h-8 rounded-lg px-2 text-xs"
                                   title="Editar"
-                                  onClick={() => {
-                                    setSelectedType(type);
-                                    setTypeForm({
-                                      name: type.name,
-                                      description: type.description || '',
-                                      icon: type.icon || 'Wrench',
-                                      is_active: type.is_active,
-                                      color: type.color || '#1a73e8',
-                                    });
-                                    setTypeDialogOpen(true);
-                                  }}
+                                  onClick={() => openEditServiceTypeDialog(type)}
                                 >
                                   <Edit size={14} className="mr-1" />
                                   Editar
@@ -2356,17 +2765,7 @@ const Admin = () => {
                                       size="icon"
                                       className="h-9 w-9 rounded-lg hover:bg-primary/10 hover:text-primary"
                                       title="Editar"
-                                      onClick={() => {
-                                        setSelectedType(type);
-                                        setTypeForm({
-                                          name: type.name,
-                                          description: type.description || '',
-                                          icon: type.icon || 'Wrench',
-                                          is_active: type.is_active,
-                                          color: type.color || '#1a73e8',
-                                        });
-                                        setTypeDialogOpen(true);
-                                      }}
+                                      onClick={() => openEditServiceTypeDialog(type)}
                                     >
                                       <Edit size={16} />
                                     </Button>
@@ -2448,8 +2847,147 @@ const Admin = () => {
             </div>
           </TabsContent>
 
-          {/* Dialog para Editar/Crear Tipo de Servicio */}
-          <Dialog open={typeDialogOpen} onOpenChange={setTypeDialogOpen}>
+          {/* Tab de Precios y Paquetes */}
+          {isSuperAdmin && (
+            <TabsContent value="prices" className="mt-4 sm:mt-6 outline-none focus-visible:outline-none">
+              <div className="grid grid-cols-1 gap-6">
+                {/* Sección Configuración Global */}
+                <Card className="rounded-2xl border border-border/60 bg-card shadow-sm">
+                  <CardHeader>
+                    <CardTitle>Configuración Global</CardTitle>
+                    <CardDescription>Ajustes generales de precios del sistema</CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    {loadingConfig ? (
+                      <div className="text-center py-4">Cargando configuración...</div>
+                    ) : (
+                      <div className="space-y-4">
+                        {adminConfig
+                          .filter(config => ['WHATSAPP_CONTACT_PRICE', 'PRICING_ENABLED'].includes(config.key.trim().toUpperCase()))
+                          .map((config) => (
+                            <div key={config.key} className="flex flex-col sm:flex-row items-center justify-between p-6 border rounded-2xl bg-white shadow-sm border-gray-100 hover:shadow-md transition-all duration-300 gap-4 mb-4">
+                              <div className="flex-1">
+                                <p className={`font-black text-xl transition-all duration-300 ${config.key.trim().toUpperCase() === 'PRICING_ENABLED' && config.value !== 'true' ? 'text-primary animate-pulse' : 'text-black'}`}>
+                                  {config.key.trim().toUpperCase() === 'PRICING_ENABLED'
+                                    ? 'MODO TODO GRATUITO'
+                                    : (config.key.trim().toUpperCase() === 'WHATSAPP_CONTACT_PRICE' ? 'Precio Mensaje WhatsApp' : config.description || config.key)}
+                                </p>
+                                <p className="text-xs text-muted-foreground mt-1">
+                                  {config.key.trim().toUpperCase() === 'PRICING_ENABLED'
+                                    ? 'Activa para desactivar todos los pagos en el sistema.'
+                                    : 'Costo por cada contacto directo a través del muro o servicios.'}
+                                </p>
+                              </div>
+                              <div className="flex items-center gap-6">
+                                {config.key.trim().toUpperCase() === 'PRICING_ENABLED' ? (
+                                  <div className="flex items-center gap-3">
+                                    <span className={`text-sm font-medium ${config.value === 'true' ? 'text-primary' : 'text-slate-500'}`}>
+                                      {config.key.trim().toUpperCase() === 'PRICING_ENABLED' ? (config.value === 'true' ? 'MODO PAGO ACTIVADO' : 'MODO TODO GRATUITO ACTIVADO') : 'Activado'}
+                                    </span>
+                                    <Switch
+                                      checked={config.value === 'true' || config.value === '1' || config.value === 1}
+                                      onCheckedChange={handleTogglePricing}
+                                    />
+                                  </div>
+                                ) : (
+                                  <>
+                                    <span className="text-2xl font-black text-primary drop-shadow-sm">
+                                      {parseInt(config.value) ? new Intl.NumberFormat('es-CL', { style: 'currency', currency: 'CLP' }).format(parseInt(config.value)) : config.value}
+                                    </span>
+                                    <Button variant="outline" size="sm" onClick={() => openEditConfig(config)} className="glass-card hover:border-primary/50 transition-colors">
+                                      <Wrench size={14} className="mr-2" />
+                                      Editar
+                                    </Button>
+                                  </>
+                                )}
+                              </div>
+                            </div>
+                          ))}
+                      </div>
+                    )}
+                  </CardContent>
+                </Card>
+
+                {/* Sección Paquetes */}
+                <Card className="rounded-2xl border border-border/60 bg-card shadow-sm">
+                  <CardHeader>
+                    <CardTitle>Gestión de Paquetes</CardTitle>
+                    <CardDescription>Edita los precios y límites de los paquetes de publicación</CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    {loadingPackages ? (
+                      <div className="text-center py-4">Cargando paquetes...</div>
+                    ) : (
+                      <Tabs defaultValue="services-packages" className="w-full">
+                        <div className="w-full overflow-x-auto pb-2 scrollbar-hide">
+                          <TabsList className="flex w-max min-w-full h-auto mb-2 p-1 gap-1 glass-card border-white/5">
+                            <TabsTrigger value="services-packages">Servicios / Pymes</TabsTrigger>
+                            <TabsTrigger value="jobs-packages">Empleos</TabsTrigger>
+                          </TabsList>
+                        </div>
+
+                        <TabsContent value="services-packages" className="mt-4">
+                          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                            {adminPackages.services.map((pkg) => (
+                              <Card key={pkg.id} className="glass-card border-white/5 relative overflow-hidden group hover:border-primary/30 transition-all duration-300">
+                                <div className="absolute top-0 right-0 p-2">
+                                  <Badge className={pkg.is_active ? "bg-green-500/20 text-green-400 border-green-500/30" : "bg-red-500/20 text-red-400 border-red-500/30"}>
+                                    {pkg.is_active ? "Activo" : "Inactivo"}
+                                  </Badge>
+                                </div>
+                                <CardHeader className="pb-2">
+                                  <CardTitle className="text-base flex items-center gap-2">
+                                    <Crown className="w-4 h-4 text-primary" />
+                                    {pkg.name}
+                                  </CardTitle>
+                                  <CardDescription className="line-clamp-2 text-xs text-muted-foreground">{pkg.description}</CardDescription>
+                                </CardHeader>
+                                <CardContent>
+                                  <div className="space-y-3 mb-4 p-3 rounded-2xl bg-white/5 border border-white/5">
+                                    <div className="flex justify-between items-center text-sm">
+                                      <span className="text-muted-foreground">Precio:</span>
+                                      <span className="font-bold text-lg text-primary text-glow">
+                                        {new Intl.NumberFormat('es-CL', { style: 'currency', currency: 'CLP' }).format(pkg.price)}
+                                      </span>
+                                    </div>
+                                    <div className="flex justify-between items-center text-sm">
+                                      <span className="text-muted-foreground">Publicaciones:</span>
+                                      <span className="font-bold text-secondary">+{pkg.publications}</span>
+                                    </div>
+                                  </div>
+                                  <Button className="w-full glass-card border-white/10 hover:border-primary/50 transition-colors" variant="outline" size="sm" onClick={() => openEditPackage(pkg)}>
+                                    Editar Paquete
+                                  </Button>
+                                </CardContent>
+                              </Card>
+                            ))}
+                          </div>
+                        </TabsContent>
+
+                      </Tabs>
+                    )}
+                  </CardContent>
+                </Card>
+              </div>
+            </TabsContent>
+          )}
+
+          {showInsertDatoTab && (
+            <TabsContent value="insert-dato-1" className="mt-4 sm:mt-6 outline-none focus-visible:outline-none">
+              <AdminInsertServiceTab />
+            </TabsContent>
+          )}
+
+        </Tabs>
+
+        {/* Dialog para Editar/Crear Tipo de Servicio (fuera de Tabs para evitar conflictos de foco con Radix) */}
+        <Dialog
+          open={typeDialogOpen}
+          onOpenChange={(open) => {
+            setTypeDialogOpen(open);
+            if (!open) setSelectedType(null);
+          }}
+        >
             <DialogContent className="sm:max-w-[800px] rounded-3xl border-2 p-0 overflow-hidden">
               <div className="grid grid-cols-1 md:grid-cols-2">
                 {/* Lateral Izquierdo: Información */}
@@ -2677,208 +3215,6 @@ const Admin = () => {
             </DialogContent>
           </Dialog>
 
-          {/* Tab de Precios y Paquetes */}
-          {isSuperAdmin && (
-            <TabsContent value="prices" className="mt-4 sm:mt-6 outline-none focus-visible:outline-none">
-              <div className="grid grid-cols-1 gap-6">
-                {/* Sección Configuración Global */}
-                <Card className="rounded-2xl border border-border/60 bg-card shadow-sm">
-                  <CardHeader>
-                    <CardTitle>Configuración Global</CardTitle>
-                    <CardDescription>Ajustes generales de precios del sistema</CardDescription>
-                  </CardHeader>
-                  <CardContent>
-                    {loadingConfig ? (
-                      <div className="text-center py-4">Cargando configuración...</div>
-                    ) : (
-                      <div className="space-y-4">
-                        {adminConfig
-                          .filter(config => ['WHATSAPP_CONTACT_PRICE', 'PRICING_ENABLED'].includes(config.key.trim().toUpperCase()))
-                          .map((config) => (
-                            <div key={config.key} className="flex flex-col sm:flex-row items-center justify-between p-6 border rounded-2xl bg-white shadow-sm border-gray-100 hover:shadow-md transition-all duration-300 gap-4 mb-4">
-                              <div className="flex-1">
-                                <p className={`font-black text-xl transition-all duration-300 ${config.key.trim().toUpperCase() === 'PRICING_ENABLED' && config.value !== 'true' ? 'text-primary animate-pulse' : 'text-black'}`}>
-                                  {config.key.trim().toUpperCase() === 'PRICING_ENABLED'
-                                    ? 'MODO TODO GRATUITO'
-                                    : (config.key.trim().toUpperCase() === 'WHATSAPP_CONTACT_PRICE' ? 'Precio Mensaje WhatsApp' : config.description || config.key)}
-                                </p>
-                                <p className="text-xs text-muted-foreground mt-1">
-                                  {config.key.trim().toUpperCase() === 'PRICING_ENABLED'
-                                    ? 'Activa para desactivar todos los pagos en el sistema.'
-                                    : 'Costo por cada contacto directo a través del muro o servicios.'}
-                                </p>
-                              </div>
-                              <div className="flex items-center gap-6">
-                                {config.key.trim().toUpperCase() === 'PRICING_ENABLED' ? (
-                                  <div className="flex items-center gap-3">
-                                    <span className={`text-sm font-medium ${config.value === 'true' ? 'text-primary' : 'text-slate-500'}`}>
-                                      {config.key.trim().toUpperCase() === 'PRICING_ENABLED' ? (config.value === 'true' ? 'MODO PAGO ACTIVADO' : 'MODO TODO GRATUITO ACTIVADO') : 'Activado'}
-                                    </span>
-                                    <Switch
-                                      checked={config.value === 'true' || config.value === '1' || config.value === 1}
-                                      onCheckedChange={handleTogglePricing}
-                                    />
-                                  </div>
-                                ) : (
-                                  <>
-                                    <span className="text-2xl font-black text-primary drop-shadow-sm">
-                                      {parseInt(config.value) ? new Intl.NumberFormat('es-CL', { style: 'currency', currency: 'CLP' }).format(parseInt(config.value)) : config.value}
-                                    </span>
-                                    <Button variant="outline" size="sm" onClick={() => openEditConfig(config)} className="glass-card hover:border-primary/50 transition-colors">
-                                      <Wrench size={14} className="mr-2" />
-                                      Editar
-                                    </Button>
-                                  </>
-                                )}
-                              </div>
-                            </div>
-                          ))}
-                      </div>
-                    )}
-                  </CardContent>
-                </Card>
-
-                {/* Sección Paquetes */}
-                <Card className="rounded-2xl border border-border/60 bg-card shadow-sm">
-                  <CardHeader>
-                    <CardTitle>Gestión de Paquetes</CardTitle>
-                    <CardDescription>Edita los precios y límites de los paquetes de publicación</CardDescription>
-                  </CardHeader>
-                  <CardContent>
-                    {loadingPackages ? (
-                      <div className="text-center py-4">Cargando paquetes...</div>
-                    ) : (
-                      <Tabs defaultValue="services-packages" className="w-full">
-                        <div className="w-full overflow-x-auto pb-2 scrollbar-hide">
-                          <TabsList className="flex w-max min-w-full h-auto mb-2 p-1 gap-1 glass-card border-white/5">
-                            <TabsTrigger value="services-packages">Servicios / Pymes</TabsTrigger>
-                            <TabsTrigger value="jobs-packages">Empleos</TabsTrigger>
-                          </TabsList>
-                        </div>
-
-                        <TabsContent value="services-packages" className="mt-4">
-                          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                            {adminPackages.services.map((pkg) => (
-                              <Card key={pkg.id} className="glass-card border-white/5 relative overflow-hidden group hover:border-primary/30 transition-all duration-300">
-                                <div className="absolute top-0 right-0 p-2">
-                                  <Badge className={pkg.is_active ? "bg-green-500/20 text-green-400 border-green-500/30" : "bg-red-500/20 text-red-400 border-red-500/30"}>
-                                    {pkg.is_active ? "Activo" : "Inactivo"}
-                                  </Badge>
-                                </div>
-                                <CardHeader className="pb-2">
-                                  <CardTitle className="text-base flex items-center gap-2">
-                                    <Crown className="w-4 h-4 text-primary" />
-                                    {pkg.name}
-                                  </CardTitle>
-                                  <CardDescription className="line-clamp-2 text-xs text-muted-foreground">{pkg.description}</CardDescription>
-                                </CardHeader>
-                                <CardContent>
-                                  <div className="space-y-3 mb-4 p-3 rounded-2xl bg-white/5 border border-white/5">
-                                    <div className="flex justify-between items-center text-sm">
-                                      <span className="text-muted-foreground">Precio:</span>
-                                      <span className="font-bold text-lg text-primary text-glow">
-                                        {new Intl.NumberFormat('es-CL', { style: 'currency', currency: 'CLP' }).format(pkg.price)}
-                                      </span>
-                                    </div>
-                                    <div className="flex justify-between items-center text-sm">
-                                      <span className="text-muted-foreground">Publicaciones:</span>
-                                      <span className="font-bold text-secondary">+{pkg.publications}</span>
-                                    </div>
-                                  </div>
-                                  <Button className="w-full glass-card border-white/10 hover:border-primary/50 transition-colors" variant="outline" size="sm" onClick={() => openEditPackage(pkg)}>
-                                    Editar Paquete
-                                  </Button>
-                                </CardContent>
-                              </Card>
-                            ))}
-                          </div>
-                        </TabsContent>
-
-                      </Tabs>
-                    )}
-                  </CardContent>
-                </Card>
-              </div>
-            </TabsContent>
-          )}
-
-          {/* Tab de Logs (Solo Super Admin) */}
-          {isSuperAdmin && (
-            <TabsContent value="logs" className="mt-4 sm:mt-6 outline-none focus-visible:outline-none">
-              <Card className="rounded-2xl border border-border/60 bg-card shadow-sm">
-                <CardHeader>
-                  <div className="flex justify-between items-center">
-                    <div>
-                      <CardTitle>Logs del Backend</CardTitle>
-                      <CardDescription>Visualiza los logs en tiempo real del servidor</CardDescription>
-                    </div>
-                    <div className="flex gap-2">
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => setLogsAutoRefresh(!logsAutoRefresh)}
-                      >
-                        <RefreshCw size={16} className={`mr-2 ${logsAutoRefresh ? 'animate-spin' : ''}`} />
-                        {logsAutoRefresh ? 'Detener' : 'Auto-refresh'}
-                      </Button>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={loadLogs}
-                      >
-                        Actualizar
-                      </Button>
-                    </div>
-                  </div>
-                </CardHeader>
-                <CardContent>
-                  <div className="mb-4 flex gap-4">
-                    <Select value={logLevel} onValueChange={(value) => {
-                      setLogLevel(value);
-                      loadLogs();
-                    }}>
-                      <SelectTrigger className="w-40">
-                        <SelectValue placeholder="Nivel" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="all">Todos</SelectItem>
-                        <SelectItem value="error">Error</SelectItem>
-                        <SelectItem value="warn">Warning</SelectItem>
-                        <SelectItem value="info">Info</SelectItem>
-                        <SelectItem value="log">Log</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-
-                  {loadingLogs ? (
-                    <div className="text-center py-8">
-                      <p className="text-muted-foreground">Cargando logs...</p>
-                    </div>
-                  ) : logs.length === 0 ? (
-                    <div className="text-center py-8">
-                      <p className="text-muted-foreground">No hay logs</p>
-                    </div>
-                  ) : (
-                    <div className="space-y-2 max-h-[600px] overflow-y-auto">
-                      {logs.map((log) => (
-                        <div
-                          key={log.id}
-                          className={`p-3 rounded-lg border text-sm ${getLogLevelColor(log.level)}`}
-                        >
-                          <div className="flex items-center justify-between mb-1">
-                            <span className="font-semibold">{log.level.toUpperCase()}</span>
-                            <span className="text-xs opacity-70">{formatDate(log.timestamp)}</span>
-                          </div>
-                          <p className="text-xs font-mono whitespace-pre-wrap break-words">{log.message}</p>
-                        </div>
-                      ))}
-                    </div>
-                  )}
-                </CardContent>
-              </Card>
-            </TabsContent>
-          )}
-        </Tabs>
 
         {/* Dialog para límites de publicaciones */}
         <Dialog open={publicationLimitsDialogOpen} onOpenChange={(open) => {
@@ -3425,6 +3761,158 @@ const Admin = () => {
             <DialogFooter>
               <Button variant="outline" onClick={() => setPackageDialogOpen(false)}>Cancelar</Button>
               <Button onClick={handleUpdatePackage}>Guardar Cambios</Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+
+        <Dialog
+          open={editServiceDialogOpen}
+          onOpenChange={(open) => {
+            if (savingServiceEdit) return;
+            setEditServiceDialogOpen(open);
+            if (!open) {
+              setEditingService(null);
+              setNewServiceImages([]);
+            }
+          }}
+        >
+          <DialogContent className="sm:max-w-2xl max-h-[90vh] overflow-y-auto">
+            <DialogHeader>
+              <DialogTitle>Editar servicio</DialogTitle>
+              <DialogDescription>
+                Modifica nombre, descripcion, comuna, telefono, precio, estado y fotos del servicio.
+              </DialogDescription>
+            </DialogHeader>
+            <div className="space-y-4 pt-2">
+              <div>
+                <Label>Nombre del servicio</Label>
+                <Input
+                  value={serviceEditForm.service_name}
+                  onChange={(e) => setServiceEditForm((prev) => ({ ...prev, service_name: e.target.value }))}
+                  placeholder="Ej: Gasfiteria 24/7"
+                  disabled={savingServiceEdit}
+                />
+              </div>
+              <div>
+                <Label>Descripcion</Label>
+                <Textarea
+                  value={serviceEditForm.description}
+                  onChange={(e) => setServiceEditForm((prev) => ({ ...prev, description: e.target.value }))}
+                  rows={4}
+                  disabled={savingServiceEdit}
+                />
+              </div>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div>
+                  <Label>Comuna</Label>
+                  <Input
+                    value={serviceEditForm.comuna}
+                    onChange={(e) => setServiceEditForm((prev) => ({ ...prev, comuna: e.target.value }))}
+                    disabled={savingServiceEdit}
+                  />
+                </div>
+                <div>
+                  <Label>Telefono</Label>
+                  <Input
+                    value={serviceEditForm.phone}
+                    onChange={(e) => setServiceEditForm((prev) => ({ ...prev, phone: e.target.value }))}
+                    placeholder="+56 9 1234 5678"
+                    disabled={savingServiceEdit}
+                  />
+                </div>
+              </div>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div>
+                  <Label>Precio referencial</Label>
+                  <Input
+                    value={serviceEditForm.price_range}
+                    onChange={(e) => setServiceEditForm((prev) => ({ ...prev, price_range: e.target.value }))}
+                    placeholder="Desde $20.000"
+                    disabled={savingServiceEdit}
+                  />
+                </div>
+                <div>
+                  <Label>Estado</Label>
+                  <Select
+                    value={serviceEditForm.status}
+                    onValueChange={(value) => setServiceEditForm((prev) => ({ ...prev, status: value }))}
+                    disabled={savingServiceEdit}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Estado" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="active">Activo</SelectItem>
+                      <SelectItem value="inactive">Inactivo</SelectItem>
+                      <SelectItem value="suspended">Suspendido</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <Label>Fotos actuales</Label>
+                {serviceEditImages.length === 0 ? (
+                  <p className="text-sm text-muted-foreground">Este servicio no tiene fotos guardadas.</p>
+                ) : (
+                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                    {serviceEditImages.map((url) => (
+                      <div key={url} className="relative rounded-lg overflow-hidden border">
+                        <img src={url} alt="service" className="w-full h-24 object-cover" />
+                        <Button
+                          type="button"
+                          variant="destructive"
+                          size="icon"
+                          className="absolute top-1 right-1 h-7 w-7"
+                          onClick={() => setServiceEditImages((prev) => prev.filter((x) => x !== url))}
+                          disabled={savingServiceEdit}
+                        >
+                          <X size={14} />
+                        </Button>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="admin-service-images">Agregar fotos nuevas (maximo 5)</Label>
+                <Input
+                  id="admin-service-images"
+                  type="file"
+                  accept="image/*"
+                  multiple
+                  disabled={savingServiceEdit}
+                  onChange={(e) => {
+                    const files = Array.from(e.target.files || []).slice(0, 5);
+                    setNewServiceImages(files);
+                  }}
+                />
+                {newServiceImages.length > 0 && (
+                  <p className="text-xs text-muted-foreground">
+                    {newServiceImages.length} archivo(s) listo(s) para subir.
+                  </p>
+                )}
+              </div>
+            </div>
+            <DialogFooter>
+              <Button
+                variant="outline"
+                onClick={() => setEditServiceDialogOpen(false)}
+                disabled={savingServiceEdit}
+              >
+                Cancelar
+              </Button>
+              <Button onClick={handleSaveServiceEdit} disabled={savingServiceEdit}>
+                {savingServiceEdit ? (
+                  <>
+                    <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                    Guardando...
+                  </>
+                ) : (
+                  'Guardar cambios'
+                )}
+              </Button>
             </DialogFooter>
           </DialogContent>
         </Dialog>

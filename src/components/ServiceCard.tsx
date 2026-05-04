@@ -34,6 +34,8 @@ interface Service {
     type_color?: string;
     idicon?: string;
     provider_kyc_status?: string;
+    /** Galería pública (solo en detalle completo, no en la tarjeta) */
+    image_urls?: string[];
 }
 
 interface ServiceCardProps {
@@ -58,7 +60,6 @@ export const ServiceCard = memo(({
     onEdit,
     onDelete
 }: ServiceCardProps) => {
-
     return (
         <Card
             id={`service-${service.id}`}
@@ -77,7 +78,7 @@ export const ServiceCard = memo(({
                                 </div>
                             </AvatarFallback>
                         </Avatar>
-                        {service.reviews_count && service.reviews_count > 5 && (
+                        {Number(service.reviews_count) > 5 && (
                             <div className="absolute -bottom-1 -right-1 bg-yellow-500 text-white p-1 rounded-full shadow-lg border border-white">
                                 <Sparkles size={10} className="fill-white" />
                             </div>
@@ -127,7 +128,7 @@ export const ServiceCard = memo(({
                                 <span className="text-[11px] sm:text-xs font-bold truncate">{getServiceRegionNameOnly(service) || '—'}</span>
                                 {service.coverage_communes && service.coverage_communes.length > 0 && (
                                     <span className="text-[8px] sm:text-[9px] text-secondary font-black uppercase tracking-tighter">
-                                        + {service.coverage_communes.length} comunas (histórico)
+                                        + {service.coverage_communes.length} comunas
                                     </span>
                                 )}
                             </div>

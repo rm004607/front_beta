@@ -40,11 +40,26 @@ async function request<T>(
     ...options.headers,
   };
 
-  const response = await fetch(`${API_BASE_URL}${endpoint}`, {
-    ...options,
-    headers,
-    credentials: 'include', // Incluir cookies en todas las peticiones (requiere CORS configurado correctamente)
-  });
+  let response: Response;
+  try {
+    response = await fetch(`${API_BASE_URL}${endpoint}`, {
+      ...options,
+      headers,
+      credentials: 'include', // Incluir cookies en todas las peticiones (requiere CORS configurado correctamente)
+    });
+  } catch (error) {
+    // Error de red/CORS/DNS/SSL (no hubo respuesta HTTP)
+    const networkError = new Error(
+      'No pudimos conectar con el servidor. Revisa tu conexión e inténtalo nuevamente.'
+    ) as Error & { status?: number; code?: string; cause?: unknown };
+    networkError.status = 0;
+    networkError.code = 'NETWORK_ERROR';
+    networkError.cause = error;
+    if (import.meta.env.DEV) {
+      console.error('Network error calling API:', { endpoint, error });
+    }
+    throw networkError;
+  }
 
   if (!response.ok) {
     // Intentar parsear el error, pero si falla, usar un error genérico
@@ -359,6 +374,8 @@ export const servicesAPI = {
     service_type_id?: string;
     page?: number;
     limit?: number;
+    /** Si el backend lo implementa: orden global antes de paginar (p. ej. rating). */
+    sort?: string;
   }) => {
     const params = new URLSearchParams();
     if (filters?.search) params.append('search', filters.search);
@@ -367,6 +384,7 @@ export const servicesAPI = {
     if (filters?.service_type_id) params.append('service_type_id', filters.service_type_id);
     if (filters?.page) params.append('page', filters.page.toString());
     if (filters?.limit) params.append('limit', filters.limit.toString());
+    if (filters?.sort) params.append('sort', filters.sort);
 
     const queryString = params.toString();
     return request<{
@@ -391,6 +409,8 @@ export const servicesAPI = {
         type_icon?: string;
         type_color?: string;
         idicon?: string;
+        /** URLs públicas de galería (orden: primera = portada en listados) */
+        image_urls?: string[];
       }>;
       pagination: {
         page: number;
@@ -425,28 +445,71 @@ export const servicesAPI = {
         coverage_communes?: string[];
         service_type_ids?: string[];
         types?: Array<{ id: string; name?: string }>;
+        image_urls?: string[];
       };
     }>(`/services/${id}`, {
       method: 'GET',
     });
   },
 
-  // Crear servicio (solo emprendedores o super-admin)
-  createService: async (data: {
-    service_name: string;
-    description: string;
-    price_range?: string;
-    comuna: string;
-    phone?: string;
-    region_id?: string;
-    coverage_communes?: string[];
-    service_type_ids?: string[];
-    custom_service_name?: string;
-  }) => {
+  // Crear servicio (solo emprendedores o super-admin). Con imágenes: multipart (máx. 5 en cliente).
+  createService: async (
+    data: {
+      service_name: string;
+      description: string;
+      price_range?: string;
+      comuna: string;
+      phone?: string;
+      region_id?: string;
+      coverage_communes?: string[];
+      service_type_ids?: string[];
+      custom_service_name?: string;
+      /** Nombre público del prestador (p. ej. alta en nombre de tercero no registrado). Lo consume el backend si está implementado. */
+      provider_display_name?: string;
+    },
+    options?: { images?: File[] }
+  ) => {
     const payload = normalizeCommuneFields({
       ...data,
       ...(data.region_id != null ? { region_id: String(data.region_id) } : {}),
     });
+    const images = (options?.images || []).filter(Boolean).slice(0, 5);
+
+    if (images.length > 0) {
+      const fd = new FormData();
+      fd.append('service_name', payload.service_name);
+      fd.append('description', payload.description);
+      fd.append('comuna', payload.comuna);
+      if (payload.phone) fd.append('phone', payload.phone);
+      if (payload.region_id != null && payload.region_id !== '') {
+        fd.append('region_id', String(payload.region_id));
+      }
+      if (payload.price_range) fd.append('price_range', payload.price_range);
+      fd.append('coverage_communes', JSON.stringify(payload.coverage_communes ?? []));
+      fd.append('service_type_ids', JSON.stringify(payload.service_type_ids ?? []));
+      if (payload.custom_service_name) fd.append('custom_service_name', payload.custom_service_name);
+      if (payload.provider_display_name?.trim()) {
+        fd.append('provider_display_name', payload.provider_display_name.trim());
+      }
+      for (const file of images) {
+        fd.append('images', file);
+      }
+      return request<{
+        message: string;
+        service: {
+          id: string;
+          service_name: string;
+          user_name: string;
+          comuna: string;
+          created_by_admin: boolean;
+          image_urls?: string[];
+        };
+      }>('/services', {
+        method: 'POST',
+        body: fd,
+      });
+    }
+
     return request<{
       message: string;
       service: {
@@ -455,6 +518,7 @@ export const servicesAPI = {
         user_name: string;
         comuna: string;
         created_by_admin: boolean;
+        image_urls?: string[];
       };
     }>('/services', {
       method: 'POST',
@@ -483,6 +547,7 @@ export const servicesAPI = {
         region_name?: string;
         offer_region?: { id: string; name: string } | null;
         coverage_communes?: string[];
+        image_urls?: string[];
       }>;
       stats: {
         total: number;
@@ -517,6 +582,57 @@ export const servicesAPI = {
     });
   },
 
+  // Actualizar servicio con imágenes (usa multipart/form-data)
+  updateServiceWithImages: async (
+    id: string,
+    data: {
+      service_name?: string;
+      description?: string;
+      price_range?: string;
+      comuna?: string;
+      phone?: string;
+      region_id?: string;
+      coverage_communes?: string[];
+      service_type_ids?: string[];
+      status?: 'active' | 'inactive' | 'suspended';
+      keep_image_urls?: string[];
+    },
+    options?: { images?: File[] }
+  ) => {
+    const payload = normalizeCommuneFields({
+      ...data,
+      ...(data.region_id != null ? { region_id: String(data.region_id) } : {}),
+    });
+
+    const fd = new FormData();
+    if (payload.service_name != null) fd.append('service_name', payload.service_name);
+    if (payload.description != null) fd.append('description', payload.description);
+    if (payload.price_range != null) fd.append('price_range', payload.price_range);
+    if (payload.comuna != null) fd.append('comuna', payload.comuna);
+    if (payload.phone != null) fd.append('phone', payload.phone);
+    if (payload.region_id != null) fd.append('region_id', String(payload.region_id));
+    if (payload.status != null) fd.append('status', payload.status);
+    if (payload.coverage_communes != null) {
+      fd.append('coverage_communes', JSON.stringify(payload.coverage_communes));
+    }
+    if (payload.service_type_ids != null) {
+      fd.append('service_type_ids', JSON.stringify(payload.service_type_ids));
+    }
+    if (payload.keep_image_urls != null) {
+      fd.append('keep_image_urls', JSON.stringify(payload.keep_image_urls));
+    }
+
+    const images = (options?.images || []).filter(Boolean).slice(0, 5);
+    for (const file of images) {
+      fd.append('images', file);
+    }
+
+    return request<{ message: string; service?: any }>(`/services/${id}`, {
+      method: 'PUT',
+      body: fd,
+    });
+  },
+
   // Eliminar servicio (solo emprendedores o super-admin)
   deleteService: async (id: string) => {
     return request<{ message: string }>(`/services/${id}`, {
@@ -525,7 +641,7 @@ export const servicesAPI = {
   },
 
   // Obtener tipos de servicios (catálogo estructurado)
-  getServiceTypes: async (filters?: { onlyActive?: boolean }) => {
+  getServiceTypes: async (filters?: { onlyActive?: boolean; fresh?: boolean }) => {
     const params = new URLSearchParams();
     if (filters?.onlyActive) params.append('onlyActive', 'true');
     const queryString = params.toString();
@@ -537,9 +653,12 @@ export const servicesAPI = {
         description?: string;
         icon?: string;
         color?: string;
+        is_active?: boolean;
+        created_at?: string;
       }>;
     }>(`/services/types${queryString ? `?${queryString}` : ''}`, {
       method: 'GET',
+      ...(filters?.fresh ? { cache: 'no-store' as RequestCache } : {}),
     });
   },
 
@@ -924,6 +1043,9 @@ export const adminAPI = {
         user_id: string;
         user_name: string;
         user_email: string;
+        image_urls?: string[];
+        average_rating?: number;
+        reviews_count?: number;
         /** Si el backend lo envía, el conteo por categoría es más preciso que por nombre */
         service_type_ids?: string[];
       }>;
@@ -1228,10 +1350,24 @@ export const adminAPI = {
         /** Si el backend los expone (marketplace) */
         total_products?: number;
         active_products?: number;
+        whatsapp_button_interactions?: number;
+        total_reviews?: number;
+        service_reviews_count?: number;
+        product_reviews_count?: number;
         total_users?: number;
         active_users?: number;
         banned_users?: number;
         total_companies?: number;
+        featured_services?: Array<{
+          service_name?: string;
+          avg_rating?: number;
+          review_count?: number;
+          good_reviews_count?: number;
+          featured_score?: number;
+        }>;
+        featured_services_criteria?: {
+          description_es?: string;
+        };
       };
     }>('/admin/stats', {
       method: 'GET',
@@ -1454,6 +1590,11 @@ export const flowAPI = {
       publicationsAdded: number;
       targetName?: string;
       targetPhone?: string;
+      /** Si el backend las envía, para tracking POST /api/support/track-whatsapp */
+      serviceId?: string;
+      productId?: string;
+      targetUserId?: string;
+      userId?: string;
       createdAt: string;
       completedAt: string | null;
     }>(`/api/flow/payment/${token}`, {
@@ -1595,6 +1736,14 @@ export const supportAPI = {
     });
   },
 
+  /** Registra clic en WhatsApp (servicio, producto o usuario). No bloquear UX si falla. */
+  trackWhatsApp: async (data: { serviceId?: string; productId?: string; userId?: string }) => {
+    return request<{ ok?: boolean; message?: string }>('/api/support/track-whatsapp', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    });
+  },
+
   getMyTickets: async () => {
     return request<{
       tickets: Array<{
@@ -1653,6 +1802,11 @@ export const publicProfileAPI = {
       }>;
     }>(`/perfil/${id}/${slug}`, { method: 'GET', skipAuth: true });
   },
+};
+
+/** Fire-and-forget: no bloquea la apertura de WhatsApp si el backend falla. */
+export const trackWhatsAppInteraction = (payload: { serviceId?: string; productId?: string; userId?: string }) => {
+  void supportAPI.trackWhatsApp(payload).catch(() => {});
 };
 
 // API de IA y recomendaciones
