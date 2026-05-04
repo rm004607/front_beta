@@ -74,7 +74,7 @@ export const ServiceCard = memo(({
                                 </div>
                             </AvatarFallback>
                         </Avatar>
-                        {service.reviews_count && service.reviews_count > 5 && (
+                        {Number(service.reviews_count) > 5 && (
                             <div className="absolute -bottom-1 -right-1 bg-yellow-500 text-white p-1 rounded-full shadow-lg border border-white">
                                 <Sparkles size={10} className="fill-white" />
                             </div>
