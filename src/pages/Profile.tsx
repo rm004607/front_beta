@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
-import { useQueryClient } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -90,8 +90,6 @@ const Profile = () => {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const [searchParams, setSearchParams] = useSearchParams();
-  const [services, setServices] = useState<Service[]>([]);
-  const [loadingServices, setLoadingServices] = useState(false);
   const [isSavingLocation, setIsSavingLocation] = useState(false);
   const [locationDialogOpen, setLocationDialogOpen] = useState(false);
   const [locRegion, setLocRegion] = useState('');
@@ -139,19 +137,31 @@ const Profile = () => {
   const [completeCommunesError, setCompleteCommunesError] = useState<string | null>(null);
   const [completeCommunesRetryKey, setCompleteCommunesRetryKey] = useState(0);
 
-  const loadServices = async () => {
-    try {
-      setLoadingServices(true);
-      const response = await servicesAPI.getMyServices();
-      setServices(response.services || []);
-    } catch (error: any) {
-      console.error('Error loading services:', error);
-      toast.error(error.message || 'Error al cargar servicios');
-    } finally {
-      setLoadingServices(false);
-    }
-  };
+  const shouldLoadMyServices =
+    !!user &&
+    isLoggedIn &&
+    (user.roles.includes('entrepreneur') || user.roles.includes('admin') || user.role_number === 5);
 
+  const myServicesQuery = useQuery({
+    queryKey: ['my-services', user?.id ?? ''],
+    queryFn: async (): Promise<Service[]> => {
+      try {
+        const response = await servicesAPI.getMyServices();
+        return (response.services || []) as Service[];
+      } catch (error: any) {
+        console.error('Error loading services:', error);
+        toast.error(error.message || 'Error al cargar servicios');
+        return [];
+      }
+    },
+    enabled: shouldLoadMyServices,
+    staleTime: 60_000,
+    gcTime: 10 * 60 * 1000,
+    retry: false,
+  });
+
+  const services = myServicesQuery.data ?? [];
+  const loadingServices = myServicesQuery.isLoading;
 
   const handleDeleteService = async (serviceId: string) => {
     if (!confirm('¿Estás seguro de que quieres eliminar este servicio?')) {
@@ -161,7 +171,7 @@ const Profile = () => {
     try {
       await servicesAPI.deleteService(serviceId);
       toast.success('Servicio eliminado');
-      loadServices();
+      void queryClient.invalidateQueries({ queryKey: ['my-services'] });
     } catch (error: any) {
       console.error('Error deleting service:', error);
       toast.error(error.message || 'Error al eliminar servicio');
@@ -319,7 +329,7 @@ const Profile = () => {
       toast.success(successMsg);
       setEditingService(null);
       invalidateServicesListQueries(queryClient);
-      loadServices();
+      void queryClient.invalidateQueries({ queryKey: ['my-services'] });
     } catch (error: any) {
       console.error('Error updating service:', error);
       toast.error(error.message || 'Error al actualizar servicio');
@@ -663,16 +673,6 @@ const Profile = () => {
   }, [searchParams, hasMissingFields, user, setSearchParams]);
 
   /* Manejo de query param CV removido */
-
-  // Cargar datos cuando el usuario esté disponible
-  useEffect(() => {
-    if (user && isLoggedIn) {
-      if (user.roles.includes('entrepreneur') || user.roles.includes('admin') || user.role_number === 5) {
-        loadServices();
-      }
-    }
-     
-  }, [user, isLoggedIn]);
 
   /* Notificación de CV removida */
 

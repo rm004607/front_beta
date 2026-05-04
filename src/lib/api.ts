@@ -143,6 +143,27 @@ async function request<T>(
   return response.json();
 }
 
+/**
+ * Campos de cobertura que el backend puede enviar en cada **servicio** (listado, GET por id,
+ * perfil público, etc.).
+ *
+ * **`coverage_full_region: true` (recomendado):** el front muestra “Toda la {región}” sin
+ * inferir desde listas. Debe calcularse en el servidor cuando, al publicar/editar, la lista
+ * de comunas de cobertura sea **exactamente** el catálogo oficial de esa `region_id` (misma
+ * tabla que usa la validación de POST /services).
+ *
+ * **`coverage_communes`:** array de nombres de comuna (strings). Si no mandan el boolean, el
+ * front intenta comparar contra un catálogo estático local y **puede fallar** si los nombres
+ * o el recuento no coinciden con el backend.
+ *
+ * Para el texto de región hace falta **`region_name`** y/o **`offer_region.name`** (y
+ * preferiblemente `region_id` / `offer_region.id` alineados con `GET /api/regions`).
+ */
+export type ServiceCoverageApiFields = {
+  coverage_communes?: string[];
+  coverage_full_region?: boolean;
+};
+
 /** Catálogo de regiones/comunas (misma fuente que valida POST /services en el backend). */
 export const regionsAPI = {
   getRegions: async () =>
@@ -397,7 +418,6 @@ export const servicesAPI = {
         region_id?: string;
         region_name?: string;
         offer_region?: { id: string; name: string } | null;
-        coverage_communes?: string[];
         phone?: string;
         status: string;
         created_at: string;
@@ -411,7 +431,7 @@ export const servicesAPI = {
         idicon?: string;
         /** URLs públicas de galería (orden: primera = portada en listados) */
         image_urls?: string[];
-      }>;
+      } & ServiceCoverageApiFields>;
       pagination: {
         page: number;
         limit: number;
@@ -442,11 +462,10 @@ export const servicesAPI = {
         region_id?: string;
         region_name?: string;
         offer_region?: { id: string; name: string } | null;
-        coverage_communes?: string[];
         service_type_ids?: string[];
         types?: Array<{ id: string; name?: string }>;
         image_urls?: string[];
-      };
+      } & ServiceCoverageApiFields;
     }>(`/services/${id}`, {
       method: 'GET',
     });
@@ -1782,6 +1801,7 @@ export const publicProfileAPI = {
         comuna: string;
         region_id?: string;
         region_name?: string;
+        offer_region?: { id: string; name: string } | null;
         cover_image_url?: string | null;
         images_count?: number;
         display_name?: string;
@@ -1789,7 +1809,7 @@ export const publicProfileAPI = {
         reviews_count?: string | number;
         service_types?: Array<{ id: string; name: string; icon: string; color: string }>;
         image_urls?: string[];
-      }>;
+      } & ServiceCoverageApiFields>;
       products: Array<{
         id: string;
         title: string;

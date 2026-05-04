@@ -24,6 +24,8 @@ export interface ServiceForDetail {
   average_rating?: number;
   reviews_count?: number;
   coverage_communes?: string[];
+  /** Enviado por el API cuando la cobertura es el 100 % de la región de oferta. */
+  coverage_full_region?: boolean;
   type_name?: string;
   type_icon?: string;
   type_color?: string;

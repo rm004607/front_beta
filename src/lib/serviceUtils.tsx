@@ -321,6 +321,99 @@ export function getServiceRegionNameOnly(service: {
   return '';
 }
 
+function stripAccentsLower(s: string): string {
+  return s.normalize('NFD').replace(/\p{M}/gu, '').toLowerCase().replace(/\s+/g, ' ').trim();
+}
+
+/** Aplana `coverage_communes` por si el backend envía un array, un JSON string o un string separado por comas. */
+function normalizeCoverageCommunesList(raw: string[] | string | undefined | null): string[] {
+  if (raw == null) return [];
+  if (typeof raw === 'string') {
+    const t = raw.trim();
+    if (!t) return [];
+    try {
+      const parsed = JSON.parse(t) as unknown;
+      if (Array.isArray(parsed)) {
+        return parsed.map((x) => String(x ?? '').trim()).filter(Boolean);
+      }
+    } catch {
+      /* no es JSON */
+    }
+    return t
+      .split(/[,;|]/)
+      .map((s) => s.trim())
+      .filter(Boolean);
+  }
+  if (!Array.isArray(raw)) return [];
+  const out: string[] = [];
+  for (const entry of raw) {
+    if (entry == null) continue;
+    let s = String(entry).trim();
+    if (!s) continue;
+    if ((s.startsWith('[') && s.endsWith(']')) || (s.startsWith('["') && s.endsWith('"]'))) {
+      try {
+        const parsed = JSON.parse(s) as unknown;
+        if (Array.isArray(parsed)) {
+          for (const x of parsed) {
+            const t = String(x ?? '').trim();
+            if (t) out.push(t);
+          }
+          continue;
+        }
+      } catch {
+        /* seguir como texto simple */
+      }
+    }
+    out.push(s);
+  }
+  return out;
+}
+
+/**
+ * Igual que `communesMatch` y tolera guiones/apóstrofos y subcadenas solo si ambas son largas
+ * (evita confusiones tipo "Lo" ↔ "Lo Prado").
+ */
+function communeNameMatchesCatalog(catalogName: string, poolName: string): boolean {
+  if (communesMatch(catalogName, poolName)) return true;
+  const a = stripAccentsLower(catalogName).replace(/['.]/g, '').replace(/\s+/g, ' ');
+  const b = stripAccentsLower(poolName).replace(/['.]/g, '').replace(/\s+/g, ' ');
+  if (a === b) return true;
+  const minL = Math.min(a.length, b.length);
+  if (minL >= 6 && (a.includes(b) || b.includes(a))) return true;
+  return false;
+}
+
+/**
+ * Fila de `chileData` para la región de oferta: por id numérico de catálogo y, si no calza,
+ * por nombre de región (p. ej. API con id distinto a "13" pero `region_name` = RM).
+ */
+function findChileDataRegionRowForLocation(service: {
+  offer_region?: { id?: string; name?: string } | null;
+  region_id?: string | number;
+  region_name?: string | null;
+}) {
+  const idCandidates = [service.offer_region?.id, service.region_id].filter(
+    (x) => x != null && String(x).trim() !== '',
+  );
+  for (const id of idCandidates) {
+    const row = chileData.find((r) => String(r.id) === String(id).trim());
+    if (row) return row;
+  }
+
+  const label = (service.offer_region?.name || service.region_name || '').trim();
+  if (!label) return undefined;
+  const n = stripAccentsLower(label);
+  if (n.includes('metropolitana')) {
+    const rm = chileData.find((r) => r.id === '13');
+    if (rm) return rm;
+  }
+  for (const r of chileData) {
+    const rn = stripAccentsLower(r.name);
+    if (rn === n || n.includes(rn) || rn.includes(n)) return r;
+  }
+  return undefined;
+}
+
 /**
  * True si `coverage_communes` cubre todas las comunas del catálogo local (`chileData`) para la
  * región de oferta. Así evitamos mostrar solo la primera comuna del listado (p. ej. Alhué en RM)
@@ -328,29 +421,24 @@ export function getServiceRegionNameOnly(service: {
  */
 function serviceCoversFullRegionCatalog(service: {
   comuna?: string;
-  coverage_communes?: string[];
+  coverage_communes?: string[] | string;
   offer_region?: { id?: string; name?: string } | null;
   region_id?: string | number;
+  region_name?: string | null;
 }): boolean {
-  const coverage = (service.coverage_communes ?? []).map((c) => (c || '').trim()).filter(Boolean);
+  const coverage = normalizeCoverageCommunesList(service.coverage_communes);
   if (coverage.length === 0) return false;
 
-  const rid =
-    service.offer_region?.id != null && String(service.offer_region.id).trim() !== ''
-      ? String(service.offer_region.id).trim()
-      : service.region_id != null && String(service.region_id) !== ''
-        ? String(service.region_id).trim()
-        : '';
-  if (!rid) return false;
-
-  const regionRow = chileData.find((r) => String(r.id) === String(rid));
+  const regionRow = findChileDataRegionRowForLocation(service);
   const catalog = regionRow?.communes;
   if (!catalog?.length) return false;
 
   const pool = [...coverage, (service.comuna || '').trim()].filter(Boolean);
-  if (pool.length < catalog.length) return false;
 
-  return catalog.every((cat) => pool.some((p) => communesMatch(cat, p)));
+  const matchedCount = catalog.filter((cat) =>
+    pool.some((p) => communeNameMatchesCatalog(cat, p)),
+  ).length;
+  return matchedCount === catalog.length;
 }
 
 /**
@@ -360,14 +448,21 @@ function serviceCoversFullRegionCatalog(service: {
  */
 export function getServiceLocationDisplay(service: {
   comuna?: string;
-  coverage_communes?: string[];
+  coverage_communes?: string[] | string;
+  /** Si el backend lo envía en `true`, se muestra “Toda la {región}” (ver `ServiceCoverageApiFields` en api.ts). */
+  coverage_full_region?: boolean;
   offer_region?: { id?: string; name?: string } | null;
   region_name?: string | null;
   region_id?: string | number;
 }): string {
-  if (serviceCoversFullRegionCatalog(service)) {
+  const showTodaLaRegion =
+    service.coverage_full_region === true || serviceCoversFullRegionCatalog(service);
+  if (showTodaLaRegion) {
     const regionName = getServiceRegionNameOnly(service);
     if (regionName) return `Toda la ${regionName}`;
+    const row = findChileDataRegionRowForLocation(service);
+    if (row?.name) return `Toda la ${row.name}`;
+    return 'Toda la región';
   }
 
   const comuna = (service.comuna || '').trim();
