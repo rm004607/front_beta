@@ -313,53 +313,59 @@ const Home = () => {
         </div>
 
         <div className="container mx-auto px-3 xs:px-4 sm:px-4 relative z-10">
-            <div className="flex flex-col items-center text-center space-y-5 sm:space-y-8 max-w-3xl mx-auto">
-              {/* Logo */}
-              <div className="flex justify-center mb-2 sm:mb-4">
-                <img
-                  src={logoFull}
-                  alt="Dameldato"
-                  className="h-14 xs:h-20 sm:h-32 md:h-40 w-auto max-w-[85vw] object-contain animate-reveal drop-shadow-lg"
-                />
+            <div className="flex flex-col items-center max-w-3xl mx-auto gap-5 sm:gap-8 lg:max-w-6xl">
+              <div className="grid w-full grid-cols-1 gap-5 sm:gap-8 lg:grid-cols-2 lg:items-center lg:gap-10 xl:gap-14">
+                {/* Izquierda (PC): marca, badge, titular — móvil: orden actual centrado */}
+                <div className="flex flex-col items-center text-center space-y-5 sm:space-y-8 lg:items-start lg:text-left">
+                  <div className="flex justify-center mb-2 sm:mb-4 lg:justify-start w-full">
+                    <img
+                      src={logoFull}
+                      alt="Dameldato"
+                      className="h-14 xs:h-20 sm:h-32 md:h-40 w-auto max-w-[85vw] object-contain animate-reveal drop-shadow-lg"
+                    />
+                  </div>
+
+                  <div className="inline-flex items-center gap-2 px-3 py-2 xs:px-4 xs:py-2.5 rounded-xl bg-sky-100 border border-sky-200/80 text-primary text-xs xs:text-sm font-semibold animate-reveal">
+                    <ShieldCheck size={14} className="xs:w-4 xs:h-4 shrink-0" />
+                    <span className="truncate">{t('hero.verified_community')}</span>
+                  </div>
+
+                  <h1 className="text-2xl xs:text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-sans font-extrabold leading-[1.2] tracking-tight animate-reveal delay-100 break-words">
+                    {t('hero.title_part1')}{' '}
+                    <span className="text-primary text-glow">{t('hero.title_part2')}</span>
+                  </h1>
+
+                  <p className="text-muted-foreground font-medium text-sm xs:text-base sm:text-lg md:text-xl animate-reveal delay-200 leading-relaxed max-w-xl mx-auto lg:mx-0">
+                    La mejor plataforma para contactar talentos independientes en tu zona.
+                  </p>
+                </div>
+
+                {/* Derecha (PC): solo buscador */}
+                <div className="flex w-full justify-center lg:justify-end lg:min-w-0">
+                  <form
+                    onSubmit={handleHeroSearch}
+                    className="flex w-full max-w-2xl items-center gap-2 rounded-2xl border-2 border-border bg-white px-5 py-3.5 shadow-xl animate-reveal delay-250 lg:max-w-md xl:max-w-lg"
+                  >
+                    <Search size={20} className="text-muted-foreground shrink-0" />
+                    <input
+                      type="search"
+                      enterKeyHint="search"
+                      placeholder="¿Qué servicio necesitas?"
+                      value={heroSearch}
+                      onChange={(e) => setHeroSearch(e.target.value)}
+                      className="min-w-0 flex-1 bg-transparent py-1 text-base text-foreground outline-none placeholder:text-muted-foreground"
+                    />
+                    <button
+                      type="submit"
+                      className="shrink-0 rounded-xl bg-primary px-5 py-2.5 text-sm font-bold text-white transition-colors hover:bg-primary/90"
+                    >
+                      Buscar
+                    </button>
+                  </form>
+                </div>
               </div>
 
-              <div className="inline-flex items-center gap-2 px-3 py-2 xs:px-4 xs:py-2.5 rounded-xl bg-sky-100 border border-sky-200/80 text-primary text-xs xs:text-sm font-semibold animate-reveal">
-                <ShieldCheck size={14} className="xs:w-4 xs:h-4 shrink-0" />
-                <span className="truncate">{t('hero.verified_community')}</span>
-              </div>
-
-              <h1 className="text-2xl xs:text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-sans font-extrabold leading-[1.2] tracking-tight animate-reveal delay-100 break-words">
-                {t('hero.title_part1')}{' '}
-                <span className="text-primary text-glow">{t('hero.title_part2')}</span>
-              </h1>
-
-              <p className="text-muted-foreground font-medium text-sm xs:text-base sm:text-lg md:text-xl animate-reveal delay-200 leading-relaxed max-w-xl mx-auto">
-                La mejor plataforma para contactar talentos independientes en tu zona.
-              </p>
-
-              {/* Buscador hero — prominente y centrado */}
-              <form
-                onSubmit={handleHeroSearch}
-                className="flex items-center gap-2 bg-white border-2 border-border shadow-xl rounded-2xl px-5 py-3.5 w-full max-w-2xl mx-auto animate-reveal delay-250"
-              >
-                <Search size={20} className="text-muted-foreground shrink-0" />
-                <input
-                  type="search"
-                  enterKeyHint="search"
-                  placeholder="¿Qué servicio necesitas?"
-                  value={heroSearch}
-                  onChange={(e) => setHeroSearch(e.target.value)}
-                  className="flex-1 bg-transparent outline-none text-base text-foreground placeholder:text-muted-foreground min-w-0 py-1"
-                />
-                <button
-                  type="submit"
-                  className="bg-primary hover:bg-primary/90 text-white text-sm font-bold px-5 py-2.5 rounded-xl transition-colors shrink-0"
-                >
-                  Buscar
-                </button>
-              </form>
-
-              <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center animate-reveal delay-300">
+              <div className="flex w-full flex-col justify-center gap-3 sm:flex-row sm:gap-4 animate-reveal delay-300">
                 {!isLoggedIn ? (
                   <Link to="/registro" className="w-full sm:w-auto">
                     <Button

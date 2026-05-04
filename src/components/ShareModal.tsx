@@ -1,11 +1,11 @@
 import { useState } from 'react';
-import { Copy, Check, X, MessageCircle, Mail, Facebook } from 'lucide-react';
+import { Copy, Check, X, MessageCircle } from 'lucide-react';
 import {
   Dialog,
   DialogContent,
   DialogTitle,
 } from '@/components/ui/dialog';
-import { Button } from '@/components/ui/button';
+import { cn } from '@/lib/utils';
 
 interface ShareModalProps {
   open: boolean;
@@ -14,14 +14,14 @@ interface ShareModalProps {
   title?: string;
 }
 
-const XIcon = () => (
-  <svg viewBox="0 0 24 24" className="w-4 h-4 fill-current" aria-hidden>
-    <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-4.714-6.231-5.401 6.231H2.747l7.73-8.835L1.254 2.25H8.08l4.259 5.63L18.244 2.25zm-1.161 17.52h1.833L7.084 4.126H5.117L17.083 19.77z" />
-  </svg>
-);
+const iconClass = 'h-[18px] w-[18px] shrink-0';
 
 export function ShareModal({ open, onClose, url, title = 'Compartir' }: ShareModalProps) {
   const [copied, setCopied] = useState(false);
+
+  const encodedUrl = encodeURIComponent(url);
+  const encodedTitle = encodeURIComponent(title);
+  const whatsappHref = `https://wa.me/?text=${encodedTitle}%20${encodedUrl}`;
 
   const handleCopy = async () => {
     try {
@@ -29,7 +29,6 @@ export function ShareModal({ open, onClose, url, title = 'Compartir' }: ShareMod
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
     } catch {
-      // fallback para navegadores sin clipboard API
       const el = document.createElement('textarea');
       el.value = url;
       document.body.appendChild(el);
@@ -41,82 +40,73 @@ export function ShareModal({ open, onClose, url, title = 'Compartir' }: ShareMod
     }
   };
 
-  const encodedUrl = encodeURIComponent(url);
-  const encodedTitle = encodeURIComponent(title);
-
-  const shareOptions = [
-    {
-      label: 'WhatsApp',
-      icon: MessageCircle,
-      href: `https://wa.me/?text=${encodedTitle}%20${encodedUrl}`,
-      className: 'bg-[#25D366] hover:bg-[#20ba59] text-white',
-    },
-    {
-      label: 'Facebook',
-      icon: Facebook,
-      href: `https://www.facebook.com/sharer/sharer.php?u=${encodedUrl}`,
-      className: 'bg-[#1877F2] hover:bg-[#1565d6] text-white',
-    },
-    {
-      label: 'X',
-      icon: XIcon,
-      href: `https://twitter.com/intent/tweet?text=${encodedTitle}&url=${encodedUrl}`,
-      className: 'bg-foreground hover:bg-foreground/80 text-background',
-    },
-    {
-      label: 'Email',
-      icon: Mail,
-      href: `mailto:?subject=${encodedTitle}&body=${encodedUrl}`,
-      className: 'bg-secondary hover:bg-secondary/90 text-secondary-foreground',
-    },
-  ];
-
   return (
     <Dialog open={open} onOpenChange={(v) => !v && onClose()}>
       <DialogContent
+        hideCloseButton
         aria-describedby={undefined}
-        className="w-[95vw] max-w-sm rounded-2xl p-6"
+        className="w-[min(100%,22rem)] sm:w-full max-w-md rounded-2xl border border-border/60 p-0 gap-0 shadow-xl overflow-hidden"
       >
-        <div className="flex items-center justify-between mb-5">
-          <DialogTitle className="text-base font-bold">{title}</DialogTitle>
-          <button
-            type="button"
-            onClick={onClose}
-            className="text-muted-foreground hover:text-foreground transition-colors"
-            aria-label="Cerrar"
-          >
-            <X size={18} />
-          </button>
+        <div className="px-5 pt-5 pb-4 border-b border-border/50 bg-muted/20">
+          <div className="flex items-start justify-between gap-3">
+            <DialogTitle className="text-left text-[15px] sm:text-base font-semibold leading-snug text-foreground pr-1">
+              {title}
+            </DialogTitle>
+            <button
+              type="button"
+              onClick={onClose}
+              className="shrink-0 rounded-lg p-1.5 text-muted-foreground hover:bg-muted hover:text-foreground transition-colors"
+              aria-label="Cerrar"
+            >
+              <X className="h-4 w-4" />
+            </button>
+          </div>
         </div>
 
-        {/* Link + Copy */}
-        <div className="flex items-center gap-2 bg-muted rounded-xl px-3 py-2.5 mb-5">
-          <span className="text-xs text-muted-foreground truncate flex-1 font-mono">{url}</span>
-          <button
-            type="button"
-            onClick={handleCopy}
-            className={`shrink-0 flex items-center gap-1.5 text-xs font-bold px-3 py-1.5 rounded-lg transition-all ${copied ? 'bg-secondary/15 text-secondary' : 'bg-primary/10 text-primary hover:bg-primary/20'}`}
-            aria-label="Copiar link"
-          >
-            {copied ? <Check size={14} /> : <Copy size={14} />}
-            {copied ? 'Copiado' : 'Copiar'}
-          </button>
-        </div>
+        <div className="p-5 space-y-5">
+          <div>
+            <p className="text-[11px] font-medium uppercase tracking-wide text-muted-foreground mb-2">
+              Enlace
+            </p>
+            <div className="flex flex-col gap-2 sm:flex-row sm:items-stretch rounded-xl border border-border bg-muted/40 p-1.5 sm:p-1">
+              <span className="text-[11px] sm:text-xs text-foreground/90 break-all leading-relaxed font-mono px-2 py-1.5 sm:flex-1 sm:min-w-0 sm:max-h-20 sm:overflow-y-auto">
+                {url}
+              </span>
+              <button
+                type="button"
+                onClick={handleCopy}
+                className={cn(
+                  'shrink-0 flex items-center justify-center gap-1.5 text-xs font-semibold px-3 py-2 rounded-lg transition-colors sm:self-stretch',
+                  copied
+                    ? 'bg-emerald-600/15 text-emerald-700 dark:text-emerald-400'
+                    : 'bg-primary text-primary-foreground hover:bg-primary/90',
+                )}
+                aria-label="Copiar enlace"
+              >
+                {copied ? <Check className="h-3.5 w-3.5" /> : <Copy className="h-3.5 w-3.5" />}
+                {copied ? 'Copiado' : 'Copiar'}
+              </button>
+            </div>
+          </div>
 
-        {/* Social share */}
-        <div className="grid grid-cols-2 gap-2.5">
-          {shareOptions.map((opt) => (
+          <div>
+            <p className="text-[11px] font-medium uppercase tracking-wide text-muted-foreground mb-2.5">
+              Compartir por
+            </p>
             <a
-              key={opt.label}
-              href={opt.href}
+              href={whatsappHref}
               target="_blank"
               rel="noopener noreferrer"
-              className={`flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl text-sm font-bold transition-all hover:opacity-90 active:scale-[0.97] ${opt.className}`}
+              className={cn(
+                'flex w-full items-center justify-center gap-2 min-h-[2.75rem] px-3 rounded-xl text-sm font-semibold transition-all',
+                'bg-[#25D366] hover:bg-[#20ba59] text-white shadow-sm',
+                'hover:brightness-105 active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2',
+              )}
             >
-              <opt.icon />
-              {opt.label}
+              <MessageCircle className={iconClass} strokeWidth={2.25} />
+              WhatsApp
             </a>
-          ))}
+          </div>
         </div>
       </DialogContent>
     </Dialog>

@@ -175,20 +175,10 @@ const PublicProfile = () => {
                 return (
                   <div
                     key={service.id}
-                    className="rounded-2xl border border-border bg-card p-4 shadow-sm lg:p-5 cursor-pointer hover:border-primary/40 hover:shadow-md transition-all"
+                    className="rounded-2xl border border-border bg-card p-4 shadow-sm lg:p-5 cursor-pointer hover:border-primary/40 hover:shadow-md transition-all flex flex-row gap-4 items-stretch"
                     onClick={() => setDetailService(toDetailService(service))}
                   >
-                    {/* Cover image si existe */}
-                    {service.cover_image_url && (
-                      <div className="mb-3 rounded-xl overflow-hidden h-36 w-full">
-                        <img
-                          src={service.cover_image_url}
-                          alt={service.service_name}
-                          className="w-full h-full object-cover"
-                        />
-                      </div>
-                    )}
-                    <div className="flex items-start gap-3">
+                    <div className="flex items-start gap-3 min-w-0 flex-1">
                       <div className="shrink-0 w-9 h-9 rounded-xl bg-primary/10 flex items-center justify-center text-primary">
                         {getServiceIcon(
                           service.service_name || primaryType?.name || '',
@@ -225,6 +215,15 @@ const PublicProfile = () => {
                         )}
                       </div>
                     </div>
+                    {service.cover_image_url && (
+                      <div className="shrink-0 w-[min(42%,9.5rem)] sm:w-44 lg:w-52 self-stretch min-h-[6.5rem] sm:min-h-[7.5rem] rounded-xl overflow-hidden bg-muted/30">
+                        <img
+                          src={service.cover_image_url}
+                          alt={service.service_name}
+                          className="w-full h-full min-h-[6.5rem] sm:min-h-[7.5rem] object-cover"
+                        />
+                      </div>
+                    )}
                   </div>
                 );
               })}
