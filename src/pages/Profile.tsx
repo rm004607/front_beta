@@ -25,8 +25,9 @@ import {
 import { Checkbox } from '@/components/ui/checkbox';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { useUser } from '@/contexts/UserContext';
-import { MapPin, Phone, Mail, Wrench, Building2, Trash2, FileText, Plus, Star, Users, ChevronRight, Loader2, X } from 'lucide-react';
-import { servicesAPI, authAPI, regionsAPI, adminAPI } from '@/lib/api';
+import { MapPin, Phone, Mail, Wrench, Building2, Trash2, FileText, Plus, Star, Users, ChevronRight, Loader2, X, Images } from 'lucide-react';
+import { servicesAPI, authAPI, regionsAPI, adminAPI, productsAPI } from '@/lib/api';
+import { ServicePhotoGallery } from '@/components/ServicePhotoGallery';
 import { toast } from 'sonner';
 import {
   validatePhone,
@@ -96,6 +97,7 @@ const Profile = () => {
   const [editPhoneValue, setEditPhoneValue] = useState('');
   const [isSavingPhone, setIsSavingPhone] = useState(false);
   const [showCompleteProfileDialog, setShowCompleteProfileDialog] = useState(false);
+  const [galleryServiceId, setGalleryServiceId] = useState<string | null>(null);
   const [completePhone, setCompletePhone] = useState('');
   const [completeRut, setCompleteRut] = useState('');
   const [completeComuna, setCompleteComuna] = useState('');
@@ -873,6 +875,15 @@ const Profile = () => {
                         <Button
                           variant="ghost"
                           size="sm"
+                          className="rounded-full text-muted-foreground -ml-2"
+                          onClick={() => setGalleryServiceId(service.id)}
+                        >
+                          <Images className="h-4 w-4 mr-1" />
+                          Galería
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="sm"
                           className="rounded-full text-destructive -ml-2"
                           onClick={() => handleDeleteService(service.id)}
                         >
@@ -886,6 +897,35 @@ const Profile = () => {
             )}
           </div>
         )}
+
+        {/* Modal Galería del servicio */}
+        <Dialog open={!!galleryServiceId} onOpenChange={(open) => !open && setGalleryServiceId(null)}>
+          <DialogContent aria-describedby={undefined} className="w-[95vw] max-w-2xl rounded-2xl p-6 max-h-[90vh] overflow-y-auto">
+            <DialogHeader>
+              <DialogTitle className="text-lg font-medium flex items-center gap-2">
+                <Images size={18} className="text-primary" />
+                Galería del servicio
+              </DialogTitle>
+            </DialogHeader>
+            {galleryServiceId && (
+              <ServicePhotoGallery
+                serviceId={galleryServiceId}
+                onUpload={async (serviceId, formData) => {
+                  await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:3000'}/api/admin/photos/bulk-upload?service_id=${serviceId}`, {
+                    method: 'POST',
+                    body: formData,
+                    credentials: 'include',
+                  }).then(async (res) => {
+                    if (!res.ok) {
+                      const err = await res.json().catch(() => ({}));
+                      throw new Error(err.error || `Error ${res.status}`);
+                    }
+                  });
+                }}
+              />
+            )}
+          </DialogContent>
+        </Dialog>
 
         <Dialog open={phoneDialogOpen} onOpenChange={setPhoneDialogOpen}>
           <DialogContent className="w-[95vw] sm:max-w-md rounded-2xl border shadow-lg">

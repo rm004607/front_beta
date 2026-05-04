@@ -3,6 +3,7 @@ import { Instagram, Linkedin, Mail, MapPin, HelpCircle } from 'lucide-react';
 import { useUser } from '@/contexts/UserContext';
 import { useTranslation } from 'react-i18next';
 import logoDameldato from '/logo_nombre.webp';
+import { VerifiedBadge } from '@/components/VerifiedBadge';
 
 const Footer = () => {
   const { user, isLoggedIn } = useUser();
@@ -135,6 +136,17 @@ const Footer = () => {
           </div>
         </div>
 
+        {/* Sello de verificación */}
+        <div className="mb-6 xs:mb-8 flex justify-center">
+          <Link
+            to="/verificacion"
+            className="inline-flex items-center gap-2.5 px-4 py-2.5 rounded-full border border-primary/20 bg-primary/5 hover:bg-primary/10 transition-colors"
+          >
+            <VerifiedBadge size="sm" variant="icon" />
+            <span className="text-xs font-semibold text-primary">Prestadores 100% verificados</span>
+          </Link>
+        </div>
+
         {/* Bottom Bar */}
         <div className="pt-6 xs:pt-8 border-t border-border flex flex-col md:flex-row justify-between items-center gap-3 xs:gap-4 text-center md:text-left">
           <p className="text-muted-foreground font-medium text-[11px] xs:text-xs order-2 md:order-1">
@@ -146,6 +158,9 @@ const Footer = () => {
             </Link>
             <Link to="/privacidad" className="text-[11px] xs:text-xs text-muted-foreground hover:text-primary transition-colors">
               {t('footer.privacy')}
+            </Link>
+            <Link to="/verificacion" className="text-[11px] xs:text-xs text-muted-foreground hover:text-primary transition-colors">
+              Verificación
             </Link>
           </div>
         </div>

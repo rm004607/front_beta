@@ -7,6 +7,7 @@ import { useUser } from '@/contexts/UserContext';
 import { useTranslation } from 'react-i18next';
 import Footer from '@/components/Footer';
 import ErrorBoundary from '@/components/ErrorBoundary';
+import { MobileBottomNav } from '@/components/MobileBottomNav';
 import logoDameldato from '/logo_nombre.webp';
 import faviconDameldato from '/logoico.webp';
 import {
@@ -22,14 +23,9 @@ interface LayoutProps {
 
 const Layout = ({ children }: LayoutProps) => {
   const { user, isLoggedIn, logout } = useUser();
-  const { t, i18n } = useTranslation();
+  const { t } = useTranslation();
   const location = useLocation();
   const hideChrome = location.pathname.startsWith('/verificacion-biometrica');
-
-  const toggleLanguage = () => {
-    const newLang = i18n.language === 'es' ? 'en' : 'es';
-    i18n.changeLanguage(newLang);
-  };
 
   const isActive = (path: string) => location.pathname === path;
 
@@ -75,15 +71,6 @@ const Layout = ({ children }: LayoutProps) => {
               </nav>
 
               <div className="flex items-center gap-2 sm:gap-3">
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={toggleLanguage}
-                  className="px-2 font-bold text-xs hover:bg-primary/10"
-                >
-                  {i18n.language === 'es' ? 'EN' : 'ES'}
-                </Button>
-
                 {/* Desktop auth/actions */}
                 <div className="hidden md:flex items-center gap-3">
                   {isLoggedIn ? (
@@ -242,8 +229,8 @@ const Layout = ({ children }: LayoutProps) => {
         </header>
       )}
 
-      {/* Main Content */}
-      <main className="flex-1">
+      {/* Main Content — padding bottom en mobile para el bottom nav */}
+      <main className="flex-1 pb-16 md:pb-0">
         <div key={location.pathname} className="animate-fade-in-up">
           {children}
         </div>
@@ -252,7 +239,8 @@ const Layout = ({ children }: LayoutProps) => {
       {/* Footer */}
       {!hideChrome && <Footer />}
 
-      {/* AI Chat Bubble */}
+      {/* Bottom nav mobile */}
+      {!hideChrome && <MobileBottomNav />}
 
     </div>
   );

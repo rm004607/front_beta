@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { MessageCircle, Star, ChevronRight } from 'lucide-react';
 import { formatProductPrice, getProductCoverImage, getProductStatusLabel, resolveProductDescription } from '@/lib/productUtils';
+import { VerifiedBadge } from '@/components/VerifiedBadge';
 
 export interface ProductCardItem {
   id: string;
@@ -19,6 +20,7 @@ export interface ProductCardItem {
   images?: Array<{ image_url: string; sort_order?: number }>;
   average_rating?: number;
   reviews_count?: number;
+  provider_kyc_status?: string;
 }
 
 interface ProductCardProps {
@@ -62,6 +64,10 @@ export const ProductCard = memo(function ProductCard({
         <div className="space-y-4">
           <div className="space-y-1.5">
             <p className="text-lg font-black line-clamp-1">{product.title}</p>
+            <div className="flex items-center gap-1.5 flex-wrap">
+              <p className="text-sm text-muted-foreground">Por {product.user_name}</p>
+              {product.provider_kyc_status === 'verified' && <VerifiedBadge size="sm" />}
+            </div>
             <p
               className="text-sm text-foreground/85 leading-snug line-clamp-3 min-h-[3.25rem]"
               title={descriptionPreview || undefined}

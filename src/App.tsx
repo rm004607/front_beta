@@ -23,6 +23,8 @@ import Terms from "./pages/Terms";
 import Privacy from "./pages/Privacy";
 import ComingSoon from "./pages/ComingSoon";
 import VerificacionBiometrica from "./pages/VerificacionBiometrica";
+import PublicProfile from "./pages/PublicProfile";
+import Verificacion from "./pages/Verificacion";
 import ScrollToTop from "./components/ScrollToTop";
 import { CountryGate } from "./components/CountryGate";
 
@@ -61,7 +63,9 @@ const App = () => {
                     <Route path="/productos" element={<Products />} />
                     <Route path="/productos/publicar" element={<PostProduct />} />
                     <Route path="/perfil" element={<Profile />} />
+                    <Route path="/perfil/:id/:slug" element={<PublicProfile />} />
                     <Route path="/verificacion-biometrica" element={<VerificacionBiometrica />} />
+                    <Route path="/verificacion" element={<Verificacion />} />
                     <Route path="/admin" element={<Admin />} />
                     <Route path="/ayuda" element={<Support />} />
                     <Route path="/flow/callback" element={<FlowCallback />} />

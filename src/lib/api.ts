@@ -104,6 +104,9 @@ async function request<T>(
       if ('code' in errorData && typeof errorData.code === 'string') {
         errorObj.code = errorData.code;
       }
+      if ('canonical' in errorData && typeof errorData.canonical === 'string') {
+        errorObj.canonical = errorData.canonical;
+      }
       // Asegurar que si el server manda un mensaje específico, se mantenga
       if ('error' in errorData && typeof errorData.error === 'string') {
         errorObj.message = errorData.error;
@@ -1607,6 +1610,48 @@ export const supportAPI = {
     }>('/api/support/tickets', {
       method: 'GET',
     });
+  },
+};
+
+// API de perfil público
+export const publicProfileAPI = {
+  getProfile: async (id: string, slug: string) => {
+    return request<{
+      user: {
+        id: string;
+        name: string;
+        profile_image?: string | null;
+        comuna: string;
+        slug: string;
+        isVerified: boolean;
+      };
+      services: Array<{
+        id: string;
+        service_name: string;
+        description: string;
+        price_range?: string | null;
+        comuna: string;
+        region_id?: string;
+        region_name?: string;
+        cover_image_url?: string | null;
+        images_count?: number;
+        display_name?: string;
+        average_rating?: string | number;
+        reviews_count?: string | number;
+        service_types?: Array<{ id: string; name: string; icon: string; color: string }>;
+        image_urls?: string[];
+      }>;
+      products: Array<{
+        id: string;
+        title: string;
+        description: string;
+        price?: number | null;
+        cover_image_url?: string | null;
+        product_status?: 'new' | 'used' | 'refurbished';
+        average_rating?: string | number;
+        reviews_count?: string | number;
+      }>;
+    }>(`/perfil/${id}/${slug}`, { method: 'GET', skipAuth: true });
   },
 };
 

@@ -2,11 +2,14 @@ import {
     Star, MapPin, MessageCircle, ChevronRight, Sparkles,
 } from 'lucide-react';
 import { memo } from 'react';
+import { Link } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { getServiceIcon, getServiceRegionNameOnly } from '@/lib/serviceUtils';
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
+import { VerifiedBadge, PendingVerificationBadge } from '@/components/VerifiedBadge';
+import { toSlug } from '@/pages/PublicProfile';
 
 interface Service {
     id: string;
@@ -30,6 +33,7 @@ interface Service {
     type_icon?: string;
     type_color?: string;
     idicon?: string;
+    provider_kyc_status?: string;
 }
 
 interface ServiceCardProps {
@@ -85,7 +89,17 @@ export const ServiceCard = memo(({
                                 {(!service.service_name || service.service_name.trim() === '' || service.service_name.trim() === '.') ? 'Servicio Destacado' : service.service_name}
                             </CardTitle>
                         </div>
-                        <p className="text-[11px] sm:text-sm text-muted-foreground font-bold truncate mt-0.5">Por {service.user_name}</p>
+                        <div className="flex items-center gap-1.5 mt-0.5 flex-wrap">
+                            <Link
+                                to={`/perfil/${service.user_id}/${toSlug(service.user_name)}`}
+                                className="text-[11px] sm:text-sm text-muted-foreground font-bold truncate hover:text-primary transition-colors"
+                                onClick={(e) => e.stopPropagation()}
+                            >
+                                Por {service.user_name}
+                            </Link>
+                            {service.provider_kyc_status === 'verified' && <VerifiedBadge />}
+                            {service.provider_kyc_status === 'pending' && <PendingVerificationBadge />}
+                        </div>
                     </div>
                 </div>
             </CardHeader>

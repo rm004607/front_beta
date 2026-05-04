@@ -1,6 +1,5 @@
 import i18n from 'i18next';
 import { initReactI18next } from 'react-i18next';
-import LanguageDetector from 'i18next-browser-languagedetector';
 
 const resources = {
     es: {
@@ -143,8 +142,6 @@ const resources = {
                 "privacy": "Privacidad"
             },
             "common": {
-                "language_name": "Español",
-                "switch_to": "Switch to English",
                 "cancel": "Cancelar",
                 "save": "Guardar",
                 "edit": "Editar",
@@ -165,184 +162,17 @@ const resources = {
                 "weeks": "semanas"
             }
         }
-    },
-    en: {
-        translation: {
-            "nav": {
-                "services": "Services",
-                "products": "Products",
-                "home": "Home",
-                "profile": "My Profile",
-                "admin": "Admin",
-                "login": "Login",
-                "register": "Register",
-                "logout": "Logout",
-                "help": "Help"
-            },
-            "hero": {
-                "verified_community": "100% Verified Community",
-                "title_part1": "Here is the ",
-                "title_part2": "Data you need!",
-                "description": "",
-                "join_now": "Join Now",
-                "explore_services": "Explore Services",
-                "offer_services_btn": "Want to offer your service?"
-            },
-            "home": {
-                "categories_title": "Services You'll Find",
-                "categories_desc": "Find exactly what you need for your home or business with real and guaranteed data.",
-                "offer_title": "Offer Services",
-                "offer_desc": "Make your talent available to your community. Create your professional profile and start receiving orders now.",
-                "offer_cta": "Offer a Service",
-                "new_talents": "New Talents",
-                "new_talents_desc": "Discover the latest services in your area.",
-                "view_all": "View Entire Directory",
-                "how_it_works": "How it works?",
-                "how_it_works_desc": "It's simple to connect with your community in just three steps.",
-                "step1_title": "Create your Account",
-                "step1_desc": "Register in less than 2 minutes to start offering your services.",
-                "step2_title": "Post or Search",
-                "step2_desc": "Show your talent or find the service you need near you.",
-                "step3_title": "Ready!",
-                "step3_desc": "Connect directly with customers and grow your business.",
-                "final_cta_title": "Start solving your tasks today",
-                "final_cta_desc": "Join thousands who are already transforming their local economy.",
-                "final_cta_btn": "Offer my services",
-                "entrepreneur_choice_title": "Want to offer your services?",
-                "entrepreneur_choice_desc": "Join the best platform to contact independent talents.",
-                "entrepreneur_only_note": "Note: Registration on the platform is exclusive for people who offer services.",
-                "already_offer_services": "I am already part of Dameldato",
-                "want_to_offer_services": "I want to offer my service on Dameldato",
-                "login_panel_cta": "I am already part of Dameldato",
-                "already_part_description": "Keep offering your services",
-                "register_talent_cta": "Create my talent account",
-                "countries_title": "Countries where we are",
-                "countries_desc": "We currently operate in Chile, connecting local talents with neighbors across the country.",
-                "coming_soon_title": "Hello! 👋 Coming soon to your country",
-                "coming_soon_desc": "We detected you are visiting from {{country}}. For now Dameldato only operates in Chile, but we are working to arrive in your area soon.",
-                "coming_soon_cta": "Explore site"
-            },
-            "services": {
-                "title": "Services",
-                "subtitle": "Find trusted professionals and services in your community",
-                "publish_btn": "Post Service",
-                "search_placeholder": "Search service...",
-                "region_placeholder": "Select Region",
-                "comuna_placeholder": "Select Commune",
-                "all_regions": "📍 All regions",
-                "all_comunas": "🌐 All communes",
-                "not_found": "No services found with those filters",
-                "contact_whatsapp": "Contact via WhatsApp",
-                "premium_service": "Premium Contact Service",
-                "pay_chat": "Pay and Chat",
-                "reviews": "Reviews",
-                "submit_review": "Submit Review",
-                "rating": "Rating",
-                "comment": "Comment",
-                "delete_confirm": "Are you sure you want to delete the service?",
-                "one_time_payment": "One-time payment for each direct contact",
-                "immediate_access": "Immediate access to the verified WhatsApp number.",
-                "direct_chat": "Direct chat without intermediaries.",
-                "accept_policies": "By continuing, you accept our service and billing policies.",
-                "loading": "Loading services...",
-                "loading_error": "Error loading services",
-                "contact_login_msg": "You must log in to contact via WhatsApp",
-                "no_phone_msg": "This service has no phone number available",
-                "reviews_error": "Error loading reviews",
-                "delete_success": "Service deleted successfully",
-                "delete_error": "Error deleting service",
-                "select_rating_msg": "Please select a rating",
-                "write_comment_msg": "Please write a comment",
-                "login_to_review_msg": "You must log in to leave a review",
-                "own_service_review_msg": "You cannot rate your own service",
-                "review_success": "Review sent successfully",
-                "review_error": "Error sending review"
-            },
-            "post_service": {
-                "title": "Offer Service",
-                "subtitle": "Promote your trade or business",
-                "moderation_alert": "Your service will be reviewed by an administrator before appearing publicly. This process may take a few hours.",
-                "free_posts": "Free posts",
-                "remaining_posts": "You have {{count}} free post(s) left",
-                "service_label": "Service You Offer *",
-                "service_placeholder": "E.g.: Plumbing, Hairdressing, Web Design",
-                "origin_location": "Origin Location",
-                "base_location_desc": "This is your base location registered in your profile.",
-                "change_for_service": "Change for this service",
-                "reset_location": "Reset to my profile location",
-                "coverage_zone": "Service Area / Coverage",
-                "coverage_desc": "Select the communes where you can travel to offer your service.",
-                "coverage_region_label": "Select Region for coverage",
-                "choose_region": "Choose Region",
-                "communes_in_region": "Communes in this region:",
-                "selected_communes": "Selected communes ({{count}}):",
-                "clear_all": "Clear all",
-                "description_label": "Service Description *",
-                "description_placeholder": "Describe your experience, what specific services you offer, etc.",
-                "min_price": "Minimum Price",
-                "max_price": "Maximum Price",
-                "price_desc": "Indicate an approximate range for clients to have a reference",
-                "phone_label": "Contact Phone (Optional)",
-                "phone_desc": "If you don't provide a phone, your profile's phone will be used",
-                "phone_placeholder": "E.g.: +56 9 1234 5678",
-                "verifying_limits": "Verifying post limits...",
-                "entrepreneur_only": "Only entrepreneurs can post services",
-                "complete_fields": "Please complete all required fields",
-                "invalid_name": "The service name contains disallowed characters",
-                "invalid_comuna": "The commune contains disallowed characters",
-                "invalid_description": "The description contains disallowed characters",
-                "invalid_phone": "The phone number is invalid",
-                "service_submitted": "Service submitted! It will be reviewed by an administrator before being published.",
-                "publish_error": "Error publishing service"
-            },
-            "footer": {
-                "desc": "The best platform to connect talents, job opportunities and local entrepreneurship. Boosting our community's growth.",
-                "explore": "Explore",
-                "account": "Your Account",
-                "support": "Support",
-                "help_center": "Help Center",
-                "rights": "All rights reserved.",
-                "terms": "Terms and Conditions",
-                "privacy": "Privacy"
-            },
-            "common": {
-                "language_name": "English",
-                "switch_to": "Cambiar a Español",
-                "cancel": "Cancel",
-                "save": "Save",
-                "edit": "Edit",
-                "delete": "Delete",
-                "close": "Close",
-                "loading": "Loading...",
-                "today": "Today",
-                "yesterday": "Yesterday",
-                "ago": "ago",
-                "seconds": "a few seconds",
-                "minute": "minute",
-                "minutes": "minutes",
-                "hour": "hour",
-                "hours": "hours",
-                "day": "day",
-                "days": "days",
-                "week": "week",
-                "weeks": "weeks"
-            }
-        }
     }
 };
 
 i18n
-    .use(LanguageDetector)
     .use(initReactI18next)
     .init({
         resources,
+        lng: 'es',
         fallbackLng: 'es',
         interpolation: {
             escapeValue: false,
-        },
-        detection: {
-            order: ['localStorage', 'navigator'],
-            caches: ['localStorage'],
         }
     });
 

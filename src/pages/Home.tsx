@@ -1,7 +1,8 @@
-import { useState, useEffect, useLayoutEffect, useRef } from 'react';
-import { Link } from 'react-router-dom';
+import { useState, useEffect, useLayoutEffect, useRef, useCallback } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { VerifiedBadge } from '@/components/VerifiedBadge';
 import {
   Briefcase, Wrench, Building2, MessageSquare, ArrowRight, MapPin,
   Calendar, DollarSign, Clock, Star, Users, ShoppingBag,
@@ -35,6 +36,7 @@ interface Service {
   offer_region?: { id: string; name: string } | null;
   price_range?: string;
   created_at: string;
+  user_id: string;
   user_name: string;
   profile_image?: string;
   average_rating?: number;
@@ -43,11 +45,20 @@ interface Service {
   type_icon?: string;
   type_color?: string;
   idicon?: string;
+  provider_kyc_status?: string;
 }
 
 const Home = () => {
   const { isLoggedIn, user, isLoading: authLoading } = useUser();
-  const { t, i18n } = useTranslation();
+  const { t } = useTranslation();
+  const navigate = useNavigate();
+  const [heroSearch, setHeroSearch] = useState('');
+
+  const handleHeroSearch = useCallback((e: React.FormEvent) => {
+    e.preventDefault();
+    const q = heroSearch.trim();
+    navigate(q ? `/servicios?search=${encodeURIComponent(q)}` : '/servicios');
+  }, [heroSearch, navigate]);
   const [latestServices, setLatestServices] = useState<Service[]>([]);
   const [loadingServices, setLoadingServices] = useState(true);
   const [serviceTypes, setServiceTypes] = useState<any[]>([]);
@@ -283,8 +294,7 @@ const Home = () => {
       if (diffDays === 1) return t('common.yesterday');
       if (diffDays < 7) return `${t('common.ago')} ${diffDays} ${t('common.days')}`;
 
-      const locale = i18n.language === 'en' ? 'en-US' : 'es-CL';
-      return date.toLocaleDateString(locale, { day: 'numeric', month: 'short' });
+      return date.toLocaleDateString('es-CL', { day: 'numeric', month: 'short' });
     } catch {
       return dateString;
     }
@@ -301,15 +311,13 @@ const Home = () => {
         </div>
 
         <div className="container mx-auto px-3 xs:px-4 sm:px-4 relative z-10">
-          <div className="flex flex-col lg:flex-row items-center gap-8 sm:gap-12 lg:gap-20">
-            {/* Left Content */}
-            <div className="flex-1 min-w-0 w-full text-center lg:text-left space-y-5 sm:space-y-8 max-w-2xl mx-auto lg:mx-0">
-              {/* Logo - escala por resolución */}
-              <div className="flex justify-center lg:justify-start mb-2 sm:mb-8">
+            <div className="flex flex-col items-center text-center space-y-5 sm:space-y-8 max-w-3xl mx-auto">
+              {/* Logo */}
+              <div className="flex justify-center mb-2 sm:mb-4">
                 <img
                   src={logoFull}
                   alt="Dameldato"
-                  className="h-14 xs:h-20 sm:h-32 md:h-40 lg:h-56 xl:h-64 w-auto max-w-[85vw] object-contain animate-reveal drop-shadow-lg"
+                  className="h-14 xs:h-20 sm:h-32 md:h-40 w-auto max-w-[85vw] object-contain animate-reveal drop-shadow-lg"
                 />
               </div>
 
@@ -318,20 +326,42 @@ const Home = () => {
                 <span className="truncate">{t('hero.verified_community')}</span>
               </div>
 
-              <h1 className="text-2xl xs:text-3xl sm:text-4xl md:text-5xl lg:text-6xl xl:text-7xl font-sans font-extrabold leading-[1.2] tracking-tight animate-reveal delay-100 break-words">
-                {t('hero.title_part1')} <span className="inline sm:hidden"><br /></span>
+              <h1 className="text-2xl xs:text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-sans font-extrabold leading-[1.2] tracking-tight animate-reveal delay-100 break-words">
+                {t('hero.title_part1')}{' '}
                 <span className="text-primary text-glow">{t('hero.title_part2')}</span>
               </h1>
 
-              <p className="text-muted-foreground font-medium text-sm xs:text-base sm:text-lg md:text-xl animate-reveal delay-200 leading-relaxed max-w-lg mx-auto lg:mx-0">
+              <p className="text-muted-foreground font-medium text-sm xs:text-base sm:text-lg md:text-xl animate-reveal delay-200 leading-relaxed max-w-xl mx-auto">
                 La mejor plataforma para contactar talentos independientes en tu zona.
               </p>
 
-              <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center lg:justify-start animate-reveal delay-300">
+              {/* Buscador hero — prominente y centrado */}
+              <form
+                onSubmit={handleHeroSearch}
+                className="flex items-center gap-2 bg-white border-2 border-border shadow-xl rounded-2xl px-5 py-3.5 w-full max-w-2xl mx-auto animate-reveal delay-250"
+              >
+                <Search size={20} className="text-muted-foreground shrink-0" />
+                <input
+                  type="search"
+                  enterKeyHint="search"
+                  placeholder="¿Qué servicio necesitas?"
+                  value={heroSearch}
+                  onChange={(e) => setHeroSearch(e.target.value)}
+                  className="flex-1 bg-transparent outline-none text-base text-foreground placeholder:text-muted-foreground min-w-0 py-1"
+                />
+                <button
+                  type="submit"
+                  className="bg-primary hover:bg-primary/90 text-white text-sm font-bold px-5 py-2.5 rounded-xl transition-colors shrink-0"
+                >
+                  Buscar
+                </button>
+              </form>
+
+              <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center animate-reveal delay-300">
                 {!isLoggedIn ? (
-                  <Button 
+                  <Button
                     onClick={() => document.getElementById('entrepreneur-section')?.scrollIntoView({ behavior: 'smooth' })}
-                    size="lg" 
+                    size="lg"
                     className="bg-primary hover:bg-primary/90 text-primary-foreground font-bold px-5 py-5 xs:px-6 sm:px-8 sm:py-7 text-base sm:text-lg rounded-xl shadow-xl shadow-primary/20 transition-all hover:scale-105 active:scale-95 w-full sm:w-auto h-auto min-h-12"
                   >
                     {t('hero.offer_services_btn')}
@@ -350,42 +380,20 @@ const Home = () => {
                 </Link>
               </div>
             </div>
+        </div>
+      </section>
 
-            {/* Right Content - Visual: se adapta al ancho */}
-            <div className="flex-1 w-full min-w-0 relative animate-reveal delay-500">
-              <div className="relative z-10 w-full max-w-full lg:max-w-[650px] mx-auto">
-                <div className="relative aspect-square rounded-2xl sm:rounded-[2.5rem] md:rounded-[3rem] bg-gradient-to-br from-primary/5 to-secondary/5 p-1 animate-float">
-                  <div className="absolute inset-0 bg-mesh opacity-20 rounded-2xl sm:rounded-[2.5rem] md:rounded-[3rem]"></div>
-                  <div className="w-full h-full glass-card rounded-2xl sm:rounded-[2.5rem] md:rounded-[3rem] flex items-center justify-center p-4 sm:p-6 md:p-8 overflow-hidden group border-none">
-                    <div className="absolute inset-0 bg-gradient-to-tr from-transparent via-white/5 to-transparent translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-1000"></div>
-                    <img
-                      src="https://images.unsplash.com/photo-1582213782179-e0d53f98f2ca?q=80&w=2070&auto=format&fit=crop"
-                      alt="Dameldato Comunidad"
-                      className="w-full h-full object-cover drop-shadow-xl scale-110 group-hover:scale-125 transition-transform duration-700"
-                    />
-                  </div>
-                </div>
-
-                {/* Badge Calidad - dentro del contenedor en móvil */}
-                <div className="absolute top-2 right-2 sm:top-2 sm:right-2 md:-top-2 md:-right-2 lg:-top-6 lg:-right-6 glass-card px-2.5 py-1.5 sm:px-4 sm:py-2.5 rounded-xl sm:rounded-2xl animate-float shadow-xl flex items-center gap-1.5 sm:gap-3 border-primary/20 z-20" style={{ animationDelay: '1s' }}>
-                  <div className="w-6 h-6 sm:w-9 sm:h-9 bg-emerald-500 rounded-full flex items-center justify-center text-white shrink-0">
-                    <Star size={12} fill="currentColor" className="sm:w-4 sm:h-4" />
-                  </div>
-                  <p className="font-black text-[9px] xs:text-[10px] sm:text-sm text-foreground whitespace-nowrap">Calidad Expertos 5⭐</p>
-                </div>
-
-                <div className="absolute bottom-2 left-2 sm:bottom-2 sm:left-2 md:-bottom-2 md:-left-2 lg:-bottom-6 lg:-left-6 glass-card p-1.5 sm:p-4 rounded-xl sm:rounded-2xl animate-float shadow-xl flex items-center gap-1.5 sm:gap-3 border-secondary/20 z-20" style={{ animationDelay: '2s' }}>
-                  <div className="w-6 h-6 sm:w-10 sm:h-10 bg-secondary rounded-full flex items-center justify-center text-white shrink-0">
-                    <MapPin size={12} className="sm:w-5 sm:h-5" />
-                  </div>
-                  <div className="min-w-0">
-                    <p className="text-[8px] xs:text-[9px] sm:text-xs text-muted-foreground font-bold">Ubicuidad</p>
-                    <p className="font-black text-[9px] xs:text-[10px] sm:text-sm truncate">Tu Comuna</p>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
+      {/* Banner verificación */}
+      <section className="bg-primary/5 border-y border-primary/10 py-3">
+        <div className="container mx-auto px-4">
+          <Link
+            to="/verificacion"
+            className="flex items-center justify-center gap-2.5 text-sm text-primary font-semibold hover:opacity-80 transition-opacity"
+          >
+            <ShieldCheck size={16} className="shrink-0" />
+            <span>100% de los prestadores están verificados con cédula chilena</span>
+            <span className="hidden sm:inline text-primary/60 font-normal">— Conoce cómo →</span>
+          </Link>
         </div>
       </section>
 
@@ -561,7 +569,10 @@ const Home = () => {
                                 <CardTitle className="text-2xl font-black mb-1 line-clamp-1 group-hover:text-primary transition-colors leading-tight">
                                   {(!service.service_name || service.service_name.trim() === '' || service.service_name.trim() === '.') ? 'Servicio Destacado' : service.service_name}
                                 </CardTitle>
-                                <p className="text-sm text-muted-foreground font-bold truncate">Por {service.user_name}</p>
+                                <div className="flex items-center justify-center gap-1.5 flex-wrap">
+                                  <p className="text-sm text-muted-foreground font-bold truncate">Por {service.user_name}</p>
+                                  {service.provider_kyc_status === 'verified' && <VerifiedBadge size="sm" variant="icon" />}
+                                </div>
 
                                 <div className="flex items-center justify-center gap-2 mt-3">
                                   <div
@@ -722,34 +733,23 @@ const Home = () => {
             <div className="relative animate-reveal delay-300" style={{ transform: 'translateZ(0)', willChange: 'transform' }}>
               {/* Contacto del equipo en HTML (el video .webm tenía la URL mal escrita en el gráfico) */}
               <div className="relative z-10 p-2 md:p-4 rounded-[2.5rem] md:rounded-[4rem] border border-primary/10 shadow-xl overflow-hidden bg-white group">
-                <div className="aspect-video rounded-[2rem] md:rounded-[3.2rem] overflow-hidden relative bg-gradient-to-br from-primary via-primary to-indigo-700 flex flex-col items-center justify-center px-6 py-10 text-center">
-                  <div className="absolute top-0 right-0 w-40 h-40 bg-white/10 rounded-bl-full translate-x-8 -translate-y-8 blur-2xl pointer-events-none" />
-                  <div className="absolute bottom-0 left-0 w-40 h-40 bg-secondary/25 rounded-tr-full -translate-x-8 translate-y-8 blur-2xl pointer-events-none" />
-
-                  <div className="relative z-10 flex flex-col items-center gap-6 max-w-lg">
-                    <div className="flex items-center justify-center gap-3 flex-wrap">
-                      <h3 className="text-2xl sm:text-3xl md:text-4xl font-black text-white uppercase tracking-tight leading-tight">
-                        Aquí para ti
-                      </h3>
-                      <Sparkles className="w-10 h-10 sm:w-12 sm:h-12 text-teal-300 shrink-0" strokeWidth={1.5} aria-hidden />
-                    </div>
-                    <div className="flex flex-col sm:flex-row sm:flex-wrap items-center justify-center gap-3 w-full">
-                      <a
-                        href="mailto:contacto@dameldato.com"
-                        className="inline-flex items-center justify-center rounded-full bg-pink-400 px-5 py-2.5 text-sm font-black text-white shadow-lg shadow-black/10 hover:bg-pink-500 transition-colors"
-                      >
-                        contacto@dameldato.com
-                      </a>
-                      <a
-                        href="https://www.dameldato.com"
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="inline-flex items-center justify-center rounded-full bg-pink-400 px-5 py-2.5 text-sm font-black text-white shadow-lg shadow-black/10 hover:bg-pink-500 transition-colors"
-                      >
-                        www.dameldato.com
-                      </a>
-                    </div>
-                  </div>
+                <div className="aspect-video rounded-[2rem] md:rounded-[3.2rem] overflow-hidden bg-slate-900 relative">
+                  <video 
+                    className="w-full h-full object-cover pointer-events-none"
+                    poster="/logo_nombre.webp"
+                    autoPlay
+                    muted
+                    loop
+                    playsInline
+                    preload="metadata"
+                  >
+                    <source src="/Pink-and-Purple-Simple-Animated-Team-Profile-Introduction-Video.webm" type="video/webm" />
+                    <source src="/Pink and Purple Simple Animated Team Profile Introduction Video.mp4" type="video/mp4" />
+                    Tu navegador no soporta el video.
+                  </video>
+                  
+                  {/* Overlay decoration */}
+                  <div className="absolute inset-0 pointer-events-none bg-gradient-to-t from-black/20 to-transparent"></div>
                 </div>
               </div>
 

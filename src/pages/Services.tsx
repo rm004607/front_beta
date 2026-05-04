@@ -41,13 +41,13 @@ const SERVICES_LIST_STALE_MS = 45_000;
 
 const Services = () => {
   const { user, isLoggedIn } = useUser();
-  const { t, i18n } = useTranslation();
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const [searchParams] = useSearchParams();
   const highlightId = searchParams.get('highlight');
 
-  const [searchTerm, setSearchTerm] = useState('');
+  const [searchTerm, setSearchTerm] = useState(() => searchParams.get('search') || '');
   const debouncedSearchRaw = useDebouncedValue(searchTerm, SEARCH_DEBOUNCE_MS);
   const debouncedSearch = normalizeSearchQuery(debouncedSearchRaw) ?? '';
   const [comunaFilter, setComunaFilter] = useState('all');
@@ -575,7 +575,7 @@ const Services = () => {
                 <div className="bg-blue-50 border border-blue-100 rounded-xl p-4 text-center">
                   <p className="text-blue-800 font-medium mb-1">{t('services.premium_service')}</p>
                   <div className="text-3xl font-black text-blue-900">
-                    {new Intl.NumberFormat(i18n.language === 'en' ? 'en-US' : 'es-CL', { style: 'currency', currency: 'CLP' }).format(whatsappPrice)}
+                    {new Intl.NumberFormat('es-CL', { style: 'currency', currency: 'CLP' }).format(whatsappPrice)}
                   </div>
                   <p className="text-blue-600 text-xs mt-1">{t('services.one_time_payment')}</p>
                 </div>

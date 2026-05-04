@@ -1,8 +1,13 @@
-import { Star, MapPin, MessageCircle, Sparkles } from 'lucide-react';
+import { useState } from 'react';
+import { Star, MapPin, MessageCircle, Sparkles, Share2 } from 'lucide-react';
+import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { DialogTitle } from '@/components/ui/dialog';
 import { getServiceIcon, getServiceColor, isLightColor, getServiceLocationDisplay } from '@/lib/serviceUtils';
+import { VerifiedBadge, PendingVerificationBadge } from '@/components/VerifiedBadge';
+import { toSlug } from '@/pages/PublicProfile';
+import { ShareModal } from '@/components/ShareModal';
 
 export interface ServiceForDetail {
   id: string;
@@ -13,6 +18,7 @@ export interface ServiceForDetail {
   region_name?: string;
   offer_region?: { id: string; name: string } | null;
   phone?: string;
+  user_id: string;
   user_name: string;
   profile_image?: string;
   average_rating?: number;
@@ -22,6 +28,7 @@ export interface ServiceForDetail {
   type_icon?: string;
   type_color?: string;
   idicon?: string;
+  provider_kyc_status?: string;
 }
 
 interface ServiceDetailModalProps {
@@ -32,6 +39,9 @@ interface ServiceDetailModalProps {
 }
 
 export function ServiceDetailModalContent({ service, onClose, onOpenReviews, onWhatsApp }: ServiceDetailModalProps) {
+  const [shareOpen, setShareOpen] = useState(false);
+  const shareUrl = `${window.location.origin}/perfil/${service.user_id}/${toSlug(service.user_name)}`;
+
   return (
     <div className="bg-white dark:bg-card rounded-[3rem] overflow-hidden shadow-2xl relative text-foreground">
       <div
@@ -58,7 +68,22 @@ export function ServiceDetailModalContent({ service, onClose, onOpenReviews, onW
                 </div>
               </AvatarFallback>
             </Avatar>
-            <DialogTitle className="text-2xl sm:text-3xl md:text-2xl font-black mb-1 text-foreground">{service.user_name}</DialogTitle>
+            <DialogTitle className="text-2xl sm:text-3xl md:text-2xl font-black mb-1 text-foreground">
+              <Link
+                to={`/perfil/${service.user_id}/${toSlug(service.user_name)}`}
+                className="hover:text-primary transition-colors"
+              >
+                {service.user_name}
+              </Link>
+            </DialogTitle>
+            {(service.provider_kyc_status === 'verified' || service.provider_kyc_status === 'pending') && (
+              <div className="flex justify-center mb-1">
+                {service.provider_kyc_status === 'verified'
+                  ? <VerifiedBadge size="md" />
+                  : <PendingVerificationBadge size="md" />
+                }
+              </div>
+            )}
             <span className="inline-flex mx-auto text-xs sm:text-sm font-bold text-primary mb-6 px-3 py-1 rounded-full bg-primary/10 border border-primary/10">
               {service.service_name}
             </span>
@@ -114,7 +139,22 @@ export function ServiceDetailModalContent({ service, onClose, onOpenReviews, onW
                 <MessageCircle className="w-5 h-5 sm:w-6 sm:h-6 mr-1.5 sm:mr-2" />
                 WhatsApp
               </Button>
+              <Button
+                variant="ghost"
+                size="sm"
+                className="w-full text-muted-foreground hover:text-foreground rounded-xl"
+                onClick={() => setShareOpen(true)}
+              >
+                <Share2 size={15} className="mr-1.5" />
+                Compartir
+              </Button>
             </div>
+            <ShareModal
+              open={shareOpen}
+              onClose={() => setShareOpen(false)}
+              url={shareUrl}
+              title={`Servicio de ${service.user_name} en Dameldato`}
+            />
           </div>
         </div>
 
@@ -182,6 +222,15 @@ export function ServiceDetailModalContent({ service, onClose, onOpenReviews, onW
               WhatsApp
             </Button>
           </div>
+          <Button
+            variant="ghost"
+            size="sm"
+            className="mt-3 w-full text-muted-foreground hover:text-foreground rounded-xl md:hidden"
+            onClick={() => setShareOpen(true)}
+          >
+            <Share2 size={15} className="mr-1.5" />
+            Compartir perfil del prestador
+          </Button>
         </div>
       </div>
     </div>

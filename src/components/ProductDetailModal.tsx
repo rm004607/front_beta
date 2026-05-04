@@ -4,6 +4,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { MessageCircle, MapPin, Package2, Star } from 'lucide-react';
 import { formatProductPrice, getProductCoverImage, getProductStatusLabel } from '@/lib/productUtils';
+import { VerifiedBadge } from '@/components/VerifiedBadge';
 
 export interface ProductForDetail {
   id: string;
@@ -22,6 +23,7 @@ export interface ProductForDetail {
   images?: Array<{ id?: string; image_url: string; sort_order?: number }>;
   average_rating?: number;
   reviews_count?: number;
+  provider_kyc_status?: string;
 }
 
 interface ProductDetailModalProps {
@@ -104,7 +106,10 @@ export function ProductDetailModalContent({
             <p className="text-2xl font-black text-primary">
               {formatProductPrice(product.price, product.currency || 'CLP')}
             </p>
-            <p className="text-sm text-muted-foreground">Publicado por {product.user_name}</p>
+            <div className="flex items-center gap-2 flex-wrap">
+              <p className="text-sm text-muted-foreground">Publicado por {product.user_name}</p>
+              {product.provider_kyc_status === 'verified' && <VerifiedBadge size="sm" />}
+            </div>
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
