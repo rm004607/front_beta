@@ -1,5 +1,6 @@
 import React from 'react';
 import { chileData } from '@/lib/chile-data';
+import { communesMatch } from '@/lib/chile-region-helpers';
 import {
   Wrench,
   Lightbulb,
@@ -321,15 +322,54 @@ export function getServiceRegionNameOnly(service: {
 }
 
 /**
+ * True si `coverage_communes` cubre todas las comunas del catálogo local (`chileData`) para la
+ * región de oferta. Así evitamos mostrar solo la primera comuna del listado (p. ej. Alhué en RM)
+ * cuando el prestador marcó “todas las comunas”.
+ */
+function serviceCoversFullRegionCatalog(service: {
+  comuna?: string;
+  coverage_communes?: string[];
+  offer_region?: { id?: string; name?: string } | null;
+  region_id?: string | number;
+}): boolean {
+  const coverage = (service.coverage_communes ?? []).map((c) => (c || '').trim()).filter(Boolean);
+  if (coverage.length === 0) return false;
+
+  const rid =
+    service.offer_region?.id != null && String(service.offer_region.id).trim() !== ''
+      ? String(service.offer_region.id).trim()
+      : service.region_id != null && String(service.region_id) !== ''
+        ? String(service.region_id).trim()
+        : '';
+  if (!rid) return false;
+
+  const regionRow = chileData.find((r) => String(r.id) === String(rid));
+  const catalog = regionRow?.communes;
+  if (!catalog?.length) return false;
+
+  const pool = [...coverage, (service.comuna || '').trim()].filter(Boolean);
+  if (pool.length < catalog.length) return false;
+
+  return catalog.every((cat) => pool.some((p) => communesMatch(cat, p)));
+}
+
+/**
  * Ubicación del servicio para mostrar en UI: comuna + región (producto sin multi-cobertura;
  * con coverage_communes vacío en backend prima comuna y region_id).
+ * Si la cobertura incluye todas las comunas del catálogo de esa región, muestra “Toda la …”.
  */
 export function getServiceLocationDisplay(service: {
   comuna?: string;
+  coverage_communes?: string[];
   offer_region?: { id?: string; name?: string } | null;
   region_name?: string | null;
   region_id?: string | number;
 }): string {
+  if (serviceCoversFullRegionCatalog(service)) {
+    const regionName = getServiceRegionNameOnly(service);
+    if (regionName) return `Toda la ${regionName}`;
+  }
+
   const comuna = (service.comuna || '').trim();
   const region = getServiceRegionNameOnly(service);
   if (comuna && region) return `${comuna} · ${region}`;
