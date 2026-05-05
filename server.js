@@ -65,14 +65,12 @@ app.get('*', (req, res, next) => {
   });
 });
 
-app.listen(PORT, '0.0.0.0', () => {
-  console.log(`Server is running on port ${PORT}`);
-});
-
-// Manejo global de errores para evitar fugas de información
+// Manejo global de errores (debe ir antes de listen para quedar en la pila de middleware)
 app.use((err, req, res, next) => {
   console.error('Internal Server Error');
   res.status(500).send('Ha ocurrido un error inesperado. Por favor, intente más tarde.');
 });
 
-//  prueba github
+app.listen(PORT, '0.0.0.0', () => {
+  console.log(`Server is running on port ${PORT}`);
+});

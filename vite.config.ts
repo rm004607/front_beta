@@ -14,6 +14,4 @@ export default defineConfig(({ mode }) => ({
       "@": path.resolve(__dirname, "./src"),
     },
   },
-  // optimizeDeps se maneja automáticamente por Vite
-  // Si tienes problemas, ejecuta: limpiar-cache-vite.bat
 }));
