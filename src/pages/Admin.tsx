@@ -491,7 +491,6 @@ const Admin = () => {
   const [localSearchDatos, setLocalSearchDatos] = useState('');
   const [suggestionsSearchQuery, setSuggestionsSearchQuery] = useState('');
   const [pricesTabSearchQuery, setPricesTabSearchQuery] = useState('');
-  const [featuredServicesSearch, setFeaturedServicesSearch] = useState('');
   const [catalogTypeServiceCounts, setCatalogTypeServiceCounts] = useState<Record<string, number>>({});
   const [catalogUncategorizedCount, setCatalogUncategorizedCount] = useState(0);
   const [catalogTotalServicesScanned, setCatalogTotalServicesScanned] = useState(0);
@@ -800,21 +799,6 @@ const Admin = () => {
       matchesAdminDetailSearch(pricesTabSearchQuery, [pkg.name, pkg.description, pkg.price, pkg.publications, pkg.id])
     );
   }, [adminPackages, pricesTabSearchQuery]);
-
-  const filteredFeaturedServicesForDisplay = useMemo(() => {
-    const list = stats?.featured_services;
-    if (!Array.isArray(list)) return [];
-    if (!featuredServicesSearch.trim()) return list;
-    return list.filter((row: { service_name?: string; avg_rating?: number; review_count?: number; good_reviews_count?: number; featured_score?: number }) =>
-      matchesAdminDetailSearch(featuredServicesSearch, [
-        row.service_name,
-        row.avg_rating,
-        row.review_count,
-        row.good_reviews_count,
-        row.featured_score,
-      ])
-    );
-  }, [stats, featuredServicesSearch]);
 
   const loadServiceSuggestions = async () => {
     try {
@@ -1616,14 +1600,24 @@ const Admin = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-background via-background to-muted/20 relative overflow-x-hidden pb-16 sm:pb-12">
+    <div
+      className={cn(
+        'min-h-screen bg-gradient-to-b from-background via-background to-muted/20 relative overflow-x-hidden',
+        isSuperAdmin ? 'pb-[max(5rem,env(safe-area-inset-bottom,0px)+2.5rem)] sm:pb-12' : 'pb-16 sm:pb-12',
+      )}
+    >
       {/* Elementos decorativos de fondo */}
       <div className="absolute top-0 left-0 w-full h-full pointer-events-none">
         <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-primary/10 rounded-full blur-[120px]" />
         <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-secondary/10 rounded-full blur-[120px]" />
       </div>
 
-      <div className="max-w-7xl mx-auto px-3 sm:px-5 lg:px-8 py-5 sm:py-8 relative z-10">
+      <div
+        className={cn(
+          'mx-auto px-3 sm:px-5 lg:px-8 py-5 sm:py-8 relative z-10',
+          isSuperAdmin ? 'max-w-[min(100%,90rem)]' : 'max-w-7xl',
+        )}
+      >
         {/* Encabezado */}
         <div
           className={cn(
@@ -1701,210 +1695,214 @@ const Admin = () => {
         {/* Estadísticas */}
         {stats && (
           <>
-            <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 mb-6 sm:mb-8">
-              <Card className="bg-card/60 backdrop-blur-sm border-primary/15 shadow-sm rounded-2xl group hover:border-primary/35 transition-all duration-300">
-                <CardHeader className="pb-1 sm:pb-2 px-4 pt-4">
-                  <CardTitle className="text-xs sm:text-sm font-medium text-muted-foreground group-hover:text-primary transition-colors leading-tight">
-                    Servicios totales
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="px-4 pb-4">
-                  <div className="text-2xl sm:text-3xl font-bold tabular-nums">{stats.total_services ?? 0}</div>
-                </CardContent>
-              </Card>
-              <Card className="bg-card/60 backdrop-blur-sm border-secondary/15 shadow-sm rounded-2xl group hover:border-secondary/35 transition-all duration-300">
-                <CardHeader className="pb-1 sm:pb-2 px-4 pt-4">
-                  <CardTitle className="text-xs sm:text-sm font-medium text-muted-foreground group-hover:text-secondary transition-colors leading-tight">
-                    Servicios activos
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="px-4 pb-4">
-                  <div className="text-2xl sm:text-3xl font-bold tabular-nums">{stats.active_services ?? 0}</div>
-                </CardContent>
-              </Card>
-              {isSuperAdmin && stats.total_products != null && (
-                <>
-                  <Card className="bg-card/60 backdrop-blur-sm border-emerald-500/15 shadow-sm rounded-2xl group hover:border-emerald-500/35 transition-all duration-300">
-                    <CardHeader className="pb-1 sm:pb-2 px-4 pt-4">
-                      <CardTitle className="text-xs sm:text-sm font-medium text-muted-foreground group-hover:text-emerald-600 transition-colors leading-tight flex items-center gap-1.5">
-                        <Package2 className="h-3.5 w-3.5 shrink-0" aria-hidden />
+            {isSuperAdmin && stats.total_products != null ? (
+              <div className="mb-6 sm:mb-8 rounded-2xl border border-violet-200/50 bg-gradient-to-br from-violet-500/[0.06] via-card to-card p-3 sm:p-5 shadow-sm">
+                <div className="flex flex-col gap-0.5 sm:flex-row sm:items-end sm:justify-between mb-3 sm:mb-4 px-0.5">
+                  <div>
+                    <p className="text-[11px] font-semibold uppercase tracking-wider text-violet-700/90 dark:text-violet-300/90">
+                      Vista Super Admin
+                    </p>
+                    <p className="text-xs text-muted-foreground mt-0.5 hidden sm:block">
+                      Métricas alineadas: servicios y productos arriba; engagement y usuarios abajo.
+                    </p>
+                  </div>
+                </div>
+                <div className="grid grid-cols-2 gap-2 sm:gap-3 sm:grid-cols-4">
+                  <Card className="border-primary/20 bg-card/90 shadow-sm rounded-xl sm:rounded-2xl flex flex-col min-h-[5.5rem] sm:min-h-0">
+                    <CardHeader className="pb-0 px-3 pt-3 sm:px-4 sm:pt-4">
+                      <CardTitle className="text-[11px] sm:text-xs font-medium text-muted-foreground leading-snug">
+                        Servicios totales
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent className="px-3 pb-3 sm:px-4 sm:pb-4 flex-1 flex items-end">
+                      <div className="text-xl sm:text-2xl lg:text-3xl font-bold tabular-nums">{stats.total_services ?? 0}</div>
+                    </CardContent>
+                  </Card>
+                  <Card className="border-secondary/25 bg-card/90 shadow-sm rounded-xl sm:rounded-2xl flex flex-col min-h-[5.5rem] sm:min-h-0">
+                    <CardHeader className="pb-0 px-3 pt-3 sm:px-4 sm:pt-4">
+                      <CardTitle className="text-[11px] sm:text-xs font-medium text-muted-foreground leading-snug">
+                        Servicios activos
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent className="px-3 pb-3 sm:px-4 sm:pb-4 flex-1 flex items-end">
+                      <div className="text-xl sm:text-2xl lg:text-3xl font-bold tabular-nums">{stats.active_services ?? 0}</div>
+                    </CardContent>
+                  </Card>
+                  <Card className="border-emerald-500/25 bg-card/90 shadow-sm rounded-xl sm:rounded-2xl flex flex-col min-h-[5.5rem] sm:min-h-0">
+                    <CardHeader className="pb-0 px-3 pt-3 sm:px-4 sm:pt-4">
+                      <CardTitle className="text-[11px] sm:text-xs font-medium text-muted-foreground leading-snug flex items-center gap-1">
+                        <Package2 className="h-3 w-3 shrink-0 text-emerald-600" aria-hidden />
                         Productos totales
                       </CardTitle>
                     </CardHeader>
-                    <CardContent className="px-4 pb-4">
-                      <div className="text-2xl sm:text-3xl font-bold tabular-nums">{stats.total_products ?? 0}</div>
+                    <CardContent className="px-3 pb-3 sm:px-4 sm:pb-4 flex-1 flex items-end">
+                      <div className="text-xl sm:text-2xl lg:text-3xl font-bold tabular-nums">{stats.total_products ?? 0}</div>
                     </CardContent>
                   </Card>
-                  <Card className="bg-card/60 backdrop-blur-sm border-emerald-500/15 shadow-sm rounded-2xl group hover:border-emerald-500/35 transition-all duration-300">
-                    <CardHeader className="pb-1 sm:pb-2 px-4 pt-4">
-                      <CardTitle className="text-xs sm:text-sm font-medium text-muted-foreground group-hover:text-emerald-600 transition-colors leading-tight flex items-center gap-1.5">
-                        <Package2 className="h-3.5 w-3.5 shrink-0" aria-hidden />
+                  <Card className="border-emerald-500/25 bg-card/90 shadow-sm rounded-xl sm:rounded-2xl flex flex-col min-h-[5.5rem] sm:min-h-0">
+                    <CardHeader className="pb-0 px-3 pt-3 sm:px-4 sm:pt-4">
+                      <CardTitle className="text-[11px] sm:text-xs font-medium text-muted-foreground leading-snug flex items-center gap-1">
+                        <Package2 className="h-3 w-3 shrink-0 text-emerald-600" aria-hidden />
                         Productos activos
                       </CardTitle>
                     </CardHeader>
-                    <CardContent className="px-4 pb-4">
-                      <div className="text-2xl sm:text-3xl font-bold tabular-nums">{stats.active_products ?? 0}</div>
+                    <CardContent className="px-3 pb-3 sm:px-4 sm:pb-4 flex-1 flex items-end">
+                      <div className="text-xl sm:text-2xl lg:text-3xl font-bold tabular-nums">{stats.active_products ?? 0}</div>
                     </CardContent>
                   </Card>
-                </>
-              )}
-              <Card className="bg-card/60 backdrop-blur-sm border-green-500/15 shadow-sm rounded-2xl group hover:border-green-500/35 transition-all duration-300">
-                <CardHeader className="pb-1 sm:pb-2 px-4 pt-4">
-                  <CardTitle className="text-xs sm:text-sm font-medium text-muted-foreground group-hover:text-green-600 transition-colors leading-tight flex items-center gap-1.5">
-                    <MessageCircle className="h-3.5 w-3.5 shrink-0" aria-hidden />
-                    Interacciones botón WhatsApp
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="px-4 pb-4">
-                  <div className="text-2xl sm:text-3xl font-bold tabular-nums">{stats.whatsapp_button_interactions ?? 0}</div>
-                </CardContent>
-              </Card>
-              <Card className="bg-card/60 backdrop-blur-sm border-violet-500/15 shadow-sm rounded-2xl group hover:border-violet-500/35 transition-all duration-300">
-                <CardHeader className="pb-1 sm:pb-2 px-4 pt-4">
-                  <CardTitle className="text-xs sm:text-sm font-medium text-muted-foreground group-hover:text-violet-600 transition-colors leading-tight flex items-center gap-1.5">
-                    <Star className="h-3.5 w-3.5 shrink-0" aria-hidden />
-                    Reseñas totales
-                    {(stats.service_reviews_count != null || stats.product_reviews_count != null) && (
-                      <span
-                        className="inline-flex items-center text-muted-foreground"
-                        title={
-                          stats.service_reviews_count != null || stats.product_reviews_count != null
-                            ? `Servicios: ${stats.service_reviews_count ?? '—'} · Productos: ${stats.product_reviews_count ?? '—'}`
-                            : undefined
-                        }
-                      >
-                        <HelpCircle className="h-3.5 w-3.5 shrink-0 ml-0.5" aria-hidden />
-                      </span>
-                    )}
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="px-4 pb-4">
-                  <div className="text-2xl sm:text-3xl font-bold tabular-nums">{stats.total_reviews ?? 0}</div>
-                  {(stats.service_reviews_count != null || stats.product_reviews_count != null) && (
-                    <p className="text-[10px] sm:text-xs text-muted-foreground mt-1 tabular-nums leading-snug">
-                      Servicios: {stats.service_reviews_count ?? '—'} · Productos: {stats.product_reviews_count ?? '—'}
-                    </p>
-                  )}
-                </CardContent>
-              </Card>
-              {isSuperAdmin && (
-                <Card className="bg-card/60 backdrop-blur-sm border-amber-500/15 shadow-sm rounded-2xl group hover:border-amber-500/35 transition-all duration-300">
+                </div>
+                <div className="mt-2 sm:mt-3 grid grid-cols-2 gap-2 sm:gap-3 sm:grid-cols-3">
+                  <Card className="border-green-500/25 bg-card/90 shadow-sm rounded-xl sm:rounded-2xl flex flex-col min-h-[5.5rem] sm:min-h-0">
+                    <CardHeader className="pb-0 px-3 pt-3 sm:px-4 sm:pt-4">
+                      <CardTitle className="text-[11px] sm:text-xs font-medium text-muted-foreground leading-snug flex items-start gap-1">
+                        <MessageCircle className="h-3 w-3 shrink-0 text-green-600 mt-0.5" aria-hidden />
+                        <span className="leading-snug">Interacciones botón WhatsApp</span>
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent className="px-3 pb-3 sm:px-4 sm:pb-4 flex-1 flex items-end">
+                      <div className="text-xl sm:text-2xl lg:text-3xl font-bold tabular-nums">{stats.whatsapp_button_interactions ?? 0}</div>
+                    </CardContent>
+                  </Card>
+                  <Card className="border-violet-400/30 bg-card/90 shadow-sm rounded-xl sm:rounded-2xl flex flex-col min-h-[5.5rem] sm:min-h-0">
+                    <CardHeader className="pb-0 px-3 pt-3 sm:px-4 sm:pt-4">
+                      <CardTitle className="text-[11px] sm:text-xs font-medium text-muted-foreground leading-snug flex items-start gap-1">
+                        <Star className="h-3 w-3 shrink-0 text-violet-600 mt-0.5" aria-hidden />
+                        <span className="leading-snug">Reseñas totales</span>
+                        {(stats.service_reviews_count != null || stats.product_reviews_count != null) && (
+                          <span
+                            className="inline-flex shrink-0 text-muted-foreground"
+                            title={`Servicios: ${stats.service_reviews_count ?? '—'} · Productos: ${stats.product_reviews_count ?? '—'}`}
+                          >
+                            <HelpCircle className="h-3 w-3 ml-0.5" aria-hidden />
+                          </span>
+                        )}
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent className="px-3 pb-3 sm:px-4 sm:pb-4 flex-1 flex flex-col justify-end gap-1">
+                      <div className="text-xl sm:text-2xl lg:text-3xl font-bold tabular-nums">{stats.total_reviews ?? 0}</div>
+                      {(stats.service_reviews_count != null || stats.product_reviews_count != null) && (
+                        <p className="text-[10px] sm:text-[11px] text-muted-foreground tabular-nums leading-snug">
+                          Srv.: {stats.service_reviews_count ?? '—'} · Prod.: {stats.product_reviews_count ?? '—'}
+                        </p>
+                      )}
+                    </CardContent>
+                  </Card>
+                  <Card className="col-span-2 sm:col-span-1 border-amber-500/30 bg-card/90 shadow-sm rounded-xl sm:rounded-2xl flex flex-col min-h-[5.5rem] sm:min-h-0">
+                    <CardHeader className="pb-0 px-3 pt-3 sm:px-4 sm:pt-4">
+                      <CardTitle className="text-[11px] sm:text-xs font-medium text-muted-foreground leading-snug">Usuarios</CardTitle>
+                    </CardHeader>
+                    <CardContent className="px-3 pb-3 sm:px-4 sm:pb-4 flex-1 flex flex-col justify-end gap-1">
+                      <div className="text-xl sm:text-2xl lg:text-3xl font-bold tabular-nums">{stats.total_users ?? 0}</div>
+                      <p className="text-[10px] sm:text-[11px] text-muted-foreground leading-snug">
+                        Activos: {stats.active_users ?? 0} · Baneados: {stats.banned_users ?? 0}
+                      </p>
+                    </CardContent>
+                  </Card>
+                </div>
+              </div>
+            ) : (
+              <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 mb-6 sm:mb-8">
+                <Card className="bg-card/60 backdrop-blur-sm border-primary/15 shadow-sm rounded-2xl group hover:border-primary/35 transition-all duration-300">
                   <CardHeader className="pb-1 sm:pb-2 px-4 pt-4">
-                    <CardTitle className="text-xs sm:text-sm font-medium text-muted-foreground group-hover:text-amber-600 transition-colors leading-tight">
-                      Usuarios
+                    <CardTitle className="text-xs sm:text-sm font-medium text-muted-foreground group-hover:text-primary transition-colors leading-tight">
+                      Servicios totales
                     </CardTitle>
                   </CardHeader>
                   <CardContent className="px-4 pb-4">
-                    <div className="text-2xl sm:text-3xl font-bold tabular-nums">{stats.total_users ?? 0}</div>
-                    <p className="text-[10px] sm:text-xs text-muted-foreground mt-1 leading-snug">
-                      Activos: {stats.active_users ?? 0} · Baneados: {stats.banned_users ?? 0}
-                    </p>
+                    <div className="text-2xl sm:text-3xl font-bold tabular-nums">{stats.total_services ?? 0}</div>
                   </CardContent>
                 </Card>
-              )}
-            </div>
-
-            {isSuperAdmin && Object.prototype.hasOwnProperty.call(stats, 'featured_services') && (
-              <Card className="bg-card/60 backdrop-blur-sm border-primary/15 shadow-sm rounded-2xl mb-6 sm:mb-8">
-                <CardHeader className="pb-2 sm:pb-3">
-                  <div className="flex flex-col gap-1 sm:flex-row sm:items-start sm:justify-between">
-                    <div className="min-w-0">
-                      <CardTitle className="text-base sm:text-lg">Servicios destacados</CardTitle>
-                      <CardDescription className="flex items-start gap-1.5 mt-1">
-                        <span className="min-w-0">
-                          Ranking según criterios del backend (volumen y reseñas favorables).
+                <Card className="bg-card/60 backdrop-blur-sm border-secondary/15 shadow-sm rounded-2xl group hover:border-secondary/35 transition-all duration-300">
+                  <CardHeader className="pb-1 sm:pb-2 px-4 pt-4">
+                    <CardTitle className="text-xs sm:text-sm font-medium text-muted-foreground group-hover:text-secondary transition-colors leading-tight">
+                      Servicios activos
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="px-4 pb-4">
+                    <div className="text-2xl sm:text-3xl font-bold tabular-nums">{stats.active_services ?? 0}</div>
+                  </CardContent>
+                </Card>
+                <Card className="bg-card/60 backdrop-blur-sm border-green-500/15 shadow-sm rounded-2xl group hover:border-green-500/35 transition-all duration-300">
+                  <CardHeader className="pb-1 sm:pb-2 px-4 pt-4">
+                    <CardTitle className="text-xs sm:text-sm font-medium text-muted-foreground group-hover:text-green-600 transition-colors leading-tight flex items-center gap-1.5">
+                      <MessageCircle className="h-3.5 w-3.5 shrink-0" aria-hidden />
+                      Interacciones botón WhatsApp
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="px-4 pb-4">
+                    <div className="text-2xl sm:text-3xl font-bold tabular-nums">{stats.whatsapp_button_interactions ?? 0}</div>
+                  </CardContent>
+                </Card>
+                <Card className="bg-card/60 backdrop-blur-sm border-violet-500/15 shadow-sm rounded-2xl group hover:border-violet-500/35 transition-all duration-300">
+                  <CardHeader className="pb-1 sm:pb-2 px-4 pt-4">
+                    <CardTitle className="text-xs sm:text-sm font-medium text-muted-foreground group-hover:text-violet-600 transition-colors leading-tight flex items-center gap-1.5">
+                      <Star className="h-3.5 w-3.5 shrink-0" aria-hidden />
+                      Reseñas totales
+                      {(stats.service_reviews_count != null || stats.product_reviews_count != null) && (
+                        <span
+                          className="inline-flex items-center text-muted-foreground"
+                          title={
+                            stats.service_reviews_count != null || stats.product_reviews_count != null
+                              ? `Servicios: ${stats.service_reviews_count ?? '—'} · Productos: ${stats.product_reviews_count ?? '—'}`
+                              : undefined
+                          }
+                        >
+                          <HelpCircle className="h-3.5 w-3.5 shrink-0 ml-0.5" aria-hidden />
                         </span>
-                        {stats.featured_services_criteria?.description_es ? (
-                          <span
-                            className="shrink-0 inline-flex text-muted-foreground"
-                            title={stats.featured_services_criteria.description_es}
-                          >
-                            <HelpCircle className="h-4 w-4" aria-hidden />
-                          </span>
-                        ) : null}
-                      </CardDescription>
-                    </div>
-                  </div>
-                </CardHeader>
-                <CardContent className="pt-0">
-                  {!Array.isArray(stats.featured_services) || stats.featured_services.length === 0 ? (
-                    <p className="text-sm text-muted-foreground py-6 text-center rounded-xl border border-dashed border-border/70 bg-muted/20">
-                      Aún no hay servicios que cumplan los criterios de destacado.
-                    </p>
-                  ) : (
-                    <>
-                      <div className="mb-3 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-                        <p className="text-xs text-muted-foreground">
-                          Mostrando <span className="font-semibold text-foreground">{filteredFeaturedServicesForDisplay.length}</span> de{' '}
-                          {stats.featured_services.length} en el ranking
-                        </p>
-                        <div className="relative w-full sm:max-w-xs">
-                          <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground pointer-events-none" />
-                          <Input
-                            value={featuredServicesSearch}
-                            onChange={(e) => setFeaturedServicesSearch(e.target.value)}
-                            placeholder="Buscar por nombre de servicio o cifras…"
-                            className="h-9 rounded-lg pl-9 pr-3 text-sm"
-                          />
-                        </div>
-                      </div>
-                      {filteredFeaturedServicesForDisplay.length === 0 ? (
-                        <p className="text-sm text-muted-foreground py-6 text-center rounded-xl border border-dashed border-border/70 bg-muted/20">
-                          Ningún destacado coincide con la búsqueda.
-                        </p>
-                      ) : (
-                    <div className="overflow-x-auto rounded-xl border border-border/60">
-                      <table className="w-full text-left text-xs sm:text-sm">
-                        <thead className="bg-muted/50 text-muted-foreground">
-                          <tr>
-                            <th className="px-3 py-2 font-medium">Servicio</th>
-                            <th className="px-3 py-2 font-medium tabular-nums">Rating</th>
-                            <th className="px-3 py-2 font-medium tabular-nums">Reseñas</th>
-                            <th className="px-3 py-2 font-medium tabular-nums hidden sm:table-cell">Buenas (4–5★)</th>
-                            <th className="px-3 py-2 font-medium tabular-nums hidden md:table-cell">Score</th>
-                          </tr>
-                        </thead>
-                        <tbody>
-                          {filteredFeaturedServicesForDisplay.map((row, idx) => (
-                            <tr key={idx} className="border-t border-border/50 hover:bg-muted/30">
-                              <td className="px-3 py-2 font-medium text-foreground max-w-[10rem] sm:max-w-none truncate sm:whitespace-normal">
-                                {row.service_name ?? '—'}
-                              </td>
-                              <td className="px-3 py-2 tabular-nums">
-                                {row.avg_rating != null ? Number(row.avg_rating).toFixed(1) : '—'}
-                              </td>
-                              <td className="px-3 py-2 tabular-nums">{row.review_count ?? '—'}</td>
-                              <td className="px-3 py-2 tabular-nums hidden sm:table-cell">{row.good_reviews_count ?? '—'}</td>
-                              <td className="px-3 py-2 tabular-nums hidden md:table-cell">
-                                {row.featured_score != null ? Number(row.featured_score).toFixed(2) : '—'}
-                              </td>
-                            </tr>
-                          ))}
-                        </tbody>
-                      </table>
-                    </div>
                       )}
-                    </>
-                  )}
-                </CardContent>
-              </Card>
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="px-4 pb-4">
+                    <div className="text-2xl sm:text-3xl font-bold tabular-nums">{stats.total_reviews ?? 0}</div>
+                    {(stats.service_reviews_count != null || stats.product_reviews_count != null) && (
+                      <p className="text-[10px] sm:text-xs text-muted-foreground mt-1 tabular-nums leading-snug">
+                        Servicios: {stats.service_reviews_count ?? '—'} · Productos: {stats.product_reviews_count ?? '—'}
+                      </p>
+                    )}
+                  </CardContent>
+                </Card>
+              </div>
             )}
           </>
         )}
 
-        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-          <div className="sticky top-0 z-30 -mx-1 px-1 py-2 mb-4 sm:mb-5 rounded-2xl border border-border/50 bg-background/90 backdrop-blur-md shadow-sm sm:static sm:mx-0 sm:px-0 sm:py-0 sm:mb-6 sm:border-0 sm:bg-transparent sm:backdrop-blur-none sm:shadow-none">
-            <p className="sm:hidden text-xs text-muted-foreground mb-2 px-1">Desliza para ver todas las secciones</p>
-            <div className="w-full overflow-x-auto overflow-y-hidden pb-1 scrollbar-hide touch-pan-x">
+        <Tabs
+          value={activeTab}
+          onValueChange={setActiveTab}
+          className={cn('w-full', isSuperAdmin && 'lg:flex lg:flex-row lg:items-start lg:gap-0')}
+        >
+          <div
+            className={cn(
+              'z-30 -mx-1 px-1 py-2 mb-4 sm:mb-5',
+              isSuperAdmin
+                ? 'sticky top-0 rounded-2xl border border-violet-200/55 bg-background/[0.97] backdrop-blur-md shadow-sm supports-[padding:max(0px)]:pt-[max(0.25rem,env(safe-area-inset-top))] lg:mx-0 lg:mb-0 lg:shrink-0 lg:w-52 xl:w-56 lg:rounded-2xl lg:border lg:bg-card/95 lg:p-2.5 lg:shadow-md lg:sticky lg:top-20 lg:self-start lg:z-20'
+                : 'sticky top-0 rounded-2xl border border-border/50 bg-background/90 backdrop-blur-md shadow-sm sm:static sm:mx-0 sm:px-0 sm:py-0 sm:mb-6 sm:border-0 sm:bg-transparent sm:backdrop-blur-none sm:shadow-none',
+            )}
+          >
+            <p className={cn('text-xs text-muted-foreground mb-2 px-1', isSuperAdmin ? 'lg:hidden' : 'sm:hidden')}>
+              Desliza para ver todas las secciones
+            </p>
+            {isSuperAdmin ? (
+              <p className="mb-2 hidden px-1 text-[11px] font-semibold uppercase tracking-wide text-violet-700/85 dark:text-violet-300/85 lg:block">
+                Secciones
+              </p>
+            ) : null}
+            <div
+              className={cn(
+                'w-full pb-1',
+                isSuperAdmin
+                  ? 'overflow-x-auto overflow-y-hidden scrollbar-hide touch-pan-x lg:overflow-visible'
+                  : 'overflow-x-auto overflow-y-hidden scrollbar-hide touch-pan-x',
+              )}
+            >
               <TabsList
                 className={cn(
-                  'flex w-max min-w-max sm:flex-wrap sm:w-full sm:min-w-0 h-auto p-1.5 gap-1 sm:gap-1.5',
-                  'rounded-xl border shadow-inner justify-start sm:justify-start',
+                  'flex h-auto justify-start gap-1 rounded-xl border p-1.5 shadow-inner sm:gap-1.5',
                   isSuperAdmin
-                    ? 'border-violet-200/60 bg-gradient-to-r from-violet-500/12 via-muted/40 to-amber-500/10 dark:border-violet-900/40 [&_[data-state=active]]:shadow-sm'
-                    : 'border-border/60 bg-gradient-to-r from-muted/60 via-muted/30 to-muted/60',
+                    ? 'w-max min-w-max border-violet-200/60 bg-gradient-to-r from-violet-500/12 via-muted/40 to-amber-500/10 dark:border-violet-900/40 lg:w-full lg:min-w-0 lg:flex-col lg:bg-gradient-to-b lg:from-violet-500/10 lg:to-muted/25 lg:p-1 lg:[&>button]:w-full lg:[&>button]:justify-start lg:[&>button]:text-left [&_[data-state=active]]:shadow-sm'
+                    : 'w-max min-w-max sm:w-full sm:min-w-0 sm:flex-wrap border-border/60 bg-gradient-to-r from-muted/60 via-muted/30 to-muted/60',
                   isSuperAdmin &&
-                    '[&_[data-state=active]]:ring-2 [&_[data-state=active]]:ring-violet-500/20 [&_[data-state=active]]:bg-background',
+                    '[&_[data-state=active]]:ring-2 [&_[data-state=active]]:ring-violet-500/20 [&_[data-state=active]]:bg-background lg:[&_[data-state=active]]:ring-1',
                 )}
               >
               <TabsTrigger
@@ -1986,6 +1984,12 @@ const Admin = () => {
             </div>
           </div>
 
+          <div
+            className={cn(
+              'min-w-0 w-full',
+              isSuperAdmin && 'lg:flex-1 lg:border-l lg:border-violet-200/40 lg:pl-6 xl:pl-8 lg:pt-0.5',
+            )}
+          >
           {/* Tab de Datos */}
           <TabsContent value="datos" className="mt-4 sm:mt-6 outline-none focus-visible:outline-none">
             <Card className="rounded-2xl border border-border/60 bg-card shadow-sm overflow-hidden">
@@ -3394,6 +3398,7 @@ const Admin = () => {
             </TabsContent>
           )}
 
+          </div>
         </Tabs>
 
         {/* Dialog para Editar/Crear Tipo de Servicio (fuera de Tabs para evitar conflictos de foco con Radix) */}
