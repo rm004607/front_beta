@@ -33,7 +33,7 @@ import {
   getValidationErrorMessage,
 } from '@/lib/input-validator';
 import { toast } from 'sonner';
-import { AlertCircle, ImagePlus, Loader2, MapPin, X } from 'lucide-react';
+import { AlertCircle, ImagePlus, Loader2, MapPin, Search, X } from 'lucide-react';
 
 function communesNamesFromApiResponse(
   rid: string,
@@ -80,6 +80,7 @@ export function AdminInsertServiceTab() {
   const [loadingCoverageCommunes, setLoadingCoverageCommunes] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [serviceTypes, setServiceTypes] = useState<Array<{ id: string; name: string }>>([]);
+  const [serviceTypePickSearch, setServiceTypePickSearch] = useState('');
   const [selectedServiceTypeIds, setSelectedServiceTypeIds] = useState<string[]>([]);
   const [customServiceName, setCustomServiceName] = useState('');
   const [loadingServiceTypes, setLoadingServiceTypes] = useState(false);
@@ -144,6 +145,31 @@ export function AdminInsertServiceTab() {
   const regionsCatalogUsable = !regionsLoading && !regionsError && apiRegions.length > 0;
   const baseCommunesForUi = baseCommunesCatalog;
   const coverageCommunesForUi = coverageCommunesCatalog;
+
+  const serviceTypesForSelect = useMemo(() => {
+    const q = serviceTypePickSearch
+      .trim()
+      .toLowerCase()
+      .normalize('NFD')
+      .replace(/\p{M}/gu, '');
+    let list = serviceTypes;
+    if (q) {
+      list = serviceTypes.filter(
+        (t) =>
+          (t.name || '')
+            .toLowerCase()
+            .normalize('NFD')
+            .replace(/\p{M}/gu, '')
+            .includes(q) || String(t.id).toLowerCase().includes(q)
+      );
+    }
+    const sel = selectedServiceTypeIds[0];
+    if (sel && !list.some((t) => String(t.id) === String(sel))) {
+      const found = serviceTypes.find((t) => String(t.id) === String(sel));
+      if (found) return [found, ...list];
+    }
+    return list;
+  }, [serviceTypes, serviceTypePickSearch, selectedServiceTypeIds]);
 
   useEffect(() => {
     if (!baseRegion) {
@@ -410,30 +436,44 @@ export function AdminInsertServiceTab() {
             {loadingServiceTypes ? (
               <p className="text-sm text-muted-foreground">Cargando categorías…</p>
             ) : (
-              <Select
-                onValueChange={(value) => {
-                  if (value === 'other') {
-                    setSelectedServiceTypeIds([]);
-                    setCustomServiceName(' ');
-                  } else {
-                    setSelectedServiceTypeIds([value]);
-                    setCustomServiceName('');
-                  }
-                }}
-                value={customServiceName ? 'other' : selectedServiceTypeIds[0] || ''}
-              >
-                <SelectTrigger className="max-w-md">
-                  <SelectValue placeholder="Tipo de servicio…" />
-                </SelectTrigger>
-                <SelectContent>
-                  {serviceTypes.map((type) => (
-                    <SelectItem key={type.id} value={type.id}>
-                      {type.name}
-                    </SelectItem>
-                  ))}
-                  <SelectItem value="other">Otro / no está en la lista</SelectItem>
-                </SelectContent>
-              </Select>
+              <div className="space-y-2 max-w-md">
+                <div className="relative">
+                  <Search className="absolute left-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-muted-foreground pointer-events-none" />
+                  <Input
+                    value={serviceTypePickSearch}
+                    onChange={(e) => setServiceTypePickSearch(e.target.value)}
+                    placeholder="Buscar categoría por nombre o ID…"
+                    className="h-9 pl-8 text-sm"
+                  />
+                </div>
+                <Select
+                  onValueChange={(value) => {
+                    if (value === 'other') {
+                      setSelectedServiceTypeIds([]);
+                      setCustomServiceName(' ');
+                    } else {
+                      setSelectedServiceTypeIds([value]);
+                      setCustomServiceName('');
+                    }
+                  }}
+                  value={customServiceName ? 'other' : selectedServiceTypeIds[0] || ''}
+                >
+                  <SelectTrigger className="max-w-md">
+                    <SelectValue placeholder="Tipo de servicio…" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {serviceTypesForSelect.map((type) => (
+                      <SelectItem key={type.id} value={type.id}>
+                        {type.name}
+                      </SelectItem>
+                    ))}
+                    <SelectItem value="other">Otro / no está en la lista</SelectItem>
+                  </SelectContent>
+                </Select>
+                {serviceTypePickSearch.trim() && serviceTypesForSelect.length === 0 ? (
+                  <p className="text-xs text-muted-foreground">Ninguna categoría coincide; borra el filtro o elige &quot;Otro&quot;.</p>
+                ) : null}
+              </div>
             )}
             {!!customServiceName && (
               <Input

@@ -354,10 +354,29 @@ function buildCatalogServiceCounts(
   return { byId, uncategorized };
 }
 
+/** Búsqueda insensible a mayúsculas y tildes en paneles admin */
+function normalizeAdminPanelSearch(s: string): string {
+  return String(s ?? '')
+    .trim()
+    .toLowerCase()
+    .normalize('NFD')
+    .replace(/\p{M}/gu, '');
+}
+
+function matchesAdminDetailSearch(query: string, parts: (string | number | undefined | null)[]): boolean {
+  const q = normalizeAdminPanelSearch(query);
+  if (!q) return true;
+  const haystack = parts.map((p) => normalizeAdminPanelSearch(String(p ?? ''))).join(' ');
+  return haystack.includes(q);
+}
+
+const ADMIN_PRICE_CONFIG_KEYS = new Set(['WHATSAPP_CONTACT_PRICE', 'PRICING_ENABLED']);
+
 const Admin = () => {
   const { user, isLoggedIn } = useUser();
   const navigate = useNavigate();
   const isSuperAdmin = user?.role_number === 5;
+  const adminListFetchLimit = isSuperAdmin ? 150 : 50;
   const showInsertDatoTab = useMemo(
     () => isSuperAdmin && canShowAdminInsertServiceTab(user),
     [isSuperAdmin, user]
@@ -465,6 +484,14 @@ const Admin = () => {
   const [catalogTypes, setCatalogTypes] = useState<any[]>([]);
   const [loadingCatalog, setLoadingCatalog] = useState(false);
   const [catalogSearchQuery, setCatalogSearchQuery] = useState('');
+  const [localSearchServices, setLocalSearchServices] = useState('');
+  const [localSearchProducts, setLocalSearchProducts] = useState('');
+  const [localSearchUsers, setLocalSearchUsers] = useState('');
+  const [localSearchTickets, setLocalSearchTickets] = useState('');
+  const [localSearchDatos, setLocalSearchDatos] = useState('');
+  const [suggestionsSearchQuery, setSuggestionsSearchQuery] = useState('');
+  const [pricesTabSearchQuery, setPricesTabSearchQuery] = useState('');
+  const [featuredServicesSearch, setFeaturedServicesSearch] = useState('');
   const [catalogTypeServiceCounts, setCatalogTypeServiceCounts] = useState<Record<string, number>>({});
   const [catalogUncategorizedCount, setCatalogUncategorizedCount] = useState(0);
   const [catalogTotalServicesScanned, setCatalogTotalServicesScanned] = useState(0);
@@ -497,7 +524,7 @@ const Admin = () => {
       setLoadingDatos(true);
       const response = await adminAPI.getAllTickets({
         category: 'recommendation',
-        limit: 50,
+        limit: adminListFetchLimit,
       });
       setDatos(response.tickets);
     } catch (error: any) {
@@ -515,7 +542,7 @@ const Admin = () => {
       const response = await adminAPI.getAllServices({
         comuna: serviceFilters.comuna || undefined,
         status: serviceFilters.status !== 'all' ? serviceFilters.status : undefined,
-        limit: 50,
+        limit: adminListFetchLimit,
       });
       setServices(response.services);
     } catch (error: any) {
@@ -532,7 +559,7 @@ const Admin = () => {
       const response = await adminAPI.getAllProducts({
         comuna: productFilters.comuna || undefined,
         status: productFilters.status !== 'all' ? productFilters.status : undefined,
-        limit: 50,
+        limit: adminListFetchLimit,
       });
       setAdminProducts(response.products);
     } catch (error: any) {
@@ -550,7 +577,7 @@ const Admin = () => {
         role: userFilters.role !== 'all' ? userFilters.role : undefined,
         is_active: userFilters.is_active !== 'all' ? parseInt(userFilters.is_active) : undefined,
         is_banned: userFilters.is_banned !== 'all' ? parseInt(userFilters.is_banned) : undefined,
-        limit: 50,
+        limit: adminListFetchLimit,
       });
       setUsers(response.users);
     } catch (error: any) {
@@ -567,7 +594,7 @@ const Admin = () => {
       const response = await adminAPI.getAllTickets({
         status: ticketFilters.status !== 'all' ? ticketFilters.status : undefined,
         category: ticketFilters.category !== 'all' ? ticketFilters.category : undefined,
-        limit: 50,
+        limit: adminListFetchLimit,
       });
       setTickets(response.tickets);
     } catch (error: any) {
@@ -661,6 +688,133 @@ const Admin = () => {
     }
     return [...list].sort((a, b) => (a.name || '').localeCompare(b.name || '', 'es'));
   }, [catalogTypes, catalogSearchQuery]);
+
+  const filteredServicesForDisplay = useMemo(() => {
+    if (!localSearchServices.trim()) return services;
+    return services.filter((s) =>
+      matchesAdminDetailSearch(localSearchServices, [
+        s.service_name,
+        s.description,
+        s.user_name,
+        s.user_email,
+        s.comuna,
+        s.phone,
+        s.price_range,
+        s.id,
+        s.status,
+      ])
+    );
+  }, [services, localSearchServices]);
+
+  const filteredProductsForDisplay = useMemo(() => {
+    if (!localSearchProducts.trim()) return adminProducts;
+    return adminProducts.filter((p) =>
+      matchesAdminDetailSearch(localSearchProducts, [
+        p.title,
+        p.description,
+        p.user_name,
+        p.user_email,
+        p.comuna,
+        p.id,
+        p.status,
+        p.product_status,
+        p.price,
+        p.region_name,
+      ])
+    );
+  }, [adminProducts, localSearchProducts]);
+
+  const filteredUsersForDisplay = useMemo(() => {
+    if (!localSearchUsers.trim()) return users;
+    return users.filter((u) =>
+      matchesAdminDetailSearch(localSearchUsers, [
+        u.name,
+        u.email,
+        u.phone,
+        u.rut,
+        u.comuna,
+        u.role,
+        u.id,
+        u.ban_reason,
+      ])
+    );
+  }, [users, localSearchUsers]);
+
+  const filteredTicketsForDisplay = useMemo(() => {
+    if (!localSearchTickets.trim()) return tickets;
+    return tickets.filter((t) =>
+      matchesAdminDetailSearch(localSearchTickets, [
+        t.subject,
+        t.message,
+        t.user_name,
+        t.user_email,
+        t.category,
+        t.status,
+        t.id,
+        t.response,
+      ])
+    );
+  }, [tickets, localSearchTickets]);
+
+  const filteredDatosForDisplay = useMemo(() => {
+    if (!localSearchDatos.trim()) return datos;
+    return datos.filter((d) =>
+      matchesAdminDetailSearch(localSearchDatos, [
+        d.subject,
+        d.message,
+        d.user_name,
+        d.user_email,
+        d.status,
+        d.id,
+      ])
+    );
+  }, [datos, localSearchDatos]);
+
+  const filteredSuggestionsForDisplay = useMemo(() => {
+    if (!suggestionsSearchQuery.trim()) return suggestions;
+    return suggestions.filter((sug: { custom_service_name?: string; user_name?: string; user_email?: string; id?: string; status?: string }) =>
+      matchesAdminDetailSearch(suggestionsSearchQuery, [
+        sug.custom_service_name,
+        sug.user_name,
+        sug.user_email,
+        sug.id,
+        sug.status,
+      ])
+    );
+  }, [suggestions, suggestionsSearchQuery]);
+
+  const filteredPriceConfigForDisplay = useMemo(() => {
+    const rows = adminConfig.filter((config: { key: string }) =>
+      ADMIN_PRICE_CONFIG_KEYS.has(String(config.key || '').trim().toUpperCase())
+    );
+    if (!pricesTabSearchQuery.trim()) return rows;
+    return rows.filter((config: { key: string; description?: string; value?: string }) =>
+      matchesAdminDetailSearch(pricesTabSearchQuery, [config.key, config.description, config.value])
+    );
+  }, [adminConfig, pricesTabSearchQuery]);
+
+  const filteredServicePackagesForDisplay = useMemo(() => {
+    const pkgs = adminPackages.services || [];
+    if (!pricesTabSearchQuery.trim()) return pkgs;
+    return pkgs.filter((pkg: { name?: string; description?: string; price?: number; publications?: number; id?: string }) =>
+      matchesAdminDetailSearch(pricesTabSearchQuery, [pkg.name, pkg.description, pkg.price, pkg.publications, pkg.id])
+    );
+  }, [adminPackages, pricesTabSearchQuery]);
+
+  const filteredFeaturedServicesForDisplay = useMemo(() => {
+    const list = stats?.featured_services;
+    if (!Array.isArray(list)) return [];
+    if (!featuredServicesSearch.trim()) return list;
+    return list.filter((row: { service_name?: string; avg_rating?: number; review_count?: number; good_reviews_count?: number; featured_score?: number }) =>
+      matchesAdminDetailSearch(featuredServicesSearch, [
+        row.service_name,
+        row.avg_rating,
+        row.review_count,
+        row.good_reviews_count,
+        row.featured_score,
+      ])
+    );
+  }, [stats, featuredServicesSearch]);
 
   const loadServiceSuggestions = async () => {
     try {
@@ -1471,7 +1625,14 @@ const Admin = () => {
 
       <div className="max-w-7xl mx-auto px-3 sm:px-5 lg:px-8 py-5 sm:py-8 relative z-10">
         {/* Encabezado */}
-        <div className="mb-6 sm:mb-8 p-4 sm:p-6 glass-card rounded-2xl sm:rounded-3xl border border-primary/15 shadow-sm">
+        <div
+          className={cn(
+            'mb-6 sm:mb-8 p-4 sm:p-6 glass-card rounded-2xl sm:rounded-3xl shadow-sm',
+            isSuperAdmin
+              ? 'border border-violet-300/40 bg-gradient-to-br from-violet-500/[0.07] via-card to-amber-500/[0.06]'
+              : 'border border-primary/15',
+          )}
+        >
           <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
             <div className="space-y-2 min-w-0">
               <Link
@@ -1482,22 +1643,50 @@ const Admin = () => {
                 Volver al inicio
               </Link>
               <div className="flex items-start gap-3">
-                <div className="mt-1 hidden sm:flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-primary/10 text-primary">
-                  <LayoutDashboard className="h-5 w-5" aria-hidden />
+                <div
+                  className={cn(
+                    'mt-1 hidden sm:flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl',
+                    isSuperAdmin ? 'bg-violet-500/15 text-violet-700' : 'bg-primary/10 text-primary',
+                  )}
+                >
+                  {isSuperAdmin ? <Crown className="h-5 w-5" aria-hidden /> : <LayoutDashboard className="h-5 w-5" aria-hidden />}
                 </div>
                 <div>
-                  <h1 className="text-2xl sm:text-3xl lg:text-4xl font-heading font-bold bg-clip-text text-transparent bg-gradient-to-r from-primary to-secondary leading-tight">
+                  <h1
+                    className={cn(
+                      'text-2xl sm:text-3xl lg:text-4xl font-heading font-bold bg-clip-text text-transparent leading-tight',
+                      isSuperAdmin
+                        ? 'bg-gradient-to-r from-violet-600 via-primary to-amber-600'
+                        : 'bg-gradient-to-r from-primary to-secondary',
+                    )}
+                  >
                     Panel de {isSuperAdmin ? 'Super Admin' : 'Administración'}
                   </h1>
                   <p className="text-sm sm:text-base text-muted-foreground mt-1 max-w-2xl">
-                    Moderación, usuarios y configuración en un solo lugar. En móvil, desliza las pestañas horizontalmente.
+                    {isSuperAdmin ? (
+                      <>
+                        Control total sobre catálogo, precios y cuentas. En cada pestaña hay un{' '}
+                        <span className="text-foreground/90 font-medium">buscador</span> para filtrar por nombre, correo, ID o
+                        fragmentos del contenido (sin importar tildes ni mayúsculas).
+                      </>
+                    ) : (
+                      <>Moderación, usuarios y configuración en un solo lugar. En móvil, desliza las pestañas horizontalmente.</>
+                    )}
                   </p>
                 </div>
               </div>
             </div>
             <div className="flex flex-wrap items-center gap-2 lg:justify-end shrink-0">
-              <Badge variant="secondary" className="rounded-full px-3 py-1 font-medium gap-1.5 border border-border/60">
-                <Shield className="h-3.5 w-3.5" aria-hidden />
+              <Badge
+                variant="secondary"
+                className={cn(
+                  'rounded-full px-3 py-1 font-medium gap-1.5 border',
+                  isSuperAdmin
+                    ? 'border-violet-300/50 bg-violet-500/10 text-violet-900 dark:text-violet-100'
+                    : 'border-border/60',
+                )}
+              >
+                {isSuperAdmin ? <Crown className="h-3.5 w-3.5" aria-hidden /> : <Shield className="h-3.5 w-3.5" aria-hidden />}
                 {isSuperAdmin ? 'Super Admin' : 'Admin'}
               </Badge>
               {user?.name ? (
@@ -1643,6 +1832,27 @@ const Admin = () => {
                       Aún no hay servicios que cumplan los criterios de destacado.
                     </p>
                   ) : (
+                    <>
+                      <div className="mb-3 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+                        <p className="text-xs text-muted-foreground">
+                          Mostrando <span className="font-semibold text-foreground">{filteredFeaturedServicesForDisplay.length}</span> de{' '}
+                          {stats.featured_services.length} en el ranking
+                        </p>
+                        <div className="relative w-full sm:max-w-xs">
+                          <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground pointer-events-none" />
+                          <Input
+                            value={featuredServicesSearch}
+                            onChange={(e) => setFeaturedServicesSearch(e.target.value)}
+                            placeholder="Buscar por nombre de servicio o cifras…"
+                            className="h-9 rounded-lg pl-9 pr-3 text-sm"
+                          />
+                        </div>
+                      </div>
+                      {filteredFeaturedServicesForDisplay.length === 0 ? (
+                        <p className="text-sm text-muted-foreground py-6 text-center rounded-xl border border-dashed border-border/70 bg-muted/20">
+                          Ningún destacado coincide con la búsqueda.
+                        </p>
+                      ) : (
                     <div className="overflow-x-auto rounded-xl border border-border/60">
                       <table className="w-full text-left text-xs sm:text-sm">
                         <thead className="bg-muted/50 text-muted-foreground">
@@ -1655,7 +1865,7 @@ const Admin = () => {
                           </tr>
                         </thead>
                         <tbody>
-                          {stats.featured_services.map((row, idx) => (
+                          {filteredFeaturedServicesForDisplay.map((row, idx) => (
                             <tr key={idx} className="border-t border-border/50 hover:bg-muted/30">
                               <td className="px-3 py-2 font-medium text-foreground max-w-[10rem] sm:max-w-none truncate sm:whitespace-normal">
                                 {row.service_name ?? '—'}
@@ -1673,6 +1883,8 @@ const Admin = () => {
                         </tbody>
                       </table>
                     </div>
+                      )}
+                    </>
                   )}
                 </CardContent>
               </Card>
@@ -1687,8 +1899,12 @@ const Admin = () => {
               <TabsList
                 className={cn(
                   'flex w-max min-w-max sm:flex-wrap sm:w-full sm:min-w-0 h-auto p-1.5 gap-1 sm:gap-1.5',
-                  'rounded-xl border border-border/60 bg-gradient-to-r from-muted/60 via-muted/30 to-muted/60 shadow-inner',
-                  'justify-start sm:justify-start',
+                  'rounded-xl border shadow-inner justify-start sm:justify-start',
+                  isSuperAdmin
+                    ? 'border-violet-200/60 bg-gradient-to-r from-violet-500/12 via-muted/40 to-amber-500/10 dark:border-violet-900/40 [&_[data-state=active]]:shadow-sm'
+                    : 'border-border/60 bg-gradient-to-r from-muted/60 via-muted/30 to-muted/60',
+                  isSuperAdmin &&
+                    '[&_[data-state=active]]:ring-2 [&_[data-state=active]]:ring-violet-500/20 [&_[data-state=active]]:bg-background',
                 )}
               >
               <TabsTrigger
@@ -1772,52 +1988,79 @@ const Admin = () => {
 
           {/* Tab de Datos */}
           <TabsContent value="datos" className="mt-4 sm:mt-6 outline-none focus-visible:outline-none">
-            <Card className="rounded-2xl border border-border/60 bg-card shadow-sm">
-              <CardHeader>
-                <CardTitle>Recomendaciones de la Comunidad (Datos)</CardTitle>
-                <CardDescription>Visualiza los datos enviados por los vecinos a través del formulario de la página principal.</CardDescription>
+            <Card className="rounded-2xl border border-border/60 bg-card shadow-sm overflow-hidden">
+              <CardHeader className="border-b border-border/50 bg-gradient-to-r from-amber-500/8 via-card to-primary/5">
+                <CardTitle className="text-lg sm:text-xl">Recomendaciones de la comunidad</CardTitle>
+                <CardDescription>
+                  Ideas y datos que envían los vecinos desde el formulario de la página principal. Usa el buscador para localizar un envío concreto.
+                </CardDescription>
               </CardHeader>
-              <CardContent>
+              <CardContent className="pt-5">
+                <div className="relative mb-5">
+                  <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground pointer-events-none" />
+                  <Input
+                    value={localSearchDatos}
+                    onChange={(e) => setLocalSearchDatos(e.target.value)}
+                    placeholder="Buscar por asunto, mensaje, nombre, correo o ID…"
+                    className="h-11 rounded-xl pl-10 pr-3"
+                    disabled={loadingDatos}
+                  />
+                </div>
                 {loadingDatos ? (
                   <div className="text-center py-8">
-                    <p className="text-muted-foreground">Cargando datos...</p>
+                    <Loader2 className="h-8 w-8 animate-spin text-primary mx-auto mb-2" aria-hidden />
+                    <p className="text-muted-foreground text-sm">Cargando datos…</p>
                   </div>
                 ) : datos.length === 0 ? (
-                  <div className="text-center py-8">
+                  <div className="text-center py-10 rounded-xl border border-dashed border-border/70 bg-muted/20">
                     <p className="text-muted-foreground">No hay recomendaciones enviadas aún.</p>
+                  </div>
+                ) : filteredDatosForDisplay.length === 0 ? (
+                  <div className="text-center py-10 rounded-xl border border-dashed border-amber-200/60 bg-amber-50/30 dark:bg-amber-950/20">
+                    <p className="text-sm font-medium text-foreground">Nada coincide con tu búsqueda</p>
+                    <Button variant="outline" size="sm" className="mt-3" onClick={() => setLocalSearchDatos('')}>
+                      Limpiar buscador
+                    </Button>
                   </div>
                 ) : (
                   <div className="space-y-4">
-                    {datos.map((dato) => (
-                      <Card key={dato.id} className="border hover:shadow-md transition-shadow">
+                    <p className="text-xs text-muted-foreground">
+                      Mostrando <strong className="text-foreground">{filteredDatosForDisplay.length}</strong> de {datos.length}
+                      {localSearchDatos.trim() ? ' (filtro activo)' : ''}
+                    </p>
+                    {filteredDatosForDisplay.map((dato) => (
+                      <Card
+                        key={dato.id}
+                        className="rounded-2xl border border-border/70 bg-gradient-to-br from-card to-muted/20 shadow-sm hover:border-primary/25 hover:shadow-md transition-all duration-200"
+                      >
                         <CardHeader className="pb-3">
-                          <div className="flex justify-between items-start">
-                            <div className="flex-1">
-                              <CardTitle className="text-lg text-primary">{dato.subject.replace('Nuevo Dato: ', '')}</CardTitle>
-                              <CardDescription>
-                                Enviado por: {dato.user_name} ({dato.user_email})
-                              </CardDescription>
+                          <div className="flex justify-between items-start gap-3">
+                            <div className="flex-1 min-w-0">
+                              <CardTitle className="text-lg text-primary leading-snug">
+                                {String(dato.subject || '').replace('Nuevo Dato: ', '')}
+                              </CardTitle>
                               <CardDescription className="mt-1">
-                                {formatDate(dato.created_at)}
+                                Enviado por: <span className="text-foreground/90">{dato.user_name}</span> ({dato.user_email})
                               </CardDescription>
+                              <CardDescription className="mt-1">{formatDate(dato.created_at)}</CardDescription>
                             </div>
-                            <div className="flex flex-col items-end gap-2">
-                               <Badge variant={dato.status === 'open' ? 'default' : 'secondary'}>
-                                 {dato.status === 'open' ? 'Pendiente' : 'Gestionado'}
-                               </Badge>
-                               <Button
-                                  variant="outline"
-                                  size="sm"
-                                  onClick={() => handleUpdateTicketStatus(dato.id, dato.status === 'open' ? 'closed' : 'open')}
-                                >
-                                  {dato.status === 'open' ? 'Marcar como gestionado' : 'Reabrir'}
-                                </Button>
+                            <div className="flex flex-col items-end gap-2 shrink-0">
+                              <Badge variant={dato.status === 'open' ? 'default' : 'secondary'}>
+                                {dato.status === 'open' ? 'Pendiente' : 'Gestionado'}
+                              </Badge>
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => handleUpdateTicketStatus(dato.id, dato.status === 'open' ? 'closed' : 'open')}
+                              >
+                                {dato.status === 'open' ? 'Marcar como gestionado' : 'Reabrir'}
+                              </Button>
                             </div>
                           </div>
                         </CardHeader>
                         <CardContent>
-                          <div className="bg-slate-50 dark:bg-slate-900/50 p-4 rounded-xl border border-slate-100 dark:border-slate-800">
-                             <p className="whitespace-pre-wrap text-sm leading-relaxed">{dato.message}</p>
+                          <div className="rounded-xl border border-border/60 bg-muted/30 p-4">
+                            <p className="whitespace-pre-wrap text-sm leading-relaxed text-foreground/95">{dato.message}</p>
                           </div>
                         </CardContent>
                       </Card>
@@ -1885,11 +2128,26 @@ const Admin = () => {
                         className="flex-1 lg:flex-none h-10 sm:h-11 px-6"
                         onClick={() => {
                           setServiceFilters({ comuna: '', status: 'all' });
+                          setLocalSearchServices('');
                           setTimeout(loadServices, 0);
                         }}
                       >
                         Limpiar
                       </Button>
+                    </div>
+                    <div className="w-full pt-1">
+                      <Label className="text-[10px] uppercase tracking-wide text-muted-foreground mb-1.5 block">
+                        Búsqueda en esta lista
+                      </Label>
+                      <div className="relative max-w-full lg:max-w-xl">
+                        <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground pointer-events-none" />
+                        <Input
+                          value={localSearchServices}
+                          onChange={(e) => setLocalSearchServices(e.target.value)}
+                          placeholder="Nombre, email, teléfono, descripción, comuna o ID…"
+                          className="pl-10 h-10 sm:h-11 bg-background/80 border-border/60"
+                        />
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -1914,17 +2172,33 @@ const Admin = () => {
                         className="mt-4"
                         onClick={() => {
                           setServiceFilters({ comuna: '', status: 'all' });
+                          setLocalSearchServices('');
                           setTimeout(loadServices, 0);
                         }}
                       >
                         Ver todos los servicios
                       </Button>
                     </div>
+                  ) : filteredServicesForDisplay.length === 0 ? (
+                    <div className="text-center py-10 px-4 rounded-2xl border border-dashed border-violet-200/60 bg-violet-50/40 dark:bg-violet-950/20">
+                      <Search className="h-8 w-8 text-muted-foreground mx-auto mb-2 opacity-70" aria-hidden />
+                      <p className="font-semibold">Ningún servicio coincide con la búsqueda detallada</p>
+                      <p className="text-sm text-muted-foreground mt-1">Hay {services.length} cargados con el filtro del servidor.</p>
+                      <Button variant="outline" className="mt-4" onClick={() => setLocalSearchServices('')}>
+                        Limpiar solo el buscador
+                      </Button>
+                    </div>
                   ) : (
                     <>
+                      {localSearchServices.trim() ? (
+                        <p className="text-xs text-muted-foreground mb-3 sm:mb-4">
+                          Mostrando <strong className="text-foreground">{filteredServicesForDisplay.length}</strong> de {services.length}{' '}
+                          en pantalla
+                        </p>
+                      ) : null}
                       {/* Vista móvil / tablet */}
                       <div className="lg:hidden space-y-3 sm:space-y-4">
-                        {services.map((service) => (
+                        {filteredServicesForDisplay.map((service) => (
                           <Card
                             key={service.id}
                             className={cn(
@@ -2002,7 +2276,7 @@ const Admin = () => {
                               </tr>
                             </thead>
                             <tbody>
-                              {services.map((service) => (
+                              {filteredServicesForDisplay.map((service) => (
                                 <tr
                                   key={service.id}
                                   className="border-b border-border/50 last:border-0 hover:bg-muted/30 transition-colors"
@@ -2075,56 +2349,81 @@ const Admin = () => {
 
           {/* Tab de Productos (marketplace — moderación) */}
           <TabsContent value="products" className="mt-4 sm:mt-6 outline-none focus-visible:outline-none">
-            <Card className="rounded-2xl border border-border/60 bg-card shadow-sm">
-              <CardHeader>
-                <CardTitle>Productos (marketplace)</CardTitle>
+            <Card className="rounded-2xl border border-border/60 bg-card shadow-sm overflow-hidden">
+              <CardHeader className="border-b border-border/50 bg-gradient-to-r from-emerald-500/8 via-card to-primary/5">
+                <CardTitle className="text-lg sm:text-xl">Productos (marketplace)</CardTitle>
                 <CardDescription>
                   Gestiona publicaciones de productos. Los pendientes requieren aprobación antes de verse en la vista pública.
                 </CardDescription>
               </CardHeader>
-              <CardContent>
-                <div className="mb-6 flex flex-col sm:flex-row gap-4">
-                  <Select
-                    value={productFilters.status}
-                    onValueChange={(value) => setProductFilters({ ...productFilters, status: value })}
-                  >
-                    <SelectTrigger className="w-full sm:w-56 glass-card border-white/10">
-                      <SelectValue placeholder="Estado" />
-                    </SelectTrigger>
-                    <SelectContent className="glass-card border-white/10 backdrop-blur-xl">
-                      <SelectItem value="all">🌐 Todos los estados</SelectItem>
-                      <SelectItem value="pending">⏳ Pendientes (Aprobación)</SelectItem>
-                      <SelectItem value="active">✅ Activos / Publicados</SelectItem>
-                      <SelectItem value="rejected">🛑 Rechazados</SelectItem>
-                      <SelectItem value="inactive">🌑 Inactivos</SelectItem>
-                      <SelectItem value="suspended">⚠️ Suspendidos</SelectItem>
-                    </SelectContent>
-                  </Select>
-                  <div className="relative flex-1">
-                    <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 text-primary/50" size={16} />
+              <CardContent className="pt-5">
+                <div className="mb-5 flex flex-col gap-4">
+                  <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 sm:items-end">
+                    <Select
+                      value={productFilters.status}
+                      onValueChange={(value) => setProductFilters({ ...productFilters, status: value })}
+                    >
+                      <SelectTrigger className="w-full sm:w-56 bg-background/80 border-border/60">
+                        <SelectValue placeholder="Estado" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="all">🌐 Todos los estados</SelectItem>
+                        <SelectItem value="pending">⏳ Pendientes (Aprobación)</SelectItem>
+                        <SelectItem value="active">✅ Activos / Publicados</SelectItem>
+                        <SelectItem value="rejected">🛑 Rechazados</SelectItem>
+                        <SelectItem value="inactive">🌑 Inactivos</SelectItem>
+                        <SelectItem value="suspended">⚠️ Suspendidos</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    <div className="relative flex-1 min-w-0">
+                      <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 text-primary/50 pointer-events-none" size={16} />
+                      <Input
+                        placeholder="Filtrar por comuna (servidor)…"
+                        value={productFilters.comuna}
+                        onChange={(e) => setProductFilters({ ...productFilters, comuna: e.target.value })}
+                        className="pl-10 h-10 sm:h-11 bg-background/80 border-border/60"
+                      />
+                    </div>
+                    <Button onClick={loadProducts} className="bg-primary hover:bg-primary/90 h-10 sm:h-11 shrink-0">
+                      Aplicar filtros
+                    </Button>
+                  </div>
+                  <div className="relative">
+                    <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground pointer-events-none" />
                     <Input
-                      placeholder="Filtrar por comuna..."
-                      value={productFilters.comuna}
-                      onChange={(e) => setProductFilters({ ...productFilters, comuna: e.target.value })}
-                      className="pl-10 glass-card border-white/10"
+                      value={localSearchProducts}
+                      onChange={(e) => setLocalSearchProducts(e.target.value)}
+                      placeholder="Buscar en esta lista: título, descripción, vendedor, email, ID, precio…"
+                      className="h-11 rounded-xl pl-10 pr-3 bg-background/80 border-border/60"
+                      disabled={loadingProducts}
                     />
                   </div>
-                  <Button onClick={loadProducts} className="bg-primary hover:bg-primary/90">
-                    Buscar
-                  </Button>
                 </div>
 
                 {loadingProducts ? (
                   <div className="text-center py-8">
-                    <p className="text-muted-foreground">Cargando productos...</p>
+                    <Loader2 className="h-8 w-8 animate-spin text-primary mx-auto mb-2" aria-hidden />
+                    <p className="text-muted-foreground text-sm">Cargando productos…</p>
                   </div>
                 ) : adminProducts.length === 0 ? (
-                  <div className="text-center py-8">
+                  <div className="text-center py-10 rounded-xl border border-dashed border-border/70 bg-muted/20">
                     <p className="text-muted-foreground">No hay productos con ese filtro</p>
+                  </div>
+                ) : filteredProductsForDisplay.length === 0 ? (
+                  <div className="text-center py-10 rounded-xl border border-dashed border-emerald-200/60 bg-emerald-50/30 dark:bg-emerald-950/20">
+                    <p className="text-sm font-medium text-foreground">Nada coincide con la búsqueda detallada</p>
+                    <Button variant="outline" size="sm" className="mt-3" onClick={() => setLocalSearchProducts('')}>
+                      Limpiar buscador
+                    </Button>
                   </div>
                 ) : (
                   <div className="space-y-4">
-                    {adminProducts.map((p) => {
+                    {localSearchProducts.trim() ? (
+                      <p className="text-xs text-muted-foreground">
+                        Mostrando <strong className="text-foreground">{filteredProductsForDisplay.length}</strong> de {adminProducts.length}
+                      </p>
+                    ) : null}
+                    {filteredProductsForDisplay.map((p) => {
                       const st = p.status?.toLowerCase().trim() || '';
                       return (
                         <Card key={p.id} className={`border ${st === 'pending' ? 'border-amber-300 bg-amber-50/30' : ''}`}>
@@ -2222,59 +2521,86 @@ const Admin = () => {
 
           {/* Tab de Usuarios (Admin puede ver y banear, Super Admin puede hacer todo) */}
           <TabsContent value="users" className="mt-4 sm:mt-6 outline-none focus-visible:outline-none">
-            <Card className="rounded-2xl border border-border/60 bg-card shadow-sm">
-              <CardHeader>
-                <CardTitle>Usuarios</CardTitle>
-                <CardDescription>Gestiona usuarios, baneos y roles</CardDescription>
+            <Card className="rounded-2xl border border-border/60 bg-card shadow-sm overflow-hidden">
+              <CardHeader className="border-b border-border/50 bg-gradient-to-r from-violet-500/8 via-card to-primary/5">
+                <CardTitle className="text-lg sm:text-xl">Usuarios</CardTitle>
+                <CardDescription>Gestiona usuarios, baneos y roles. Usa el buscador para localizar por nombre, correo, RUT, teléfono o ID.</CardDescription>
               </CardHeader>
-              <CardContent>
-                <div className="mb-6 flex flex-wrap gap-4">
-                  <Select value={userFilters.role} onValueChange={(value) => setUserFilters({ ...userFilters, role: value })}>
-                    <SelectTrigger className="w-full sm:w-48 glass-card border-white/10">
-                      <SelectValue placeholder="Rol" />
-                    </SelectTrigger>
-                    <SelectContent className="glass-card border-white/10 backdrop-blur-xl">
-                      <SelectItem value="all">👥 Todos los roles</SelectItem>
-                      <SelectItem value="job-seeker">👤 Vecino</SelectItem>
-                      <SelectItem value="entrepreneur">🛠️ Emprendedor</SelectItem>
-                      <SelectItem value="company">🏢 Empresa</SelectItem>
-                      <SelectItem value="admin">🛡️ Admin</SelectItem>
-                    </SelectContent>
-                  </Select>
-                  <Select value={userFilters.is_active} onValueChange={(value) => setUserFilters({ ...userFilters, is_active: value })}>
-                    <SelectTrigger className="w-full sm:w-40 glass-card border-white/10">
-                      <SelectValue placeholder="Estado" />
-                    </SelectTrigger>
-                    <SelectContent className="glass-card border-white/10 backdrop-blur-xl">
-                      <SelectItem value="all">✨ Todos los estados</SelectItem>
-                      <SelectItem value="1">✅ Activos</SelectItem>
-                      <SelectItem value="0">🌑 Inactivos</SelectItem>
-                    </SelectContent>
-                  </Select>
-                  <Select value={userFilters.is_banned} onValueChange={(value) => setUserFilters({ ...userFilters, is_banned: value })}>
-                    <SelectTrigger className="w-full sm:w-40 glass-card border-white/10">
-                      <SelectValue placeholder="Ban" />
-                    </SelectTrigger>
-                    <SelectContent className="glass-card border-white/10 backdrop-blur-xl">
-                      <SelectItem value="all">🚫 Todos</SelectItem>
-                      <SelectItem value="1">❌ Baneados</SelectItem>
-                      <SelectItem value="0">🛡️ No Baneados</SelectItem>
-                    </SelectContent>
-                  </Select>
-                  <Button onClick={loadUsers} className="bg-primary hover:bg-primary/90 font-bold px-6">Buscar</Button>
+              <CardContent className="pt-5">
+                <div className="mb-5 flex flex-col gap-4">
+                  <div className="flex flex-wrap gap-3 sm:gap-4">
+                    <Select value={userFilters.role} onValueChange={(value) => setUserFilters({ ...userFilters, role: value })}>
+                      <SelectTrigger className="w-full sm:w-48 bg-background/80 border-border/60">
+                        <SelectValue placeholder="Rol" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="all">👥 Todos los roles</SelectItem>
+                        <SelectItem value="job-seeker">👤 Vecino</SelectItem>
+                        <SelectItem value="entrepreneur">🛠️ Emprendedor</SelectItem>
+                        <SelectItem value="company">🏢 Empresa</SelectItem>
+                        <SelectItem value="admin">🛡️ Admin</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    <Select value={userFilters.is_active} onValueChange={(value) => setUserFilters({ ...userFilters, is_active: value })}>
+                      <SelectTrigger className="w-full sm:w-40 bg-background/80 border-border/60">
+                        <SelectValue placeholder="Estado" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="all">✨ Todos los estados</SelectItem>
+                        <SelectItem value="1">✅ Activos</SelectItem>
+                        <SelectItem value="0">🌑 Inactivos</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    <Select value={userFilters.is_banned} onValueChange={(value) => setUserFilters({ ...userFilters, is_banned: value })}>
+                      <SelectTrigger className="w-full sm:w-40 bg-background/80 border-border/60">
+                        <SelectValue placeholder="Ban" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="all">🚫 Todos</SelectItem>
+                        <SelectItem value="1">❌ Baneados</SelectItem>
+                        <SelectItem value="0">🛡️ No Baneados</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    <Button onClick={loadUsers} className="bg-primary hover:bg-primary/90 font-semibold px-6 h-10 sm:h-11">
+                      Aplicar filtros
+                    </Button>
+                  </div>
+                  <div className="relative">
+                    <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground pointer-events-none" />
+                    <Input
+                      value={localSearchUsers}
+                      onChange={(e) => setLocalSearchUsers(e.target.value)}
+                      placeholder="Buscar en esta lista: nombre, email, teléfono, comuna, rol, motivo de ban…"
+                      className="h-11 rounded-xl pl-10 pr-3 bg-background/80 border-border/60"
+                      disabled={loadingUsers}
+                    />
+                  </div>
                 </div>
 
                 {loadingUsers ? (
                   <div className="text-center py-8">
-                    <p className="text-muted-foreground">Cargando usuarios...</p>
+                    <Loader2 className="h-8 w-8 animate-spin text-primary mx-auto mb-2" aria-hidden />
+                    <p className="text-muted-foreground text-sm">Cargando usuarios…</p>
                   </div>
                 ) : users.length === 0 ? (
-                  <div className="text-center py-8">
-                    <p className="text-muted-foreground">No hay usuarios</p>
+                  <div className="text-center py-10 rounded-xl border border-dashed border-border/70 bg-muted/20">
+                    <p className="text-muted-foreground">No hay usuarios con esos filtros</p>
+                  </div>
+                ) : filteredUsersForDisplay.length === 0 ? (
+                  <div className="text-center py-10 rounded-xl border border-dashed border-violet-200/60 bg-violet-50/30 dark:bg-violet-950/20">
+                    <p className="text-sm font-medium text-foreground">Nada coincide con la búsqueda</p>
+                    <Button variant="outline" size="sm" className="mt-3" onClick={() => setLocalSearchUsers('')}>
+                      Limpiar buscador
+                    </Button>
                   </div>
                 ) : (
                   <div className="space-y-4">
-                    {users.map((user) => (
+                    {localSearchUsers.trim() ? (
+                      <p className="text-xs text-muted-foreground">
+                        Mostrando <strong className="text-foreground">{filteredUsersForDisplay.length}</strong> de {users.length}
+                      </p>
+                    ) : null}
+                    {filteredUsersForDisplay.map((user) => (
                       <Card key={user.id} className="border">
                         <CardHeader>
                           <div className="flex flex-col sm:flex-row justify-between items-start gap-4">
@@ -2391,66 +2717,93 @@ const Admin = () => {
 
           {/* Tab de Tickets */}
           <TabsContent value="tickets" className="mt-4 sm:mt-6 outline-none focus-visible:outline-none">
-            <Card className="rounded-2xl border border-border/60 bg-card shadow-sm">
-              <CardHeader>
-                <CardTitle>Tickets de Soporte</CardTitle>
-                <CardDescription>Gestiona los tickets de soporte de los usuarios</CardDescription>
+            <Card className="rounded-2xl border border-border/60 bg-card shadow-sm overflow-hidden">
+              <CardHeader className="border-b border-border/50 bg-gradient-to-r from-sky-500/8 via-card to-primary/5">
+                <CardTitle className="text-lg sm:text-xl">Tickets de soporte</CardTitle>
+                <CardDescription>
+                  Gestiona solicitudes de ayuda. Filtra por estado y categoría, y usa el buscador para encontrar texto en asunto, mensaje o datos del usuario.
+                </CardDescription>
               </CardHeader>
-              <CardContent>
-                <div className="mb-4 flex gap-4">
-                  <Select
-                    value={ticketFilters.status}
-                    onValueChange={(value) => {
-                      setTicketFilters({ ...ticketFilters, status: value });
-                      setTimeout(loadTickets, 100);
-                    }}
-                  >
-                    <SelectTrigger className="w-40">
-                      <SelectValue placeholder="Estado" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="all">Todos</SelectItem>
-                      <SelectItem value="open">Abierto</SelectItem>
-                      <SelectItem value="in_progress">En Progreso</SelectItem>
-                      <SelectItem value="resolved">Resuelto</SelectItem>
-                      <SelectItem value="closed">Cerrado</SelectItem>
-                    </SelectContent>
-                  </Select>
-                  <Select
-                    value={ticketFilters.category}
-                    onValueChange={(value) => {
-                      setTicketFilters({ ...ticketFilters, category: value });
-                      setTimeout(loadTickets, 100);
-                    }}
-                  >
-                    <SelectTrigger className="w-40">
-                      <SelectValue placeholder="Categoría" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="all">Todas</SelectItem>
-                      <SelectItem value="general">General</SelectItem>
-                      <SelectItem value="technical">Técnico</SelectItem>
-                      <SelectItem value="account">Cuenta</SelectItem>
-                      <SelectItem value="payment">Pago</SelectItem>
-                      <SelectItem value="report">Reporte</SelectItem>
-                      <SelectItem value="recommendation">Recomendación (Dato)</SelectItem>
-                      <SelectItem value="other">Otro</SelectItem>
-                    </SelectContent>
-                  </Select>
+              <CardContent className="pt-5">
+                <div className="mb-5 flex flex-col gap-4">
+                  <div className="flex flex-col sm:flex-row flex-wrap gap-3 sm:gap-4">
+                    <Select
+                      value={ticketFilters.status}
+                      onValueChange={(value) => {
+                        setTicketFilters({ ...ticketFilters, status: value });
+                        setTimeout(loadTickets, 100);
+                      }}
+                    >
+                      <SelectTrigger className="w-full sm:w-44 bg-background/80 border-border/60">
+                        <SelectValue placeholder="Estado" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="all">Todos</SelectItem>
+                        <SelectItem value="open">Abierto</SelectItem>
+                        <SelectItem value="in_progress">En Progreso</SelectItem>
+                        <SelectItem value="resolved">Resuelto</SelectItem>
+                        <SelectItem value="closed">Cerrado</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    <Select
+                      value={ticketFilters.category}
+                      onValueChange={(value) => {
+                        setTicketFilters({ ...ticketFilters, category: value });
+                        setTimeout(loadTickets, 100);
+                      }}
+                    >
+                      <SelectTrigger className="w-full sm:w-56 bg-background/80 border-border/60">
+                        <SelectValue placeholder="Categoría" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="all">Todas</SelectItem>
+                        <SelectItem value="general">General</SelectItem>
+                        <SelectItem value="technical">Técnico</SelectItem>
+                        <SelectItem value="account">Cuenta</SelectItem>
+                        <SelectItem value="payment">Pago</SelectItem>
+                        <SelectItem value="report">Reporte</SelectItem>
+                        <SelectItem value="recommendation">Recomendación (Dato)</SelectItem>
+                        <SelectItem value="other">Otro</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="relative">
+                    <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground pointer-events-none" />
+                    <Input
+                      value={localSearchTickets}
+                      onChange={(e) => setLocalSearchTickets(e.target.value)}
+                      placeholder="Buscar en esta lista: asunto, mensaje, respuesta, usuario, email, ID…"
+                      className="h-11 rounded-xl pl-10 pr-3 bg-background/80 border-border/60"
+                      disabled={loadingTickets}
+                    />
+                  </div>
                 </div>
 
                 {loadingTickets ? (
                   <div className="text-center py-8">
-                    <p className="text-muted-foreground">Cargando tickets...</p>
+                    <Loader2 className="h-8 w-8 animate-spin text-primary mx-auto mb-2" aria-hidden />
+                    <p className="text-muted-foreground text-sm">Cargando tickets…</p>
                   </div>
                 ) : tickets.length === 0 ? (
-                  <div className="text-center py-8">
-                    <p className="text-muted-foreground">No hay tickets</p>
+                  <div className="text-center py-10 rounded-xl border border-dashed border-border/70 bg-muted/20">
+                    <p className="text-muted-foreground">No hay tickets con esos filtros</p>
+                  </div>
+                ) : filteredTicketsForDisplay.length === 0 ? (
+                  <div className="text-center py-10 rounded-xl border border-dashed border-sky-200/60 bg-sky-50/30 dark:bg-sky-950/20">
+                    <p className="text-sm font-medium text-foreground">Nada coincide con la búsqueda</p>
+                    <Button variant="outline" size="sm" className="mt-3" onClick={() => setLocalSearchTickets('')}>
+                      Limpiar buscador
+                    </Button>
                   </div>
                 ) : (
                   <div className="space-y-4">
-                    {tickets.map((ticket) => (
-                      <Card key={ticket.id} className="border">
+                    {localSearchTickets.trim() ? (
+                      <p className="text-xs text-muted-foreground">
+                        Mostrando <strong className="text-foreground">{filteredTicketsForDisplay.length}</strong> de {tickets.length}
+                      </p>
+                    ) : null}
+                    {filteredTicketsForDisplay.map((ticket) => (
+                      <Card key={ticket.id} className="rounded-2xl border border-border/70 shadow-sm hover:border-primary/20 transition-colors">
                         <CardHeader>
                           <div className="flex flex-col sm:flex-row justify-between items-start gap-4">
                             <div className="flex items-center gap-3 flex-1 w-full">
@@ -2792,11 +3145,21 @@ const Admin = () => {
 
               {/* Buzón de Sugerencias */}
               <Card className="rounded-2xl border border-border/60 bg-card shadow-sm">
-                <CardHeader className="space-y-1">
-                  <CardTitle className="text-xl">Buzón de Sugerencias</CardTitle>
-                  <CardDescription>Servicios sugeridos por usuarios ('Otro')</CardDescription>
+                <CardHeader className="space-y-1 border-b border-border/50 bg-muted/15 pb-4">
+                  <CardTitle className="text-xl">Buzón de sugerencias</CardTitle>
+                  <CardDescription>Servicios sugeridos por usuarios (&quot;Otro&quot;). Busca por nombre propuesto, autor o correo.</CardDescription>
                 </CardHeader>
-                <CardContent>
+                <CardContent className="pt-4">
+                  <div className="relative mb-4">
+                    <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground pointer-events-none" />
+                    <Input
+                      value={suggestionsSearchQuery}
+                      onChange={(e) => setSuggestionsSearchQuery(e.target.value)}
+                      placeholder="Buscar sugerencias…"
+                      className="h-10 rounded-xl pl-9 pr-3"
+                      disabled={loadingSuggestions}
+                    />
+                  </div>
                   {loadingSuggestions ? (
                     <div className="space-y-2 py-4">
                       {[1, 2].map(i => <div key={i} className="h-32 w-full rounded-lg bg-muted animate-pulse" />)}
@@ -2805,9 +3168,21 @@ const Admin = () => {
                     <div className="text-center py-10 text-muted-foreground border-2 border-dashed rounded-xl">
                       No hay sugerencias pendientes
                     </div>
+                  ) : filteredSuggestionsForDisplay.length === 0 ? (
+                    <div className="text-center py-8 text-muted-foreground border border-dashed rounded-xl">
+                      <p className="text-sm font-medium text-foreground mb-2">Ninguna sugerencia coincide</p>
+                      <Button variant="outline" size="sm" onClick={() => setSuggestionsSearchQuery('')}>
+                        Limpiar buscador
+                      </Button>
+                    </div>
                   ) : (
                     <div className="space-y-4 max-h-[600px] overflow-y-auto pr-2 scrollbar-thin">
-                      {suggestions.map((sug) => (
+                      {suggestionsSearchQuery.trim() ? (
+                        <p className="text-xs text-muted-foreground px-0.5">
+                          Mostrando {filteredSuggestionsForDisplay.length} de {suggestions.length}
+                        </p>
+                      ) : null}
+                      {filteredSuggestionsForDisplay.map((sug) => (
                         <div key={sug.id} className="p-5 border-2 rounded-2xl bg-secondary/5 border-secondary/10 group hover:border-primary/20 transition-all duration-300">
                           <div className="flex justify-between items-start mb-3">
                             <div className="flex-1 min-w-0 pr-4">
@@ -2851,20 +3226,46 @@ const Admin = () => {
           {isSuperAdmin && (
             <TabsContent value="prices" className="mt-4 sm:mt-6 outline-none focus-visible:outline-none">
               <div className="grid grid-cols-1 gap-6">
+                <div className="rounded-2xl border border-violet-200/50 bg-gradient-to-r from-violet-500/10 via-card to-amber-500/5 p-4 sm:p-5 shadow-sm">
+                  <Label className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Buscador en esta pestaña</Label>
+                  <div className="relative mt-2">
+                    <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground pointer-events-none" />
+                    <Input
+                      value={pricesTabSearchQuery}
+                      onChange={(e) => setPricesTabSearchQuery(e.target.value)}
+                      placeholder="Filtra claves, textos de ayuda, valores CLP y paquetes (nombre, descripción, precio)…"
+                      className="h-11 rounded-xl pl-10 pr-3 bg-background/90 border-border/60"
+                      disabled={loadingConfig && loadingPackages}
+                    />
+                  </div>
+                  <p className="text-[11px] text-muted-foreground mt-2">
+                    Un solo campo aplica a la configuración global mostrada y a la grilla de paquetes de servicios.
+                  </p>
+                </div>
                 {/* Sección Configuración Global */}
-                <Card className="rounded-2xl border border-border/60 bg-card shadow-sm">
-                  <CardHeader>
-                    <CardTitle>Configuración Global</CardTitle>
+                <Card className="rounded-2xl border border-border/60 bg-card shadow-sm overflow-hidden">
+                  <CardHeader className="border-b border-border/50 bg-muted/20">
+                    <CardTitle>Configuración global</CardTitle>
                     <CardDescription>Ajustes generales de precios del sistema</CardDescription>
                   </CardHeader>
-                  <CardContent>
+                  <CardContent className="pt-5">
                     {loadingConfig ? (
-                      <div className="text-center py-4">Cargando configuración...</div>
+                      <div className="text-center py-6 flex flex-col items-center gap-2">
+                        <Loader2 className="h-7 w-7 animate-spin text-primary" aria-hidden />
+                        <span className="text-sm text-muted-foreground">Cargando configuración…</span>
+                      </div>
+                    ) : filteredPriceConfigForDisplay.length === 0 ? (
+                      <div className="text-center py-8 rounded-xl border border-dashed border-border/70 bg-muted/20 text-sm text-muted-foreground">
+                        Ningún ajuste coincide con la búsqueda.
+                        <div className="mt-3">
+                          <Button variant="outline" size="sm" onClick={() => setPricesTabSearchQuery('')}>
+                            Limpiar buscador
+                          </Button>
+                        </div>
+                      </div>
                     ) : (
                       <div className="space-y-4">
-                        {adminConfig
-                          .filter(config => ['WHATSAPP_CONTACT_PRICE', 'PRICING_ENABLED'].includes(config.key.trim().toUpperCase()))
-                          .map((config) => (
+                        {filteredPriceConfigForDisplay.map((config) => (
                             <div key={config.key} className="flex flex-col sm:flex-row items-center justify-between p-6 border rounded-2xl bg-white shadow-sm border-gray-100 hover:shadow-md transition-all duration-300 gap-4 mb-4">
                               <div className="flex-1">
                                 <p className={`font-black text-xl transition-all duration-300 ${config.key.trim().toUpperCase() === 'PRICING_ENABLED' && config.value !== 'true' ? 'text-primary animate-pulse' : 'text-black'}`}>
@@ -2909,26 +3310,34 @@ const Admin = () => {
                 </Card>
 
                 {/* Sección Paquetes */}
-                <Card className="rounded-2xl border border-border/60 bg-card shadow-sm">
-                  <CardHeader>
-                    <CardTitle>Gestión de Paquetes</CardTitle>
-                    <CardDescription>Edita los precios y límites de los paquetes de publicación</CardDescription>
+                <Card className="rounded-2xl border border-border/60 bg-card shadow-sm overflow-hidden">
+                  <CardHeader className="border-b border-border/50 bg-muted/20">
+                    <CardTitle>Gestión de paquetes</CardTitle>
+                    <CardDescription>Edita precios y límites de publicación (el buscador superior también filtra esta lista).</CardDescription>
                   </CardHeader>
-                  <CardContent>
+                  <CardContent className="pt-5">
                     {loadingPackages ? (
-                      <div className="text-center py-4">Cargando paquetes...</div>
+                      <div className="text-center py-6 flex flex-col items-center gap-2">
+                        <Loader2 className="h-7 w-7 animate-spin text-primary" aria-hidden />
+                        <span className="text-sm text-muted-foreground">Cargando paquetes…</span>
+                      </div>
                     ) : (
                       <Tabs defaultValue="services-packages" className="w-full">
                         <div className="w-full overflow-x-auto pb-2 scrollbar-hide">
-                          <TabsList className="flex w-max min-w-full h-auto mb-2 p-1 gap-1 glass-card border-white/5">
+                          <TabsList className="flex w-max min-w-full h-auto mb-2 p-1 gap-1 rounded-xl border border-border/60 bg-muted/40">
                             <TabsTrigger value="services-packages">Servicios / Pymes</TabsTrigger>
                             <TabsTrigger value="jobs-packages">Empleos</TabsTrigger>
                           </TabsList>
                         </div>
 
                         <TabsContent value="services-packages" className="mt-4">
+                          {filteredServicePackagesForDisplay.length === 0 ? (
+                            <div className="text-center py-10 rounded-xl border border-dashed border-border/70 bg-muted/20 text-sm text-muted-foreground">
+                              Ningún paquete coincide con la búsqueda.
+                            </div>
+                          ) : (
                           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                            {adminPackages.services.map((pkg) => (
+                            {filteredServicePackagesForDisplay.map((pkg) => (
                               <Card key={pkg.id} className="glass-card border-white/5 relative overflow-hidden group hover:border-primary/30 transition-all duration-300">
                                 <div className="absolute top-0 right-0 p-2">
                                   <Badge className={pkg.is_active ? "bg-green-500/20 text-green-400 border-green-500/30" : "bg-red-500/20 text-red-400 border-red-500/30"}>
@@ -2962,6 +3371,13 @@ const Admin = () => {
                               </Card>
                             ))}
                           </div>
+                          )}
+                        </TabsContent>
+
+                        <TabsContent value="jobs-packages" className="mt-4">
+                          <p className="text-sm text-muted-foreground text-center py-8 rounded-xl border border-dashed border-border/70 bg-muted/20">
+                            Los paquetes de empleos se cargarán aquí cuando la API los exponga en el panel.
+                          </p>
                         </TabsContent>
 
                       </Tabs>
