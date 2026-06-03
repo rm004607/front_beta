@@ -272,6 +272,7 @@ const Services = () => {
       const cleanPhone = service.phone.replace(/\D/g, '');
       const message = `Hola, te contacto por tu servicio "${service.service_name}" en Dameldato.`;
       trackWhatsAppInteraction({ serviceId: String(service.id) });
+      servicesAPI.trackWhatsAppClick(String(service.id)).catch(() => {});
       window.open(`https://wa.me/${cleanPhone}?text=${encodeURIComponent(message)}`, '_blank');
       return;
     }
@@ -690,6 +691,7 @@ const Services = () => {
                       if (!pendingContactService) return;
                       try {
                         setIsPaidContactModalOpen(false);
+                        servicesAPI.trackWhatsAppClick(String(pendingContactService.id)).catch(() => {});
                         toast.loading(t('wall.preparing_payment'), { id: 'contact-payment' });
 
                         const response = await flowAPI.createContactPayment(

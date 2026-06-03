@@ -2275,8 +2275,9 @@ const Admin = () => {
                                 <th className="text-left font-medium px-3 py-3 w-[12%]">Comuna</th>
                                 <th className="text-left font-medium px-3 py-3 w-[8%]">Estado</th>
                                 <th className="text-left font-medium px-3 py-3 w-[10%]">Reseñas</th>
-                                <th className="text-left font-medium px-3 py-3 w-[12%]">Fecha</th>
-                                <th className="text-right font-medium px-4 py-3 w-[22%]">Acciones</th>
+                                <th className="text-left font-medium px-3 py-3 w-[8%]">Clicks WA</th>
+                                <th className="text-left font-medium px-3 py-3 w-[10%]">Fecha</th>
+                                <th className="text-right font-medium px-4 py-3 w-[18%]">Acciones</th>
                               </tr>
                             </thead>
                             <tbody>
@@ -2315,6 +2316,15 @@ const Admin = () => {
                                         <Star className="h-3.5 w-3.5 fill-amber-400 text-amber-400 shrink-0" />
                                         {Number(service.average_rating || 0).toFixed(1)}
                                         <span className="text-muted-foreground font-normal">({service.reviews_count ?? 0})</span>
+                                      </span>
+                                    ) : (
+                                      <span className="text-muted-foreground">—</span>
+                                    )}
+                                  </td>
+                                  <td className="px-3 py-3 align-top tabular-nums">
+                                    {(service.whatsapp_clicks ?? 0) > 0 ? (
+                                      <span className="inline-flex items-center gap-1 text-green-700 dark:text-green-400 font-semibold">
+                                        {service.whatsapp_clicks}
                                       </span>
                                     ) : (
                                       <span className="text-muted-foreground">—</span>

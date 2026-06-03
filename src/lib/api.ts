@@ -443,6 +443,13 @@ export const servicesAPI = {
     });
   },
 
+  /** Registra un click en el botón de WhatsApp de un servicio (fire & forget). */
+  trackWhatsAppClick: async (serviceId: string) => {
+    return request<{ ok: boolean }>(`/services/${serviceId}/whatsapp-click`, {
+      method: 'POST',
+    });
+  },
+
   // Obtener un servicio específico
   getServiceById: async (id: string) => {
     return request<{
@@ -1067,6 +1074,8 @@ export const adminAPI = {
         reviews_count?: number;
         /** Si el backend lo envía, el conteo por categoría es más preciso que por nombre */
         service_type_ids?: string[];
+        /** Número de veces que se clickeó el botón WhatsApp de este servicio */
+        whatsapp_clicks?: number;
       }>;
       pagination: {
         page: number;
