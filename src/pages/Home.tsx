@@ -58,7 +58,7 @@ const Home = () => {
   const handleHeroSearch = useCallback((e: React.FormEvent) => {
     e.preventDefault();
     const q = heroSearch.trim();
-    navigate(q ? `/servicios?search=${encodeURIComponent(q)}` : '/servicios');
+    navigate(q ? `/servicios?q=${encodeURIComponent(q)}` : '/servicios');
   }, [heroSearch, navigate]);
 
   const homeServicesQuery = useQuery({

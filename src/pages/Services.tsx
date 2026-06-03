@@ -50,7 +50,7 @@ const Services = () => {
   const [searchParams] = useSearchParams();
   const highlightId = searchParams.get('highlight');
 
-  const [searchTerm, setSearchTerm] = useState(() => searchParams.get('search') || '');
+  const [searchTerm, setSearchTerm] = useState(() => searchParams.get('q') || searchParams.get('search') || '');
   const debouncedSearchRaw = useDebouncedValue(searchTerm, SEARCH_DEBOUNCE_MS);
   const debouncedSearch = normalizeSearchQuery(debouncedSearchRaw) ?? '';
   const [comunaFilter, setComunaFilter] = useState('all');
@@ -164,16 +164,12 @@ const Services = () => {
     loadConfig();
   }, []);
 
-  // Efecto para actualizar typeFilter si cambia la URL
+  // Efecto para actualizar filtros si cambia la URL (navegación dentro de /servicios)
   useEffect(() => {
     const typeId = searchParams.get('type_id');
-    if (typeId) {
-      setTypeFilter(typeId);
-      setPage(1);
-    } else {
-      setTypeFilter('all');
-      setPage(1);
-    }
+    setTypeFilter(typeId || 'all');
+    setSearchTerm(searchParams.get('q') || searchParams.get('search') || '');
+    setPage(1);
   }, [searchParams]);
 
   // Efecto para scroll al elemento resaltado
@@ -482,7 +478,7 @@ const Services = () => {
                 )}
                 {searchTerm && (
                   <Badge variant="secondary" className="bg-primary/20 text-primary border-primary/20 px-2 sm:px-3 py-1 flex items-center gap-1.5 sm:gap-2 text-[10px] sm:text-xs">
-                    S: {searchTerm.substring(0, 10)}
+                    Filtro: {searchTerm.substring(0, 10)}
                     <button onClick={() => setSearchTerm('')} className="hover:text-primary transition-colors">x</button>
                   </Badge>
                 )}
