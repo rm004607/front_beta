@@ -479,7 +479,7 @@ const Services = () => {
                 )}
                 {searchTerm && (
                   <Badge variant="secondary" className="bg-primary/20 text-primary border-primary/20 px-2 sm:px-3 py-1 flex items-center gap-1.5 sm:gap-2 text-[10px] sm:text-xs">
-                    Filtro: {searchTerm.substring(0, 10)}
+                    Filtro: {searchTerm.length > 22 ? searchTerm.substring(0, 22) + '…' : searchTerm}
                     <button onClick={() => setSearchTerm('')} className="hover:text-primary transition-colors">x</button>
                   </Badge>
                 )}
