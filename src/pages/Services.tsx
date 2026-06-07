@@ -42,6 +42,35 @@ const SERVICES_PAGE_SIZE = 24;
 const SEARCH_DEBOUNCE_MS = 400;
 const SERVICES_LIST_STALE_MS = 45_000;
 
+/**
+ * Mapa de términos de búsqueda profesionales → ID de categoría de servicio.
+ * Cuando el usuario busca una profesión conocida, se filtra directamente por categoría
+ * en lugar de hacer búsqueda de texto (evita falsos positivos por menciones en descripciones).
+ */
+const PROFESSION_TYPE_MAP: Record<string, string> = {
+  // Fontanería (cat-001)
+  gasfiter: 'cat-001', gasfiteria: 'cat-001', gasfitero: 'cat-001',
+  plomero: 'cat-001', fontanero: 'cat-001', plomeria: 'cat-001', fontaneria: 'cat-001',
+  // Electricidad (cat-002)
+  electricista: 'cat-002', electricidad: 'cat-002', electrico: 'cat-002',
+  // Limpieza (cat-003)
+  limpieza: 'cat-003', aseo: 'cat-003', mucama: 'cat-003',
+  // Carpintería (cat-004)
+  carpintero: 'cat-004', carpinteria: 'cat-004', ebanista: 'cat-004',
+  // Jardinería (cat-005)
+  jardinero: 'cat-005', jardineria: 'cat-005',
+  // Pintura (cat-006)
+  pintor: 'cat-006', pintura: 'cat-006',
+  // Fletes y Mudanzas (cat-007)
+  flete: 'cat-007', mudanza: 'cat-007', fletes: 'cat-007', mudanzas: 'cat-007',
+  // Gastronomía (cat-010)
+  gastronomia: 'cat-010', cocinero: 'cat-010', chef: 'cat-010', catering: 'cat-010',
+};
+
+function stripAccentsLower(s: string): string {
+  return s.normalize('NFD').replace(/\p{M}/gu, '').toLowerCase().trim();
+}
+
 const Services = () => {
   const { user, isLoggedIn } = useUser();
   const { t } = useTranslation();
@@ -85,15 +114,25 @@ const Services = () => {
   const [isSubmittingReview, setIsSubmittingReview] = useState(false);
   const [reviewStats, setReviewStats] = useState<{ average_rating: number; total_reviews: number } | null>(null);
 
+  // Si el usuario no eligió categoría manualmente y el término de búsqueda es
+  // una profesión conocida, mapear directamente a la categoría correspondiente
+  // en lugar de hacer búsqueda de texto (evita falsos positivos).
+  const autoMappedType =
+    typeFilter === 'all' && debouncedSearch
+      ? (PROFESSION_TYPE_MAP[stripAccentsLower(debouncedSearch)] ?? null)
+      : null;
+  const effectiveSearch = autoMappedType ? '' : debouncedSearch;
+  const effectiveTypeId = autoMappedType ?? (typeFilter !== 'all' ? typeFilter : '');
+
   const servicesListQuery = useQuery({
     queryKey: [
       'services',
       'list',
       {
-        search: debouncedSearch || '',
+        search: effectiveSearch || '',
         comuna: comunaFilter !== 'all' ? comunaFilter : '',
         region_id: regionFilter !== 'all' ? regionFilter : '',
-        service_type_id: typeFilter !== 'all' ? typeFilter : '',
+        service_type_id: effectiveTypeId || '',
         page,
         limit: SERVICES_PAGE_SIZE,
         sort: 'rating',
@@ -101,10 +140,10 @@ const Services = () => {
     ],
     queryFn: () =>
       servicesAPI.getServices({
-        search: debouncedSearch || undefined,
+        search: effectiveSearch || undefined,
         comuna: comunaFilter !== 'all' ? comunaFilter : undefined,
         region_id: regionFilter !== 'all' ? regionFilter : undefined,
-        service_type_id: typeFilter !== 'all' ? typeFilter : undefined,
+        service_type_id: effectiveTypeId || undefined,
         page,
         limit: SERVICES_PAGE_SIZE,
         sort: 'rating',
@@ -479,7 +518,9 @@ const Services = () => {
                 )}
                 {searchTerm && (
                   <Badge variant="secondary" className="bg-primary/20 text-primary border-primary/20 px-2 sm:px-3 py-1 flex items-center gap-1.5 sm:gap-2 text-[10px] sm:text-xs">
-                    Filtro: {searchTerm.length > 22 ? searchTerm.substring(0, 22) + '…' : searchTerm}
+                    {autoMappedType
+                      ? `Categoría: ${serviceTypes.find(t => t.id === autoMappedType)?.name ?? searchTerm}`
+                      : `Filtro: ${searchTerm.length > 22 ? searchTerm.substring(0, 22) + '…' : searchTerm}`}
                     <button onClick={() => setSearchTerm('')} className="hover:text-primary transition-colors">x</button>
                   </Badge>
                 )}
