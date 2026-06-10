@@ -121,6 +121,8 @@ import {
   LayoutDashboard,
   UserPlus,
   MessageCircle,
+  Eye,
+  EyeOff,
 } from 'lucide-react';
 import { Switch } from '@/components/ui/switch';
 import { toast } from 'sonner';
@@ -183,15 +185,21 @@ function AdminServiceActionBar({
   onReject,
   onEdit,
   onDelete,
+  onDeactivate,
+  onReactivate,
 }: {
   service: Service;
   onApprove: (id: string) => void;
   onReject: (s: Service) => void;
   onEdit: (s: Service) => void;
   onDelete: (id: string) => void;
+  onDeactivate: (id: string) => void;
+  onReactivate: (id: string) => void;
 }) {
   const st = service.status?.toLowerCase().trim() || '';
   const canModerate = st === 'pending' || st === 'inactive';
+  const isActive = st === 'active';
+  const isSuspended = st === 'suspended';
   return (
     <div className="flex flex-wrap items-center gap-2">
       {canModerate ? (
@@ -211,6 +219,27 @@ function AdminServiceActionBar({
           </Button>
         </>
       ) : null}
+      {isActive && (
+        <Button
+          size="sm"
+          variant="outline"
+          className="h-8 px-2.5 sm:px-3 border-orange-300 text-orange-700 hover:bg-orange-50 dark:text-orange-300 dark:border-orange-800"
+          onClick={() => onDeactivate(service.id)}
+        >
+          <EyeOff size={14} className="sm:mr-1" />
+          <span className="hidden sm:inline">Desactivar</span>
+        </Button>
+      )}
+      {isSuspended && (
+        <Button
+          size="sm"
+          className="bg-emerald-600 hover:bg-emerald-700 text-white h-8 px-2.5 sm:px-3"
+          onClick={() => onReactivate(service.id)}
+        >
+          <Eye size={14} className="sm:mr-1" />
+          <span className="hidden sm:inline">Activar</span>
+        </Button>
+      )}
       <Button variant="outline" size="sm" className="h-8 px-2.5 sm:px-3" onClick={() => onEdit(service)}>
         <Edit size={14} className="sm:mr-1" />
         <span className="hidden sm:inline">Editar</span>
@@ -280,11 +309,18 @@ const getServiceStatusConfig = (rawStatus?: string) => {
       label: 'Pendiente',
     };
   }
-  if (status === 'rejected' || status === 'suspended') {
+  if (status === 'rejected') {
     return {
       badgeClass: 'bg-rose-500/15 text-rose-700 border-rose-300 dark:text-rose-300 dark:border-rose-700',
       cardClass: 'border-rose-200/70 dark:border-rose-900/60',
-      label: 'Bloqueado',
+      label: 'Rechazado',
+    };
+  }
+  if (status === 'suspended') {
+    return {
+      badgeClass: 'bg-orange-500/15 text-orange-700 border-orange-300 dark:text-orange-300 dark:border-orange-700',
+      cardClass: 'border-orange-200/70 bg-orange-50/30 dark:border-orange-900/60',
+      label: 'Desactivado',
     };
   }
   if (status === 'inactive') {
@@ -971,6 +1007,30 @@ const Admin = () => {
     } catch (error: any) {
       console.error('Error approving service:', error);
       toast.error(error.message || 'Error al aprobar el servicio');
+    }
+  };
+
+  const handleDeactivateService = async (id: string) => {
+    try {
+      await adminAPI.deactivateService(id);
+      toast.success('Servicio desactivado — ya no es visible al público');
+      loadServices();
+      loadStats();
+    } catch (error: any) {
+      console.error('Error deactivating service:', error);
+      toast.error(error.message || 'Error al desactivar el servicio');
+    }
+  };
+
+  const handleReactivateService = async (id: string) => {
+    try {
+      await adminAPI.reactivateService(id);
+      toast.success('Servicio reactivado y visible nuevamente');
+      loadServices();
+      loadStats();
+    } catch (error: any) {
+      console.error('Error reactivating service:', error);
+      toast.error(error.message || 'Error al reactivar el servicio');
     }
   };
 
@@ -2258,6 +2318,8 @@ const Admin = () => {
                                 }}
                                 onEdit={handleOpenEditService}
                                 onDelete={handleDeleteService}
+                                onDeactivate={handleDeactivateService}
+                                onReactivate={handleReactivateService}
                               />
                             </CardContent>
                           </Card>
@@ -2345,6 +2407,8 @@ const Admin = () => {
                                         }}
                                         onEdit={handleOpenEditService}
                                         onDelete={handleDeleteService}
+                                        onDeactivate={handleDeactivateService}
+                                        onReactivate={handleReactivateService}
                                       />
                                     </div>
                                   </td>

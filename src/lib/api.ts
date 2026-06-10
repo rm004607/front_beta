@@ -1173,6 +1173,18 @@ export const adminAPI = {
     });
   },
 
+  deactivateService: async (id: string) => {
+    return request<{ message: string }>(`/admin/services/${id}/deactivate`, {
+      method: 'PUT',
+    });
+  },
+
+  reactivateService: async (id: string) => {
+    return request<{ message: string }>(`/admin/services/${id}/reactivate`, {
+      method: 'PUT',
+    });
+  },
+
   // ========== PRODUCTS (moderación — paridad con servicios) ==========
   getAllProducts: async (filters?: {
     comuna?: string;
