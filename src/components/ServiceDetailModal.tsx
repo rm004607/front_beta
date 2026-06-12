@@ -46,175 +46,177 @@ export function ServiceDetailModalContent({ service, onClose, onOpenReviews, onW
   const shareUrl = `${window.location.origin}/perfil/${service.user_id}/${toSlug(service.user_name)}`;
   const photoUrls = (service.image_urls ?? []).filter(Boolean);
   const [photoIndex, setPhotoIndex] = useState(0);
+  const categoryColor = service.type_color || getServiceColor(service.type_name || '');
+  const categoryTextClass = isLightColor(categoryColor) ? 'text-slate-950' : 'text-white';
+  const serviceTitle =
+    (!service.service_name || service.service_name.trim() === '' || service.service_name.trim() === '.')
+      ? 'Servicio destacado'
+      : service.service_name;
+  const description =
+    (!service.description || service.description.trim() === '' || service.description.trim() === '.')
+      ? 'Este prestador no ha proporcionado una descripción detallada aún.'
+      : service.description;
+  const reviewsCount = Number(service.reviews_count || 0);
+  const ratingValue =
+    service.average_rating && Number(service.average_rating) > 0
+      ? Number(service.average_rating).toFixed(1)
+      : '0.0';
 
   useEffect(() => {
     setPhotoIndex(0);
   }, [service.id]);
 
   return (
-    <div className="bg-white dark:bg-card rounded-[3rem] overflow-hidden shadow-2xl relative text-foreground">
-      <div
-        className="h-28 w-full absolute -top-px -left-px -right-px md:hidden rounded-t-[3rem]"
-        style={{ backgroundColor: service.type_color || getServiceColor(service.type_name || '') }}
-      >
-        <div className="absolute inset-0 opacity-10 bg-[radial-gradient(circle_at_center,_white_1px,_transparent_1px)] bg-[length:24px_24px]" />
-      </div>
-
-      <div className="grid grid-cols-1 md:grid-cols-[280px_1fr] md:items-start relative z-10">
-        <div className="bg-muted/30 md:border-r border-border/40 flex flex-col">
+    <div className="relative overflow-hidden rounded-[2rem] bg-white text-foreground shadow-2xl dark:bg-card sm:rounded-[2.5rem]">
+      <div className="grid min-h-[520px] grid-cols-1 lg:grid-cols-[300px_minmax(0,1fr)]">
+        <aside className="border-b border-border/60 bg-muted/25 lg:border-b-0 lg:border-r">
           <div
-            className="hidden md:block h-28 w-full relative -top-px -left-px -right-px rounded-tl-[3rem]"
-            style={{ backgroundColor: service.type_color || getServiceColor(service.type_name || '') }}
-          >
-            <div className="absolute inset-0 opacity-10 bg-[radial-gradient(circle_at_center,_white_1px,_transparent_1px)] bg-[length:24px_24px]" />
-          </div>
+            className={`min-h-28 ${categoryTextClass}`}
+            style={{ backgroundColor: categoryColor }}
+          />
 
-          <div className="pt-12 sm:pt-16 md:pt-0 px-6 sm:px-8 md:px-6 pb-6 md:pb-8 text-center flex-1 flex flex-col">
-            <Avatar className="w-24 h-24 sm:w-28 sm:h-28 mx-auto border-[4px] sm:border-[6px] border-white shadow-2xl mb-3 sm:mb-4 ring-1 ring-black/5 relative md:-mt-12">
-              <AvatarFallback className="bg-gradient-to-br from-primary to-primary/80 text-white flex flex-col items-center justify-center">
-                <div className="scale-[2] sm:scale-[2.5] opacity-90 mb-1">
-                  {getServiceIcon(service.service_name || service.type_name || '', service.type_icon, service.idicon)}
+          <div className="px-5 pb-5 pt-0 sm:px-6 lg:pb-6">
+            <Avatar className="relative -mt-10 mb-4 h-20 w-20 border-4 border-white shadow-xl ring-1 ring-black/5 sm:h-24 sm:w-24">
+              <AvatarFallback className="bg-primary text-white">
+                <div className="scale-[1.8] opacity-95">
+                  {getServiceIcon(serviceTitle, service.type_icon, service.idicon)}
                 </div>
               </AvatarFallback>
             </Avatar>
-            <DialogTitle className="text-2xl sm:text-3xl md:text-2xl font-black mb-1 text-foreground">
-              <Link
-                to={`/perfil/${service.user_id}/${toSlug(service.user_name)}`}
-                className="hover:text-primary transition-colors"
-              >
-                {service.user_name}
-              </Link>
-            </DialogTitle>
-            {(service.provider_kyc_status === 'verified' || service.provider_kyc_status === 'pending') && (
-              <div className="flex justify-center mb-1">
-                {service.provider_kyc_status === 'verified'
-                  ? <VerifiedBadge size="md" />
-                  : <PendingVerificationBadge size="md" />
-                }
-              </div>
-            )}
-            <span className="inline-flex mx-auto text-xs sm:text-sm font-bold text-primary mb-6 px-3 py-1 rounded-full bg-primary/10 border border-primary/10">
-              {service.service_name}
-            </span>
 
-            <div className="flex items-center justify-center gap-3 mb-6">
-              <div className="flex items-center gap-2 bg-yellow-400/15 px-5 py-2.5 rounded-2xl border border-yellow-400/20 shadow-sm">
-                <Star className="w-5 h-5 fill-yellow-500 text-yellow-500" />
-                <span className="text-lg font-black text-foreground">
-                  {(service.average_rating && Number(service.average_rating) > 0) ? Number(service.average_rating).toFixed(1) : '0.0'}
-                </span>
+            <div className="space-y-3">
+              <div>
+                <p className="text-xs font-black uppercase tracking-[0.16em] text-muted-foreground">Prestador</p>
+                <Link
+                  to={`/perfil/${service.user_id}/${toSlug(service.user_name)}`}
+                  className="mt-1 block text-xl font-black leading-tight text-foreground hover:text-primary"
+                >
+                  {service.user_name}
+                </Link>
+                {(service.provider_kyc_status === 'verified' || service.provider_kyc_status === 'pending') && (
+                  <div className="mt-2">
+                    {service.provider_kyc_status === 'verified'
+                      ? <VerifiedBadge size="md" />
+                      : <PendingVerificationBadge size="md" />}
+                  </div>
+                )}
               </div>
-              <div
-                className={`flex items-center gap-2 px-5 py-2.5 rounded-2xl shadow-md border-2 ${isLightColor(service.type_color || getServiceColor(service.type_name || '')) ? 'text-slate-900 border-black/10' : 'text-white border-white/20'}`}
-                style={{ backgroundColor: service.type_color || getServiceColor(service.type_name || '') }}
-              >
-                <div className="scale-100 [&>svg]:w-5 [&>svg]:h-5">
-                  {getServiceIcon(service.service_name || service.type_name || '', service.type_icon, service.idicon)}
+
+              <div className="grid grid-cols-2 gap-2">
+                <div className="rounded-2xl border border-yellow-300/50 bg-yellow-50 px-3 py-3 text-yellow-900">
+                  <div className="flex items-center gap-2">
+                    <Star className="h-4 w-4 fill-yellow-500 text-yellow-500" />
+                    <span className="text-xl font-black tabular-nums">{ratingValue}</span>
+                  </div>
+                  <p className="mt-1 text-[11px] font-bold text-yellow-800/70">{reviewsCount} reseñas</p>
+                </div>
+                <div className="rounded-2xl border border-border bg-background px-3 py-3">
+                  <p className="text-[11px] font-black uppercase tracking-widest text-muted-foreground">Categoría</p>
+                  <p className="mt-1 line-clamp-1 text-sm font-black">{service.type_name || serviceTitle}</p>
+                </div>
+              </div>
+
+              <div className="hidden space-y-2 lg:block">
+                <Button
+                  className="h-12 w-full rounded-2xl bg-[#25D366] text-sm font-black text-white shadow-lg shadow-green-500/20 hover:bg-[#20ba59]"
+                  onClick={() => { onWhatsApp(service); onClose(); }}
+                  disabled={!service.phone}
+                >
+                  <MessageCircle className="mr-2 h-5 w-5" />
+                  Contactar por WhatsApp
+                </Button>
+                <div className="grid grid-cols-2 gap-2">
+                  <Button
+                    variant="outline"
+                    className="h-11 rounded-2xl border-yellow-300 text-yellow-700 hover:bg-yellow-50"
+                    onClick={() => { onOpenReviews(service); onClose(); }}
+                  >
+                    <Star className="mr-2 h-4 w-4 fill-yellow-400 text-yellow-400" />
+                    Reseñas
+                  </Button>
+                  <Button
+                    variant="outline"
+                    className="h-11 rounded-2xl"
+                    onClick={() => setShareOpen(true)}
+                  >
+                    <Share2 className="mr-2 h-4 w-4" />
+                    Compartir
+                  </Button>
                 </div>
               </div>
             </div>
-
-            <div className="hidden md:grid grid-cols-1 gap-3 text-left mb-6">
-              <div className="flex flex-col gap-1 bg-secondary/5 p-4 rounded-2xl border border-secondary/10">
-                <div className="flex items-center gap-2 text-secondary">
-                  <MapPin size={18} />
-                  <span className="text-[11px] font-black uppercase tracking-widest">Ubicación</span>
-                </div>
-                <span className="font-bold text-sm ml-7 leading-snug">{getServiceLocationDisplay(service)}</span>
-              </div>
-              <div className="flex flex-col gap-1 bg-primary/5 p-4 rounded-2xl border border-primary/10">
-                <div className="flex items-center gap-2 text-primary">
-                  <Sparkles size={18} />
-                  <span className="text-[11px] font-black uppercase tracking-widest">Reseñas</span>
-                </div>
-                <span className="font-bold text-sm ml-7">{service.reviews_count || 0} recibidas</span>
-              </div>
-            </div>
-
-            <div className="hidden md:grid grid-cols-1 gap-3 mt-auto">
-              <Button
-                variant="outline"
-                className="w-full rounded-xl sm:rounded-[1.5rem] border-2 border-yellow-400 text-yellow-700 hover:bg-yellow-50 transition-all duration-300 h-14 font-black text-xs sm:text-sm shadow-sm"
-                onClick={() => { onOpenReviews(service); onClose(); }}
-              >
-                <Star size={18} className="mr-1.5 sm:mr-2 fill-yellow-400 text-yellow-400" />
-                Reseñas
-              </Button>
-              <Button
-                className="w-full rounded-xl sm:rounded-[1.5rem] bg-[#25D366] hover:bg-[#20ba59] text-white transition-all duration-300 h-14 font-black text-xs sm:text-sm shadow-xl shadow-green-500/20"
-                onClick={() => { onWhatsApp(service); onClose(); }}
-                disabled={!service.phone}
-              >
-                <MessageCircle className="w-5 h-5 sm:w-6 sm:h-6 mr-1.5 sm:mr-2" />
-                WhatsApp
-              </Button>
-              <Button
-                variant="ghost"
-                size="sm"
-                className="w-full text-muted-foreground hover:text-foreground rounded-xl"
-                onClick={() => setShareOpen(true)}
-              >
-                <Share2 size={15} className="mr-1.5" />
-                Compartir
-              </Button>
-            </div>
-            <ShareModal
-              open={shareOpen}
-              onClose={() => setShareOpen(false)}
-              url={shareUrl}
-              title={`Servicio de ${service.user_name} en Dameldato`}
-            />
           </div>
-        </div>
+        </aside>
 
-        <div className="p-6 sm:p-8 text-center md:text-left">
-          <div className="space-y-6 text-left">
-            <div className="bg-muted/30 p-6 rounded-[2rem] border border-border/40">
-              <h4 className="text-[11px] font-black uppercase tracking-[0.2em] text-muted-foreground mb-3 px-1">Acerca de este servicio</h4>
-              <p className="text-sm text-muted-foreground whitespace-pre-wrap leading-relaxed font-medium">
-                {(!service.description || service.description.trim() === '' || service.description.trim() === '.') ? 'Este prestador no ha proporcionado una descripción detallada aún.' : service.description}
-              </p>
+        <main className="flex min-w-0 flex-col">
+          <div className="border-b border-border/60 px-5 py-5 sm:px-8 sm:py-7">
+            <DialogTitle className="pr-10 text-2xl font-black leading-tight text-foreground sm:text-4xl">
+              {serviceTitle}
+            </DialogTitle>
+            <div className="mt-3 flex flex-wrap items-center gap-2 text-sm text-muted-foreground">
+              <span className="font-semibold">Por {service.user_name}</span>
+              <span className="hidden h-1 w-1 rounded-full bg-muted-foreground/40 sm:inline-flex" />
+              <span>{getServiceLocationDisplay(service)}</span>
             </div>
+          </div>
 
-            <div className="grid grid-cols-2 gap-4 md:hidden">
-              <div className="flex flex-col gap-1 bg-secondary/5 p-4 rounded-2xl border border-secondary/10">
-                <div className="flex items-center gap-2 text-secondary">
-                  <MapPin size={18} />
+          <div className="flex-1 space-y-5 px-5 py-5 pb-28 sm:px-8 sm:py-7 lg:pb-8">
+            <section className="rounded-3xl border border-border/60 bg-muted/20 p-5 sm:p-6">
+              <h4 className="mb-3 text-xs font-black uppercase tracking-[0.18em] text-muted-foreground">
+                Descripción del servicio
+              </h4>
+              <p className="whitespace-pre-wrap text-base font-medium leading-relaxed text-foreground/85">
+                {description}
+              </p>
+            </section>
+
+            <div className="grid gap-3 md:grid-cols-3">
+              <div className="rounded-2xl border border-emerald-200 bg-emerald-50 p-4 text-emerald-950">
+                <div className="flex items-center gap-2 text-emerald-700">
+                  <MapPin className="h-4 w-4" />
                   <span className="text-[11px] font-black uppercase tracking-widest">Ubicación</span>
                 </div>
-                <span className="font-bold text-sm ml-7 leading-snug">{getServiceLocationDisplay(service)}</span>
+                <p className="mt-2 text-sm font-black leading-snug">{getServiceLocationDisplay(service)}</p>
               </div>
-              <div className="flex flex-col gap-1 bg-primary/5 p-4 rounded-2xl border border-primary/10">
+              <div className="rounded-2xl border border-border bg-background p-4">
                 <div className="flex items-center gap-2 text-primary">
-                  <Sparkles size={18} />
-                  <span className="text-[11px] font-black uppercase tracking-widest">Reseñas</span>
+                  <Sparkles className="h-4 w-4" />
+                  <span className="text-[11px] font-black uppercase tracking-widest">Cobertura</span>
                 </div>
-                <span className="font-bold text-sm ml-7">{service.reviews_count || 0} recibidas</span>
+                <p className="mt-2 text-sm font-black leading-snug">
+                  {service.coverage_full_region
+                    ? 'Toda la región'
+                    : service.coverage_communes && service.coverage_communes.length > 0
+                      ? `${service.coverage_communes.length} comunas adicionales`
+                      : 'Comuna indicada'}
+                </p>
+              </div>
+              <div className="rounded-2xl border border-border bg-background p-4">
+                <p className="text-[11px] font-black uppercase tracking-widest text-muted-foreground">Precio</p>
+                <p className="mt-2 text-sm font-black leading-snug">Se coordina directamente con el profesional</p>
               </div>
             </div>
 
             {service.coverage_communes && service.coverage_communes.length > 0 && (
-              <div className="bg-muted/30 p-6 rounded-[2rem] border border-border/40">
-                <h4 className="text-[11px] font-black uppercase tracking-[0.2em] text-muted-foreground mb-3 px-1">Cobertura adicional</h4>
+              <section className="rounded-3xl border border-border/60 bg-background p-5">
+                <h4 className="mb-3 text-xs font-black uppercase tracking-[0.18em] text-muted-foreground">
+                  Comunas de cobertura
+                </h4>
                 <div className="flex flex-wrap gap-2">
                   {service.coverage_communes.map((commune, index) => (
-                    <span key={index} className="bg-background px-3 py-1 rounded-lg border border-border text-xs font-bold text-foreground">
+                    <span key={index} className="rounded-full border border-border bg-muted/40 px-3 py-1 text-xs font-bold">
                       {commune}
                     </span>
                   ))}
                 </div>
-              </div>
+              </section>
             )}
 
-            <div className="p-4 bg-muted/20 rounded-2xl border-2 border-dashed border-muted">
-              <p className="text-[11px] font-black text-muted-foreground text-center uppercase tracking-widest">
-                * El precio se coordina directamente con el profesional
-              </p>
-            </div>
-
             {photoUrls.length > 0 && (
-              <div className="bg-muted/30 p-5 sm:p-6 rounded-[2rem] border border-border/40">
-                <h4 className="text-[11px] font-black uppercase tracking-[0.2em] text-muted-foreground mb-4 px-1">Fotos del servicio</h4>
+              <section className="rounded-3xl border border-border/60 bg-background p-5 sm:p-6">
+                <h4 className="mb-4 text-xs font-black uppercase tracking-[0.18em] text-muted-foreground">
+                  Fotos del servicio
+                </h4>
                 {photoUrls.length === 1 ? (
                   <a
                     href={photoUrls[0]}
@@ -225,7 +227,7 @@ export function ServiceDetailModalContent({ service, onClose, onOpenReviews, onW
                     <img
                       src={photoUrls[0]}
                       alt=""
-                      className="block w-full h-auto max-h-[min(85vh,720px)] transition-transform duration-300 group-hover/photo:scale-[1.005]"
+                      className="block h-auto max-h-[min(85vh,720px)] w-full transition-transform duration-300 group-hover/photo:scale-[1.005]"
                       loading="lazy"
                     />
                   </a>
@@ -235,7 +237,7 @@ export function ServiceDetailModalContent({ service, onClose, onOpenReviews, onW
                       <img
                         src={photoUrls[photoIndex]}
                         alt=""
-                        className="block w-full h-auto max-h-[min(85vh,720px)]"
+                        className="block h-auto max-h-[min(85vh,720px)] w-full"
                         loading="lazy"
                       />
                       {photoIndex > 0 && (
@@ -278,39 +280,48 @@ export function ServiceDetailModalContent({ service, onClose, onOpenReviews, onW
                     </div>
                   </div>
                 )}
-              </div>
+              </section>
             )}
           </div>
 
-          <div className="grid grid-cols-2 gap-3 sm:gap-4 mt-8 sm:mt-10 md:hidden">
+          <div className="sticky bottom-0 z-20 border-t border-border bg-background/95 px-4 py-3 backdrop-blur md:px-6 lg:hidden">
+            <div className="grid grid-cols-[1fr_auto] gap-2">
+              <Button
+                className="h-12 rounded-2xl bg-[#25D366] text-sm font-black text-white shadow-lg shadow-green-500/20 hover:bg-[#20ba59]"
+                onClick={() => { onWhatsApp(service); onClose(); }}
+                disabled={!service.phone}
+              >
+                <MessageCircle className="mr-2 h-5 w-5" />
+                Contactar por WhatsApp
+              </Button>
+              <Button
+                variant="outline"
+                size="icon"
+                className="h-12 w-12 rounded-2xl"
+                onClick={() => setShareOpen(true)}
+                aria-label="Compartir"
+              >
+                <Share2 className="h-5 w-5" />
+              </Button>
+            </div>
             <Button
-              variant="outline"
-              className="w-full rounded-xl sm:rounded-[1.5rem] border-2 border-yellow-400 text-yellow-700 hover:bg-yellow-50 transition-all duration-300 h-14 sm:h-16 font-black text-xs sm:text-sm shadow-sm"
+              variant="ghost"
+              size="sm"
+              className="mt-2 h-9 w-full rounded-xl text-yellow-700 hover:bg-yellow-50 hover:text-yellow-800"
               onClick={() => { onOpenReviews(service); onClose(); }}
             >
-              <Star size={18} className="mr-1.5 sm:mr-2 fill-yellow-400 text-yellow-400" />
-              Reseñas
-            </Button>
-            <Button
-              className="w-full rounded-xl sm:rounded-[1.5rem] bg-[#25D366] hover:bg-[#20ba59] text-white transition-all duration-300 h-14 sm:h-16 font-black text-xs sm:text-sm shadow-xl shadow-green-500/20"
-              onClick={() => { onWhatsApp(service); onClose(); }}
-              disabled={!service.phone}
-            >
-              <MessageCircle className="w-5 h-5 sm:w-6 sm:h-6 mr-1.5 sm:mr-2" />
-              WhatsApp
+              <Star className="mr-2 h-4 w-4 fill-yellow-400 text-yellow-400" />
+              Ver reseñas
             </Button>
           </div>
-          <Button
-            variant="ghost"
-            size="sm"
-            className="mt-3 w-full text-muted-foreground hover:text-foreground rounded-xl md:hidden"
-            onClick={() => setShareOpen(true)}
-          >
-            <Share2 size={15} className="mr-1.5" />
-            Compartir perfil del prestador
-          </Button>
-        </div>
+        </main>
       </div>
+      <ShareModal
+        open={shareOpen}
+        onClose={() => setShareOpen(false)}
+        url={shareUrl}
+        title={`${serviceTitle} en Dameldato`}
+      />
     </div>
   );
 }
