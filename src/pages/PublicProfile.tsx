@@ -6,7 +6,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { VerifiedBadge } from '@/components/VerifiedBadge';
 import { ShareModal } from '@/components/ShareModal';
-import { publicProfileAPI, servicesAPI } from '@/lib/api';
+import { publicProfileAPI, servicesAPI, trackServiceViewInteraction } from '@/lib/api';
 import {
   Dialog,
   DialogContent,
@@ -179,6 +179,7 @@ const PublicProfile = () => {
 
   const openServiceDetail = async (service: Profile['services'][number]) => {
     setDetailService(toDetailService(service));
+    trackServiceViewInteraction({ serviceId: String(service.id), source: 'public_profile' });
     try {
       const { service: full } = await servicesAPI.getServiceById(service.id);
       setDetailService((prev) => {

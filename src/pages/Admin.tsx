@@ -177,6 +177,30 @@ interface Service {
   average_rating?: number;
   reviews_count?: number;
   image_urls?: string[];
+  whatsapp_clicks?: number;
+}
+
+interface ServiceInteractionRow {
+  service_id: string;
+  service_name: string;
+  status: string;
+  comuna?: string;
+  provider_user_id: string;
+  provider_name: string;
+  provider_email: string;
+  whatsapp_clicks: number;
+  service_views: number;
+  unique_whatsapp_clickers: number;
+  last_whatsapp_click_at?: string | null;
+  last_service_view_at?: string | null;
+}
+
+interface ServiceInteractionSummary {
+  whatsapp_clicks: number;
+  service_views: number;
+  services_with_whatsapp_clicks: number;
+  services_with_views: number;
+  unique_whatsapp_clickers: number;
 }
 
 function AdminServiceActionBar({
@@ -525,6 +549,10 @@ const Admin = () => {
   const [localSearchUsers, setLocalSearchUsers] = useState('');
   const [localSearchTickets, setLocalSearchTickets] = useState('');
   const [localSearchDatos, setLocalSearchDatos] = useState('');
+  const [interactionRange, setInteractionRange] = useState<'today' | '7d' | '30d' | '90d'>('7d');
+  const [serviceInteractions, setServiceInteractions] = useState<ServiceInteractionRow[]>([]);
+  const [interactionSummary, setInteractionSummary] = useState<ServiceInteractionSummary | null>(null);
+  const [loadingInteractions, setLoadingInteractions] = useState(false);
   const [suggestionsSearchQuery, setSuggestionsSearchQuery] = useState('');
   const [pricesTabSearchQuery, setPricesTabSearchQuery] = useState('');
   const [catalogTypeServiceCounts, setCatalogTypeServiceCounts] = useState<Record<string, number>>({});
@@ -585,6 +613,23 @@ const Admin = () => {
       toast.error(error.message || 'Error al cargar servicios');
     } finally {
       setLoadingServices(false);
+    }
+  };
+
+  const loadServiceInteractions = async () => {
+    try {
+      setLoadingInteractions(true);
+      const response = await adminAPI.getServiceInteractions({
+        range: interactionRange,
+        limit: 100,
+      });
+      setInteractionSummary(response.summary);
+      setServiceInteractions(response.services);
+    } catch (error: any) {
+      console.error('Error loading service interactions:', error);
+      toast.error(error.message || 'Error al cargar interacciones');
+    } finally {
+      setLoadingInteractions(false);
     }
   };
 
@@ -1589,6 +1634,7 @@ const Admin = () => {
     switch (activeTab) {
       case 'datos': loadDatos(); break;
       case 'services': loadServices(); break;
+      case 'interactions': loadServiceInteractions(); break;
       case 'products': loadProducts(); break;
       case 'users': loadUsers(); break;
       case 'tickets': loadTickets(); break;
@@ -1608,6 +1654,7 @@ const Admin = () => {
       switch (activeTab) {
         case 'datos': loadDatos(); break;
         case 'services': loadServices(); break;
+        case 'interactions': loadServiceInteractions(); break;
         case 'products': loadProducts(); break;
         case 'users': loadUsers(); break;
         case 'tickets': loadTickets(); break;
@@ -1635,6 +1682,13 @@ const Admin = () => {
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [activeTab]);
+
+  useEffect(() => {
+    if (activeTab === 'interactions') {
+      loadServiceInteractions();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [interactionRange]);
 
   // Verificar autenticación y permisos
   useEffect(() => {
@@ -1972,6 +2026,14 @@ const Admin = () => {
               >
                 <Wrench className="h-3.5 w-3.5 sm:h-4 sm:w-4 shrink-0" />
                 Servicios
+              </TabsTrigger>
+              <TabsTrigger
+                value="interactions"
+                onClick={loadServiceInteractions}
+                className="flex items-center gap-1.5 sm:gap-2 shrink-0 rounded-lg px-3 py-2.5 text-xs sm:text-sm data-[state=active]:bg-background data-[state=active]:shadow-md"
+              >
+                <MessageCircle className="h-3.5 w-3.5 sm:h-4 sm:w-4 shrink-0" />
+                Interacciones
               </TabsTrigger>
               <TabsTrigger
                 value="products"
@@ -2421,6 +2483,141 @@ const Admin = () => {
                     </>
                   )}
                 </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          <TabsContent value="interactions" className="mt-4 sm:mt-6 outline-none focus-visible:outline-none">
+            <Card className="rounded-2xl border border-border/60 bg-card shadow-sm overflow-hidden">
+              <CardHeader className="border-b border-border/50 bg-gradient-to-r from-green-500/8 via-card to-primary/5">
+                <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                  <div>
+                    <CardTitle className="text-lg sm:text-xl">Interacciones de servicios</CardTitle>
+                    <CardDescription>
+                      Clicks en WhatsApp y vistas de detalle agrupadas por servicio.
+                    </CardDescription>
+                  </div>
+                  <div className="w-full sm:w-44">
+                    <Select value={interactionRange} onValueChange={(value) => setInteractionRange(value as typeof interactionRange)}>
+                      <SelectTrigger className="h-10 rounded-xl">
+                        <SelectValue placeholder="Rango" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="today">Hoy</SelectItem>
+                        <SelectItem value="7d">Últimos 7 días</SelectItem>
+                        <SelectItem value="30d">Últimos 30 días</SelectItem>
+                        <SelectItem value="90d">Últimos 90 días</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+              </CardHeader>
+              <CardContent className="p-4 sm:p-6 space-y-5">
+                <div className="grid grid-cols-2 lg:grid-cols-5 gap-3">
+                  <Card className="rounded-xl border-green-500/20 bg-card/80 shadow-sm">
+                    <CardHeader className="px-3 pt-3 pb-1">
+                      <CardTitle className="text-[11px] font-medium text-muted-foreground flex items-center gap-1.5">
+                        <MessageCircle className="h-3.5 w-3.5 text-green-600" />
+                        Clicks WA
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent className="px-3 pb-3">
+                      <div className="text-2xl font-bold tabular-nums">{interactionSummary?.whatsapp_clicks ?? 0}</div>
+                    </CardContent>
+                  </Card>
+                  <Card className="rounded-xl border-blue-500/20 bg-card/80 shadow-sm">
+                    <CardHeader className="px-3 pt-3 pb-1">
+                      <CardTitle className="text-[11px] font-medium text-muted-foreground flex items-center gap-1.5">
+                        <Eye className="h-3.5 w-3.5 text-blue-600" />
+                        Vistas
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent className="px-3 pb-3">
+                      <div className="text-2xl font-bold tabular-nums">{interactionSummary?.service_views ?? 0}</div>
+                    </CardContent>
+                  </Card>
+                  <Card className="rounded-xl border-emerald-500/20 bg-card/80 shadow-sm">
+                    <CardHeader className="px-3 pt-3 pb-1">
+                      <CardTitle className="text-[11px] font-medium text-muted-foreground">Servicios con clicks</CardTitle>
+                    </CardHeader>
+                    <CardContent className="px-3 pb-3">
+                      <div className="text-2xl font-bold tabular-nums">{interactionSummary?.services_with_whatsapp_clicks ?? 0}</div>
+                    </CardContent>
+                  </Card>
+                  <Card className="rounded-xl border-sky-500/20 bg-card/80 shadow-sm">
+                    <CardHeader className="px-3 pt-3 pb-1">
+                      <CardTitle className="text-[11px] font-medium text-muted-foreground">Servicios vistos</CardTitle>
+                    </CardHeader>
+                    <CardContent className="px-3 pb-3">
+                      <div className="text-2xl font-bold tabular-nums">{interactionSummary?.services_with_views ?? 0}</div>
+                    </CardContent>
+                  </Card>
+                  <Card className="col-span-2 lg:col-span-1 rounded-xl border-violet-500/20 bg-card/80 shadow-sm">
+                    <CardHeader className="px-3 pt-3 pb-1">
+                      <CardTitle className="text-[11px] font-medium text-muted-foreground">Clickers únicos</CardTitle>
+                    </CardHeader>
+                    <CardContent className="px-3 pb-3">
+                      <div className="text-2xl font-bold tabular-nums">{interactionSummary?.unique_whatsapp_clickers ?? 0}</div>
+                    </CardContent>
+                  </Card>
+                </div>
+
+                {loadingInteractions ? (
+                  <div className="flex items-center justify-center py-10 text-muted-foreground">
+                    <Loader2 className="h-5 w-5 animate-spin mr-2" />
+                    Cargando interacciones...
+                  </div>
+                ) : serviceInteractions.length === 0 ? (
+                  <div className="rounded-xl border border-dashed border-border py-10 text-center text-sm text-muted-foreground">
+                    No hay interacciones registradas en este rango.
+                  </div>
+                ) : (
+                  <div className="rounded-xl border border-border/60 overflow-hidden bg-card">
+                    <div className="overflow-x-auto">
+                      <table className="w-full text-sm min-w-[780px]">
+                        <thead className="bg-muted/50 text-muted-foreground border-b border-border/60">
+                          <tr>
+                            <th className="text-left font-medium px-4 py-3 w-[24%]">Servicio</th>
+                            <th className="text-left font-medium px-3 py-3 w-[18%]">Proveedor</th>
+                            <th className="text-left font-medium px-3 py-3 w-[10%]">Comuna</th>
+                            <th className="text-left font-medium px-3 py-3 w-[10%]">Clicks WA</th>
+                            <th className="text-left font-medium px-3 py-3 w-[10%]">Únicos</th>
+                            <th className="text-left font-medium px-3 py-3 w-[10%]">Vistas</th>
+                            <th className="text-left font-medium px-3 py-3 w-[18%]">Último click</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {serviceInteractions.map((row) => (
+                            <tr key={row.service_id} className="border-b border-border/50 last:border-0 hover:bg-muted/30 transition-colors">
+                              <td className="px-4 py-3 align-top">
+                                <div className="font-semibold text-foreground leading-snug line-clamp-2">{row.service_name || '—'}</div>
+                                <Badge
+                                  variant="outline"
+                                  className={cn('mt-1.5 font-semibold text-[10px]', getServiceStatusConfig(row.status).badgeClass)}
+                                >
+                                  {getServiceStatusConfig(row.status).label}
+                                </Badge>
+                              </td>
+                              <td className="px-3 py-3 align-top">
+                                <div className="font-medium text-foreground line-clamp-1">{row.provider_name || '—'}</div>
+                                <div className="text-xs text-muted-foreground break-all line-clamp-2">{row.provider_email || '—'}</div>
+                              </td>
+                              <td className="px-3 py-3 align-top text-muted-foreground">{row.comuna || '—'}</td>
+                              <td className="px-3 py-3 align-top tabular-nums font-semibold text-green-700 dark:text-green-400">
+                                {row.whatsapp_clicks ?? 0}
+                              </td>
+                              <td className="px-3 py-3 align-top tabular-nums">{row.unique_whatsapp_clickers ?? 0}</td>
+                              <td className="px-3 py-3 align-top tabular-nums">{row.service_views ?? 0}</td>
+                              <td className="px-3 py-3 align-top text-xs text-muted-foreground whitespace-nowrap">
+                                {row.last_whatsapp_click_at ? formatDate(row.last_whatsapp_click_at) : '—'}
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
+                )}
               </CardContent>
             </Card>
           </TabsContent>

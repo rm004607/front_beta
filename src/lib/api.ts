@@ -8,6 +8,19 @@ export const setUnauthorizedHandler = (callback: () => void) => {
   onUnauthorizedCallback = callback;
 };
 
+const getAnonymousSessionId = () => {
+  if (typeof window === 'undefined') return undefined;
+  const key = 'dameldato_anonymous_session_id';
+  const existing = window.localStorage.getItem(key);
+  if (existing) return existing;
+  const next =
+    typeof window.crypto?.randomUUID === 'function'
+      ? window.crypto.randomUUID()
+      : `${Date.now()}-${Math.random().toString(36).slice(2)}`;
+  window.localStorage.setItem(key, next);
+  return next;
+};
+
 interface RequestOptions extends RequestInit {
   skipAuth?: boolean;
 }
@@ -1088,6 +1101,47 @@ export const adminAPI = {
     });
   },
 
+  getServiceInteractions: async (filters?: {
+    range?: 'today' | '7d' | '30d' | '90d';
+    start?: string;
+    end?: string;
+    limit?: number;
+  }) => {
+    const params = new URLSearchParams();
+    if (filters?.range) params.append('range', filters.range);
+    if (filters?.start) params.append('start', filters.start);
+    if (filters?.end) params.append('end', filters.end);
+    if (filters?.limit) params.append('limit', filters.limit.toString());
+
+    const queryString = params.toString();
+    return request<{
+      range: { start: string; end: string };
+      summary: {
+        whatsapp_clicks: number;
+        service_views: number;
+        services_with_whatsapp_clicks: number;
+        services_with_views: number;
+        unique_whatsapp_clickers: number;
+      };
+      services: Array<{
+        service_id: string;
+        service_name: string;
+        status: string;
+        comuna?: string;
+        provider_user_id: string;
+        provider_name: string;
+        provider_email: string;
+        whatsapp_clicks: number;
+        service_views: number;
+        unique_whatsapp_clickers: number;
+        last_whatsapp_click_at?: string | null;
+        last_service_view_at?: string | null;
+      }>;
+    }>(`/admin/services/interactions${queryString ? `?${queryString}` : ''}`, {
+      method: 'GET',
+    });
+  },
+
   deleteService: async (id: string) => {
     return request<{ message: string }>(`/admin/services/${id}`, {
       method: 'DELETE',
@@ -1777,8 +1831,25 @@ export const supportAPI = {
   },
 
   /** Registra clic en WhatsApp (servicio, producto o usuario). No bloquear UX si falla. */
-  trackWhatsApp: async (data: { serviceId?: string; productId?: string; userId?: string }) => {
+  trackWhatsApp: async (data: {
+    serviceId?: string;
+    productId?: string;
+    userId?: string;
+    source?: string;
+    anonymousSessionId?: string;
+  }) => {
     return request<{ ok?: boolean; message?: string }>('/api/support/track-whatsapp', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    });
+  },
+
+  trackServiceView: async (data: {
+    serviceId: string;
+    source?: string;
+    anonymousSessionId?: string;
+  }) => {
+    return request<{ ok?: boolean; message?: string }>('/api/support/track-service-view', {
       method: 'POST',
       body: JSON.stringify(data),
     });
@@ -1846,8 +1917,19 @@ export const publicProfileAPI = {
 };
 
 /** Fire-and-forget: no bloquea la apertura de WhatsApp si el backend falla. */
-export const trackWhatsAppInteraction = (payload: { serviceId?: string; productId?: string; userId?: string }) => {
-  void supportAPI.trackWhatsApp(payload).catch(() => {});
+export const trackWhatsAppInteraction = (payload: { serviceId?: string; productId?: string; userId?: string; source?: string }) => {
+  void supportAPI.trackWhatsApp({
+    ...payload,
+    anonymousSessionId: getAnonymousSessionId(),
+  }).catch(() => {});
+};
+
+/** Fire-and-forget: registra apertura de detalle/visita de servicio. */
+export const trackServiceViewInteraction = (payload: { serviceId: string; source?: string }) => {
+  void supportAPI.trackServiceView({
+    ...payload,
+    anonymousSessionId: getAnonymousSessionId(),
+  }).catch(() => {});
 };
 
 // API de IA y recomendaciones

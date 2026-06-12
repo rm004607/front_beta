@@ -6,7 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { MapPin, Search, MessageCircle, Loader2, Plus, Star, Globe, Wrench, X } from 'lucide-react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { servicesAPI, flowAPI, configAPI, reviewsAPI, regionsAPI, trackWhatsAppInteraction } from '@/lib/api';
+import { servicesAPI, flowAPI, configAPI, reviewsAPI, regionsAPI, trackWhatsAppInteraction, trackServiceViewInteraction } from '@/lib/api';
 import { loadRegionOptionsSorted, type RegionOption } from '@/lib/regions-catalog';
 import { catalogFetchUserMessage } from '@/lib/catalog-fetch-errors';
 import { toast } from 'sonner';
@@ -292,7 +292,12 @@ const Services = () => {
     };
   }, [regionFilter]);
 
-  const handleWhatsApp = (service: any) => {
+  const openServiceDetail = (service: any, source = 'services_card') => {
+    setDetailService(service);
+    trackServiceViewInteraction({ serviceId: String(service.id), source });
+  };
+
+  const handleWhatsApp = (service: any, source = 'services_card') => {
     if (!service.phone) {
       toast.error(t('services.no_phone_msg'));
       return;
@@ -310,12 +315,12 @@ const Services = () => {
     if (!pricingEnabled) {
       const cleanPhone = service.phone.replace(/\D/g, '');
       const message = `Hola, te contacto por tu servicio "${service.service_name}" en Dameldato.`;
-      trackWhatsAppInteraction({ serviceId: String(service.id) });
-      servicesAPI.trackWhatsAppClick(String(service.id)).catch(() => {});
+      trackWhatsAppInteraction({ serviceId: String(service.id), source });
       window.open(`https://wa.me/${cleanPhone}?text=${encodeURIComponent(message)}`, '_blank');
       return;
     }
 
+    trackWhatsAppInteraction({ serviceId: String(service.id), source: `${source}_paid_intent` });
     setPendingContactService(service);
     setIsPaidContactModalOpen(true);
   };
@@ -584,8 +589,8 @@ const Services = () => {
                   highlightId={highlightId}
                   isSuperAdmin={user?.role_number === 5}
                   onOpenReviews={handleOpenReviews}
-                  onWhatsApp={handleWhatsApp}
-                  onOpenDetail={setDetailService}
+                  onWhatsApp={(s) => handleWhatsApp(s, 'services_card')}
+                  onOpenDetail={(s) => openServiceDetail(s, 'services_card')}
                   onDelete={handleDeleteService}
                   onEdit={(s) => navigate(`/admin?tab=services&search=${s.user_name}`)}
                 />
@@ -652,7 +657,7 @@ const Services = () => {
                 service={detailService}
                 onClose={() => setDetailService(null)}
                 onOpenReviews={(s) => { setDetailService(null); handleOpenReviews(s); }}
-                onWhatsApp={(s) => { setDetailService(null); handleWhatsApp(s); }}
+                onWhatsApp={(s) => { setDetailService(null); handleWhatsApp(s, 'services_detail_modal'); }}
               />
             )}
           </DialogContent>
@@ -732,7 +737,6 @@ const Services = () => {
                       if (!pendingContactService) return;
                       try {
                         setIsPaidContactModalOpen(false);
-                        servicesAPI.trackWhatsAppClick(String(pendingContactService.id)).catch(() => {});
                         toast.loading(t('wall.preparing_payment'), { id: 'contact-payment' });
 
                         const response = await flowAPI.createContactPayment(
@@ -771,4 +775,3 @@ const Services = () => {
 };
 
 export default Services;
-
