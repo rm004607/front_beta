@@ -1,12 +1,11 @@
 import {
-    Star, MapPin, MessageCircle, ChevronRight, Sparkles,
+    Star, MapPin, MessageCircle, Sparkles,
 } from 'lucide-react';
 import { memo } from 'react';
 import { Link } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { getServiceIcon, getServiceRegionNameOnly } from '@/lib/serviceUtils';
-import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { VerifiedBadge, PendingVerificationBadge } from '@/components/VerifiedBadge';
 import { toSlug } from '@/pages/PublicProfile';
@@ -61,10 +60,25 @@ export const ServiceCard = memo(({
     onEdit,
     onDelete
 }: ServiceCardProps) => {
+    const openDetail = () => {
+        onOpenDetail?.(service);
+    };
+
     return (
         <Card
             id={`service-${service.id}`}
-            className={`group hover:shadow-2xl transition-all duration-500 border-2 rounded-[2rem] sm:rounded-[2.5rem] overflow-hidden ${String(service.id) === highlightId
+            role={onOpenDetail ? 'button' : undefined}
+            tabIndex={onOpenDetail ? 0 : undefined}
+            aria-label={onOpenDetail ? `Ver detalles de ${service.service_name || 'servicio'}` : undefined}
+            onClick={openDetail}
+            onKeyDown={(event) => {
+                if (!onOpenDetail) return;
+                if (event.key === 'Enter' || event.key === ' ') {
+                    event.preventDefault();
+                    openDetail();
+                }
+            }}
+            className={`group hover:shadow-2xl transition-all duration-500 border-2 rounded-[2rem] sm:rounded-[2.5rem] overflow-hidden focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-primary/20 ${onOpenDetail ? 'cursor-pointer' : ''} ${String(service.id) === highlightId
                 ? 'border-primary shadow-xl ring-4 ring-primary/15 scale-[1.02]'
                 : 'border-border hover:border-primary/30'
                 }`}
@@ -110,15 +124,6 @@ export const ServiceCard = memo(({
                     <p className="text-xs sm:text-sm text-muted-foreground line-clamp-2 italic leading-relaxed min-h-[2.5rem] sm:min-h-[3rem]">
                         {(!service.description || service.description.trim() === '' || service.description.trim() === '.') ? 'Sin descripción disponible.' : service.description}
                     </p>
-                    <div className="flex justify-start mt-3">
-                        <button
-                            type="button"
-                            className="text-[10px] sm:text-[11px] text-primary font-black uppercase tracking-widest hover:underline focus:outline-none flex items-center transition-all bg-primary/5 hover:bg-primary/10 dark:bg-primary/15 dark:hover:bg-primary/20 px-2.5 sm:px-3 py-1.5 rounded-lg sm:rounded-xl border border-primary/10 dark:border-primary/25"
-                            onClick={() => onOpenDetail?.(service)}
-                        >
-                            Detalles completos <ChevronRight className="w-3 sn:w-3.5 h-3 sm:h-3.5 ml-1" />
-                        </button>
-                    </div>
                 </div>
                 
                 <div className="space-y-6 pt-2">
@@ -147,18 +152,26 @@ export const ServiceCard = memo(({
                         <Button
                             variant="outline"
                             className="w-full border-2 border-yellow-400 text-yellow-700 hover:bg-yellow-50 transition-all duration-300 h-12 rounded-[1.25rem] font-black text-xs shadow-sm hover:shadow-md"
-                            onClick={() => onOpenReviews(service)}
+                            onClick={(event) => {
+                                event.stopPropagation();
+                                onOpenReviews(service);
+                            }}
                         >
                             <Star size={16} className="mr-2 fill-yellow-400 text-yellow-400" />
                             RESEÑAS
                         </Button>
                         <Button
                             className="w-full bg-[#25D366] hover:bg-[#20ba59] text-white h-12 rounded-[1.25rem] font-black text-xs shadow-lg shadow-green-500/10 transition-all active:scale-[0.96] hover:shadow-green-500/20"
-                            onClick={() => onWhatsApp(service)}
+                            onClick={(event) => {
+                                event.stopPropagation();
+                                onWhatsApp(service);
+                            }}
                             disabled={!service.phone}
+                            aria-label="Contactar por WhatsApp"
+                            title="Contactar por WhatsApp"
                         >
                             <MessageCircle size={20} className="mr-2" />
-                            WHATSAPP
+                            CONTACTAR
                         </Button>
                     </div>
                 </div>
