@@ -32,7 +32,7 @@ export function VerifiedBadge({ size = 'sm', variant = 'icon-text', className }:
           </span>
         </TooltipTrigger>
         <TooltipContent side="top" className="text-xs max-w-[200px] text-center">
-          Identidad verificada con cédula chilena (TOC Biometrics)
+          Identidad verificada biométricamente con cédula chilena validada ante el Registro Civil
         </TooltipContent>
       </Tooltip>
     </TooltipProvider>
