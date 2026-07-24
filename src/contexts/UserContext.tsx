@@ -162,9 +162,11 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
 
       setUser(userProfile);
 
-      // Si el usuario está logueado pero no tiene KYC completado, redirigir a verificación biométrica
+      // Solo los prestadores requieren KYC (rol 2 = emprendedor, 3 = empresa).
+      // Los usuarios normales (rol 1, enfocados en comunidades) no pasan por verificación biométrica.
+      const roleRequiresKyc = userProfile.role_number === 2 || userProfile.role_number === 3;
       const path = window.location.pathname;
-      if (userProfile.kyc_completed === false && path !== '/verificacion-biometrica' && path !== '/login' && path !== '/registro') {
+      if (roleRequiresKyc && userProfile.kyc_completed === false && path !== '/verificacion-biometrica' && path !== '/login' && path !== '/registro') {
         window.location.href = '/verificacion-biometrica';
         return;
       }
