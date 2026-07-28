@@ -108,8 +108,10 @@ usos** (lo elige el admin).
 
 | Área | Front (hecho) | Backend (necesario) |
 |------|---------------|---------------------|
-| Registro usuario normal | Pantalla de selección + flujo teléfono→código→nombre (UI completa) | `/auth/phone/send-code` y `/auth/phone/verify-code` que crean sesión y usuario `rol 1` sin KYC |
-| KYC | No fuerza KYC a roles ≠ 2,3 | `kyc_completed: true` para rol 1 |
-| Nombre del usuario nuevo | Llama `PATCH /auth/profile { name }` | Aceptar `name` (ya existe) |
-| Comunidades | Pendiente (UI) | Tablas + endpoints de comunidades e invites |
+| Registro usuario normal | Pantalla de selección + flujo teléfono→código→nombre (UI completa) | ✅ HECHO: `/auth/phone/send-code` y `/auth/phone/verify-code` |
+| Login de vecino | Botón "Ingresar con mi teléfono" en `/login` y `/registro?tipo=vecino` | Nada nuevo: reutiliza `verify-code` (si `is_new_user=false`, entra directo) |
+| KYC | No fuerza KYC a roles ≠ 2,3 | ✅ `kyc_completed: true` para rol 1 |
+| **Comunidades** | **UI completa** (crear, invitar por link con vencimiento, unirse) | **PENDIENTE: tablas + endpoints de §2** (el front ya los llama con el contrato de ahí) |
 | Apple login | Pendiente (botón) | `/auth/apple` + callback |
+
+> Estado actual: A + B verificados en producción. **Lo que sigue es la sección 2 (Comunidades)** — el front ya está construido y esperando esos endpoints.

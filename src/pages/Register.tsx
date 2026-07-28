@@ -60,7 +60,10 @@ const Register = () => {
    * - 'user': usuario normal → registro rápido, SIN KYC, puede crear/unirse a comunidades.
    * BACKEND: ver ROLE.NORMAL_USER más abajo.
    */
-  const [accountType, setAccountType] = useState<'provider' | 'user' | ''>('');
+  const [accountType, setAccountType] = useState<'provider' | 'user' | ''>(
+    // ?tipo=vecino abre directo el flujo por teléfono (registro/login de vecino).
+    searchParams.get('tipo') === 'vecino' ? 'user' : ''
+  );
   /**
    * Roles numéricos que espera el backend.
    * NORMAL_USER (1): usuario/consumidor, NO requiere KYC ni RUT. <-- backend debe soportarlo.
@@ -512,6 +515,16 @@ const Register = () => {
   };
 
   // --- Flujo usuario normal por teléfono (sin contraseña) ---
+  /** Destino tras ingresar: si venía de un link de invitación, vuelve ahí; si no, al home. */
+  const postAuthDestination = () => {
+    const pending = localStorage.getItem('pending_invite');
+    if (pending) {
+      localStorage.removeItem('pending_invite');
+      return pending;
+    }
+    return '/';
+  };
+
   /** Normaliza a E.164 chileno (+569XXXXXXXX) que espera el backend (send-code / verify-code). */
   const toE164Chile = (raw: string): string => {
     let d = raw.replace(/\D/g, '');
@@ -558,7 +571,7 @@ const Register = () => {
         setUserPhoneStep('name');
       } else {
         toast.success('¡Te damos la bienvenida de vuelta!');
-        navigate('/', { replace: true });
+        navigate(postAuthDestination(), { replace: true });
       }
     } catch (error: any) {
       const msg = error instanceof Error ? error.message : 'Código inválido o expirado.';
@@ -582,7 +595,7 @@ const Register = () => {
       await authAPI.updateProfile({ name: sanitizeInput(name, 100) });
       await loadUser();
       toast.success('¡Cuenta creada! Te damos la bienvenida a Dameldato.');
-      navigate('/', { replace: true });
+      navigate(postAuthDestination(), { replace: true });
     } catch (error: any) {
       toast.error(error instanceof Error ? error.message : 'No pudimos guardar tu nombre.');
     } finally {

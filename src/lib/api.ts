@@ -2124,3 +2124,64 @@ export const aiAPI = {
     });
   },
 };
+
+// ===== Comunidades =====
+export type CommunityType = 'colegio' | 'condominio' | 'barrio' | 'empresa' | 'otro';
+
+export interface Community {
+  id: string;
+  name: string;
+  type: CommunityType;
+  description?: string | null;
+  created_by?: string;
+  created_at?: string;
+  my_role?: 'admin' | 'member';
+  members_count?: number;
+}
+
+export interface CommunityInvite {
+  token: string;
+  url?: string;
+  expires_at?: string | null;
+  max_uses?: number | null;
+  uses_count?: number;
+}
+
+export const communitiesAPI = {
+  /** Crea una comunidad; el creador queda como admin. */
+  create: (data: { name: string; type: CommunityType; description?: string }) =>
+    request<{ community: Community }>('/api/communities', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    }),
+
+  /** Comunidades que creé o de las que soy miembro. */
+  mine: () => request<{ communities: Community[] }>('/api/communities/mine', { method: 'GET' }),
+
+  get: (id: string) =>
+    request<{ community: Community; my_role: 'admin' | 'member'; members_count: number }>(
+      `/api/communities/${id}`,
+      { method: 'GET' }
+    ),
+
+  /** Genera un link de invitación con expiración por tiempo y/o usos (lo elige el admin). */
+  createInvite: (id: string, data: { expires_at?: string | null; max_uses?: number | null }) =>
+    request<{ invite: CommunityInvite }>(`/api/communities/${id}/invites`, {
+      method: 'POST',
+      body: JSON.stringify(data),
+    }),
+
+  /** Preview público del invite antes de unirse (no requiere sesión). */
+  getInvitePreview: (token: string) =>
+    request<{ valid: boolean; community?: { id: string; name: string }; reason?: string }>(
+      `/api/communities/invites/${encodeURIComponent(token)}`,
+      { method: 'GET', skipAuth: true }
+    ),
+
+  /** Acepta el invite (requiere sesión). Valida expiración/usos en el backend. */
+  acceptInvite: (token: string) =>
+    request<{ ok: boolean; community_id: string }>(
+      `/api/communities/invites/${encodeURIComponent(token)}/accept`,
+      { method: 'POST' }
+    ),
+};

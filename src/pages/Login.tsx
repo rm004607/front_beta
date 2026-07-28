@@ -7,7 +7,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { useUser } from '@/contexts/UserContext';
 import { toast } from 'sonner';
-import { AlertTriangle, Ban } from 'lucide-react';
+import { AlertTriangle, Ban, Smartphone } from 'lucide-react';
 import { authAPI } from '@/lib/api';
 
 interface BanInfo {
@@ -160,6 +160,18 @@ const Login = () => {
                   <span className="bg-background px-2 text-muted-foreground font-semibold">O continúa con</span>
                 </div>
               </div>
+
+              <Button
+                asChild
+                variant="outline"
+                type="button"
+                className="w-full h-12 rounded-xl border-primary/30 text-primary hover:bg-primary/5 font-bold flex items-center justify-center gap-3 transition-all active:scale-[0.98]"
+              >
+                <Link to="/registro?tipo=vecino">
+                  <Smartphone size={18} />
+                  Ingresar con mi teléfono
+                </Link>
+              </Button>
 
               <Button
                 variant="outline"
