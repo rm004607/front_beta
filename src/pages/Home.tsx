@@ -774,7 +774,7 @@ const Home = () => {
           <div className="absolute inset-0 bg-mesh opacity-10"></div>
           <div className="container mx-auto px-3 xs:px-4 relative z-10">
             <div className="max-w-4xl mx-auto glass-card p-5 xs:p-6 sm:p-8 md:p-12 rounded-2xl sm:rounded-3xl md:rounded-[3.5rem] text-center border-primary/20">
-              <h2 className="text-lg xs:text-xl sm:text-2xl md:text-4xl font-extrabold text-foreground mb-2 px-1">Personas que ofrecen servicios.</h2>
+              <h2 className="text-lg xs:text-xl sm:text-2xl md:text-4xl font-extrabold text-foreground mb-2 px-1">Únete a Dameldato</h2>
               <p className="text-sm xs:text-base sm:text-lg text-muted-foreground mb-6 sm:mb-10 max-w-2xl mx-auto px-1">
                 {t('home.entrepreneur_choice_desc')}{' '}
                 <span className="block mt-2 font-bold text-primary italic">{t('home.entrepreneur_only_note')}</span>

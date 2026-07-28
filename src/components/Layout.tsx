@@ -130,7 +130,7 @@ const Layout = ({ children }: LayoutProps) => {
                           <DropdownMenuItem asChild className="p-0 mb-1">
                             <Link to="/registro" className="flex flex-col items-start gap-1 p-3.5 rounded-xl hover:bg-primary/10 transition-colors focus:bg-primary/10 outline-none">
                               <span className="font-bold text-primary text-base leading-tight">{t('home.want_to_offer_services')}</span>
-                              <span className="text-[10px] text-muted-foreground font-medium uppercase tracking-wider">Crear una nueva cuenta de talento</span>
+                              <span className="text-[10px] text-muted-foreground font-medium uppercase tracking-wider">Para usar la app u ofrecer servicios</span>
                             </Link>
                           </DropdownMenuItem>
                           <div className="h-px bg-border/50 my-1 mx-2" />
@@ -205,7 +205,7 @@ const Layout = ({ children }: LayoutProps) => {
                       <>
                         <div className="h-px bg-border/50 my-2 mx-3" />
                         <div className="p-3">
-                          <p className="text-[10px] text-muted-foreground font-black uppercase tracking-[0.2em] mb-3 ml-1">Para Emprendedores</p>
+                          <p className="text-[10px] text-muted-foreground font-black uppercase tracking-[0.2em] mb-3 ml-1">Crear cuenta</p>
                           <div className="space-y-2">
                             <Link to="/registro">
                               <Button className="w-full justify-start h-auto py-3.5 px-4 rounded-xl bg-primary hover:bg-primary/90 shadow-lg shadow-primary/20 mb-2 whitespace-normal text-left leading-tight">
