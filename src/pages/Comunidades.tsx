@@ -107,7 +107,9 @@ const Comunidades = () => {
         expires_at,
         max_uses: uses > 0 ? uses : null,
       });
-      const link = res.invite.url || `${window.location.origin}/comunidades/invitacion/${res.invite.token}`;
+      // Armamos el link con NUESTRA ruta real (/comunidades/invitacion/:token),
+      // sin depender del path que arme el backend. Solo necesitamos el token.
+      const link = `${window.location.origin}/comunidades/invitacion/${res.invite.token}`;
       setInviteLink(link);
     } catch (e) {
       toast.error(e instanceof Error ? e.message : 'No pudimos generar el link.');
