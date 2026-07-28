@@ -68,6 +68,13 @@ const Register = () => {
    */
   const ROLE = { NORMAL_USER: 1, ENTREPRENEUR: 2 } as const;
   const isUserAccount = accountType === 'user';
+
+  // Sub-flujo del usuario normal: teléfono → código → nombre (sin contraseña, estilo WhatsApp).
+  const [userPhoneStep, setUserPhoneStep] = useState<'phone' | 'code' | 'name'>('phone');
+  const [otpCode, setOtpCode] = useState('');
+  const [otpSending, setOtpSending] = useState(false);
+  const [otpVerifying, setOtpVerifying] = useState(false);
+  const [otpError, setOtpError] = useState('');
   const hasPrefilled = useRef(false);
   const isGoogleRegistrationPending = searchParams.get('google_registration_pending') === 'true';
 
@@ -504,6 +511,77 @@ const Register = () => {
     }
   };
 
+  // --- Flujo usuario normal por teléfono (sin contraseña) ---
+  const handleSendCode = async () => {
+    if (!isValidPhone(phone)) {
+      toast.error(getValidationErrorMessage('phone', containsSQLInjection(phone) ? 'sql' : 'format'));
+      return;
+    }
+    if (!acceptTerms) {
+      toast.error('Debes aceptar los Términos y Condiciones');
+      return;
+    }
+    setOtpSending(true);
+    setOtpError('');
+    try {
+      await authAPI.sendPhoneCode({ phone: sanitizeInput(phone, 20) });
+      setUserPhoneStep('code');
+      setOtpCode('');
+      toast.success('Te enviamos un código a tu teléfono.');
+    } catch (error: any) {
+      const msg = error instanceof Error ? error.message : 'No pudimos enviar el código. Intenta de nuevo.';
+      setOtpError(msg);
+      toast.error(msg);
+    } finally {
+      setOtpSending(false);
+    }
+  };
+
+  const handleVerifyCode = async () => {
+    if (otpCode.length < 6) return;
+    setOtpVerifying(true);
+    setOtpError('');
+    try {
+      const res = await authAPI.verifyPhoneCode({ phone: sanitizeInput(phone, 20), code: otpCode });
+      if (res.token) localStorage.setItem('token', res.token);
+      await loadUser();
+      if (res.is_new_user) {
+        setName('');
+        setUserPhoneStep('name');
+      } else {
+        toast.success('¡Te damos la bienvenida de vuelta!');
+        navigate('/', { replace: true });
+      }
+    } catch (error: any) {
+      const msg = error instanceof Error ? error.message : 'Código inválido o expirado.';
+      setOtpError(msg);
+    } finally {
+      setOtpVerifying(false);
+    }
+  };
+
+  const handleSetName = async () => {
+    if (!name.trim()) {
+      toast.error('Ingresa tu nombre');
+      return;
+    }
+    if (!isValidName(name)) {
+      toast.error(getValidationErrorMessage('name', containsSQLInjection(name) ? 'sql' : 'format'));
+      return;
+    }
+    setIsSubmitting(true);
+    try {
+      await authAPI.updateProfile({ name: sanitizeInput(name, 100) });
+      await loadUser();
+      toast.success('¡Cuenta creada! Te damos la bienvenida a Dameldato.');
+      navigate('/', { replace: true });
+    } catch (error: any) {
+      toast.error(error instanceof Error ? error.message : 'No pudimos guardar tu nombre.');
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
   return (
     <div className="min-h-screen bg-background relative overflow-hidden flex items-center justify-center py-8 sm:py-12 px-4 mt-6">
       {/* Decorative background elements */}
@@ -518,7 +596,7 @@ const Register = () => {
             <CardTitle className="text-2xl sm:text-3xl md:text-4xl font-heading font-bold bg-clip-text text-transparent bg-gradient-to-r from-primary to-secondary mb-2">
               Únete a la Comunidad
             </CardTitle>
-            {(step === 2 || (step === 1 && (accountType || isGoogleRegistrationPending))) && (
+            {(step === 2 || (step === 1 && (accountType === 'provider' || isGoogleRegistrationPending))) && (
               <CardDescription className="text-base sm:text-lg">
                 Paso {displayStep} de {totalSteps}
               </CardDescription>
@@ -581,7 +659,128 @@ const Register = () => {
               </div>
             )}
 
-            {step === 1 && (accountType || isGoogleRegistrationPending) && (
+            {step === 1 && accountType === 'user' && (
+              <div className="space-y-6 animate-in fade-in slide-in-from-right-4 duration-300">
+                {userPhoneStep === 'phone' && (
+                  <button
+                    type="button"
+                    onClick={() => { setAccountType(''); setOtpError(''); }}
+                    className="inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground transition-colors"
+                  >
+                    <ArrowLeft size={15} /> Cambiar tipo de cuenta
+                  </button>
+                )}
+
+                {userPhoneStep === 'phone' && (
+                  <div className="space-y-5">
+                    <div className="text-center space-y-1">
+                      <h3 className="text-lg font-bold font-heading">Ingresa con tu teléfono</h3>
+                      <p className="text-sm text-muted-foreground">
+                        Te enviaremos un código para confirmar que el número es tuyo. Sin contraseñas.
+                      </p>
+                    </div>
+                    <div>
+                      <Label htmlFor="phone-otp">Número de teléfono</Label>
+                      <Input
+                        id="phone-otp"
+                        value={phone}
+                        onChange={(e) => setPhone(e.target.value)}
+                        placeholder="+56 9 1234 5678"
+                        inputMode="tel"
+                        className={phone && !isValidPhone(phone) ? 'border-red-500' : ''}
+                      />
+                      {phone && !isValidPhone(phone) && (
+                        <p className="text-sm text-red-500 mt-1">
+                          {getValidationErrorMessage('phone', containsSQLInjection(phone) ? 'sql' : 'format')}
+                        </p>
+                      )}
+                    </div>
+                    <div className="flex items-start gap-2">
+                      <Checkbox
+                        id="accept-terms-otp"
+                        checked={acceptTerms}
+                        onCheckedChange={(checked) => setAcceptTerms(!!checked)}
+                      />
+                      <Label htmlFor="accept-terms-otp" className="text-sm font-medium leading-tight cursor-pointer">
+                        Acepto los Términos y Condiciones
+                      </Label>
+                    </div>
+                    <Button onClick={handleSendCode} disabled={otpSending} className="w-full font-bold text-lg h-12">
+                      {otpSending ? 'Enviando código...' : 'Enviar código'}
+                      {!otpSending && <ArrowRight className="ml-2" size={18} />}
+                    </Button>
+                    {otpError && <p className="text-sm text-red-500 text-center">{otpError}</p>}
+                  </div>
+                )}
+
+                {userPhoneStep === 'code' && (
+                  <div className="space-y-5">
+                    <div className="text-center space-y-1">
+                      <h3 className="text-lg font-bold font-heading">Ingresa el código</h3>
+                      <p className="text-sm text-muted-foreground">
+                        Enviamos un código de 6 dígitos a <span className="font-semibold text-foreground">{phone}</span>.
+                      </p>
+                    </div>
+                    <Input
+                      id="otp-code"
+                      value={otpCode}
+                      onChange={(e) => setOtpCode(e.target.value.replace(/\D/g, '').slice(0, 6))}
+                      placeholder="______"
+                      inputMode="numeric"
+                      maxLength={6}
+                      className="text-center text-2xl tracking-[0.5em] font-bold h-14"
+                    />
+                    <Button onClick={handleVerifyCode} disabled={otpVerifying || otpCode.length < 6} className="w-full font-bold text-lg h-12">
+                      {otpVerifying ? 'Verificando...' : 'Verificar'}
+                    </Button>
+                    {otpError && <p className="text-sm text-red-500 text-center">{otpError}</p>}
+                    <div className="flex items-center justify-between text-sm">
+                      <button type="button" onClick={handleSendCode} disabled={otpSending} className="text-primary font-medium hover:underline disabled:opacity-50">
+                        Reenviar código
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => { setUserPhoneStep('phone'); setOtpCode(''); setOtpError(''); }}
+                        className="text-muted-foreground hover:text-foreground"
+                      >
+                        Cambiar número
+                      </button>
+                    </div>
+                  </div>
+                )}
+
+                {userPhoneStep === 'name' && (
+                  <div className="space-y-5">
+                    <div className="text-center space-y-1">
+                      <h3 className="text-lg font-bold font-heading">¿Cómo te llamas?</h3>
+                      <p className="text-sm text-muted-foreground">
+                        Tu nombre para que te reconozcan en las comunidades.
+                      </p>
+                    </div>
+                    <div>
+                      <Label htmlFor="display-name">Nombre</Label>
+                      <Input
+                        id="display-name"
+                        value={name}
+                        onChange={(e) => setName(e.target.value)}
+                        placeholder="Tu nombre"
+                        className={name && !isValidName(name) ? 'border-red-500' : ''}
+                      />
+                      {name && !isValidName(name) && (
+                        <p className="text-sm text-red-500 mt-1">
+                          {getValidationErrorMessage('name', containsSQLInjection(name) ? 'sql' : 'format')}
+                        </p>
+                      )}
+                    </div>
+                    <Button onClick={handleSetName} disabled={isSubmitting || !name.trim()} className="w-full font-bold text-lg h-12">
+                      {isSubmitting ? 'Creando cuenta...' : 'Entrar a Dameldato'}
+                    </Button>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {step === 1 && (accountType === 'provider' || isGoogleRegistrationPending) && (
               <div className="space-y-6">
                 {!isGoogleRegistrationPending && (
                   <button

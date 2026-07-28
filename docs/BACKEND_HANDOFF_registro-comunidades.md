@@ -1,4 +1,4 @@
-# Handoff Backend — Registro (usuario normal), Comunidades, Verificación WhatsApp
+# Handoff Backend — Registro por teléfono (usuario normal), Comunidades
 
 Este documento describe **lo que el frontend ya hace** y **lo que necesita del backend** para
 completar las nuevas funcionalidades. Escrito para pasar al Claude Code del backend de Dameldato.
@@ -7,59 +7,58 @@ Contexto: en el front, `VITE_API_URL` apunta al backend. El auth usa cookie http
 en `localStorage`. Roles numéricos: **1 = usuario normal**, **2 = emprendedor (prestador)**,
 **3 = empresa**, 4 = admin, 5 = super-admin.
 
----
-
-## 1. Registro de "usuario normal" (rol 1) — YA implementado en el front
-
-Hoy TODO registro se hacía como emprendedor (`rol: 2`) con KYC obligatorio. Ahora el front
-distingue dos caminos en `/registro`:
-
-- **Prestador** (`rol: 2`): flujo actual sin cambios (RUT + región/comuna + KYC).
-- **Usuario normal** (`rol: 1`): registro liviano, **sin RUT, sin región/comuna, SIN KYC**.
-
-### Qué hace el front para el usuario normal
-1. `POST /auth/register` con body:
-   ```json
-   { "name": "...", "email": "...", "password": "...", "phone": "...",
-     "rol": 1, "region_id": "", "comuna": "" }
-   ```
-   (Nota: `rut` **no se envía**; `region_id`/`comuna` pueden ir vacíos.)
-2. Inmediatamente después, `POST /auth/login` con `{ email, password }` para iniciar sesión.
-3. Redirige al home ya logueado.
-
-### Qué necesito del backend
-- `POST /auth/register` debe **aceptar `rol: 1` sin `rut`** (columna nullable) y sin exigir
-  región/comuna.
-- Para `rol: 1`: **no** crear requerimiento de KYC. Devolver el usuario con
-  `kyc_completed: true` (o equivalente) para que `/auth/me` no lo mande a verificación.
-- `POST /auth/login` debe **funcionar para `rol: 1` sin exigir KYC**.
-- `GET /auth/me` sigue devolviendo `role_number`, `kyc_status`, `kyc_completed`.
-- Seguir sanitizando `name/phone/email` con **prepared statements**. `rut` único **solo cuando
-  viene presente**.
-- Respuesta esperada de register (igual que hoy): `{ ok, message, registration_id? }`
-  (`registration_id` puede ser null/omitirse para `rol: 1`).
+> IMPORTANTE: confirmar que **rol 1 = usuario normal/consumidor** (sin KYC). El equipo listó
+> 2/3/4/5 pero no el 1. Si prefieren otro número, avisar para ajustar el front.
 
 ---
 
-## 2. Verificación de teléfono por WhatsApp (OTP)
+## 1. Registro/login por teléfono del "usuario normal" (rol 1) — YA implementado en el front
 
-El teléfono es el canal de contacto central (botón WhatsApp), así que hay que validar que el
-número es real y del usuario. Vía **WhatsApp Business API** (Meta Cloud API o Twilio).
+El registro ahora distingue dos caminos en `/registro`:
+
+- **Prestador** (`rol: 2`): flujo actual sin cambios (nombre + RUT + región/comuna + KYC).
+- **Usuario normal** (`rol: 1`): **sin contraseña, por teléfono, estilo WhatsApp**. Sin RUT,
+  sin email, sin KYC. Puede crear/unirse a comunidades.
+
+### Flujo del usuario normal (lo que hace el front)
+1. **Ingresa teléfono** → `POST /auth/phone/send-code` con `{ "phone": "+569..." }`.
+2. **Ingresa el código de 6 dígitos** → `POST /auth/phone/verify-code` con
+   `{ "phone": "+569...", "code": "123456" }`.
+   - Si el código es válido, el **backend crea la sesión** (cookie httpOnly) y, si el número es
+     nuevo, **crea el usuario con `rol: 1`** (sin KYC).
+   - La respuesta indica `is_new_user` para saber si falta pedir el nombre.
+3. **Si es usuario nuevo**, el front pide el nombre y llama `PATCH /auth/profile` con
+   `{ "name": "..." }` (endpoint ya existente). Si no es nuevo, entra directo.
+4. La **sesión queda guardada en el dispositivo** → no vuelve a pedir código en ese equipo.
+   Solo re-verifica si cambia de teléfono, borra cookies o entra desde otro dispositivo.
 
 ### Endpoints necesarios
-- `POST /api/phone/send-otp` — body `{ "phone": "+569..." }` →
-  `{ "ok": true, "expires_in_seconds": 300 }`. Envía OTP por WhatsApp. Rate-limit por
-  teléfono/IP. Guardar el código **hasheado** con TTL corto (~5 min) y límite de intentos.
-- `POST /api/phone/verify-otp` — body `{ "phone": "+569...", "code": "123456" }` →
-  `{ "ok": true, "verified": true }` o `400 { "error": "Código inválido o expirado" }`.
-  Al validar, marcar `user.phone_verified = true`.
-- `GET /auth/me` debe incluir `phone_verified: boolean`.
+- `POST /auth/phone/send-code` — body `{ phone }` →
+  `{ "ok": true, "expires_in_seconds": 300 }`.
+  Genera un código (6 dígitos), lo guarda **hasheado** con **TTL corto (~5 min)**, y lo envía
+  por **SMS o WhatsApp** (Twilio / Meta Cloud API). **Rate-limit por teléfono/IP** (evita que
+  alguien spamee el número de otro). Costo: por mensaje enviado.
+- `POST /auth/phone/verify-code` — body `{ phone, code }` →
+  `{ "ok": true, "token": "...", "is_new_user": true|false, "user": { id, name?, phone, role_number } }`
+  o `400 { "error": "Código inválido o expirado" }`.
+  - En éxito: **crear sesión** (cookie httpOnly; opcionalmente `token` para el `localStorage`).
+  - Si el teléfono no existía: **crear usuario `rol: 1`**, `phone_verified: true`, sin KYC.
+  - Límite de intentos por código; invalidar el código tras usarlo.
+- `PATCH /auth/profile` (ya existe) debe aceptar `{ name }` para el usuario recién creado.
+- `GET /auth/me` debe devolver estos usuarios con `role_number: 1` y **sin exigir KYC**
+  (`kyc_completed: true` o equivalente). El front ya evita el redirect a KYC para roles ≠ 2,3.
 
-El front añadirá la UI de ingreso de código cuando estos endpoints existan.
+### Notas de seguridad / producto
+- La sesión persistente resuelve "no pedir código cada vez"; el código resuelve "que sea su
+  número" (el código llega solo al teléfono real).
+- **No se puede leer la agenda de contactos desde la web** (solo una app nativa). Para mostrar
+  "quién te invitó", se usa el **nombre** que cada usuario definió, no la agenda.
+- Riesgos conocidos de OTP (SIM swap, reciclaje de números): aceptables para este caso;
+  mitigar con rate-limit e invalidación de código.
 
 ---
 
-## 3. Comunidades (modelo genérico)
+## 2. Comunidades (modelo genérico)
 
 Un usuario registrado crea una comunidad y queda como **admin de esa comunidad**. El admin
 invita gente mediante **links con token** que pueden expirar **por tiempo y/o por número de
@@ -96,7 +95,7 @@ usos** (lo elige el admin).
 
 ---
 
-## 4. Login con Apple (fase 2)
+## 3. Login con Apple (fase 2)
 
 - `GET /auth/apple` (redirect OAuth) + callback, análogo a `/auth/google`. Debe dejar
   cookie/token igual que Google.
@@ -109,8 +108,8 @@ usos** (lo elige el admin).
 
 | Área | Front (hecho) | Backend (necesario) |
 |------|---------------|---------------------|
-| Registro usuario normal | Pantalla de selección + envía `rol 1` sin RUT/KYC + login inmediato | Aceptar `rol 1` sin RUT/KYC; login sin KYC |
+| Registro usuario normal | Pantalla de selección + flujo teléfono→código→nombre (UI completa) | `/auth/phone/send-code` y `/auth/phone/verify-code` que crean sesión y usuario `rol 1` sin KYC |
 | KYC | No fuerza KYC a roles ≠ 2,3 | `kyc_completed: true` para rol 1 |
-| WhatsApp OTP | Pendiente (UI de código) | `send-otp` / `verify-otp` + `phone_verified` |
+| Nombre del usuario nuevo | Llama `PATCH /auth/profile { name }` | Aceptar `name` (ya existe) |
 | Comunidades | Pendiente (UI) | Tablas + endpoints de comunidades e invites |
 | Apple login | Pendiente (botón) | `/auth/apple` + callback |
