@@ -512,6 +512,14 @@ const Register = () => {
   };
 
   // --- Flujo usuario normal por teléfono (sin contraseña) ---
+  /** Normaliza a E.164 chileno (+569XXXXXXXX) que espera el backend (send-code / verify-code). */
+  const toE164Chile = (raw: string): string => {
+    let d = raw.replace(/\D/g, '');
+    if (d.startsWith('56')) d = d.slice(2);
+    if (d.length === 8) d = '9' + d; // faltaba el 9 del móvil
+    return '+56' + d;
+  };
+
   const handleSendCode = async () => {
     if (!isValidPhone(phone)) {
       toast.error(getValidationErrorMessage('phone', containsSQLInjection(phone) ? 'sql' : 'format'));
@@ -524,7 +532,7 @@ const Register = () => {
     setOtpSending(true);
     setOtpError('');
     try {
-      await authAPI.sendPhoneCode({ phone: sanitizeInput(phone, 20) });
+      await authAPI.sendPhoneCode({ phone: toE164Chile(phone) });
       setUserPhoneStep('code');
       setOtpCode('');
       toast.success('Te enviamos un código a tu teléfono.');
@@ -542,7 +550,7 @@ const Register = () => {
     setOtpVerifying(true);
     setOtpError('');
     try {
-      const res = await authAPI.verifyPhoneCode({ phone: sanitizeInput(phone, 20), code: otpCode });
+      const res = await authAPI.verifyPhoneCode({ phone: toE164Chile(phone), code: otpCode });
       if (res.token) localStorage.setItem('token', res.token);
       await loadUser();
       if (res.is_new_user) {
