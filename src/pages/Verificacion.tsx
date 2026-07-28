@@ -17,7 +17,7 @@ const steps = [
   {
     icon: Fingerprint,
     title: 'Prueba de vida (Liveness)',
-    description: 'TOC Biometrics detecta que el prestador está presente y no es una foto o video grabado. Previene suplantación de identidad.',
+    description: 'Detectamos que el prestador está presente en tiempo real y no es una foto o video grabado. Previene la suplantación de identidad.',
   },
   {
     icon: CheckCircle2,
@@ -33,7 +33,7 @@ const faqs = [
   },
   {
     q: '¿Mis datos personales están seguros?',
-    a: 'Sí. TOC Biometrics está certificado bajo estándares internacionales de protección de datos (ISO 27001). Dameldato nunca almacena imágenes de cédulas.',
+    a: 'Sí. Trabajamos con un proveedor de verificación biométrica que cumple estándares internacionales de protección de datos. Tu información se usa únicamente para confirmar tu identidad y no se comparte con terceros.',
   },
   {
     q: '¿Qué pasa si un prestador no está verificado?',
@@ -80,7 +80,7 @@ const Verificacion = () => {
         <div className="text-center mb-14">
           <h2 className="text-2xl sm:text-4xl font-heading font-bold mb-3">¿Cómo funciona la verificación?</h2>
           <p className="text-muted-foreground max-w-xl mx-auto">
-            Usamos tecnología de <strong>TOC Biometrics</strong>, líder latinoamericano en verificación de identidad digital.
+            Usamos <strong>verificación biométrica de identidad</strong> con validación de la cédula chilena ante el Registro Civil.
           </p>
         </div>
 
@@ -110,7 +110,7 @@ const Verificacion = () => {
             {[
               { value: '100%', label: 'Prestadores verificados biométricamente' },
               { value: 'RUN', label: 'Validado ante el Registro Civil de Chile' },
-              { value: 'ISO 27001', label: 'Estándar internacional de seguridad de datos' },
+              { value: 'Prueba de vida', label: 'Detección biométrica que previene la suplantación' },
             ].map((stat) => (
               <div key={stat.label} className="flex flex-col items-center gap-2">
                 <p className="text-3xl font-black text-primary">{stat.value}</p>

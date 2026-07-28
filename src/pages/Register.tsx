@@ -7,7 +7,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Alert, AlertTitle, AlertDescription } from '@/components/ui/alert';
 import { useUser } from '@/contexts/UserContext';
-import { ArrowRight, ArrowLeft, Eye, EyeOff, CheckCircle2 } from 'lucide-react';
+import { ArrowRight, ArrowLeft, Eye, EyeOff, CheckCircle2, Briefcase, Users, ShieldCheck } from 'lucide-react';
 import { toast } from 'sonner';
 import { authAPI, kycAPI, regionsAPI } from '@/lib/api';
 import {
@@ -46,13 +46,35 @@ const Register = () => {
   const [errorMessage, setErrorMessage] = useState('');
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
-  const { user, loadUser } = useUser();
+  const { user, loadUser, login } = useUser();
   const [step, setStep] = useState(() => {
     const stepParam = searchParams.get('step');
     return stepParam ? parseInt(stepParam) : 1;
   });
   const [registrationId, setRegistrationId] = useState<string | null>(null);
   const [isGoogleVerified, setIsGoogleVerified] = useState(false);
+
+  /**
+   * Tipo de cuenta elegido en la pantalla inicial.
+   * - 'provider': ofrece servicios → rol Emprendedor + verificación KYC obligatoria.
+   * - 'user': usuario normal → registro rápido, SIN KYC, puede crear/unirse a comunidades.
+   * BACKEND: ver ROLE.NORMAL_USER más abajo.
+   */
+  const [accountType, setAccountType] = useState<'provider' | 'user' | ''>('');
+  /**
+   * Roles numéricos que espera el backend.
+   * NORMAL_USER (1): usuario/consumidor, NO requiere KYC ni RUT. <-- backend debe soportarlo.
+   * ENTREPRENEUR (2): prestador de servicios, requiere KYC (comportamiento actual).
+   */
+  const ROLE = { NORMAL_USER: 1, ENTREPRENEUR: 2 } as const;
+  const isUserAccount = accountType === 'user';
+
+  // Sub-flujo del usuario normal: teléfono → código → nombre (sin contraseña, estilo WhatsApp).
+  const [userPhoneStep, setUserPhoneStep] = useState<'phone' | 'code' | 'name'>('phone');
+  const [otpCode, setOtpCode] = useState('');
+  const [otpSending, setOtpSending] = useState(false);
+  const [otpVerifying, setOtpVerifying] = useState(false);
+  const [otpError, setOtpError] = useState('');
   const hasPrefilled = useRef(false);
   const isGoogleRegistrationPending = searchParams.get('google_registration_pending') === 'true';
 
@@ -262,7 +284,13 @@ const Register = () => {
   const handleNext = async () => {
     const requiresPassword = !isGoogleRegistrationPending;
     if (step === 1) {
-      if (
+      // Usuario normal: registro liviano (sin RUT, sin exigir región/comuna).
+      if (isUserAccount) {
+        if (!name || !email || (requiresPassword && !password) || !phone) {
+          toast.error('Por favor completa todos los campos requeridos');
+          return;
+        }
+      } else if (
         (isGoogleRegistrationPending && (!rut || !phone || !comuna || !selectedRegion)) ||
         (!isGoogleRegistrationPending && (!name || !rut || !email || (requiresPassword && !password) || !phone || !comuna || !selectedRegion))
       ) {
@@ -285,25 +313,28 @@ const Register = () => {
         return;
       }
 
-      if (!isValidRut(rut)) {
-        toast.error(getValidationErrorMessage('rut', containsSQLInjection(rut) ? 'sql' : 'format'));
-        return;
-      }
+      // RUT solo se exige/valida para prestadores (identidad + KYC). El usuario normal no lo entrega.
+      if (!isUserAccount) {
+        if (!isValidRut(rut)) {
+          toast.error(getValidationErrorMessage('rut', containsSQLInjection(rut) ? 'sql' : 'format'));
+          return;
+        }
 
-      const cleanRut = rut.replace(/[^0-9kK]/g, '');
-      let rutAlreadyExists = rutExists;
-      if (rutCheckedValue !== cleanRut) {
-        rutAlreadyExists = await checkRutExists(rut);
-      }
+        const cleanRut = rut.replace(/[^0-9kK]/g, '');
+        let rutAlreadyExists = rutExists;
+        if (rutCheckedValue !== cleanRut) {
+          rutAlreadyExists = await checkRutExists(rut);
+        }
 
-      if (rutAlreadyExists) {
-        toast.error('Este RUT ya está registrado en otra cuenta');
-        return;
-      }
+        if (rutAlreadyExists) {
+          toast.error('Este RUT ya está registrado en otra cuenta');
+          return;
+        }
 
-      if (rutCheckLoading) {
-        toast.error('Estamos validando tu RUT, intenta nuevamente en un momento');
-        return;
+        if (rutCheckLoading) {
+          toast.error('Estamos validando tu RUT, intenta nuevamente en un momento');
+          return;
+        }
       }
 
       if (!isValidPhone(phone)) {
@@ -416,13 +447,15 @@ const Register = () => {
     setIsSubmitting(true);
     setErrorMessage('');
     try {
+      // Prestador → Emprendedor (KYC). Usuario normal → NORMAL_USER (sin KYC).
+      const rol = isUserAccount ? ROLE.NORMAL_USER : ROLE.ENTREPRENEUR;
       const data: any = {
         name: sanitizeInput(name, 100),
         rut: rut ? sanitizeInput(rut.replace(/[^0-9kK]/g, ''), 12) : undefined,
         phone: sanitizeInput(phone, 20),
         comuna: sanitizeInput(comuna, 50),
         region_id: selectedRegion,
-        rol: 2, // Hardcoded Entrepreneur
+        rol,
       };
 
       if (isRegistrationPending && urlToken) {
@@ -436,13 +469,29 @@ const Register = () => {
           if (reg?.registration_id) setRegistrationId(reg.registration_id);
         }
       } else if (isGoogleCompletion) {
-        await authAPI.updateProfile({ ...data, rol: 2 });
+        await authAPI.updateProfile({ ...data, rol });
         const reg = await kycAPI.getRegistrationIdForUser();
         if (reg?.registration_id) setRegistrationId(reg.registration_id);
       } else {
         data.email = email.trim().toLowerCase();
         data.password = password;
         const registerResponse = await authAPI.register(data);
+
+        // Usuario normal: NO pasa por KYC. Iniciamos sesión y entramos directo.
+        // BACKEND: /auth/register con rol NORMAL_USER debe crear una cuenta usable sin KYC
+        // y permitir login inmediato (o dejar la sesión activa). Ver spec de handoff.
+        if (isUserAccount) {
+          try {
+            await login(email.trim().toLowerCase(), password);
+          } catch (loginErr) {
+            // Si el backend ya deja la sesión activa tras register, el login explícito puede fallar/no hacer falta.
+            console.warn('Login post-registro (usuario normal) no completado:', loginErr);
+          }
+          toast.success('¡Cuenta creada! Te damos la bienvenida a Dameldato.');
+          navigate('/', { replace: true });
+          return;
+        }
+
         if (registerResponse.registration_id) {
           setRegistrationId(registerResponse.registration_id);
         }
@@ -462,6 +511,85 @@ const Register = () => {
     }
   };
 
+  // --- Flujo usuario normal por teléfono (sin contraseña) ---
+  /** Normaliza a E.164 chileno (+569XXXXXXXX) que espera el backend (send-code / verify-code). */
+  const toE164Chile = (raw: string): string => {
+    let d = raw.replace(/\D/g, '');
+    if (d.startsWith('56')) d = d.slice(2);
+    if (d.length === 8) d = '9' + d; // faltaba el 9 del móvil
+    return '+56' + d;
+  };
+
+  const handleSendCode = async () => {
+    if (!isValidPhone(phone)) {
+      toast.error(getValidationErrorMessage('phone', containsSQLInjection(phone) ? 'sql' : 'format'));
+      return;
+    }
+    if (!acceptTerms) {
+      toast.error('Debes aceptar los Términos y Condiciones');
+      return;
+    }
+    setOtpSending(true);
+    setOtpError('');
+    try {
+      await authAPI.sendPhoneCode({ phone: toE164Chile(phone) });
+      setUserPhoneStep('code');
+      setOtpCode('');
+      toast.success('Te enviamos un código a tu teléfono.');
+    } catch (error: any) {
+      const msg = error instanceof Error ? error.message : 'No pudimos enviar el código. Intenta de nuevo.';
+      setOtpError(msg);
+      toast.error(msg);
+    } finally {
+      setOtpSending(false);
+    }
+  };
+
+  const handleVerifyCode = async () => {
+    if (otpCode.length < 6) return;
+    setOtpVerifying(true);
+    setOtpError('');
+    try {
+      const res = await authAPI.verifyPhoneCode({ phone: toE164Chile(phone), code: otpCode });
+      if (res.token) localStorage.setItem('token', res.token);
+      await loadUser();
+      if (res.is_new_user) {
+        setName('');
+        setUserPhoneStep('name');
+      } else {
+        toast.success('¡Te damos la bienvenida de vuelta!');
+        navigate('/', { replace: true });
+      }
+    } catch (error: any) {
+      const msg = error instanceof Error ? error.message : 'Código inválido o expirado.';
+      setOtpError(msg);
+    } finally {
+      setOtpVerifying(false);
+    }
+  };
+
+  const handleSetName = async () => {
+    if (!name.trim()) {
+      toast.error('Ingresa tu nombre');
+      return;
+    }
+    if (!isValidName(name)) {
+      toast.error(getValidationErrorMessage('name', containsSQLInjection(name) ? 'sql' : 'format'));
+      return;
+    }
+    setIsSubmitting(true);
+    try {
+      await authAPI.updateProfile({ name: sanitizeInput(name, 100) });
+      await loadUser();
+      toast.success('¡Cuenta creada! Te damos la bienvenida a Dameldato.');
+      navigate('/', { replace: true });
+    } catch (error: any) {
+      toast.error(error instanceof Error ? error.message : 'No pudimos guardar tu nombre.');
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
   return (
     <div className="min-h-screen bg-background relative overflow-hidden flex items-center justify-center py-8 sm:py-12 px-4 mt-6">
       {/* Decorative background elements */}
@@ -476,7 +604,7 @@ const Register = () => {
             <CardTitle className="text-2xl sm:text-3xl md:text-4xl font-heading font-bold bg-clip-text text-transparent bg-gradient-to-r from-primary to-secondary mb-2">
               Únete a la Comunidad
             </CardTitle>
-            {step <= 2 && (
+            {(step === 2 || (step === 1 && (accountType === 'provider' || isGoogleRegistrationPending))) && (
               <CardDescription className="text-base sm:text-lg">
                 Paso {displayStep} de {totalSteps}
               </CardDescription>
@@ -489,8 +617,188 @@ const Register = () => {
                 <AlertDescription>{errorMessage}</AlertDescription>
               </Alert>
             )}
-            {step === 1 && (
+            {step === 1 && !accountType && !isGoogleRegistrationPending && (
+              <div className="space-y-4 animate-in fade-in duration-300">
+                <div className="text-center space-y-1 mb-2">
+                  <h3 className="text-lg sm:text-xl font-bold font-heading">¿Cómo quieres empezar?</h3>
+                  <p className="text-sm text-muted-foreground">
+                    Elige una opción. Si partes como usuario, podrás ofrecer servicios más adelante.
+                  </p>
+                </div>
+
+                <button
+                  type="button"
+                  onClick={() => setAccountType('user')}
+                  className="w-full text-left rounded-2xl border-2 border-border hover:border-primary/60 hover:bg-primary/5 transition-all p-5 flex items-start gap-4 active:scale-[0.99]"
+                >
+                  <div className="w-11 h-11 rounded-xl bg-primary/10 text-primary flex items-center justify-center shrink-0">
+                    <Users size={22} />
+                  </div>
+                  <div className="min-w-0">
+                    <p className="font-bold text-base">Quiero usar Dameldato</p>
+                    <p className="text-sm text-muted-foreground mt-0.5">
+                      Contrata servicios, y crea o únete a comunidades. Registro rápido, sin verificación.
+                    </p>
+                  </div>
+                  <ArrowRight className="ml-auto mt-1 text-muted-foreground shrink-0" size={18} />
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => setAccountType('provider')}
+                  className="w-full text-left rounded-2xl border-2 border-border hover:border-secondary/60 hover:bg-secondary/5 transition-all p-5 flex items-start gap-4 active:scale-[0.99]"
+                >
+                  <div className="w-11 h-11 rounded-xl bg-secondary/10 text-secondary flex items-center justify-center shrink-0">
+                    <Briefcase size={22} />
+                  </div>
+                  <div className="min-w-0">
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <p className="font-bold text-base">Quiero ofrecer mis servicios</p>
+                      <span className="inline-flex items-center gap-1 text-[10px] font-bold uppercase tracking-wide bg-primary/10 text-primary px-2 py-0.5 rounded-full">
+                        <ShieldCheck size={11} /> Verificado
+                      </span>
+                    </div>
+                    <p className="text-sm text-muted-foreground mt-0.5">
+                      Publica tus servicios y llega a nuevos clientes. Incluye verificación de identidad para generar confianza.
+                    </p>
+                  </div>
+                  <ArrowRight className="ml-auto mt-1 text-muted-foreground shrink-0" size={18} />
+                </button>
+              </div>
+            )}
+
+            {step === 1 && accountType === 'user' && (
+              <div className="space-y-6 animate-in fade-in slide-in-from-right-4 duration-300">
+                {userPhoneStep === 'phone' && (
+                  <button
+                    type="button"
+                    onClick={() => { setAccountType(''); setOtpError(''); }}
+                    className="inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground transition-colors"
+                  >
+                    <ArrowLeft size={15} /> Cambiar tipo de cuenta
+                  </button>
+                )}
+
+                {userPhoneStep === 'phone' && (
+                  <div className="space-y-5">
+                    <div className="text-center space-y-1">
+                      <h3 className="text-lg font-bold font-heading">Ingresa con tu teléfono</h3>
+                      <p className="text-sm text-muted-foreground">
+                        Te enviaremos un código para confirmar que el número es tuyo. Sin contraseñas.
+                      </p>
+                    </div>
+                    <div>
+                      <Label htmlFor="phone-otp">Número de teléfono</Label>
+                      <Input
+                        id="phone-otp"
+                        value={phone}
+                        onChange={(e) => setPhone(e.target.value)}
+                        placeholder="+56 9 1234 5678"
+                        inputMode="tel"
+                        className={phone && !isValidPhone(phone) ? 'border-red-500' : ''}
+                      />
+                      {phone && !isValidPhone(phone) && (
+                        <p className="text-sm text-red-500 mt-1">
+                          {getValidationErrorMessage('phone', containsSQLInjection(phone) ? 'sql' : 'format')}
+                        </p>
+                      )}
+                    </div>
+                    <div className="flex items-start gap-2">
+                      <Checkbox
+                        id="accept-terms-otp"
+                        checked={acceptTerms}
+                        onCheckedChange={(checked) => setAcceptTerms(!!checked)}
+                      />
+                      <Label htmlFor="accept-terms-otp" className="text-sm font-medium leading-tight cursor-pointer">
+                        Acepto los Términos y Condiciones
+                      </Label>
+                    </div>
+                    <Button onClick={handleSendCode} disabled={otpSending} className="w-full font-bold text-lg h-12">
+                      {otpSending ? 'Enviando código...' : 'Enviar código'}
+                      {!otpSending && <ArrowRight className="ml-2" size={18} />}
+                    </Button>
+                    {otpError && <p className="text-sm text-red-500 text-center">{otpError}</p>}
+                  </div>
+                )}
+
+                {userPhoneStep === 'code' && (
+                  <div className="space-y-5">
+                    <div className="text-center space-y-1">
+                      <h3 className="text-lg font-bold font-heading">Ingresa el código</h3>
+                      <p className="text-sm text-muted-foreground">
+                        Enviamos un código de 6 dígitos a <span className="font-semibold text-foreground">{phone}</span>.
+                      </p>
+                    </div>
+                    <Input
+                      id="otp-code"
+                      value={otpCode}
+                      onChange={(e) => setOtpCode(e.target.value.replace(/\D/g, '').slice(0, 6))}
+                      placeholder="______"
+                      inputMode="numeric"
+                      maxLength={6}
+                      className="text-center text-2xl tracking-[0.5em] font-bold h-14"
+                    />
+                    <Button onClick={handleVerifyCode} disabled={otpVerifying || otpCode.length < 6} className="w-full font-bold text-lg h-12">
+                      {otpVerifying ? 'Verificando...' : 'Verificar'}
+                    </Button>
+                    {otpError && <p className="text-sm text-red-500 text-center">{otpError}</p>}
+                    <div className="flex items-center justify-between text-sm">
+                      <button type="button" onClick={handleSendCode} disabled={otpSending} className="text-primary font-medium hover:underline disabled:opacity-50">
+                        Reenviar código
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => { setUserPhoneStep('phone'); setOtpCode(''); setOtpError(''); }}
+                        className="text-muted-foreground hover:text-foreground"
+                      >
+                        Cambiar número
+                      </button>
+                    </div>
+                  </div>
+                )}
+
+                {userPhoneStep === 'name' && (
+                  <div className="space-y-5">
+                    <div className="text-center space-y-1">
+                      <h3 className="text-lg font-bold font-heading">¿Cómo te llamas?</h3>
+                      <p className="text-sm text-muted-foreground">
+                        Tu nombre para que te reconozcan en las comunidades.
+                      </p>
+                    </div>
+                    <div>
+                      <Label htmlFor="display-name">Nombre</Label>
+                      <Input
+                        id="display-name"
+                        value={name}
+                        onChange={(e) => setName(e.target.value)}
+                        placeholder="Tu nombre"
+                        className={name && !isValidName(name) ? 'border-red-500' : ''}
+                      />
+                      {name && !isValidName(name) && (
+                        <p className="text-sm text-red-500 mt-1">
+                          {getValidationErrorMessage('name', containsSQLInjection(name) ? 'sql' : 'format')}
+                        </p>
+                      )}
+                    </div>
+                    <Button onClick={handleSetName} disabled={isSubmitting || !name.trim()} className="w-full font-bold text-lg h-12">
+                      {isSubmitting ? 'Creando cuenta...' : 'Entrar a Dameldato'}
+                    </Button>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {step === 1 && (accountType === 'provider' || isGoogleRegistrationPending) && (
               <div className="space-y-6">
+                {!isGoogleRegistrationPending && (
+                  <button
+                    type="button"
+                    onClick={() => setAccountType('')}
+                    className="inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground transition-colors"
+                  >
+                    <ArrowLeft size={15} /> Cambiar tipo de cuenta
+                  </button>
+                )}
                 {isGoogleRegistrationPending && (
                   <Alert>
                     <AlertTitle>Registro con Google</AlertTitle>
@@ -516,6 +824,7 @@ const Register = () => {
                     )}
                   </div>
                 )}
+                {!isUserAccount && (
                 <div>
                   <Label htmlFor="rut">RUT</Label>
                   <Input
@@ -546,6 +855,7 @@ const Register = () => {
                     </p>
                   )}
                 </div>
+                )}
                 {!isGoogleRegistrationPending && (
                   <div>
                     <Label htmlFor="email">Email</Label>
@@ -617,6 +927,7 @@ const Register = () => {
                     </p>
                   )}
                 </div>
+                {!isUserAccount && (
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div>
                     <Label htmlFor="region">Región</Label>
@@ -664,6 +975,7 @@ const Register = () => {
                     )}
                   </div>
                 </div>
+                )}
                 <div className="space-y-3">
                   <div className="flex items-start gap-2">
                     <Checkbox
@@ -703,9 +1015,9 @@ const Register = () => {
                   </div>
 
                   <div className="pt-6">
-                    <Button onClick={handleNext} className="w-full font-bold text-lg h-12">
-                      Siguiente
-                      <ArrowRight className="ml-2" size={18} />
+                    <Button onClick={handleNext} disabled={isSubmitting} className="w-full font-bold text-lg h-12">
+                      {isSubmitting ? 'Creando cuenta...' : (isUserAccount ? 'Crear cuenta' : 'Siguiente')}
+                      {!isSubmitting && <ArrowRight className="ml-2" size={18} />}
                     </Button>
                   </div>
 

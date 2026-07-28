@@ -217,6 +217,37 @@ export const authAPI = {
     });
   },
 
+  /**
+   * Login/registro sin contraseña por teléfono (estilo WhatsApp) para usuarios de comunidades.
+   * Paso 1: enviar código al teléfono (SMS o WhatsApp).
+   * BACKEND: crea/reutiliza un código temporal (hasheado, TTL corto) y lo envía al número.
+   */
+  sendPhoneCode: async (data: { phone: string }) => {
+    return request<{ ok: boolean; expires_in_seconds?: number; message?: string }>('/auth/phone/send-code', {
+      method: 'POST',
+      body: JSON.stringify(data),
+      skipAuth: true,
+    });
+  },
+
+  /**
+   * Paso 2: verificar el código. Si es correcto, el backend crea la sesión (cookie httpOnly)
+   * y, si el número es nuevo, crea el usuario con rol NORMAL_USER (sin KYC).
+   * `is_new_user` indica si falta pedir el nombre.
+   */
+  verifyPhoneCode: async (data: { phone: string; code: string }) => {
+    return request<{
+      ok: boolean;
+      token?: string;
+      is_new_user?: boolean;
+      user?: { id: string; name?: string; phone: string; role_number: number };
+    }>('/auth/phone/verify-code', {
+      method: 'POST',
+      body: JSON.stringify(data),
+      skipAuth: true,
+    });
+  },
+
   login: async (data: { email: string; password: string }) => {
     const response = await request<{
       message: string;
