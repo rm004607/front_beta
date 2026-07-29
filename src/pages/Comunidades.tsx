@@ -235,34 +235,38 @@ const Comunidades = () => {
             const Icon = meta.icon;
             const isAdmin = c.my_role === 'admin';
             return (
-              <Card key={c.id} className="overflow-hidden">
-                <CardHeader className="pb-3">
-                  <div className="flex items-start gap-3">
-                    <div className="w-11 h-11 rounded-xl bg-primary/10 text-primary flex items-center justify-center shrink-0">
-                      <Icon size={22} />
-                    </div>
-                    <div className="min-w-0 flex-1">
-                      <CardTitle className="text-lg truncate">{c.name}</CardTitle>
-                      <div className="flex items-center gap-2 mt-1 flex-wrap">
-                        <span className="text-xs text-muted-foreground">{meta.label}</span>
-                        {isAdmin && (
-                          <Badge variant="secondary" className="text-[10px] gap-1 py-0"><Shield size={10} /> Admin</Badge>
-                        )}
+              <Card key={c.id} className="overflow-hidden hover:border-primary/30 transition-colors">
+                <Link to={`/comunidades/${c.id}`} className="block hover:bg-muted/30 transition-colors">
+                  <CardHeader className="pb-3">
+                    <div className="flex items-start gap-3">
+                      <div className="w-11 h-11 rounded-xl bg-primary/10 text-primary flex items-center justify-center shrink-0">
+                        <Icon size={22} />
+                      </div>
+                      <div className="min-w-0 flex-1">
+                        <CardTitle className="text-lg truncate">{c.name}</CardTitle>
+                        <div className="flex items-center gap-2 mt-1 flex-wrap">
+                          <span className="text-xs text-muted-foreground">{meta.label}</span>
+                          {isAdmin && (
+                            <Badge variant="secondary" className="text-[10px] gap-1 py-0"><Shield size={10} /> Admin</Badge>
+                          )}
+                        </div>
                       </div>
                     </div>
-                  </div>
-                </CardHeader>
-                <CardContent className="space-y-3">
-                  {c.description && <p className="text-sm text-muted-foreground line-clamp-2">{c.description}</p>}
-                  <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
-                    <Users size={13} /> {c.members_count ?? 0} miembro{(c.members_count ?? 0) === 1 ? '' : 's'}
-                  </div>
-                  {isAdmin && (
+                  </CardHeader>
+                  <CardContent className="pb-3 space-y-2">
+                    {c.description && <p className="text-sm text-muted-foreground line-clamp-2">{c.description}</p>}
+                    <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                      <Users size={13} /> {c.members_count ?? 0} miembro{(c.members_count ?? 0) === 1 ? '' : 's'}
+                    </div>
+                  </CardContent>
+                </Link>
+                {isAdmin && (
+                  <div className="px-6 pb-5">
                     <Button variant="outline" size="sm" className="w-full font-semibold" onClick={() => openInvite(c)}>
                       Invitar con link
                     </Button>
-                  )}
-                </CardContent>
+                  </div>
+                )}
               </Card>
             );
           })}
