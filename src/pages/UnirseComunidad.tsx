@@ -7,7 +7,12 @@ import { toast } from 'sonner';
 import { useUser } from '@/contexts/UserContext';
 import { communitiesAPI } from '@/lib/api';
 
-type Preview = { valid: boolean; community?: { id: string; name: string }; reason?: string };
+type Preview = {
+  valid: boolean;
+  community?: { id: string; name: string };
+  invited_by?: { id: string; name: string };
+  reason?: string;
+};
 
 const reasonText: Record<string, string> = {
   expired: 'Este link de invitación venció.',
@@ -71,7 +76,13 @@ const UnirseComunidad = () => {
             {loading ? <Loader2 size={26} className="animate-spin" /> : invalid ? <XCircle size={26} /> : <Users size={26} />}
           </div>
           <CardTitle className="text-2xl font-heading">
-            {loading ? 'Validando invitación...' : invalid ? 'Invitación no válida' : 'Te invitaron a una comunidad'}
+            {loading
+              ? 'Validando invitación...'
+              : invalid
+                ? 'Invitación no válida'
+                : preview?.invited_by?.name
+                  ? `${preview.invited_by.name} te invitó`
+                  : 'Te invitaron a una comunidad'}
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">

@@ -2229,6 +2229,15 @@ export interface CommunityInvite {
   uses_count?: number;
 }
 
+export interface RecommendedService {
+  id: string;
+  slug?: string;
+  service_name: string;
+  cover_image_url?: string | null;
+  price_range?: string | null;
+  comuna?: string | null;
+}
+
 export interface Recommendation {
   id: string;
   community_id?: string;
@@ -2236,12 +2245,15 @@ export interface Recommendation {
   author_name?: string;
   /** Rubro o nombre del servicio, ej. "Gásfiter". */
   title?: string;
-  /** La recomendación en sí. */
-  text: string;
+  /** La recomendación en sí (opcional si se adjunta un servicio de Dameldato). */
+  text?: string;
   /** A quién recomienda (opcional). */
   contact_name?: string;
   /** Teléfono del recomendado (opcional) → botón WhatsApp. */
   contact_phone?: string;
+  /** Servicio real de Dameldato adjunto (opcional). */
+  service_id?: string | null;
+  service?: RecommendedService | null;
   created_at?: string;
 }
 
@@ -2271,10 +2283,12 @@ export const communitiesAPI = {
 
   /** Preview público del invite antes de unirse (no requiere sesión). */
   getInvitePreview: (token: string) =>
-    request<{ valid: boolean; community?: { id: string; name: string }; reason?: string }>(
-      `/api/communities/invites/${encodeURIComponent(token)}`,
-      { method: 'GET', skipAuth: true }
-    ),
+    request<{
+      valid: boolean;
+      community?: { id: string; name: string };
+      invited_by?: { id: string; name: string };
+      reason?: string;
+    }>(`/api/communities/invites/${encodeURIComponent(token)}`, { method: 'GET', skipAuth: true }),
 
   /** Acepta el invite (requiere sesión). Valida expiración/usos en el backend. */
   acceptInvite: (token: string) =>
@@ -2292,7 +2306,7 @@ export const communitiesAPI = {
   /** Publica una recomendación en la comunidad (solo miembros). */
   createRecommendation: (
     id: string,
-    data: { title?: string; text: string; contact_name?: string; contact_phone?: string }
+    data: { title?: string; text?: string; contact_name?: string; contact_phone?: string; service_id?: string }
   ) =>
     request<{ recommendation: Recommendation }>(`/api/communities/${id}/recommendations`, {
       method: 'POST',
