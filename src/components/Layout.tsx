@@ -1,6 +1,6 @@
 import { ReactNode } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { Menu, User, LogOut, Home, Briefcase, Wrench, MessageSquare, Building2, Shield, FileText, Package2 } from 'lucide-react';
+import { Menu, User, LogOut, Home, Briefcase, Wrench, MessageSquare, Building2, Shield, FileText, Package2, Users } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import { useUser } from '@/contexts/UserContext';
@@ -67,6 +67,14 @@ const Layout = ({ children }: LayoutProps) => {
                 >
                   <Package2 size={18} />
                   <span>{t('nav.products', 'Productos')}</span>
+                </Link>
+                <Link
+                  to="/comunidades"
+                  className={`flex items-center gap-2 transition-colors ${isActive('/comunidades') ? 'text-primary font-semibold' : 'text-foreground hover:text-primary'
+                    }`}
+                >
+                  <Users size={18} />
+                  <span>Comunidades</span>
                 </Link>
               </nav>
 
@@ -170,6 +178,12 @@ const Layout = ({ children }: LayoutProps) => {
                       <Link to="/productos" className="flex items-center gap-3 p-3">
                         <Package2 size={18} className="text-muted-foreground" />
                         <span className="font-medium">{t('nav.products', 'Productos')}</span>
+                      </Link>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem asChild className="rounded-xl mb-1">
+                      <Link to="/comunidades" className="flex items-center gap-3 p-3">
+                        <Users size={18} className="text-muted-foreground" />
+                        <span className="font-medium">Comunidades</span>
                       </Link>
                     </DropdownMenuItem>
 
