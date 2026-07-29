@@ -89,9 +89,21 @@ usos** (lo elige el admin).
 - Validar expiración por **tiempo** y por **usos** en `accept`.
 - Solo `admin` de la comunidad crea/revoca invites; solo miembros ven el contenido.
 
-### Fase 2 (feed de recomendaciones dentro de la comunidad)
-- `POST /api/communities/:id/recommendations` — body `{ service_id?, text }`.
-- `GET  /api/communities/:id/recommendations` → listado.
+### Feed de recomendaciones (el front YA lo llama — PENDIENTE en backend)
+Dentro de la comunidad, los miembros recomiendan servicios/prestadores de confianza.
+- `GET  /api/communities/:id/recommendations` (auth, miembro) →
+  `{ recommendations: Recommendation[] }`
+- `POST /api/communities/:id/recommendations` (auth, miembro) —
+  body `{ title?, text, contact_name?, contact_phone? }` → `{ recommendation }`
+
+`Recommendation`: `{ id, community_id, user_id, author_name, title?, text,
+contact_name?, contact_phone?, created_at }`.
+- `author_name`: nombre del miembro que publicó (para mostrar "por Fulano").
+- `contact_phone`: el front arma un botón de WhatsApp (`wa.me/<dígitos>`).
+- Solo miembros de la comunidad pueden ver/publicar. Sanitizar `text/title`.
+
+> Con esto Comunidades queda completa: crear, invitar por link, unirse y
+> **recomendar servicios dentro del grupo** (el core del producto).
 
 ---
 

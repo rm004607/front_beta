@@ -2229,6 +2229,22 @@ export interface CommunityInvite {
   uses_count?: number;
 }
 
+export interface Recommendation {
+  id: string;
+  community_id?: string;
+  user_id?: string;
+  author_name?: string;
+  /** Rubro o nombre del servicio, ej. "Gásfiter". */
+  title?: string;
+  /** La recomendación en sí. */
+  text: string;
+  /** A quién recomienda (opcional). */
+  contact_name?: string;
+  /** Teléfono del recomendado (opcional) → botón WhatsApp. */
+  contact_phone?: string;
+  created_at?: string;
+}
+
 export const communitiesAPI = {
   /** Crea una comunidad; el creador queda como admin. */
   create: (data: { name: string; type: CommunityType; description?: string }) =>
@@ -2266,4 +2282,20 @@ export const communitiesAPI = {
       `/api/communities/invites/${encodeURIComponent(token)}/accept`,
       { method: 'POST' }
     ),
+
+  /** Feed de recomendaciones de la comunidad (solo miembros). */
+  getRecommendations: (id: string) =>
+    request<{ recommendations: Recommendation[] }>(`/api/communities/${id}/recommendations`, {
+      method: 'GET',
+    }),
+
+  /** Publica una recomendación en la comunidad (solo miembros). */
+  createRecommendation: (
+    id: string,
+    data: { title?: string; text: string; contact_name?: string; contact_phone?: string }
+  ) =>
+    request<{ recommendation: Recommendation }>(`/api/communities/${id}/recommendations`, {
+      method: 'POST',
+      body: JSON.stringify(data),
+    }),
 };
