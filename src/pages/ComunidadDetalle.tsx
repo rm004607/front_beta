@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import {
-  ArrowLeft, Users, Shield, Plus, MessageCircle, Loader2, ThumbsUp, School, Building2, MapPin, Briefcase, Hash,
+  ArrowLeft, Users, Shield, Plus, MessageCircle, Loader2, ThumbsUp, School, Building2, MapPin, Briefcase, Hash, Search, X, Star,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -14,7 +14,9 @@ import {
 } from '@/components/ui/dialog';
 import { toast } from 'sonner';
 import { useUser } from '@/contexts/UserContext';
-import { communitiesAPI, type Community, type Recommendation, type CommunityType } from '@/lib/api';
+import { communitiesAPI, servicesAPI, type Community, type Recommendation, type CommunityType } from '@/lib/api';
+
+type PickedService = { id: string; service_name: string; comuna?: string; price_range?: string; image?: string };
 
 const typeMeta = (t?: CommunityType) => {
   const map: Record<string, { label: string; icon: typeof School }> = {
@@ -50,6 +52,11 @@ const ComunidadDetalle = () => {
   const [contactName, setContactName] = useState('');
   const [contactPhone, setContactPhone] = useState('');
   const [posting, setPosting] = useState(false);
+  // Selector de servicio de Dameldato para adjuntar a la recomendación
+  const [serviceQuery, setServiceQuery] = useState('');
+  const [serviceResults, setServiceResults] = useState<PickedService[]>([]);
+  const [searching, setSearching] = useState(false);
+  const [pickedService, setPickedService] = useState<PickedService | null>(null);
 
   const loadAll = async () => {
     setLoading(true);
@@ -78,22 +85,52 @@ const ComunidadDetalle = () => {
     else setLoading(false);
   }, [id, isLoggedIn, authLoading]);
 
+  // Búsqueda de servicios (debounced) para adjuntar a la recomendación
+  useEffect(() => {
+    if (pickedService) return;
+    const q = serviceQuery.trim();
+    if (q.length < 2) { setServiceResults([]); return; }
+    let cancelled = false;
+    setSearching(true);
+    const t = setTimeout(async () => {
+      try {
+        const res = await servicesAPI.getServices({ search: q, limit: 5 });
+        if (cancelled) return;
+        setServiceResults(res.services.map((s) => ({
+          id: s.id, service_name: s.service_name, comuna: s.comuna,
+          price_range: s.price_range, image: s.image_urls?.[0],
+        })));
+      } catch {
+        if (!cancelled) setServiceResults([]);
+      } finally {
+        if (!cancelled) setSearching(false);
+      }
+    }, 350);
+    return () => { cancelled = true; clearTimeout(t); };
+  }, [serviceQuery, pickedService]);
+
+  const clearForm = () => {
+    setTitle(''); setText(''); setContactName(''); setContactPhone('');
+    setPickedService(null); setServiceQuery(''); setServiceResults([]);
+  };
+
   const handlePost = async () => {
-    if (!text.trim()) {
-      toast.error('Escribe tu recomendación');
+    if (!text.trim() && !pickedService) {
+      toast.error('Escribe una recomendación o adjunta un servicio');
       return;
     }
     setPosting(true);
     try {
       await communitiesAPI.createRecommendation(id, {
         title: title.trim() || undefined,
-        text: text.trim(),
+        text: text.trim() || undefined,
         contact_name: contactName.trim() || undefined,
         contact_phone: contactPhone.trim() || undefined,
+        service_id: pickedService?.id,
       });
       toast.success('¡Recomendación publicada!');
       setOpen(false);
-      setTitle(''); setText(''); setContactName(''); setContactPhone('');
+      clearForm();
       loadAll();
     } catch (e) {
       toast.error(e instanceof Error ? e.message : 'No pudimos publicar tu recomendación.');
@@ -169,12 +206,52 @@ const ComunidadDetalle = () => {
               <DialogDescription>Comparte un dato de confianza con tu comunidad.</DialogDescription>
             </DialogHeader>
             <div className="space-y-4 py-2">
+              {/* Adjuntar un servicio real de Dameldato (opcional) */}
+              <div>
+                <Label>Servicio de Dameldato (opcional)</Label>
+                {pickedService ? (
+                  <div className="flex items-center gap-2 mt-1 rounded-lg border border-primary/30 bg-primary/5 px-3 py-2">
+                    {pickedService.image
+                      ? <img src={pickedService.image} alt="" className="w-8 h-8 rounded object-cover" />
+                      : <Star size={16} className="text-primary shrink-0" />}
+                    <div className="min-w-0 flex-1">
+                      <p className="text-sm font-semibold truncate">{pickedService.service_name}</p>
+                      {pickedService.comuna && <p className="text-[11px] text-muted-foreground truncate">{pickedService.comuna}</p>}
+                    </div>
+                    <button type="button" aria-label="Quitar servicio" onClick={() => { setPickedService(null); setServiceQuery(''); }} className="text-muted-foreground hover:text-foreground shrink-0">
+                      <X size={16} />
+                    </button>
+                  </div>
+                ) : (
+                  <div className="relative mt-1">
+                    <Search size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
+                    <Input value={serviceQuery} onChange={(e) => setServiceQuery(e.target.value)} placeholder="Buscar un servicio publicado..." className="pl-9" />
+                    {serviceQuery.trim().length >= 2 && (
+                      <div className="absolute z-10 mt-1 w-full rounded-lg border border-border bg-card shadow-lg max-h-56 overflow-auto">
+                        {searching && <div className="p-3 text-xs text-muted-foreground">Buscando...</div>}
+                        {!searching && serviceResults.length === 0 && <div className="p-3 text-xs text-muted-foreground">Sin resultados</div>}
+                        {serviceResults.map((s) => (
+                          <button key={s.id} type="button" onClick={() => { setPickedService(s); setServiceResults([]); }} className="flex items-center gap-2 w-full text-left px-3 py-2 hover:bg-muted/50">
+                            {s.image
+                              ? <img src={s.image} alt="" className="w-8 h-8 rounded object-cover shrink-0" />
+                              : <Star size={16} className="text-primary shrink-0" />}
+                            <div className="min-w-0">
+                              <p className="text-sm font-medium truncate">{s.service_name}</p>
+                              {s.comuna && <p className="text-[11px] text-muted-foreground truncate">{s.comuna}</p>}
+                            </div>
+                          </button>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
               <div>
                 <Label htmlFor="r-title">Rubro o servicio</Label>
                 <Input id="r-title" value={title} onChange={(e) => setTitle(e.target.value)} placeholder="Ej: Gásfiter, Electricista, Costurera..." />
               </div>
               <div>
-                <Label htmlFor="r-text">Tu recomendación</Label>
+                <Label htmlFor="r-text">Tu recomendación {pickedService && <span className="text-muted-foreground font-normal">(opcional)</span>}</Label>
                 <Textarea id="r-text" value={text} onChange={(e) => setText(e.target.value)} rows={3} placeholder="Ej: Me arregló una filtración al toque, muy buena onda y precio justo." />
               </div>
               <div className="grid grid-cols-2 gap-3">
@@ -217,9 +294,21 @@ const ComunidadDetalle = () => {
                   <div className="min-w-0 flex-1">
                     <div className="flex items-center gap-2 flex-wrap">
                       {r.title && <span className="font-bold text-sm">{r.title}</span>}
-                      {r.author_name && <span className="text-xs text-muted-foreground">· por {r.author_name}</span>}
+                      {r.author_name && <span className="text-xs text-muted-foreground">{r.title ? '· ' : ''}por {r.author_name}</span>}
                     </div>
-                    <p className="text-sm mt-1 leading-relaxed">{r.text}</p>
+                    {r.text && <p className="text-sm mt-1 leading-relaxed">{r.text}</p>}
+                    {r.service && (
+                      <Link to="/servicios" className="mt-2 flex items-center gap-3 rounded-xl border border-border hover:border-primary/40 bg-muted/30 p-2.5 transition-colors">
+                        {r.service.cover_image_url
+                          ? <img src={r.service.cover_image_url} alt="" className="w-12 h-12 rounded-lg object-cover shrink-0" />
+                          : <div className="w-12 h-12 rounded-lg bg-primary/10 text-primary flex items-center justify-center shrink-0"><Star size={18} /></div>}
+                        <div className="min-w-0 flex-1">
+                          <p className="text-sm font-bold truncate">{r.service.service_name}</p>
+                          <p className="text-[11px] text-muted-foreground truncate">{[r.service.comuna, r.service.price_range].filter(Boolean).join(' · ')}</p>
+                        </div>
+                        <span className="text-[10px] font-bold uppercase tracking-wide text-primary shrink-0">Ver</span>
+                      </Link>
+                    )}
                     {(r.contact_name || r.contact_phone) && (
                       <div className="mt-3 flex items-center gap-2 flex-wrap">
                         {r.contact_name && <span className="text-xs text-muted-foreground">Contacto: <b className="text-foreground">{r.contact_name}</b></span>}
