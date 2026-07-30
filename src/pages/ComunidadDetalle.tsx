@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import {
-  ArrowLeft, Users, Shield, Plus, MessageCircle, Loader2, ThumbsUp, School, Building2, MapPin, Briefcase, Hash, Search, X, Star,
+  ArrowLeft, Users, Shield, Plus, Loader2, ThumbsUp, School, Building2, MapPin, Briefcase, Hash, Search, X, Star,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -15,6 +15,7 @@ import {
 import { toast } from 'sonner';
 import { useUser } from '@/contexts/UserContext';
 import { communitiesAPI, servicesAPI, type Community, type Recommendation, type CommunityType } from '@/lib/api';
+import CommunityRecommendationCard from '@/components/CommunityRecommendationCard';
 
 type PickedService = { id: string; service_name: string; comuna?: string; price_range?: string; image?: string };
 
@@ -28,11 +29,6 @@ const typeMeta = (t?: CommunityType) => {
   };
   return map[t ?? 'otro'] ?? map.otro;
 };
-
-const initials = (name?: string) =>
-  (name || '?').trim().split(/\s+/).slice(0, 2).map((w) => w[0]?.toUpperCase()).join('') || '?';
-
-const waLink = (phone: string) => `https://wa.me/${phone.replace(/\D/g, '')}`;
 
 const ComunidadDetalle = () => {
   const { id = '' } = useParams();
@@ -285,46 +281,7 @@ const ComunidadDetalle = () => {
       ) : (
         <div className="space-y-3">
           {recs.map((r) => (
-            <Card key={r.id}>
-              <CardContent className="p-4 sm:p-5">
-                <div className="flex items-start gap-3">
-                  <div className="w-9 h-9 rounded-full bg-secondary/10 text-secondary flex items-center justify-center text-xs font-black shrink-0">
-                    {initials(r.author_name)}
-                  </div>
-                  <div className="min-w-0 flex-1">
-                    <div className="flex items-center gap-2 flex-wrap">
-                      {r.title && <span className="font-bold text-sm">{r.title}</span>}
-                      {r.author_name && <span className="text-xs text-muted-foreground">{r.title ? '· ' : ''}por {r.author_name}</span>}
-                    </div>
-                    {r.text && <p className="text-sm mt-1 leading-relaxed">{r.text}</p>}
-                    {r.service && (
-                      <Link to="/servicios" className="mt-2 flex items-center gap-3 rounded-xl border border-border hover:border-primary/40 bg-muted/30 p-2.5 transition-colors">
-                        {r.service.cover_image_url
-                          ? <img src={r.service.cover_image_url} alt="" className="w-12 h-12 rounded-lg object-cover shrink-0" />
-                          : <div className="w-12 h-12 rounded-lg bg-primary/10 text-primary flex items-center justify-center shrink-0"><Star size={18} /></div>}
-                        <div className="min-w-0 flex-1">
-                          <p className="text-sm font-bold truncate">{r.service.service_name}</p>
-                          <p className="text-[11px] text-muted-foreground truncate">{[r.service.comuna, r.service.price_range].filter(Boolean).join(' · ')}</p>
-                        </div>
-                        <span className="text-[10px] font-bold uppercase tracking-wide text-primary shrink-0">Ver</span>
-                      </Link>
-                    )}
-                    {(r.contact_name || r.contact_phone) && (
-                      <div className="mt-3 flex items-center gap-2 flex-wrap">
-                        {r.contact_name && <span className="text-xs text-muted-foreground">Contacto: <b className="text-foreground">{r.contact_name}</b></span>}
-                        {r.contact_phone && (
-                          <a href={waLink(r.contact_phone)} target="_blank" rel="noopener noreferrer">
-                            <Button size="sm" className="h-8 bg-[#25D366] hover:bg-[#20ba59] text-white font-bold text-xs">
-                              <MessageCircle size={14} className="mr-1.5" /> WhatsApp
-                            </Button>
-                          </a>
-                        )}
-                      </div>
-                    )}
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
+            <CommunityRecommendationCard key={r.id} communityId={id} rec={r} />
           ))}
         </div>
       )}

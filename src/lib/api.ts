@@ -2254,6 +2254,19 @@ export interface Recommendation {
   /** Servicio real de Dameldato adjunto (opcional). */
   service_id?: string | null;
   service?: RecommendedService | null;
+  /** Foro (fase 3). */
+  upvotes_count?: number;
+  has_upvoted?: boolean;
+  comments_count?: number;
+  created_at?: string;
+}
+
+export interface RecommendationComment {
+  id: string;
+  recommendation_id?: string;
+  user_id?: string;
+  author_name?: string;
+  text: string;
   created_at?: string;
 }
 
@@ -2312,4 +2325,25 @@ export const communitiesAPI = {
       method: 'POST',
       body: JSON.stringify(data),
     }),
+
+  // ===== Foro (fase 3) =====
+  /** Alterna "lo recomiendo" (upvote). Devuelve el estado y el total. */
+  toggleUpvote: (communityId: string, recId: string) =>
+    request<{ upvoted: boolean; upvotes_count: number }>(
+      `/api/communities/${communityId}/recommendations/${recId}/upvote`,
+      { method: 'POST' }
+    ),
+
+  /** Comentarios/respuestas de una recomendación (solo miembros). */
+  getComments: (communityId: string, recId: string) =>
+    request<{ comments: RecommendationComment[] }>(
+      `/api/communities/${communityId}/recommendations/${recId}/comments`,
+      { method: 'GET' }
+    ),
+
+  addComment: (communityId: string, recId: string, text: string) =>
+    request<{ comment: RecommendationComment }>(
+      `/api/communities/${communityId}/recommendations/${recId}/comments`,
+      { method: 'POST', body: JSON.stringify({ text }) }
+    ),
 };
