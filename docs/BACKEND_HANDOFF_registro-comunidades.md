@@ -105,6 +105,24 @@ contact_name?, contact_phone?, created_at }`.
 > Con esto Comunidades queda completa: crear, invitar por link, unirse y
 > **recomendar servicios dentro del grupo** (el core del producto).
 
+### Foro — Fase 3 (el front YA lo llama — PENDIENTE en backend)
+Convierte la comunidad en un foro: votar recomendaciones y comentar.
+- `POST /api/communities/:id/recommendations/:recId/upvote` (auth, miembro) →
+  `{ upvoted: boolean, upvotes_count: number }`. **Toggle**: si ya votó, quita el voto.
+- `GET  /api/communities/:id/recommendations/:recId/comments` (auth, miembro) →
+  `{ comments: Comment[] }`
+- `POST /api/communities/:id/recommendations/:recId/comments` (auth, miembro) —
+  body `{ text }` → `{ comment }`
+
+`Comment`: `{ id, recommendation_id, user_id, author_name, text, created_at }`.
+Además, el `GET .../recommendations` debería incluir en cada reco:
+`upvotes_count`, `has_upvoted` (del usuario actual) y `comments_count` — para pintar
+los contadores sin llamadas extra. Tabla sugerida `recommendation_upvotes
+(recommendation_id, user_id, UNIQUE)` y `recommendation_comments`.
+
+> Fase 3 futura (opcional): tags/categorías dentro de la comunidad y
+> notificaciones cuando responden o recomiendan tu rubro.
+
 ---
 
 ## 3. Login con Apple (fase 2)
