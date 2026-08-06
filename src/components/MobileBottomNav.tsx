@@ -1,5 +1,5 @@
 import { Link, useLocation } from 'react-router-dom';
-import { Home, Wrench, ShoppingBag, User, PlusCircle } from 'lucide-react';
+import { Home, Wrench, ShoppingBag, User, PlusCircle, Users } from 'lucide-react';
 import { useUser } from '@/contexts/UserContext';
 import { cn } from '@/lib/utils';
 
@@ -7,6 +7,7 @@ const navItems = [
   { to: '/', label: 'Inicio', icon: Home },
   { to: '/servicios', label: 'Servicios', icon: Wrench },
   { to: '/productos', label: 'Productos', icon: ShoppingBag },
+  { to: '/comunidades', label: 'Comunidad', icon: Users },
   { to: '/perfil', label: 'Mi Perfil', icon: User },
 ];
 
@@ -20,7 +21,7 @@ export function MobileBottomNav() {
 
   return (
     <nav className="fixed bottom-0 inset-x-0 z-50 md:hidden bg-card/95 backdrop-blur-md border-t border-border safe-area-bottom">
-      <div className={cn('grid h-16', isLoggedIn && isEntrepreneur ? 'grid-cols-5' : 'grid-cols-4')}>
+      <div className={cn('grid h-16', isLoggedIn && isEntrepreneur ? 'grid-cols-6' : 'grid-cols-5')}>
         {navItems.map(({ to, label, icon: Icon }) => {
           const active = isActive(to);
           if (to === '/perfil' && !isLoggedIn) {

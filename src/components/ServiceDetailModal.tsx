@@ -8,6 +8,7 @@ import { getServiceIcon, getServiceColor, isLightColor, getServiceLocationDispla
 import { VerifiedBadge, PendingVerificationBadge } from '@/components/VerifiedBadge';
 import { toSlug } from '@/pages/PublicProfile';
 import { ShareModal } from '@/components/ShareModal';
+import RecommendToCommunity from '@/components/RecommendToCommunity';
 
 export interface ServiceForDetail {
   id: string;
@@ -143,6 +144,7 @@ export function ServiceDetailModalContent({ service, onClose, onOpenReviews, onW
                     Compartir
                   </Button>
                 </div>
+                <RecommendToCommunity serviceId={service.id} serviceName={service.service_name} />
               </div>
             </div>
           </div>
@@ -313,6 +315,7 @@ export function ServiceDetailModalContent({ service, onClose, onOpenReviews, onW
               <Star className="mr-2 h-4 w-4 fill-yellow-400 text-yellow-400" />
               Ver reseñas
             </Button>
+            <RecommendToCommunity serviceId={service.id} serviceName={service.service_name} />
           </div>
         </main>
       </div>

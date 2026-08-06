@@ -9,6 +9,7 @@ import { getServiceIcon, getServiceRegionNameOnly } from '@/lib/serviceUtils';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { VerifiedBadge, PendingVerificationBadge } from '@/components/VerifiedBadge';
 import { toSlug } from '@/pages/PublicProfile';
+import RecommendToCommunity from '@/components/RecommendToCommunity';
 
 interface Service {
     id: string;
@@ -173,6 +174,14 @@ export const ServiceCard = memo(({
                             <MessageCircle size={20} className="mr-2" />
                             CONTACTAR
                         </Button>
+                    </div>
+
+                    <div onClick={(event) => event.stopPropagation()}>
+                        <RecommendToCommunity
+                            serviceId={service.id}
+                            serviceName={service.service_name}
+                            triggerClassName="w-full mt-1 h-9 text-[11px] sm:text-xs text-primary hover:bg-primary/5 rounded-xl font-bold"
+                        />
                     </div>
                 </div>
             </CardContent>
