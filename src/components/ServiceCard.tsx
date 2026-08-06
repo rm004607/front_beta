@@ -10,6 +10,7 @@ import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { VerifiedBadge, PendingVerificationBadge } from '@/components/VerifiedBadge';
 import { toSlug } from '@/pages/PublicProfile';
+import RecommendToCommunity from '@/components/RecommendToCommunity';
 
 interface Service {
     id: string;
@@ -161,6 +162,12 @@ export const ServiceCard = memo(({
                             WHATSAPP
                         </Button>
                     </div>
+
+                    <RecommendToCommunity
+                        serviceId={service.id}
+                        serviceName={service.service_name}
+                        triggerClassName="w-full mt-1 h-9 text-[11px] sm:text-xs text-primary hover:bg-primary/5 rounded-xl font-bold"
+                    />
                 </div>
             </CardContent>
         </Card>
