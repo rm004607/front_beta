@@ -69,10 +69,10 @@ const FlowCallback = () => {
                 targetUserId?: string;
                 userId?: string;
             };
-            if (p.serviceId) trackWhatsAppInteraction({ serviceId: String(p.serviceId) });
-            else if (p.productId) trackWhatsAppInteraction({ productId: String(p.productId) });
-            else if (p.targetUserId) trackWhatsAppInteraction({ userId: String(p.targetUserId) });
-            else if (p.userId) trackWhatsAppInteraction({ userId: String(p.userId) });
+            if (p.serviceId) trackWhatsAppInteraction({ serviceId: String(p.serviceId), source: 'flow_callback' });
+            else if (p.productId) trackWhatsAppInteraction({ productId: String(p.productId), source: 'flow_callback' });
+            else if (p.targetUserId) trackWhatsAppInteraction({ userId: String(p.targetUserId), source: 'flow_callback' });
+            else if (p.userId) trackWhatsAppInteraction({ userId: String(p.userId), source: 'flow_callback' });
             window.open(`https://wa.me/${whatsappPhone}?text=${encodedMessage}`, '_blank');
             navigate('/wall');
         } else if (paymentDetails?.packageType === 'services') {
