@@ -104,6 +104,20 @@ const Services = () => {
   // Detalle completo (un solo modal en la página para evitar conflictos con N Dialogs)
   const [detailService, setDetailService] = useState<any>(null);
 
+  // Abrir el detalle de un servicio puntual cuando llega ?servicio=<id>
+  // (ej. al tocar "Ver" en una recomendación del feed de comunidades).
+  const handledServiceParam = useRef<string | null>(null);
+  useEffect(() => {
+    const sid = searchParams.get('servicio');
+    if (!sid || handledServiceParam.current === sid) return;
+    handledServiceParam.current = sid;
+    let cancelled = false;
+    servicesAPI.getServiceById(sid)
+      .then((res) => { if (!cancelled) setDetailService(res.service); })
+      .catch(() => { });
+    return () => { cancelled = true; };
+  }, [searchParams]);
+
   // Reseñas
   const [isReviewsModalOpen, setIsReviewsModalOpen] = useState(false);
   const [selectedServiceForReviews, setSelectedServiceForReviews] = useState<any>(null);

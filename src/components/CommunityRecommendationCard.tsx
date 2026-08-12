@@ -102,7 +102,7 @@ export default function CommunityRecommendationCard({
             {rec.text && <p className="text-sm mt-1 leading-relaxed">{rec.text}</p>}
 
             {rec.service && (
-              <Link to="/servicios" className="mt-2 flex items-center gap-3 rounded-xl border border-border hover:border-primary/40 bg-muted/30 p-2.5 transition-colors">
+              <Link to={`/servicios?servicio=${rec.service.id}`} className="mt-2 flex items-center gap-3 rounded-xl border border-border hover:border-primary/40 bg-muted/30 p-2.5 transition-colors">
                 {rec.service.cover_image_url
                   ? <img src={rec.service.cover_image_url} alt="" className="w-12 h-12 rounded-lg object-cover shrink-0" />
                   : <div className="w-12 h-12 rounded-lg bg-primary/10 text-primary flex items-center justify-center shrink-0"><Star size={18} /></div>}
