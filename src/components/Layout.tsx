@@ -8,6 +8,7 @@ import { useTranslation } from 'react-i18next';
 import Footer from '@/components/Footer';
 import ErrorBoundary from '@/components/ErrorBoundary';
 import { MobileBottomNav } from '@/components/MobileBottomNav';
+import InstallPrompt from '@/components/InstallPrompt';
 import logoDameldato from '/logo_nombre.webp';
 import faviconDameldato from '/logoico.webp';
 import {
@@ -255,6 +256,9 @@ const Layout = ({ children }: LayoutProps) => {
 
       {/* Bottom nav mobile */}
       {!hideChrome && <MobileBottomNav />}
+
+      {/* Banner "instalar app" (PWA) */}
+      {!hideChrome && <InstallPrompt />}
 
     </div>
   );
