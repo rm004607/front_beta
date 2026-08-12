@@ -74,6 +74,9 @@ export const ServiceCard = memo(({
             onClick={openDetail}
             onKeyDown={(event) => {
                 if (!onOpenDetail) return;
+                // Solo abrir el detalle si el foco está en la tarjeta misma, no en un
+                // elemento hijo (ej. el textarea del diálogo "Recomendar a mi comunidad").
+                if (event.target !== event.currentTarget) return;
                 if (event.key === 'Enter' || event.key === ' ') {
                     event.preventDefault();
                     openDetail();
