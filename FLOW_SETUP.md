@@ -38,13 +38,17 @@ ADD COLUMN IF NOT EXISTS purchased_jobs INT DEFAULT 0;
 
 ## 2. Configurar Variables de Entorno
 
-Ya agregaste las credenciales en el archivo `.env` del backend:
+Configura las credenciales como **variables de entorno del backend** (Render/servidor), NUNCA en este archivo ni en el repo:
 
 ```bash
-FLOW_API_KEY=45D6F244-DCFA-4C7F-88E7-9643806DFLBF
-FLOW_SECRET_KEY=7e539327c195f75cdae2b886008788d9afc46cff
+FLOW_API_KEY=<tu_api_key_de_flow>
+FLOW_SECRET_KEY=<tu_secret_key_de_flow>
 FLOW_API_URL=https://www.flow.cl/api
 ```
+
+> ⚠️ Las llaves reales NO van en git. Se obtienen del panel de Flow y se cargan
+> como variables de entorno en el backend. Si alguna vez se filtraron en un commit,
+> hay que **rotarlas** en el panel de Flow (las viejas quedan inválidas).
 
 También necesitas configurar la URL del backend si no está configurada:
 
