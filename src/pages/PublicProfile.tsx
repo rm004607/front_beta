@@ -427,7 +427,7 @@ const PublicProfile = () => {
         open={shareOpen}
         onClose={() => setShareOpen(false)}
         url={`${window.location.origin}/perfil/${user.id}/${user.slug}`}
-        title={`Perfil de ${user.name} en Dameldato`}
+        title={`Perfil de ${user.name} en Dameldato.com`}
       />
     </div>
   );

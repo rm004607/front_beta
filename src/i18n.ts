@@ -22,7 +22,7 @@ const resources = {
                 "description": "",
                 "join_now": "Únete Ahora",
                 "explore_services": "Explorar Servicios",
-                "offer_services_btn": "Únete a Dameldato"
+                "offer_services_btn": "Únete a Dameldato.com"
             },
             "home": {
                 "categories_title": "Servicios que podrás encontrar",
@@ -44,18 +44,18 @@ const resources = {
                 "final_cta_title": "Empieza a solucionar tus tareas hoy mismo",
                 "final_cta_desc": "Únete a miles de personas que ya están transformando su economía local.",
                 "final_cta_btn": "Ofrecer mis servicios",
-                "entrepreneur_choice_title": "Únete a Dameldato",
+                "entrepreneur_choice_title": "Únete a Dameldato.com",
                 "entrepreneur_choice_desc": "La comunidad para encontrar servicios de confianza y ofrecer los tuyos.",
-                "entrepreneur_only_note": "Regístrate para usar Dameldato o para ofrecer tus servicios.",
-                "already_offer_services": "Ya soy parte de Dameldato",
+                "entrepreneur_only_note": "Regístrate para usar Dameldato.com o para ofrecer tus servicios.",
+                "already_offer_services": "Ya soy parte de Dameldato.com",
                 "want_to_offer_services": "Crear una cuenta nueva",
-                "login_panel_cta": "Ya soy parte de Dameldato",
+                "login_panel_cta": "Ya soy parte de Dameldato.com",
                 "already_part_description": "Sigue ofreciendo tus servicios",
                 "register_talent_cta": "Crear cuenta",
                 "countries_title": "Países donde estamos",
                 "countries_desc": "Actualmente operamos en Chile, conectando talentos locales con vecinos de todo el país.",
                 "coming_soon_title": "¡Hola! 👋 Próximamente en tu país",
-                "coming_soon_desc": "Detectamos que nos visitas desde {{country}}. Por ahora Dameldato solo opera en Chile, pero estamos trabajando para llegar pronto a tu zona.",
+                "coming_soon_desc": "Detectamos que nos visitas desde {{country}}. Por ahora Dameldato.com solo opera en Chile, pero estamos trabajando para llegar pronto a tu zona.",
                 "coming_soon_cta": "Explorar sitio"
             },
             "services": {

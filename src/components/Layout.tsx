@@ -41,13 +41,13 @@ const Layout = ({ children }: LayoutProps) => {
                 {/* Logo Completo - Visible en Desktop */}
                 <img
                   src={logoDameldato}
-                  alt="Dameldato"
+                  alt="Dameldato.com"
                   className="hidden sm:block h-16 md:h-20 lg:h-24 w-auto object-contain drop-shadow-md transition-all scale-110"
                 />
                 {/* Icono Solo - Visible en Móvil */}
                 <img
                   src={faviconDameldato}
-                  alt="Dameldato"
+                  alt="Dameldato.com"
                   className="block sm:hidden h-14 w-14 object-contain drop-shadow-xl scale-125"
                 />
               </Link>
@@ -245,7 +245,7 @@ const Layout = ({ children }: LayoutProps) => {
       )}
 
       {/* Main Content — padding bottom en mobile para el bottom nav */}
-      <main className="flex-1 pb-16 md:pb-0">
+      <main className="flex-1 pb-[calc(4rem+env(safe-area-inset-bottom))] md:pb-0">
         <div key={location.pathname} className="animate-fade-in-up">
           {children}
         </div>

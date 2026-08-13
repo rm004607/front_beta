@@ -323,7 +323,7 @@ export function ServiceDetailModalContent({ service, onClose, onOpenReviews, onW
         open={shareOpen}
         onClose={() => setShareOpen(false)}
         url={shareUrl}
-        title={`${serviceTitle} en Dameldato`}
+        title={`${serviceTitle} en Dameldato.com`}
       />
     </div>
   );

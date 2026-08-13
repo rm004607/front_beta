@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Users, Plus, Copy, Check, Loader2, Shield, School, Building2, MapPin, Briefcase, Hash } from 'lucide-react';
+import { Users, Plus, Copy, Check, Loader2, Shield, School, Building2, MapPin, Briefcase, Hash, Home } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -22,6 +22,7 @@ const TYPES: { value: CommunityType; label: string; icon: typeof School }[] = [
   { value: 'condominio', label: 'Condominio / Edificio', icon: Building2 },
   { value: 'barrio', label: 'Barrio', icon: MapPin },
   { value: 'empresa', label: 'Empresa', icon: Briefcase },
+  { value: 'familia', label: 'Familia', icon: Home },
   { value: 'otro', label: 'Otro', icon: Hash },
 ];
 

@@ -110,7 +110,7 @@ const Support = () => {
               <CardHeader className="p-5 sm:p-6">
                 <CardTitle className="text-xl sm:text-2xl">Preguntas Frecuentes (FAQ)</CardTitle>
                 <CardDescription className="text-sm sm:text-base">
-                  Encuentra respuestas a las preguntas más comunes sobre Dameldato
+                  Encuentra respuestas a las preguntas más comunes sobre Dameldato.com
                 </CardDescription>
               </CardHeader>
               <CardContent>

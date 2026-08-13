@@ -215,7 +215,7 @@ const Products = () => {
       localStorage.setItem('contacted_products', JSON.stringify(contacted));
     }
     const cleanPhone = product.phone.replace(/\D/g, '');
-    const message = `Hola, te contacto por tu producto "${product.title}" en Dameldato.`;
+    const message = `Hola, te contacto por tu producto "${product.title}" en Dameldato.com.`;
     trackWhatsAppInteraction({ productId: String(product.id), source: 'products' });
     window.open(`https://wa.me/${cleanPhone}?text=${encodeURIComponent(message)}`, '_blank');
   };
