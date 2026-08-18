@@ -1,6 +1,6 @@
 import { ReactNode } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { Menu, User, LogOut, Home, Briefcase, Wrench, MessageSquare, Building2, Shield, FileText, Package2, Users, Megaphone } from 'lucide-react';
+import { Menu, User, LogOut, Home, Briefcase, Wrench, MessageSquare, Building2, Shield, FileText, Package2, Users, Megaphone, Sparkles } from 'lucide-react';
 import NotificationsBell from '@/components/NotificationsBell';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
@@ -85,6 +85,14 @@ const Layout = ({ children }: LayoutProps) => {
                 >
                   <Megaphone size={18} />
                   <span>Pedidos</span>
+                </Link>
+                <Link
+                  to="/asistente"
+                  className={`flex items-center gap-2 transition-colors ${isActive('/asistente') ? 'text-primary font-semibold' : 'text-foreground hover:text-primary'
+                    }`}
+                >
+                  <Sparkles size={18} />
+                  <span>Asistente</span>
                 </Link>
               </nav>
 
@@ -201,6 +209,12 @@ const Layout = ({ children }: LayoutProps) => {
                       <Link to="/pedidos" className="flex items-center gap-3 p-3">
                         <Megaphone size={18} className="text-muted-foreground" />
                         <span className="font-medium">Pedidos</span>
+                      </Link>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem asChild className="rounded-xl mb-1">
+                      <Link to="/asistente" className="flex items-center gap-3 p-3">
+                        <Sparkles size={18} className="text-muted-foreground" />
+                        <span className="font-medium">Asistente</span>
                       </Link>
                     </DropdownMenuItem>
 
