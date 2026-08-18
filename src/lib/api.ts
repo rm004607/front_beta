@@ -2379,10 +2379,11 @@ export interface ServiceRequest {
 }
 
 export const requestsAPI = {
-  create: (data: { service_type_id?: string; title: string; description?: string; comuna?: string; region_id?: string }) =>
+  // region_id es numérico en el backend (regions.id es INT); service_type_id es string.
+  create: (data: { service_type_id?: string; title: string; description?: string; comuna?: string; region_id?: number }) =>
     request<{ request: ServiceRequest }>('/api/requests', { method: 'POST', body: JSON.stringify(data) }),
 
-  list: (filters?: { service_type_id?: string; comuna?: string; region_id?: string; page?: number; limit?: number }) => {
+  list: (filters?: { service_type_id?: string; comuna?: string; region_id?: number; page?: number; limit?: number }) => {
     const p = new URLSearchParams();
     if (filters?.service_type_id) p.append('service_type_id', filters.service_type_id);
     if (filters?.comuna) p.append('comuna', filters.comuna);
