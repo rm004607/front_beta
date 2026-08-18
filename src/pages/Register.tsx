@@ -490,7 +490,7 @@ const Register = () => {
             // Si el backend ya deja la sesión activa tras register, el login explícito puede fallar/no hacer falta.
             console.warn('Login post-registro (usuario normal) no completado:', loginErr);
           }
-          toast.success('¡Cuenta creada! Te damos la bienvenida a Dameldato.');
+          toast.success('¡Cuenta creada! Te damos la bienvenida a Dameldato.com.');
           navigate('/', { replace: true });
           return;
         }
@@ -594,7 +594,7 @@ const Register = () => {
     try {
       await authAPI.updateProfile({ name: sanitizeInput(name, 100) });
       await loadUser();
-      toast.success('¡Cuenta creada! Te damos la bienvenida a Dameldato.');
+      toast.success('¡Cuenta creada! Te damos la bienvenida a Dameldato.com.');
       navigate(postAuthDestination(), { replace: true });
     } catch (error: any) {
       toast.error(error instanceof Error ? error.message : 'No pudimos guardar tu nombre.');
@@ -648,7 +648,7 @@ const Register = () => {
                     <Users size={22} />
                   </div>
                   <div className="min-w-0">
-                    <p className="font-bold text-base">Quiero usar Dameldato</p>
+                    <p className="font-bold text-base">Quiero usar Dameldato.com</p>
                     <p className="text-sm text-muted-foreground mt-0.5">
                       Contrata servicios, y crea o únete a comunidades. Registro rápido, sin verificación.
                     </p>
@@ -794,7 +794,7 @@ const Register = () => {
                       )}
                     </div>
                     <Button onClick={handleSetName} disabled={isSubmitting || !name.trim()} className="w-full font-bold text-lg h-12">
-                      {isSubmitting ? 'Creando cuenta...' : 'Entrar a Dameldato'}
+                      {isSubmitting ? 'Creando cuenta...' : 'Entrar a Dameldato.com'}
                     </Button>
                   </div>
                 )}
@@ -1009,17 +1009,17 @@ const Register = () => {
                       </button>
                       {showTerms && (
                         <div className="mt-2 max-h-48 overflow-y-auto rounded-md border p-3 text-xs leading-relaxed">
-                          <p><strong>Bienvenido/a a Dameldato</strong>, una plataforma que conecta a personas que buscan oportunidades laborales, empresas que contratan y emprendedores que ofrecen servicios.</p>
-                          <p className="mt-2">Al registrarse y utilizar Dameldato, usted acepta estos Términos y Condiciones. Si no está de acuerdo, no debe usar la plataforma.</p>
-                          <p className="mt-2"><strong>1. Aceptación de los Términos</strong><br />Al crear una cuenta en Dameldato, el usuario declara haber leído, entendido y aceptado íntegramente estos Términos y Condiciones, así como la Política de Privacidad asociada.</p>
-                          <p className="mt-2"><strong>2. Naturaleza del Servicio</strong><br />Dameldato es una plataforma que facilita la conexión entre usuarios, empresas y proveedores de servicios. Dameldato no garantiza empleos, ni se responsabiliza por acuerdos, pagos, compromisos o relaciones laborales generadas entre los usuarios fuera de la plataforma. El usuario entiende que Dameldato no participa en negociaciones laborales, no valida la veracidad total de las ofertas publicadas por terceros y no se hace responsable de conflictos, pérdidas o daños derivados de interacciones entre usuarios.</p>
-                          <p className="mt-2"><strong>3. Registro y Responsabilidad del Usuario</strong><br />El usuario debe proporcionar datos verdaderos, completos y actualizados; no crear cuentas falsas o duplicadas; no suplantar identidad; no publicar contenido ofensivo, ilegal o que viole derechos; y mantener segura su información de inicio de sesión. Dameldato puede suspender o eliminar cuentas que incumplan estos términos sin previo aviso.</p>
-                          <p className="mt-2"><strong>4. Contenido Publicado por Usuarios</strong><br />Los usuarios son responsables del contenido que publiquen y declaran tener derechos para hacerlo. Otorgan a Dameldato una licencia no exclusiva para mostrarlo en la plataforma. Dameldato puede eliminar contenido que infrinja leyes o buenas prácticas.</p>
-                          <p className="mt-2"><strong>5. Pagos y Paquetes</strong><br />Algunos servicios requieren pago. Los precios se muestran en pesos chilenos (CLP) y pueden cambiar. No hay reembolsos salvo error de Dameldato.</p>
-                          <p className="mt-2"><strong>6. Limitación de Responsabilidad</strong><br />Dameldato no garantiza encontrar empleo, que empleadores o trabajadores cumplan, ni que la plataforma sea ininterrumpida o totalmente segura. No es responsable por daños, pérdidas de datos, ingresos u oportunidades, ni por conflictos entre usuarios. El uso es bajo responsabilidad del usuario.</p>
-                          <p className="mt-2"><strong>7. Datos Personales</strong><br />Dameldato trata datos según su Política de Privacidad, no vende datos a terceros y usa la información para operar y mejorar el servicio.</p>
-                          <p className="mt-2"><strong>8. Modificaciones de los Términos</strong><br />Dameldato puede actualizar estos Términos; el uso continuado implica aceptación.</p>
-                          <p className="mt-2"><strong>9. Suspensión o Eliminación de Cuenta</strong><br />Dameldato puede suspender o eliminar cuentas que infrinjan términos, cometan fraude o pongan en riesgo la plataforma o a otros usuarios.</p>
+                          <p><strong>Bienvenido/a a Dameldato.com</strong>, una plataforma que conecta a personas que buscan oportunidades laborales, empresas que contratan y emprendedores que ofrecen servicios.</p>
+                          <p className="mt-2">Al registrarse y utilizar Dameldato.com, usted acepta estos Términos y Condiciones. Si no está de acuerdo, no debe usar la plataforma.</p>
+                          <p className="mt-2"><strong>1. Aceptación de los Términos</strong><br />Al crear una cuenta en Dameldato.com, el usuario declara haber leído, entendido y aceptado íntegramente estos Términos y Condiciones, así como la Política de Privacidad asociada.</p>
+                          <p className="mt-2"><strong>2. Naturaleza del Servicio</strong><br />Dameldato.com es una plataforma que facilita la conexión entre usuarios, empresas y proveedores de servicios. Dameldato.com no garantiza empleos, ni se responsabiliza por acuerdos, pagos, compromisos o relaciones laborales generadas entre los usuarios fuera de la plataforma. El usuario entiende que Dameldato.com no participa en negociaciones laborales, no valida la veracidad total de las ofertas publicadas por terceros y no se hace responsable de conflictos, pérdidas o daños derivados de interacciones entre usuarios.</p>
+                          <p className="mt-2"><strong>3. Registro y Responsabilidad del Usuario</strong><br />El usuario debe proporcionar datos verdaderos, completos y actualizados; no crear cuentas falsas o duplicadas; no suplantar identidad; no publicar contenido ofensivo, ilegal o que viole derechos; y mantener segura su información de inicio de sesión. Dameldato.com puede suspender o eliminar cuentas que incumplan estos términos sin previo aviso.</p>
+                          <p className="mt-2"><strong>4. Contenido Publicado por Usuarios</strong><br />Los usuarios son responsables del contenido que publiquen y declaran tener derechos para hacerlo. Otorgan a Dameldato.com una licencia no exclusiva para mostrarlo en la plataforma. Dameldato.com puede eliminar contenido que infrinja leyes o buenas prácticas.</p>
+                          <p className="mt-2"><strong>5. Pagos y Paquetes</strong><br />Algunos servicios requieren pago. Los precios se muestran en pesos chilenos (CLP) y pueden cambiar. No hay reembolsos salvo error de Dameldato.com.</p>
+                          <p className="mt-2"><strong>6. Limitación de Responsabilidad</strong><br />Dameldato.com no garantiza encontrar empleo, que empleadores o trabajadores cumplan, ni que la plataforma sea ininterrumpida o totalmente segura. No es responsable por daños, pérdidas de datos, ingresos u oportunidades, ni por conflictos entre usuarios. El uso es bajo responsabilidad del usuario.</p>
+                          <p className="mt-2"><strong>7. Datos Personales</strong><br />Dameldato.com trata datos según su Política de Privacidad, no vende datos a terceros y usa la información para operar y mejorar el servicio.</p>
+                          <p className="mt-2"><strong>8. Modificaciones de los Términos</strong><br />Dameldato.com puede actualizar estos Términos; el uso continuado implica aceptación.</p>
+                          <p className="mt-2"><strong>9. Suspensión o Eliminación de Cuenta</strong><br />Dameldato.com puede suspender o eliminar cuentas que infrinjan términos, cometan fraude o pongan en riesgo la plataforma o a otros usuarios.</p>
                           <p className="mt-2"><strong>10. Ley Aplicable</strong><br />Estos Términos se rigen por las leyes de Chile (o el país que se elija).</p>
                           <p className="mt-2"><strong>11. Aceptación</strong><br />Al continuar, confirmas que aceptas estos Términos.</p>
                         </div>

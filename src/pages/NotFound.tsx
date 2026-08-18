@@ -27,7 +27,7 @@ const NotFound = () => {
             <div className="space-y-2">
               <p className="text-2xl font-semibold text-foreground">Página no encontrada</p>
               <p className="text-muted-foreground italic">
-                Parece que te has perdido en el espacio de Dameldato.
+                Parece que te has perdido en el espacio de Dameldato.com.
               </p>
             </div>
             <a href="/">

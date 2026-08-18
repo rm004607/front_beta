@@ -21,7 +21,7 @@ const Footer = () => {
           <div className="lg:col-span-4 space-y-4 xs:space-y-6">
             <Link to="/" className="flex items-center group">
               <div className="p-0 transition-opacity group-hover:opacity-90">
-                <img src={logoDameldato} alt="Dameldato" className="h-12 xs:h-14 sm:h-16 w-auto max-w-[200px] xs:max-w-none object-contain" />
+                <img src={logoDameldato} alt="Dameldato.com" className="h-12 xs:h-14 sm:h-16 w-auto max-w-[200px] xs:max-w-none object-contain" />
               </div>
             </Link>
             <p className="text-muted-foreground font-medium leading-relaxed max-w-sm text-sm xs:text-base">
@@ -150,7 +150,7 @@ const Footer = () => {
         {/* Bottom Bar */}
         <div className="pt-6 xs:pt-8 border-t border-border flex flex-col md:flex-row justify-between items-center gap-3 xs:gap-4 text-center md:text-left">
           <p className="text-muted-foreground font-medium text-[11px] xs:text-xs order-2 md:order-1">
-            © {new Date().getFullYear()} Dameldato. {t('footer.rights')}
+            © {new Date().getFullYear()} Dameldato.com. {t('footer.rights')}
           </p>
           <div className="flex flex-wrap justify-center gap-4 xs:gap-6 order-1 md:order-2">
             <Link to="/terminos" className="text-[11px] xs:text-xs text-muted-foreground hover:text-primary transition-colors">

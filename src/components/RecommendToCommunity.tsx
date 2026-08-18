@@ -13,7 +13,7 @@ import { useUser } from '@/contexts/UserContext';
 import { communitiesAPI, type Community } from '@/lib/api';
 
 /**
- * Botón + diálogo para recomendar un servicio existente de Dameldato a una
+ * Botón + diálogo para recomendar un servicio existente de Dameldato.com a una
  * de tus comunidades (crea una recomendación con service_id en su feed).
  */
 export default function RecommendToCommunity({

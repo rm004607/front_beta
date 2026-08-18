@@ -82,7 +82,7 @@ const Login = () => {
             <CardTitle className="text-4xl font-heading font-bold bg-clip-text text-transparent bg-gradient-to-r from-primary to-secondary mb-2">
               ¡Hola de nuevo!
             </CardTitle>
-            <CardDescription className="text-muted-foreground text-lg">Ingresa a tu cuenta de Dameldato</CardDescription>
+            <CardDescription className="text-muted-foreground text-lg">Ingresa a tu cuenta de Dameldato.com</CardDescription>
           </CardHeader>
           <CardContent>
             {/* Mensaje de ban */}
@@ -113,7 +113,7 @@ const Login = () => {
                     )}
                   </div>
                   <p className="text-xs text-muted-foreground mt-3">
-                    Si crees que esto es un error, contacta al soporte de Dameldato.
+                    Si crees que esto es un error, contacta al soporte de Dameldato.com.
                   </p>
                 </AlertDescription>
               </Alert>

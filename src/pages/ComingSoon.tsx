@@ -12,7 +12,7 @@ const ComingSoon = () => {
         <div className="flex justify-center mb-6">
           <img
             src={logoFull}
-            alt="Dameldato"
+            alt="Dameldato.com"
             className="h-20 md:h-40 object-contain drop-shadow-2xl animate-float"
           />
         </div>
@@ -43,7 +43,7 @@ const ComingSoon = () => {
             </div>
             <h2 className="text-3xl font-black text-slate-900 italic">“Toma, aquí está el dato.”</h2>
             <p className="text-lg text-muted-foreground leading-relaxed font-medium">
-              En <span className="text-primary font-bold">Dameldato</span>, creemos que el conocimiento no sirve de mucho si no se comparte. 
+              En <span className="text-primary font-bold">Dameldato.com</span>, creemos que el conocimiento no sirve de mucho si no se comparte. 
               Nacimos para transformar la curiosidad en soluciones reales, creando un espacio donde el "dato" de uno ayuda a todos.
             </p>
             <p className="text-lg text-muted-foreground leading-relaxed font-medium">

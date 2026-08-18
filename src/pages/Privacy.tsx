@@ -13,7 +13,7 @@ const Privacy = () => {
           <CardHeader>
             <CardTitle className="text-3xl md:text-4xl">Política de Privacidad</CardTitle>
             <CardDescription>
-              Cómo protegemos y utilizamos tu información en Dameldato.
+              Cómo protegemos y utilizamos tu información en Dameldato.com.
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-6 text-sm md:text-base text-muted-foreground">
@@ -28,7 +28,7 @@ const Privacy = () => {
             <section className="space-y-2">
               <h2 className="text-lg font-semibold text-foreground">2. Uso de la información</h2>
               <p>
-                Utilizamos tus datos para operar y mejorar Dameldato, personalizar tu experiencia, conectar talentos con
+                Utilizamos tus datos para operar y mejorar Dameldato.com, personalizar tu experiencia, conectar talentos con
                 oportunidades y para fines de seguridad y prevención de fraude.
               </p>
             </section>

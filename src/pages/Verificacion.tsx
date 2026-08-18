@@ -65,7 +65,7 @@ const Verificacion = () => {
             <span className="text-primary">Confianza garantizada.</span>
           </h1>
           <p className="text-lg text-muted-foreground max-w-2xl mx-auto mb-8 leading-relaxed">
-            En Dameldato, cada prestador que ves en la plataforma pasó por un proceso de verificación biométrica con su cédula chilena.
+            En Dameldato.com, cada prestador que ves en la plataforma pasó por un proceso de verificación biométrica con su cédula chilena.
             No hay perfiles anónimos, solo personas reales.
           </p>
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
@@ -142,7 +142,7 @@ const Verificacion = () => {
           <BadgeCheck size={48} className="text-primary mx-auto mb-4" />
           <h2 className="text-2xl font-heading font-bold mb-3">¿Eres prestador y quieres verificarte?</h2>
           <p className="text-muted-foreground mb-8 max-w-md mx-auto">
-            Regístrate en Dameldato y completa el proceso en menos de 5 minutos desde tu celular.
+            Regístrate en Dameldato.com y completa el proceso en menos de 5 minutos desde tu celular.
           </p>
           <Link to="/registro">
             <Button size="lg" className="rounded-xl font-bold px-8">

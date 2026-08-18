@@ -328,7 +328,7 @@ const Services = () => {
     // Si pricing está desactivado, contactar gratis (Modo Todo Gratuito)
     if (!pricingEnabled) {
       const cleanPhone = service.phone.replace(/\D/g, '');
-      const message = `Hola, te contacto por tu servicio "${service.service_name}" en Dameldato.`;
+      const message = `Hola, te contacto por tu servicio "${service.service_name}" en Dameldato.com.`;
       trackWhatsAppInteraction({ serviceId: String(service.id), source });
       window.open(`https://wa.me/${cleanPhone}?text=${encodeURIComponent(message)}`, '_blank');
       return;

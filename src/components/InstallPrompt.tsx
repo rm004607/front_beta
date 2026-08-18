@@ -71,7 +71,7 @@ export default function InstallPrompt() {
       <div className="mx-auto max-w-md pointer-events-auto rounded-2xl border border-border bg-card shadow-2xl p-3.5 flex items-center gap-3 animate-in slide-in-from-bottom-4 fade-in duration-300">
         <img src="/icon-192.png" alt="" className="w-11 h-11 rounded-xl shrink-0" />
         <div className="min-w-0 flex-1">
-          <p className="text-sm font-bold leading-tight">Instala Dameldato</p>
+          <p className="text-sm font-bold leading-tight">Instala Dameldato.com</p>
           {isIOS ? (
             <p className="text-xs text-muted-foreground leading-snug mt-0.5">
               Toca <Share size={12} className="inline align-[-1px]" /> Compartir y luego <b className="text-foreground">"Agregar a inicio"</b>.

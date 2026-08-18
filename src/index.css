@@ -2,6 +2,12 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Respeta la barra de gestos/safe-area inferior (Android/iOS) para que el bottom nav
+   no tape el contenido (ej. el final de Términos y Condiciones). */
+.safe-area-bottom {
+  padding-bottom: env(safe-area-inset-bottom);
+}
+
 /* Definition of the design system. All colors, gradients, fonts, etc should be defined here. 
 All colors MUST be HSL.
 */

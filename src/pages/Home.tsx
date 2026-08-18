@@ -320,7 +320,7 @@ const Home = () => {
                   <div className="flex justify-center mb-2 sm:mb-4 lg:justify-start w-full">
                     <img
                       src={logoFull}
-                      alt="Dameldato"
+                      alt="Dameldato.com"
                       className="h-14 xs:h-20 sm:h-32 md:h-40 w-auto max-w-[85vw] object-contain animate-reveal drop-shadow-lg"
                     />
                   </div>
@@ -663,7 +663,7 @@ const Home = () => {
                 
                 <div className="space-y-6 text-lg sm:text-xl md:text-2xl text-muted-foreground leading-relaxed animate-reveal delay-100">
                   <p className="font-medium">
-                    En Dameldato, creemos que el conocimiento no sirve de mucho si no se comparte. 
+                    En Dameldato.com, creemos que el conocimiento no sirve de mucho si no se comparte. 
                     Nacimos para transformar la curiosidad en soluciones reales, creando un espacio donde el "dato" de uno ayuda a todos.
                   </p>
                   <p className="font-medium">
@@ -735,7 +735,7 @@ const Home = () => {
                 Nuestro <span className="text-secondary">Equipo</span>
               </h2>
               <p className="text-xl text-muted-foreground leading-relaxed max-w-2xl mx-auto animate-reveal delay-200">
-                Conoce a las personas apasionadas que trabajan día a día para que Dameldato sea la red de confianza más grande de la región.
+                Conoce a las personas apasionadas que trabajan día a día para que Dameldato.com sea la red de confianza más grande de la región.
               </p>
             </div>
 
@@ -749,7 +749,7 @@ const Home = () => {
                     loop
                     playsInline
                     preload="auto"
-                    aria-label="Video presentación del equipo Dameldato"
+                    aria-label="Video presentación del equipo Dameldato.com"
                   >
                     <source
                       src="/Pink-and-Purple-Simple-Animated-Team-Profile-Introduction-Video.webm"
@@ -774,7 +774,7 @@ const Home = () => {
           <div className="absolute inset-0 bg-mesh opacity-10"></div>
           <div className="container mx-auto px-3 xs:px-4 relative z-10">
             <div className="max-w-4xl mx-auto glass-card p-5 xs:p-6 sm:p-8 md:p-12 rounded-2xl sm:rounded-3xl md:rounded-[3.5rem] text-center border-primary/20">
-              <h2 className="text-lg xs:text-xl sm:text-2xl md:text-4xl font-extrabold text-foreground mb-2 px-1">Únete a Dameldato</h2>
+              <h2 className="text-lg xs:text-xl sm:text-2xl md:text-4xl font-extrabold text-foreground mb-2 px-1">Únete a Dameldato.com</h2>
               <p className="text-sm xs:text-base sm:text-lg text-muted-foreground mb-6 sm:mb-10 max-w-2xl mx-auto px-1">
                 {t('home.entrepreneur_choice_desc')}{' '}
                 <span className="block mt-2 font-bold text-primary italic">{t('home.entrepreneur_only_note')}</span>
@@ -787,7 +787,7 @@ const Home = () => {
                       <Briefcase className="w-6 h-6 sm:w-8 sm:h-8" strokeWidth={1.5} />
                     </div>
                     <h3 className="text-base xs:text-lg sm:text-xl font-bold mb-1 sm:mb-2 text-foreground">{t('home.want_to_offer_services')}</h3>
-                    <p className="text-xs xs:text-sm text-muted-foreground mb-4 sm:mb-6">Regístrate en Dameldato y comienza a recibir contactos hoy mismo.</p>
+                    <p className="text-xs xs:text-sm text-muted-foreground mb-4 sm:mb-6">Regístrate en Dameldato.com y comienza a recibir contactos hoy mismo.</p>
                     <Button className="w-full bg-primary hover:bg-primary/90 mt-auto rounded-xl font-semibold text-sm sm:text-base min-h-11">{t('home.register_talent_cta')}</Button>
                   </div>
                 </Link>
@@ -818,7 +818,7 @@ const Home = () => {
             <div className="lg:w-1/2 space-y-6">
               <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-indigo-500/10 text-indigo-600 font-bold text-sm uppercase tracking-wider">
                 <Sparkles size={16} />
-                Comunidad Dameldato
+                Comunidad Dameldato.com
               </div>
               <h2 className="text-3xl sm:text-4xl md:text-5xl font-black leading-tight text-slate-900">
                 ¿Tienes un <span className="text-indigo-600 italic">buen dato</span> que quieras compartir?

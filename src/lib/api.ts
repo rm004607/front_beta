@@ -2208,7 +2208,7 @@ export const aiAPI = {
 };
 
 // ===== Comunidades =====
-export type CommunityType = 'colegio' | 'condominio' | 'barrio' | 'empresa' | 'otro';
+export type CommunityType = 'colegio' | 'condominio' | 'barrio' | 'empresa' | 'familia' | 'otro';
 
 export interface Community {
   id: string;

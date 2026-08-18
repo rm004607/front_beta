@@ -20,7 +20,7 @@ const Terms = () => {
             <section className="space-y-2">
               <h2 className="text-lg font-semibold text-foreground">1. Aceptación de los términos</h2>
               <p>
-                Al acceder o utilizar Dameldato, aceptas cumplir y quedar sujeto a estos Términos y Condiciones.
+                Al acceder o utilizar Dameldato.com, aceptas cumplir y quedar sujeto a estos Términos y Condiciones.
                 Si no estás de acuerdo con alguna de sus partes, no debes utilizar la plataforma.
               </p>
             </section>
@@ -28,7 +28,7 @@ const Terms = () => {
             <section className="space-y-2">
               <h2 className="text-lg font-semibold text-foreground">2. Uso de la plataforma</h2>
               <p>
-                Dameldato es una plataforma que conecta talentos, oportunidades laborales y emprendimientos locales.
+                Dameldato.com es una plataforma que conecta talentos, oportunidades laborales y emprendimientos locales.
                 Te comprometes a utilizarla de forma responsable, respetando a otros usuarios y la legislación vigente.
               </p>
             </section>
