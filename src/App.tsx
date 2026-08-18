@@ -28,6 +28,7 @@ import Verificacion from "./pages/Verificacion";
 import Comunidades from "./pages/Comunidades";
 import ComunidadDetalle from "./pages/ComunidadDetalle";
 import UnirseComunidad from "./pages/UnirseComunidad";
+import Pedidos from "./pages/Pedidos";
 import ScrollToTop from "./components/ScrollToTop";
 import { CountryGate } from "./components/CountryGate";
 
@@ -69,6 +70,7 @@ const App = () => {
                     <Route path="/comunidades" element={<Comunidades />} />
                     <Route path="/comunidades/invitacion/:token" element={<UnirseComunidad />} />
                     <Route path="/comunidades/:id" element={<ComunidadDetalle />} />
+                    <Route path="/pedidos" element={<Pedidos />} />
                     <Route path="/perfil/:id/:slug" element={<PublicProfile />} />
                     <Route path="/verificacion-biometrica" element={<VerificacionBiometrica />} />
                     <Route path="/verificacion" element={<Verificacion />} />
