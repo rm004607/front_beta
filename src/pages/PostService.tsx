@@ -10,9 +10,9 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Badge } from '@/components/ui/badge';
 import { useUser } from '@/contexts/UserContext';
 import { useTranslation } from 'react-i18next';
-import { AlertCircle, MapPin, Edit, Sparkles, Loader2, X, ImagePlus } from 'lucide-react';
+import { AlertCircle, MapPin, Edit, Sparkles, Loader2, X, ImagePlus, CheckCircle2, ShieldCheck } from 'lucide-react';
 import { toast } from 'sonner';
-import { servicesAPI, packagesAPI, configAPI, aiAPI, regionsAPI } from '@/lib/api';
+import { servicesAPI, packagesAPI, configAPI, aiAPI, regionsAPI, authAPI } from '@/lib/api';
 import {
   isValidTextField,
   validatePhone,
@@ -61,6 +61,12 @@ const PostService = () => {
   const [comuna, setComuna] = useState(user?.comuna || ''); // Comuna base
   const [baseRegion, setBaseRegion] = useState('');
   const [phone, setPhone] = useState(user?.phone || '');
+  // Verificación por OTP del teléfono de contacto del servicio
+  const [otpCode, setOtpCode] = useState('');
+  const [otpSent, setOtpSent] = useState(false);
+  const [otpSending, setOtpSending] = useState(false);
+  const [otpVerifying, setOtpVerifying] = useState(false);
+  const [phoneVerified, setPhoneVerified] = useState(false);
   const [baseCommunesCatalog, setBaseCommunesCatalog] = useState<string[]>([]);
   const [coverageRegion, setCoverageRegion] = useState('');
   const [coverageCommunes, setCoverageCommunes] = useState<string[]>([]);
@@ -401,6 +407,44 @@ const PostService = () => {
       }
     } finally {
       setImprovingDescription(false);
+    }
+  };
+
+  /** Normaliza a E.164 chileno (+569XXXXXXXX) para el OTP. */
+  const toE164 = (raw: string) => {
+    let d = raw.replace(/\D/g, '');
+    if (d.startsWith('56')) d = d.slice(2);
+    if (d.length === 8) d = '9' + d;
+    return '+56' + d;
+  };
+
+  const handleSendServiceOtp = async () => {
+    if (!isValidPhone(phone)) { toast.error('Ingresa un teléfono válido primero'); return; }
+    setOtpSending(true);
+    try {
+      await authAPI.sendPhoneCode({ phone: toE164(phone) });
+      setOtpSent(true);
+      setOtpCode('');
+      toast.success('Te enviamos un código a ese número.');
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : 'No pudimos enviar el código.');
+    } finally {
+      setOtpSending(false);
+    }
+  };
+
+  const handleVerifyServiceOtp = async () => {
+    if (otpCode.length < 6) return;
+    setOtpVerifying(true);
+    try {
+      await authAPI.verifyOwnedPhone({ phone: toE164(phone), code: otpCode });
+      setPhoneVerified(true);
+      setOtpSent(false);
+      toast.success('Número verificado ✓');
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : 'Código inválido o expirado.');
+    } finally {
+      setOtpVerifying(false);
     }
   };
 
@@ -1117,7 +1161,7 @@ const PostService = () => {
                 <Input
                   id="phone"
                   value={phone}
-                  onChange={(e) => setPhone(e.target.value)}
+                  onChange={(e) => { setPhone(e.target.value); setPhoneVerified(false); setOtpSent(false); }}
                   placeholder={user?.phone || t('post_service.phone_placeholder')}
                   className={phone && validatePhone(phone) === 'format' ? 'border-red-500' : ''}
                 />
@@ -1129,6 +1173,39 @@ const PostService = () => {
                 <p className="text-xs text-muted-foreground mt-1">
                   {t('post_service.phone_desc')}
                 </p>
+
+                {/* Verificación del número de contacto (para asegurar que los clientes te puedan escribir) */}
+                {phone && isValidPhone(phone) && (
+                  phoneVerified ? (
+                    <p className="mt-2 flex items-center gap-1.5 text-sm font-semibold text-green-600">
+                      <CheckCircle2 size={16} /> Número verificado
+                    </p>
+                  ) : !otpSent ? (
+                    <Button type="button" variant="outline" size="sm" className="mt-2 gap-1.5" onClick={handleSendServiceOtp} disabled={otpSending}>
+                      <ShieldCheck size={15} /> {otpSending ? 'Enviando código...' : 'Verificar mi número'}
+                    </Button>
+                  ) : (
+                    <div className="mt-2 space-y-2">
+                      <p className="text-xs text-muted-foreground">Ingresa el código que te enviamos a ese número:</p>
+                      <div className="flex items-center gap-2">
+                        <Input
+                          value={otpCode}
+                          onChange={(e) => setOtpCode(e.target.value.replace(/\D/g, '').slice(0, 6))}
+                          placeholder="Código"
+                          inputMode="numeric"
+                          maxLength={6}
+                          className="w-28 text-center tracking-widest"
+                        />
+                        <Button type="button" size="sm" onClick={handleVerifyServiceOtp} disabled={otpVerifying || otpCode.length < 6}>
+                          {otpVerifying ? '...' : 'Verificar'}
+                        </Button>
+                        <button type="button" onClick={handleSendServiceOtp} disabled={otpSending} className="text-xs text-primary font-medium hover:underline disabled:opacity-50">
+                          Reenviar
+                        </button>
+                      </div>
+                    </div>
+                  )
+                )}
               </div>
                 </div>
               </div>

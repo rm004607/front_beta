@@ -248,6 +248,20 @@ export const authAPI = {
     });
   },
 
+  /**
+   * Verifica por código un teléfono para el usuario AUTENTICADO (ej. el número de
+   * contacto de su servicio). A diferencia de verifyPhoneCode, NO crea sesión ni
+   * usuario nuevo: solo confirma que el número es del usuario logueado.
+   * BACKEND: valida el código (mismo mecanismo que verify-code) y registra el número
+   * como verificado para este user (tabla verified_phones o flag en el servicio).
+   */
+  verifyOwnedPhone: async (data: { phone: string; code: string }) => {
+    return request<{ ok: boolean; verified: boolean }>('/api/phone/verify-owned', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    });
+  },
+
   login: async (data: { email: string; password: string }) => {
     const response = await request<{
       message: string;
