@@ -77,7 +77,7 @@ const Pedidos = () => {
         service_type_id: typeId || undefined,
         description: description.trim() || undefined,
         comuna: comuna.trim() || undefined,
-        region_id: user?.region_id || undefined,
+        region_id: user?.region_id ? Number(user.region_id) : undefined,
       });
       toast.success('¡Pedido publicado! Avisaremos a los prestadores del rubro.');
       setOpen(false);
