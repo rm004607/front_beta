@@ -2361,3 +2361,59 @@ export const communitiesAPI = {
       { method: 'POST', body: JSON.stringify({ text }) }
     ),
 };
+
+// ===== Pedidos ("Necesito X") =====
+export interface ServiceRequest {
+  id: string;
+  user_id?: string;
+  user_name?: string;
+  service_type_id?: string | null;
+  service_type_name?: string | null;
+  title: string;
+  description?: string | null;
+  comuna?: string | null;
+  region_id?: string | null;
+  region_name?: string | null;
+  status?: 'open' | 'closed';
+  created_at?: string;
+}
+
+export const requestsAPI = {
+  create: (data: { service_type_id?: string; title: string; description?: string; comuna?: string; region_id?: string }) =>
+    request<{ request: ServiceRequest }>('/api/requests', { method: 'POST', body: JSON.stringify(data) }),
+
+  list: (filters?: { service_type_id?: string; comuna?: string; region_id?: string; page?: number; limit?: number }) => {
+    const p = new URLSearchParams();
+    if (filters?.service_type_id) p.append('service_type_id', filters.service_type_id);
+    if (filters?.comuna) p.append('comuna', filters.comuna);
+    if (filters?.region_id) p.append('region_id', filters.region_id);
+    if (filters?.page) p.append('page', String(filters.page));
+    if (filters?.limit) p.append('limit', String(filters.limit));
+    const qs = p.toString();
+    return request<{ requests: ServiceRequest[]; pagination?: { page: number; limit: number; total: number; totalPages: number } }>(
+      `/api/requests${qs ? `?${qs}` : ''}`,
+      { method: 'GET' }
+    );
+  },
+
+  mine: () => request<{ requests: ServiceRequest[] }>('/api/requests/mine', { method: 'GET' }),
+
+  close: (id: string) => request<{ ok: boolean }>(`/api/requests/${id}/close`, { method: 'POST' }),
+};
+
+// ===== Notificaciones =====
+export interface AppNotification {
+  id: string;
+  type: string;
+  title: string;
+  body?: string | null;
+  link?: string | null;
+  read: boolean;
+  created_at?: string;
+}
+
+export const notificationsAPI = {
+  list: () => request<{ notifications: AppNotification[]; unread: number }>('/api/notifications', { method: 'GET' }),
+  markRead: (id: string) => request<{ ok: boolean }>(`/api/notifications/${id}/read`, { method: 'POST' }),
+  markAllRead: () => request<{ ok: boolean }>('/api/notifications/read-all', { method: 'POST' }),
+};
