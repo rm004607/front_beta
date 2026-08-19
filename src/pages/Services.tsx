@@ -47,10 +47,14 @@ const SERVICES_LIST_STALE_MS = 45_000;
  * Cuando el usuario busca una profesión conocida, se filtra directamente por categoría
  * en lugar de hacer búsqueda de texto (evita falsos positivos por menciones en descripciones).
  */
+// En Chile el gásfiter se registra en "Gasfitería"; la categoría "Fontanería" (cat-001)
+// quedó vacía/duplicada, por eso "gasfiter" no encontraba nada.
+const GASFITERIA_ID = 'bcfb1695-c0b6-4094-bc69-b36ae4e2df2d';
+
 const PROFESSION_TYPE_MAP: Record<string, string> = {
-  // Fontanería (cat-001)
-  gasfiter: 'cat-001', gasfiteria: 'cat-001', gasfitero: 'cat-001',
-  plomero: 'cat-001', fontanero: 'cat-001', plomeria: 'cat-001', fontaneria: 'cat-001',
+  // Gasfitería / plomería
+  gasfiter: GASFITERIA_ID, gasfiteria: GASFITERIA_ID, gasfitero: GASFITERIA_ID,
+  plomero: GASFITERIA_ID, fontanero: GASFITERIA_ID, plomeria: GASFITERIA_ID, fontaneria: GASFITERIA_ID,
   // Electricidad (cat-002)
   electricista: 'cat-002', electricidad: 'cat-002', electrico: 'cat-002',
   // Limpieza (cat-003)
