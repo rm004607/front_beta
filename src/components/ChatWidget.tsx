@@ -1,13 +1,13 @@
 import { useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { X, Send, Loader2, ChevronRight, Sparkles } from 'lucide-react';
+import { X, Send, Loader2, ChevronRight, Sparkles, Megaphone } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { aiAPI } from '@/lib/api';
 import faviconDameldato from '/logoico.webp';
 
 type Card = { type: 'job' | 'service'; id: string | number; title: string; subtitle: string; details: string; url: string };
-type Msg = { role: 'user' | 'assistant'; text: string; cards?: Card[] };
+type Msg = { role: 'user' | 'assistant'; text: string; cards?: Card[]; noResults?: boolean };
 
 const WELCOME = '¡Hola! Soy el asistente de Dameldato.com 👋 ¿Qué necesitas? Te busco el dato al toque.';
 const EXAMPLES = ['Un gásfiter en Ñuñoa', 'Clases de matemáticas', 'Electricista de confianza'];
@@ -27,18 +27,24 @@ export default function ChatWidget() {
   const send = async (text: string) => {
     const q = text.trim();
     if (!q || sending) return;
+    // Historial (últimos turnos) para que la conversación tenga memoria.
+    // Se toma ANTES de agregar el mensaje nuevo: son los turnos previos.
+    const history = messages.slice(-8).map((m) => ({ role: m.role, content: m.text }));
     setMessages((m) => [...m, { role: 'user', text: q }]);
     setInput('');
     setSending(true);
     try {
-      const res = await aiAPI.askAIAboutJobs(q);
-      setMessages((m) => [...m, { role: 'assistant', text: res.answer, cards: (res.cards as Card[]) || [] }]);
+      const res = await aiAPI.askAIAboutJobs(q, history);
+      const cards = (res.cards as Card[]) || [];
+      setMessages((m) => [...m, { role: 'assistant', text: res.answer, cards, noResults: cards.length === 0 }]);
     } catch (e) {
       setMessages((m) => [...m, { role: 'assistant', text: e instanceof Error ? e.message : 'Uy, algo falló. Intenta de nuevo en un momento.' }]);
     } finally {
       setSending(false);
     }
   };
+
+  const goPedidos = () => { setOpen(false); navigate('/pedidos'); };
 
   const goCard = (c: Card) => {
     setOpen(false);
@@ -110,6 +116,19 @@ export default function ChatWidget() {
                         </button>
                       ))}
                     </div>
+                  )}
+                  {msg.role === 'assistant' && msg.noResults && (
+                    <button
+                      onClick={goPedidos}
+                      className="mt-2 flex items-center gap-3 w-full text-left rounded-2xl border border-dashed border-primary/40 bg-primary/5 hover:bg-primary/10 p-2.5 transition-colors"
+                    >
+                      <div className="h-9 w-9 rounded-lg bg-primary/10 text-primary flex items-center justify-center shrink-0"><Megaphone size={16} /></div>
+                      <div className="min-w-0 flex-1">
+                        <p className="text-sm font-bold">Publica un pedido</p>
+                        <p className="text-[11px] text-muted-foreground">Cuenta qué necesitas y te contactan los prestadores.</p>
+                      </div>
+                      <ChevronRight size={16} className="text-muted-foreground shrink-0" />
+                    </button>
                   )}
                 </div>
               </div>
