@@ -3,14 +3,15 @@ import { useNavigate } from 'react-router-dom';
 import { X, Send, Loader2, ChevronRight, Sparkles, Megaphone } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
-import { aiAPI } from '@/lib/api';
+import { aiAPI, servicesAPI } from '@/lib/api';
 import faviconDameldato from '/logoico.webp';
 
 type Card = { type: 'job' | 'service'; id: string | number; title: string; subtitle: string; details: string; url: string };
 type Msg = { role: 'user' | 'assistant'; text: string; cards?: Card[]; noResults?: boolean };
 
 const WELCOME = '¡Hola! Soy el asistente de Dameldato.com 👋 ¿Qué necesitas? Te busco el dato al toque.';
-const EXAMPLES = ['Un gásfiter en Ñuñoa', 'Clases de matemáticas', 'Electricista de confianza'];
+// Respaldo genérico SIN comuna inventada (los ejemplos reales se cargan de servicios existentes).
+const FALLBACK_EXAMPLES = ['Un gásfiter', 'Clases particulares', 'Electricista'];
 
 export default function ChatWidget() {
   const navigate = useNavigate();
@@ -18,11 +19,42 @@ export default function ChatWidget() {
   const [messages, setMessages] = useState<Msg[]>([{ role: 'assistant', text: WELCOME }]);
   const [input, setInput] = useState('');
   const [sending, setSending] = useState(false);
+  const [examples, setExamples] = useState<string[]>(FALLBACK_EXAMPLES);
   const endRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
+  const examplesLoadedRef = useRef(false);
 
   useEffect(() => { if (open) endRef.current?.scrollIntoView({ behavior: 'smooth' }); }, [messages, sending, open]);
   useEffect(() => { if (open) setTimeout(() => inputRef.current?.focus(), 150); }, [open]);
+
+  // Ejemplos SUGERIDOS en base a servicios REALES publicados (rubro + comuna que sí existen),
+  // para no sugerir cosas que no hay (ej: "gásfiter en Ñuñoa" cuando no hay ninguno).
+  // Se cargan al abrir el chat por primera vez; si falla, quedan los de respaldo.
+  useEffect(() => {
+    if (!open || examplesLoadedRef.current) return;
+    examplesLoadedRef.current = true;
+    (async () => {
+      try {
+        const res = await servicesAPI.getServices({ limit: 24, sort: 'rating' });
+        const seen = new Set<string>();
+        const built: string[] = [];
+        for (const s of res.services ?? []) {
+          const rubro = (s.type_name || s.service_name || '').trim();
+          if (!rubro) continue;
+          const comuna = (s.comuna || '').trim();
+          const label = comuna ? `${rubro} en ${comuna}` : rubro;
+          const key = label.toLowerCase();
+          if (seen.has(key)) continue;
+          seen.add(key);
+          built.push(label);
+          if (built.length >= 3) break;
+        }
+        if (built.length > 0) setExamples(built);
+      } catch {
+        /* deja los ejemplos de respaldo */
+      }
+    })();
+  }, [open]);
 
   const send = async (text: string) => {
     const q = text.trim();
@@ -146,7 +178,7 @@ export default function ChatWidget() {
 
             {messages.length === 1 && (
               <div className="flex flex-wrap gap-2 pt-1">
-                {EXAMPLES.map((ex) => (
+                {examples.map((ex) => (
                   <button
                     key={ex}
                     onClick={() => send(ex)}
