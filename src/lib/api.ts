@@ -2178,8 +2178,12 @@ export const kycAPI = {
 };
 
 // API de IA para recomendaciones
+export type AIChatTurn = { role: 'user' | 'assistant'; content: string };
+
 export const aiAPI = {
-  askAIAboutJobs: async (message: string) => {
+  // `history` es opcional y retrocompatible: si el backend aún no lo usa, lo ignora.
+  // Le da memoria a la conversación (ej: "un gasfiter" -> "¿en qué comuna?" -> "Ñuñoa").
+  askAIAboutJobs: async (message: string, history?: AIChatTurn[]) => {
     return request<{
       answer: string;
       cards?: Array<{
@@ -2192,7 +2196,7 @@ export const aiAPI = {
       }>;
     }>('/api/ai/chat', {
       method: 'POST',
-      body: JSON.stringify({ message }),
+      body: JSON.stringify(history?.length ? { message, history } : { message }),
     });
   },
 

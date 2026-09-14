@@ -189,6 +189,44 @@ const Services = () => {
     console.error('Error loading services:', servicesListQuery.error);
   }, [servicesListQuery.isError, servicesListQuery.error, t]);
 
+  // Facetas de ubicación: qué regiones/comunas TIENEN servicios publicados, para no
+  // ofrecer en los filtros lugares vacíos (ej: si no hay nada en Ñuñoa, no aparece).
+  // Deriva de los servicios reales. A gran escala conviene un endpoint dedicado en el
+  // backend (GET /services/locations con conteos); por ahora esto cubre bien el catálogo.
+  const locationFacetsQuery = useQuery({
+    queryKey: ['services', 'location-facets'],
+    queryFn: () => servicesAPI.getServices({ limit: 500, sort: 'rating' }),
+    staleTime: 1000 * 60 * 5,
+    gcTime: 1000 * 60 * 10,
+  });
+
+  const facetsReady = !locationFacetsQuery.isLoading && !!locationFacetsQuery.data;
+  const { regionsWithServices, comunasByRegion } = useMemo(() => {
+    const regionSet = new Set<string>();
+    const byRegion: Record<string, Set<string>> = {};
+    for (const s of locationFacetsQuery.data?.services ?? []) {
+      const rid = s.region_id != null && s.region_id !== '' ? String(s.region_id) : '';
+      if (rid) regionSet.add(rid);
+      const comuna = (s.comuna ?? '').trim();
+      if (rid && comuna) (byRegion[rid] ??= new Set<string>()).add(comuna);
+    }
+    return { regionsWithServices: regionSet, comunasByRegion: byRegion };
+  }, [locationFacetsQuery.data]);
+
+  // Mientras cargan las facetas mostramos todo (evita parpadeo); ya cargadas, filtramos.
+  // Si la consulta falla, facetsReady es false => fallback a mostrar todo el catálogo.
+  const visibleRegions = useMemo(
+    () => (facetsReady ? apiRegions.filter((r) => regionsWithServices.has(r.id)) : apiRegions),
+    [apiRegions, regionsWithServices, facetsReady],
+  );
+  const visibleCommunes = useMemo(() => {
+    if (!facetsReady) return filterCommuneNames;
+    const set = comunasByRegion[regionFilter];
+    return set
+      ? Array.from(set).sort((a, b) => a.localeCompare(b, 'es', { sensitivity: 'base' }))
+      : [];
+  }, [facetsReady, comunasByRegion, regionFilter, filterCommuneNames]);
+
   // Cuando cambia un filtro (o búsqueda), volvemos a la primera página.
   useEffect(() => {
     setPage(1);
@@ -481,7 +519,7 @@ const Services = () => {
                 </SelectTrigger>
                 <SelectContent className="glass-card border-white/10 backdrop-blur-xl">
                   <SelectItem value="all">{t('services.all_regions')}</SelectItem>
-                  {apiRegions.map((reg) => (
+                  {visibleRegions.map((reg) => (
                     <SelectItem key={reg.id} value={reg.id}>{reg.name}</SelectItem>
                   ))}
                 </SelectContent>
@@ -504,7 +542,7 @@ const Services = () => {
                   </SelectTrigger>
                   <SelectContent className="glass-card border-white/10 backdrop-blur-xl">
                     <SelectItem value="all">{t('services.all_comunas')}</SelectItem>
-                    {filterCommuneNames.map((c) => (
+                    {visibleCommunes.map((c) => (
                       <SelectItem key={c} value={c}>{c}</SelectItem>
                     ))}
                   </SelectContent>
