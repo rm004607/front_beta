@@ -37,6 +37,42 @@ Nunca adjuntar `cards` que no correspondan al rubro pedido. Sin match real → s
 
 ---
 
+## 0.b) FILTRO DE VERDAD (no confiar solo en el prompt) — IMPORTANTE
+
+El prompt es una instrucción que la IA PUEDE ignorar. Hay que poner un filtro real,
+una capa de código que decide ANTES de responder si el mensaje es o no del rubro de
+Dameldato. Así, aunque el modelo falle, el off-topic nunca recibe respuesta.
+
+Flujo con filtro (2 capas):
+
+1. CLASIFICADOR (capa 1, obligatoria). Antes de generar la respuesta, clasificar el
+   mensaje: ¿es una petición de buscar/recomendar un servicio local? Se puede hacer con
+   una llamada barata al modelo que devuelva JSON, por ejemplo:
+   ```
+   { "es_servicio": true/false, "rubro": "gasfiteria" | null, "comuna": "Ñuñoa" | null }
+   ```
+   - Si `es_servicio` = false  -> NO se llama a la generación normal. Se responde con un
+     mensaje fijo de reencauce (sin cards). Ej: "Soy tu buscador de servicios de
+     Dameldato. ¿Qué servicio necesitas?". Esto además ahorra tokens.
+   - Si `es_servicio` = true   -> se sigue al paso 2.
+
+2. GENERACIÓN (capa 2). Se buscan en la BD los servicios del rubro/comuna detectados,
+   se inyectan como CONTEXTO y recién ahí se genera la respuesta con el system prompt.
+
+Filtro de salida (capa 3, barata y muy efectiva): las `cards` NO las elige libremente el
+modelo; el backend solo permite como card un servicio cuyo `id` esté en el CONTEXTO que
+se le pasó. Si el modelo "inventa" o intenta colar otra, el back la descarta. Así nunca
+salen tarjetas de un rubro que no se pidió.
+
+(Opcional) Lista negra rápida de temas: si el mensaje matchea patrones claramente
+ajenos —"receta", "código/programar", "chiste", "clima", "tarea"— se puede cortar de
+inmediato en la capa 1 sin siquiera llamar al modelo.
+
+Resumen: el prompt educa, pero el FILTRO (clasificador + validación de cards) es el que
+garantiza el comportamiento. Ambos, no uno solo.
+
+---
+
 ## 1) Aceptar historial (para que sea conversacional)
 
 Hoy cada mensaje llega solo, sin memoria. Si la IA pregunta "¿en qué comuna?" y el
